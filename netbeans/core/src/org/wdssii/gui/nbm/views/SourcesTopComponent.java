@@ -6,29 +6,20 @@ package org.wdssii.gui.nbm.views;
 
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 
-import java.io.InputStream;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
-import java.util.TreeSet;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.swing.JOptionPane;
 import javax.swing.JFrame;
+import javax.swing.table.AbstractTableModel;
+
+import org.wdssii.core.SourceBookmarks.*;
+import org.wdssii.core.SourceBookmarks;
 
 /**
  * Top component which displays something.
@@ -44,58 +35,92 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_SourcesAction",
 preferredID = "SourcesTopComponent")
 public final class SourcesTopComponent extends TopComponent {
-	/**
-	 * Holder of a table row for the virtual table
-	 * 
-	 * @author Robert Toomey
-	 * 
-	 */
-	public static class TableURLData {
-		public String name;
-		public String group;
-		public String type;
-		public String location;
-		public String path;
-		public String time;
-		public String selections;
-	}
-        private ArrayList<TableURLData> mySourceList;
-	private ArrayList<TableURLData> myVisibleSourceList;
-        private static final String ALLGROUPS = "All";
-        private javax.swing.JTable jSourceListTable;
+
+    private ArrayList<BookmarkURLSource> mySourceList;
+    private ArrayList<BookmarkURLSource> myVisibleSourceList;
+    private static final String ALLGROUPS = "All";
+    private javax.swing.JTable jSourceListTable;
+
+    /** A class that uses a BookmarkURLData as its model */
+    private class BookmarkURLDataTableModel extends AbstractTableModel {
+
+        /** The bookmark data structure backing our stuff */
+        private BookmarkURLData bookmarks;
         
+        /** The column headers */
+        private final String headers[];
+
+        public BookmarkURLDataTableModel(BookmarkURLData b) {
+            this.bookmarks = b;
+            
+            // Hardcoded to match bookmarks.
+            this.headers = new String[]{
+                "Name", "Location", "Path", "Latest", "Group"
+            };
+        }
+
+        public void setBookmarks(BookmarkURLData b) {
+            this.bookmarks = b;
+            this.fireTableDataChanged();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return headers.length;
+        }
+
+        @Override
+        public int getRowCount() {
+            int size = 0;
+            if (bookmarks != null) {
+                size = bookmarks.data.size();
+            }
+            return size;
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            return headers[column];
+        }
+
+        @Override
+        public Object getValueAt(int row, int column) {
+
+            if (bookmarks != null) {
+                BookmarkURLSource bookmark = bookmarks.data.get(row);
+                switch (column) {
+                    case 0: // name
+                        return bookmark.name;
+                    case 1:
+                        return bookmark.location;
+                    case 2:
+                        return bookmark.path;
+                    case 3:
+                        return bookmark.time;
+                    case 4:
+                        return bookmark.group;
+                    default:
+                        return "";
+                }
+            } else {
+                return "";
+            }
+        }
+
+        @Override
+        public void setValueAt(Object value, int row, int column) {
+        }
+    }
+
     public SourcesTopComponent() {
         initComponents();
-        
-        // Have to create our virtual table withing the GUI
+
+        // Have to create our virtual table within the GUI
         jSourceListTable = new javax.swing.JTable();
-        // My dynamic stuff:
-        jSourceListTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Name", "Location", "Path", "Latest", "Group"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
+        jSourceListTable.setModel(new BookmarkURLDataTableModel(null));
         jSourceListTable.setFillsViewportHeight(true);
-        jSourceTableScrollPane.add(jSourceListTable);
-        
+        jSourceTableScrollPane.setViewportView(jSourceListTable);
+
         setName(NbBundle.getMessage(SourcesTopComponent.class, "CTL_SourcesTopComponent"));
         setToolTipText(NbBundle.getMessage(SourcesTopComponent.class, "HINT_SourcesTopComponent"));
 
@@ -120,12 +145,10 @@ public final class SourcesTopComponent extends TopComponent {
         jTextField4 = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         jGroupComboBox = new javax.swing.JComboBox();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        jBrowseButton = new javax.swing.JButton();
+        jRefreshButton = new javax.swing.JButton();
         jComboBox2 = new javax.swing.JComboBox();
-        jButton3 = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jORGSourceListTable = new javax.swing.JTable();
+        jLoadNewSourceButton = new javax.swing.JButton();
         jSourceTableScrollPane = new javax.swing.JScrollPane();
 
         setToolTipText(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.toolTipText")); // NOI18N
@@ -151,25 +174,25 @@ public final class SourcesTopComponent extends TopComponent {
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jLabel5.text")); // NOI18N
 
-        jGroupComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jGroupComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "All" }));
 
-        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jButton1.text")); // NOI18N
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        org.openide.awt.Mnemonics.setLocalizedText(jBrowseButton, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jBrowseButton.text")); // NOI18N
+        jBrowseButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jBrowseButtonActionPerformed(evt);
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jButton2, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jButton2.text")); // NOI18N
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        org.openide.awt.Mnemonics.setLocalizedText(jRefreshButton, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jRefreshButton.text")); // NOI18N
+        jRefreshButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                jRefreshButtonActionPerformed(evt);
             }
         });
 
         jComboBox2.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "All", "30", "60", "90", "120" }));
 
-        org.openide.awt.Mnemonics.setLocalizedText(jButton3, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jButton3.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLoadNewSourceButton, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jLoadNewSourceButton.text")); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -183,17 +206,17 @@ public final class SourcesTopComponent extends TopComponent {
                     .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 403, Short.MAX_VALUE)
+                    .addComponent(jNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 378, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jComboBox2, javax.swing.GroupLayout.Alignment.LEADING, 0, 280, Short.MAX_VALUE)
-                            .addComponent(jURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE))
+                            .addComponent(jComboBox2, javax.swing.GroupLayout.Alignment.LEADING, 0, 255, Short.MAX_VALUE)
+                            .addComponent(jURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(jLoadNewSourceButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jBrowseButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
-            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 440, Short.MAX_VALUE)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -201,11 +224,11 @@ public final class SourcesTopComponent extends TopComponent {
                     .addComponent(jLabel5))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jGroupComboBox, 0, 380, Short.MAX_VALUE)
+                    .addComponent(jGroupComboBox, 0, 355, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jTextField4, javax.swing.GroupLayout.DEFAULT_SIZE, 301, Short.MAX_VALUE)
+                        .addComponent(jTextField4, javax.swing.GroupLayout.DEFAULT_SIZE, 276, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton2)))
+                        .addComponent(jRefreshButton)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -219,19 +242,19 @@ public final class SourcesTopComponent extends TopComponent {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(jURLTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(jBrowseButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton3))
+                    .addComponent(jLoadNewSourceButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2))
+                    .addComponent(jRefreshButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
@@ -239,55 +262,23 @@ public final class SourcesTopComponent extends TopComponent {
                 .addGap(19, 19, 19))
         );
 
-        jORGSourceListTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Name", "Location", "Path", "Latest", "Group"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        jScrollPane1.setViewportView(jORGSourceListTable);
-        jORGSourceListTable.getColumnModel().getColumn(0).setHeaderValue(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jORGSourceListTable.columnModel.title0_1")); // NOI18N
-        jORGSourceListTable.getColumnModel().getColumn(1).setHeaderValue(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jORGSourceListTable.columnModel.title1_1")); // NOI18N
-        jORGSourceListTable.getColumnModel().getColumn(2).setHeaderValue(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jORGSourceListTable.columnModel.title2_1")); // NOI18N
-        jORGSourceListTable.getColumnModel().getColumn(3).setHeaderValue(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jORGSourceListTable.columnModel.title3_1")); // NOI18N
-        jORGSourceListTable.getColumnModel().getColumn(4).setHeaderValue(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jORGSourceListTable.columnModel.title4")); // NOI18N
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 440, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
-            .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28)
-                .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -295,7 +286,7 @@ public final class SourcesTopComponent extends TopComponent {
         // TODO add your handling code here:
     }//GEN-LAST:event_jURLTextFieldActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBrowseButtonActionPerformed
         // TODO add your handling code here:
         if (JOptionPane.showConfirmDialog(new JFrame(),
                 "Do you want to quit this application ?", "Title",
@@ -303,17 +294,22 @@ public final class SourcesTopComponent extends TopComponent {
             System.exit(0);
         }
 
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_jBrowseButtonActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-        parseURL();
-    }//GEN-LAST:event_jButton2ActionPerformed
+    private void jRefreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRefreshButtonActionPerformed
+        try {
+            // FIXME: should be from GUI, not hardcoded
+            URL aURL = new URL("http://tensor.protect.nssl/rindexv2.xml");
+            //BookmarkURLData bookmarks = SourceBookmarks.getBookmarksFromURL(aURL);
+            BookmarkURLData bookmarks = SourceBookmarks.getFakeBookmarks(20, 5);
 
+            setBookmarks(bookmarks);
+        } catch (MalformedURLException e) {
+            // FIXME: dialog?
+        }
+    }//GEN-LAST:event_jRefreshButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
+    private javax.swing.JButton jBrowseButton;
     private javax.swing.JComboBox jComboBox2;
     private javax.swing.JComboBox jGroupComboBox;
     private javax.swing.JLabel jLabel1;
@@ -321,10 +317,10 @@ public final class SourcesTopComponent extends TopComponent {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JButton jLoadNewSourceButton;
     private javax.swing.JTextField jNameTextField;
-    private javax.swing.JTable jORGSourceListTable;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton jRefreshButton;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JScrollPane jSourceTableScrollPane;
     private javax.swing.JTextField jTextField4;
@@ -353,100 +349,31 @@ public final class SourcesTopComponent extends TopComponent {
         // TODO read your settings according to their version
     }
 
-    /**
-     * Parse the URL once and add to the list. FIXME: make it refreshable...
-     *  FIXME: this code should be a library independent of the view really
-     */
-    public void parseURL() {
+    /** Set our visual table list of bookmarks from a given data set of them */
+    public void setBookmarks(BookmarkURLData bookmarks) {
 
-        // Save any 'old' state, such as group selection
-        // Turn 'off' current rows
-        // RCP myTable.setItemCount(0);
-      // jSourceListTable.removeAllItems();
-       javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) jORGSourceListTable.getModel();
-       model.setRowCount(0); 
-      // model.
-        // new thread??
-        try {
+        BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
+        mySourceList = bookmarks.data;
+        myVisibleSourceList = mySourceList; // Same for moment
+        // FIXME: filter by group into sublist...?
+        model.setBookmarks(bookmarks);
 
-            DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-
-            // FIXME: Could make this a preference or a dropdown...
-            // Would be nice to have it be writable bookmark list...
-            URL aURL = new URL("http://tensor.protect.nssl/rindexv2.xml");
-            InputStream stream = aURL.openStream();
-            Document doc = docBuilder.parse(stream);
-
-            doc.getDocumentElement().normalize();
-            System.out.println("Root element of the doc is "
-                    + doc.getDocumentElement().getNodeName());
-
-            // Read in the FULL list. We will filter later by group
-            NodeList indexesXML = doc.getElementsByTagName("index");
-            ArrayList<TableURLData> sortedList = new ArrayList<TableURLData>();
-            TreeSet<String> groupList = new TreeSet<String>();
-            for (int i = 0; i < indexesXML.getLength(); i++) {
-                Element anIndex = (Element) indexesXML.item(i);
-                TableURLData data = new TableURLData();
-                data.name = anIndex.getAttribute("name");
-                data.group = anIndex.getAttribute("group");
-
-                data.location = anIndex.getAttribute("location");
-                data.path = anIndex.getAttribute("path");
-                data.time = anIndex.getAttribute("time");
-                data.selections = anIndex.getAttribute("selections");
-
-                // The no group bug. Hack around it until script is fixed, if
-                // ever
-                if (!data.group.equalsIgnoreCase("nogroup")) {
-                    sortedList.add(data);
-                    if (data.group != null) {
-                        groupList.add(data.group);
-                    }
-                }
+        // Add each unique group item to list
+        jGroupComboBox.removeAllItems();
+        jGroupComboBox.addItem(ALLGROUPS);
+        Iterator<String> it = bookmarks.groups.iterator();
+        int i = 0;
+        int select = 0;
+        while (it.hasNext()) {
+            String current = it.next();
+            // RCP  myGroupText.add(current);
+            jGroupComboBox.addItem(current);
+            if (current.equalsIgnoreCase("Realtime")) {
+                select = i;
             }
-            Collections.sort(sortedList, new Comparator<TableURLData>() {
-
-                @Override
-                public int compare(TableURLData arg0, TableURLData arg1) {
-                    return (arg0.name.compareTo(arg1.name));
-                }
-            });
-            mySourceList = sortedList;
-            myVisibleSourceList = mySourceList; // Same for moment
-            // RCP myTable.setItemCount(myVisibleSourceList.size());
-            // RCP myTable.pack(true); // FIXME: visibility issue?
-
-            // Add each unique group item to list
-           // RCP myGroupText.removeAll();
-            jGroupComboBox.removeAllItems();
-           // RCP myGroupText.add(ALLGROUPS);
-            jGroupComboBox.addItem(ALLGROUPS);
-            Iterator<String> it = groupList.iterator();
-            int i = 0;
-            int select = 0;
-            while (it.hasNext()) {
-                String current = it.next();
-              // RCP  myGroupText.add(current);
-                jGroupComboBox.addItem(current);
-                if (current.equalsIgnoreCase("Realtime")) {
-                    select = i;
-                }
-                i++;
-            }
-           // RCP myGroupText.select(select + 1);
-            jGroupComboBox.setSelectedIndex(select); 
-            //RCP++ setShownGroup("Realtime");
-
-        } catch (SAXException e) { // FIXME: figure out each exception what to
-            // do
-            // That's what she said...
-        } catch (ParserConfigurationException e) {
-        } catch (MalformedURLException e) {
-            System.out.println("Exception reading URL " + e.toString());
-        } catch (IOException io) {
-            System.out.println("IO Exception reading URL " + io.toString());
+            i++;
         }
+        jGroupComboBox.setSelectedIndex(select);
+        //RCP++ setShownGroup("Realtime");
     }
 }

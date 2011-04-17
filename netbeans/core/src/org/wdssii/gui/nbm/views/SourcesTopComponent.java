@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.JOptionPane;
 import javax.swing.JFrame;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import org.wdssii.core.SourceBookmarks.*;
@@ -29,9 +32,9 @@ autostore = false)
 @TopComponent.Description(preferredID = "SourcesTopComponent",
 //iconBase="SET/PATH/TO/ICON/HERE", 
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
-@TopComponent.Registration(mode = "leftSlidingSide", openAtStartup = true)
+@TopComponent.Registration(mode = "explorer", openAtStartup = false)
 @ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.SourcesTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@ActionReference(path = "Menu/Window/Display" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_SourcesAction",
 preferredID = "SourcesTopComponent")
 public final class SourcesTopComponent extends TopComponent {
@@ -107,6 +110,15 @@ public final class SourcesTopComponent extends TopComponent {
             }
         }
 
+        public BookmarkURLSource getBookmarkURLSourceForRow(int row){
+            BookmarkURLSource s = null;
+            if (bookmarks != null){
+               if ((row >= 0) && (row < bookmarks.data.size())){
+                 s = bookmarks.data.get(row); 
+               }
+            }
+            return s;
+        }
         @Override
         public void setValueAt(Object value, int row, int column) {
         }
@@ -119,8 +131,15 @@ public final class SourcesTopComponent extends TopComponent {
         jSourceListTable = new javax.swing.JTable();
         jSourceListTable.setModel(new BookmarkURLDataTableModel(null));
         jSourceListTable.setFillsViewportHeight(true);
+        jSourceListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jSourceTableScrollPane.setViewportView(jSourceListTable);
+        jSourceListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                jSourceListTableValueChanged(e);
+            }
+        });
         setName(NbBundle.getMessage(SourcesTopComponent.class, "CTL_SourcesTopComponent"));
         setToolTipText(NbBundle.getMessage(SourcesTopComponent.class, "HINT_SourcesTopComponent"));
 
@@ -327,6 +346,25 @@ public final class SourcesTopComponent extends TopComponent {
     private javax.swing.JTextField jURLTextField;
     // End of variables declaration//GEN-END:variables
 
+    
+    /** From our manually added table, handle selection of a line by filling
+     * in the fields
+     */
+    private void jSourceListTableValueChanged(ListSelectionEvent evt) { 
+       if (evt.getValueIsAdjusting()) {
+                return;
+       }
+       int row = jSourceListTable.getSelectedRow();
+       BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
+       if (model != null){
+           BookmarkURLSource s = model.getBookmarkURLSourceForRow(row);
+           if (s != null){
+               jNameTextField.setText(s.name);
+               jURLTextField.setText(s.path);
+           }
+       }
+    }      
+    
     @Override
     public void componentOpened() {
         // TODO add custom code on component opening

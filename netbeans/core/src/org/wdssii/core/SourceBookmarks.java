@@ -120,7 +120,7 @@ public class SourceBookmarks {
         for (int i = 0; i < markCount; i++) {
             BookmarkURLSource data = new BookmarkURLSource();
             data.name = "name" + i;
-            data.group = "group " + i%groupCount;
+            data.group = "group " + i % groupCount;
             data.location = "location" + i;
             data.path = "path" + i;
             data.time = "time" + i;

@@ -1,0 +1,376 @@
+package org.wdssii.gui.worldwind;
+
+import gov.nasa.worldwind.geom.Angle;
+import gov.nasa.worldwind.geom.Position;
+import gov.nasa.worldwind.geom.Sector;
+import gov.nasa.worldwind.geom.Vec4;
+import gov.nasa.worldwind.layers.AbstractLayer;
+import gov.nasa.worldwind.render.DrawContext;
+
+import java.util.ArrayList;
+
+import javax.media.opengl.GL;
+
+import org.wdssii.datatypes.WindField;
+import org.wdssii.geom.Location;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.WindFieldProduct;
+
+import com.sun.opengl.util.j2d.TextRenderer;
+
+// This is my own specialized tiling engine, made to take advantage of 'grid' data objects.
+// Typically we have the entire data object stored in ram.
+public class WindFieldLayer {
+	
+	//extends AbstractLayer
+
+/*
+	// The current windfield product we are going to render on draw
+	private WindFieldProduct myWindFieldProduct = null;
+
+	// Set the current windfield product we are drawing, release any created tiles
+	public void setCurrentProduct(Product aProduct) {
+		if (aProduct instanceof WindFieldProduct) {
+			if (myWindFieldProduct != aProduct) {
+				myWindFieldProduct = (WindFieldProduct) (aProduct);
+				mySetUpLevels = false;
+			}
+		}
+
+	}
+
+	// The density of the lowest level tile.
+	public final static int DENSITY_X = 16;
+	public final static int DENSITY_Y = 16;
+		
+	private ArrayList<WindFieldTile> topLevelsWF;
+
+	private boolean forceLevelZeroLoads = false;
+	private boolean levelZeroLoaded = false;
+	private boolean retainLevelZeroTiles = false;
+	private double splitScale = 0.9; // TODO: Make configurable
+
+	// Diagnostic flags
+	private boolean showImageTileOutlines = false;
+	private boolean drawTileBoundaries = false;
+	private boolean drawTileIDs = false;
+	private boolean drawBoundingVolumes = false;
+	private TextRenderer textRenderer = null;
+
+	// Stuff computed each frame
+	private ArrayList<WindFieldTile> currentTilesWF = new ArrayList<WindFieldTile>();
+
+	private Vec4 referencePoint;
+	private boolean atMaxResolution = false;
+	private boolean mySetUpLevels = false;
+	
+	public void lazyInit() {
+		// Only do the tile stuff once we have DATA
+		levelZeroLoaded = false; // release any old levels
+		this.createTopLevelTiles();
+	}
+
+	public WindFieldLayer() {
+		this.setForceLevelZeroLoads(true);
+		this.setRetainLevelZeroTiles(true);
+	}
+
+	@Override
+	public void setName(String name) {
+		super.setName(name);
+	}
+
+	public boolean isForceLevelZeroLoads() {
+		return this.forceLevelZeroLoads;
+	}
+
+	public void setForceLevelZeroLoads(boolean forceLevelZeroLoads) {
+		this.forceLevelZeroLoads = forceLevelZeroLoads;
+	}
+
+	public boolean isRetainLevelZeroTiles() {
+		return retainLevelZeroTiles;
+	}
+
+	public void setRetainLevelZeroTiles(boolean retainLevelZeroTiles) {
+		this.retainLevelZeroTiles = retainLevelZeroTiles;
+	}
+
+	public boolean isDrawTileIDs() {
+		return drawTileIDs;
+	}
+
+	public void setDrawTileIDs(boolean drawTileIDs) {
+		this.drawTileIDs = drawTileIDs;
+	}
+
+	public boolean isDrawTileBoundaries() {
+		return drawTileBoundaries;
+	}
+
+	public void setDrawTileBoundaries(boolean drawTileBoundaries) {
+		this.drawTileBoundaries = drawTileBoundaries;
+	}
+
+	public boolean isShowImageTileOutlines() {
+		return showImageTileOutlines;
+	}
+
+	public void setShowImageTileOutlines(boolean showImageTileOutlines) {
+		this.showImageTileOutlines = showImageTileOutlines;
+	}
+
+	public boolean isDrawBoundingVolumes() {
+		return drawBoundingVolumes;
+	}
+
+	public void setDrawBoundingVolumes(boolean drawBoundingVolumes) {
+		this.drawBoundingVolumes = drawBoundingVolumes;
+	}
+
+	protected void setSplitScale(double splitScale) {
+		this.splitScale = splitScale;
+	}
+
+	@Override
+	public boolean isMultiResolution() {
+		// Yes we do split tiles
+		return true;
+	}
+
+	@Override
+	public boolean isAtMaxResolution() {
+		return this.atMaxResolution;  // FIXME: not sure we're using this
+	}
+*/
+	/** Create the largest area covering tile.  We sync this to the full lat lon grid of the data product, instead of
+	 * to the entire planet (as in google earth, worldwind).  This prevents data 'jitter' on tile changes.
+	 */
+	
+	/*
+	private void createTopLevelTiles() {
+		
+		WindField wf = myWindFieldProduct.getWindField();
+		Location loc = wf.getLocation();
+		double maxLat = loc.getLatitude();
+		double minLon = loc.getLongitude();
+		double minLat = maxLat - (wf.getDeltaLat()*wf.getNumLat());
+		double maxLon = minLon + (wf.getDeltaLon()*wf.getNumLat());
+		int row = 0;
+		int col = 0;
+		
+		WindFieldTile aWFTile = new WindFieldTile(new Sector(
+				Angle.fromDegrees(minLat), Angle.fromDegrees(maxLat), Angle.fromDegrees(minLon), Angle.fromDegrees(maxLon)),
+						0, row, col);
+		this.topLevelsWF = new ArrayList<WindFieldTile>(1);
+		this.topLevelsWF.add(aWFTile);
+	
+	}
+
+	private void loadTopLevel(DrawContext dc) {
+		
+		// For each top level tile not here, load/create it..
+		for (WindFieldTile tile : this.topLevelsWF) {
+			tile.createTile(dc, myWindFieldProduct);
+		}
+		this.levelZeroLoaded = true;
+	}
+
+	// ============== Tile Assembly ======================= //
+	// ============== Tile Assembly ======================= //
+	// ============== Tile Assembly ======================= //
+
+	private void assembleTiles(DrawContext dc) {
+		this.currentTilesWF.clear();
+		//for(WindFieldTile tile : this.topLevelsWF){
+		//	if (tile.isTileVisible(dc)) {
+		//		this.addTileOrDescendants(dc, tile);
+		//	}
+		//}
+		for(WindFieldTile tile : this.topLevelsWF){
+			tile.addTileOrDescendants(dc, splitScale, myWindFieldProduct, this.currentTilesWF);
+		}
+	}
+
+	// ============== Rendering ======================= //
+	// ============== Rendering ======================= //
+	// ============== Rendering ======================= //
+
+	@Override
+	public void render(DrawContext dc) {
+		if (myWindFieldProduct == null) {
+			System.out.println("There is no lat lon grid yet, ignoring tiles...returning..");
+			return;
+		}
+		if (mySetUpLevels == false) { // Do the stuff regular worldwind does in
+			// constructor, since our data is
+			// dynamic
+			lazyInit();
+			mySetUpLevels = true;
+		}
+		//goop this.atMaxResolution = this.atMaxLevel(dc);
+		super.render(dc);
+	}
+
+	@Override
+	protected final void doRender(DrawContext dc) {
+		if (myWindFieldProduct == null) {
+			// System.out.println("There is no lat lon grid yet, ignoring tiles...returning..");
+			return;
+		}
+	/*	if (mySetUpLevels == false) {
+			lazyInit();
+			mySetUpLevels = true;
+		}
+		if (this.forceLevelZeroLoads && !this.levelZeroLoaded){
+			this.loadTopLevel(dc);
+		}
+		//if (dc.getSurfaceGeometry() == null
+		//		|| dc.getSurfaceGeometry().size() < 1)
+		//	return;
+
+		//dc.getGeographicSurfaceTileRenderer().setShowImageTileOutlines(
+		//		this.showImageTileOutlines);
+
+		draw(dc);
+	}
+
+	private void draw(DrawContext dc) {
+		if (myWindFieldProduct == null) {
+			//System.out.println("There is no wind field grid yet, ignoring tiles...returning..");
+			return;
+		}
+		
+		if (mySetUpLevels == false) {
+			lazyInit();
+			mySetUpLevels = true;
+		}
+		if (this.forceLevelZeroLoads && !this.levelZeroLoaded){
+			this.loadTopLevel(dc);
+		}
+		
+		this.referencePoint = this.computeReferencePoint(dc);
+		this.assembleTiles(dc); // Determine the tiles to draw.
+		
+		// Render the current visible and loaded tileset
+		if (this.currentTilesWF.size() >= 1) {
+			for (WindFieldTile tile: this.currentTilesWF){
+				tile.drawTile(dc);
+			}
+			this.currentTilesWF.clear();
+		}
+	}
+	
+	@Override
+	public boolean isLayerInView(DrawContext dc) {
+		// If we have no product, than the 'levels' hasn't been created yet
+		if (myWindFieldProduct == null) {
+			return false;
+		}
+/*	FIXME: Can trim if outside visible sector of whole dataset
+		if (dc == null) {
+			String message = Logging.getMessage("nullValue.DrawContextIsNull");
+			Logging.logger().severe(message);
+			throw new IllegalStateException(message);
+		}
+
+		if (dc.getView() == null) {
+			String message = Logging
+			.getMessage("layers.AbstractLayer.NoViewSpecifiedInDrawingContext");
+			Logging.logger().severe(message);
+			throw new IllegalStateException(message);
+		}
+
+		return !(dc.getVisibleSector() != null && !this.levels.getSector()
+				.intersects(dc.getVisibleSector()));
+			
+		return true;
+	}
+
+	private Vec4 computeReferencePoint(DrawContext dc) {
+		if (dc.getViewportCenterPosition() != null)
+			return dc.getGlobe().computePointFromPosition(
+					dc.getViewportCenterPosition());
+
+		java.awt.geom.Rectangle2D viewport = dc.getView().getViewport();
+		int x = (int) viewport.getWidth() / 2;
+		for (int y = (int) (0.5 * viewport.getHeight()); y >= 0; y--) {
+			Position pos = dc.getView().computePositionFromScreenPoint(x, y);
+			if (pos == null)
+				continue;
+
+			return dc.getGlobe().computePointFromPosition(pos.getLatitude(),
+					pos.getLongitude(), 0d);
+		}
+
+		return null;
+	}
+
+	protected Vec4 getReferencePoint() {
+		return this.referencePoint;
+	}
+
+	@SuppressWarnings("unused")
+	private void drawTileIDs(DrawContext dc, ArrayList<WindFieldTile> tiles) {
+		java.awt.Rectangle viewport = dc.getView().getViewport();
+		if (this.textRenderer == null) {
+			this.textRenderer = new TextRenderer(java.awt.Font
+					.decode("Arial-Plain-13"), true, true);
+			this.textRenderer.setUseVertexArrays(false);
+		}
+
+		// WORLDWINDBUGFIX Need to push pop the attributes for the ids...
+		dc.getGL().glPushAttrib(GL.GL_ENABLE_BIT);
+		// ----------
+		dc.getGL().glDisable(GL.GL_DEPTH_TEST);
+		dc.getGL().glDisable(GL.GL_BLEND);
+		dc.getGL().glDisable(GL.GL_TEXTURE_2D);
+
+		this.textRenderer.setColor(java.awt.Color.YELLOW);
+		this.textRenderer.beginRendering(viewport.width, viewport.height);
+		//for (WindFieldTile tile : tiles) {
+			/* FIXME: make work for windfield for debugging purposes
+			String tileLabel = tile.getLabel();
+
+			if (tile.getFallbackTile() != null)
+				tileLabel += "/" + tile.getFallbackTile().getLabel();
+
+			LatLon ll = tile.getSector().getCentroid();
+			Vec4 pt = dc.getGlobe().computePointFromPosition(
+					ll.getLatitude(),
+					ll.getLongitude(),
+					dc.getGlobe().getElevation(ll.getLatitude(),
+							ll.getLongitude()));
+			pt = dc.getView().project(pt);
+			this.textRenderer.draw(tileLabel, (int) pt.x, (int) pt.y);
+			*/
+		//}
+		this.textRenderer.endRendering();
+		// WORLDWINDBUGFIX Need to push pop the attributes for the ids...
+		dc.getGL().glPopAttrib();
+		// ----------
+	}
+
+	/*
+	private void drawBoundingVolumes(DrawContext dc,
+			ArrayList<TextureTile> tiles) {
+		float[] previousColor = new float[4];
+		dc.getGL().glGetFloatv(GL.GL_CURRENT_COLOR, previousColor, 0);
+		dc.getGL().glColor3d(0, 1, 0);
+
+		for (TextureTile tile : tiles) {
+			((Cylinder) tile.getExtent(dc)).render(dc);
+		}
+
+		Cylinder c = dc.getGlobe().computeBoundingCylinder(
+				dc.getVerticalExaggeration(), this.levels.getSector());
+		dc.getGL().glColor3d(1, 1, 0);
+		c.render(dc);
+
+		dc.getGL().glColor4fv(previousColor, 0);
+	}
+*/
+
+	// ----------------------------CLASS
+
+}

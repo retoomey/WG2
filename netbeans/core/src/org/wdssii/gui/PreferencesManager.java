@@ -16,12 +16,14 @@ public class PreferencesManager implements Singleton {
 
         public void setDefault(String name, boolean value);
 
-        public void setDefault(String name, String value);
+       // public void setDefault(String name, String value);
 
         public void setDefault(String name, int value);
 
         public boolean getBoolean(String key);
 
+        public void setBoolean(String key, boolean value);
+        
         public int getInteger(String key);
 
         public void setInteger(String key, int i);

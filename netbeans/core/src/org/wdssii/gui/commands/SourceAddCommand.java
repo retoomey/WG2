@@ -42,60 +42,56 @@ public class SourceAddCommand extends SourceClearCommand {
     @Override
     public boolean execute() {
 
-        /*
+
         boolean updateGUI = false;
         boolean doJob = true;
-        if (myPath != null){
-        
-        // Remember if user wants dialog to show on add or not...
-        PreferencesManager p = PreferencesManager.getInstance();
-        boolean showDialog = p.getBoolean(PrefConstants.PREF_showAddCommandDialog);
-        if (myUserConfirm && showDialog){
-        // getWindowConfigurator? FIXME
-        MessageDialogWithToggle dlg = MessageDialogWithToggle.openOkCancelConfirm(
-        null, "Confirm source addition", 
-        "Add and connect to source '"+myNiceName+"'?", 
-        "Don't show this message next time", false, null, null);
-        if (dlg.getReturnCode() != IDialogConstants.OK_ID){
-        doJob = false;
-        }else{
-        p.setValue(PrefConstants.PREF_showAddCommandDialog, !dlg.getToggleState());
-        }
-        }
-        if (doJob){
-        
-        // FIXME: flag true or false or what?
-        String newKey = add(myNiceName, myPath, myRealtime);  // Don't lag here.
-        updateGUI = true;  // Add needs a 'unconnected' icon and name in list.
-        
-        if (myUserConfirm){
-        if (newKey != null){
-        //	MessageDialog.openInformation(null, "Add success", "Add was successful");
-        }else{
-        MessageDialog.openInformation(null, "Add failure", "Add failed");
-        }
-        }
-        
-        // Pass on to the connect command...
-        if (newKey != null){		
-        
-        if (myConnect){
-        // Spawns worker thread....
-        SourceConnectCommand c = new SourceConnectCommand();
-        c.setIndexName(newKey);
-        CommandManager.getInstance().executeCommand(c, false);
-        }
-        }
-        
-        }
+        if (myPath != null) {
+
+            // Remember if user wants dialog to show on add or not...
+            PreferencesManager p = PreferencesManager.getInstance();
+            boolean showDialog = p.getBoolean(PrefConstants.PREF_showAddCommandDialog);
+            if (myUserConfirm && showDialog) {
+                /*  // getWindowConfigurator? FIXME
+                MessageDialogWithToggle dlg = MessageDialogWithToggle.openOkCancelConfirm(
+                null, "Confirm source addition", 
+                "Add and connect to source '"+myNiceName+"'?", 
+                "Don't show this message next time", false, null, null);
+                if (dlg.getReturnCode() != IDialogConstants.OK_ID){
+                doJob = false;
+                }else{
+                p.setValue(PrefConstants.PREF_showAddCommandDialog, !dlg.getToggleState());
+                }*/
+            }
+            if (doJob) {
+
+                // FIXME: flag true or false or what?
+                String newKey = add(myNiceName, myPath, myRealtime);  // Don't lag here.
+                updateGUI = true;  // Add needs a 'unconnected' icon and name in list.
+                if (myUserConfirm) {
+                    if (newKey != null) {
+                        //	MessageDialog.openInformation(null, "Add success", "Add was successful");
+                    } else {
+                       // MessageDialog.openInformation(null, "Add failure", "Add failed");
+                    }
+                }
+
+                // Pass on to the connect command...
+                if (newKey != null) {
+
+                    if (myConnect) {
+                        // Spawns worker thread....
+                        SourceConnectCommand c = new SourceConnectCommand();
+                        c.setIndexName(newKey);
+                        CommandManager.getInstance().executeCommand(c, false);
+                    }
+                }
+
+            }
         }
         // This will update the list to show the 'unconnected' icon (job probably still running)
         // After the job is done, another fire will update again...
         // Or job already completed and we just update twice..either way ok...
-        
-        return updateGUI; 
-         * 
-         */
-        return false;
+
+        return updateGUI;
     }
 }

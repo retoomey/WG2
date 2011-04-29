@@ -7,6 +7,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
 import org.wdssii.core.WDSSII;
+import org.wdssii.core.WdssiiJob;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.storage.DataManager;
 
@@ -32,12 +33,13 @@ public class Application extends ModuleInstall {
         log.info("Startup: USER DIRECTORY = " + System.getProperty("user.dir"));
         DataManager.getInstance();
         
+        // Create the WDSSII low-level core for products
         WDSSII.getInstance();
         
-        // Gonna need netbeans versions of these....
-        // FIXME: need a job handler class or nothing will work,
-        // this needs to wrap around the netbeans job stack.
-        //WdssiiJob.introduce(new EclipseJob.EclipseJobFactory());
+        // Add the netbeans job creator
+        WdssiiJob.introduce(new NBJobHandler.NBJobFactory());
+        
+        // Add the netbeans preference manager
         PreferencesManager.introduce(new NBPrefHandler());
 
         // Make any swing GUI items use native look and feel

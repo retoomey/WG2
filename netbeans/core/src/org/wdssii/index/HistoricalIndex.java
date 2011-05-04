@@ -1,6 +1,8 @@
 package org.wdssii.index;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -40,6 +42,20 @@ public class HistoricalIndex implements IndexRecordListener {
     private TreeMap<String, IndexDataType> datatypeStringToInt = new TreeMap<String, IndexDataType>();
     /** Set of datatype names to short strings, used to save memory on keys. */
     private ArrayList<String> datatypeIntToString = new ArrayList<String>();
+
+    /** Query result to gather a subset of records.  The GUI uses this
+    to pass in parameters and get a subset of records from the selections
+    a user makes.  You can call this for any purpose though.
+     */
+    public static class RecordQuery {
+
+        /** A set of the unique subtypes found in the query */
+        public Set<String> uniqueSubtypes = new TreeSet<String>();
+        /** A set of the unique datatypes found in the query */
+        public Set<String> uniqueDatatypes = new TreeSet<String>();
+        /** The records matching the query */
+        public ArrayList<IndexRecord> matches = new ArrayList<IndexRecord>();
+    }
 
     /** Create a historical index given a path (e.g: /tmp/code_index.xml) and a maximum history in record count. */
     public HistoricalIndex(String path, int aHistorySize) {
@@ -303,6 +319,41 @@ public class HistoricalIndex implements IndexRecordListener {
         return (info.getSubtypes());
     }
 
+    /**
+     * Get a list of the sorted subtypes for a datatype 'product'
+     * @param longDt
+     *            Datatype to get such as "Reflectivity"
+     * @param ascending
+     *            Which way to sort
+     */
+    public ArrayList<String> getSortedSubTypesForDataType(
+            String longDt, boolean ascending) {
+
+        ArrayList<String> strings = new ArrayList<String>();
+
+        // Try it from index directly
+        TreeSet<String> subtypeList = getSubTypesForDataType(longDt);
+        for (String s : subtypeList) {
+            strings.add(s);
+        }
+
+        // Sort the strings (though index should return them sorted already now)
+        if (ascending) {
+            Collections.sort(strings);
+        } else {
+            Collections.sort(strings, new Comparator<String>() {
+
+                @Override
+                public int compare(String o1, String o2) {
+                    return o2.compareTo(o1);
+                }
+            });
+        }
+
+
+        return strings;
+    }
+
     public enum Direction {
 
         PreviousSubType, // Move to previous time < current (if subtype numeric)
@@ -372,5 +423,115 @@ public class HistoricalIndex implements IndexRecordListener {
             }
         }
         return next;
+    }
+
+    /** Get a sorted result list of index records.  The upto is a 
+    set of strings telling the selection.  For now, these come from the
+    GUI from the product picker
+    FIXME:  Put some examples here in the documentation
+     */
+    public RecordQuery gatherRecords(
+            String[] upto, boolean ascending) {
+
+        RecordQuery results = new RecordQuery();
+
+        Iterator<IndexRecord> iter = null;
+        Map<Date, IndexRecord> recordsMap;
+        ArrayList<IndexRecord> recordsList;
+        if (upto[1].compareTo("*") == 0) {
+            recordsList = getRecordsByTime(upto[0], null, null);
+            if (recordsList != null) {
+                iter = recordsList.iterator();
+            }
+        } else {
+            // They are sorted if only one subtype (there can't be dups)
+            recordsMap = getRecordsByTypeTime(
+                    upto[0], upto[1], null, null);
+            if (recordsMap != null) {
+                iter = recordsMap.values().iterator();
+            }
+        }
+
+        // Create a new string list of data items (lazy)
+        // We want to 'filter' each index record and get a set of all
+        // the second selections...
+        int length = upto.length;
+        if (iter != null) {
+            while (iter.hasNext()) {
+                IndexRecord aRecord = iter.next();
+                String datatype = aRecord.getDataType();
+                String subtype = aRecord.getSubType();
+                //String timestamp = aRecord.getTimeStamp();
+                //Date aTime = aRecord.getTime();
+
+                // Match each key part to each field of selection
+                boolean match = true;
+
+                // 'Elevation' match record
+                if (length > 1) {
+                    if (!(upto[1].equals("*"))) {
+                        if (!(upto[1].equals(subtype))) {
+                            match = false;
+                        }
+                    }
+                }
+
+                // Add to query results
+                if (match) {
+                    results.uniqueSubtypes.add(subtype);
+                    results.uniqueDatatypes.add(datatype);
+                    results.matches.add(aRecord);
+                }
+            }
+        }
+
+        sortRecordsByTime(results.matches, ascending);
+
+        if (ascending) {
+            // Sort anagram groups according to size
+            Collections.sort(results.matches, new Comparator<IndexRecord>() {
+
+                @Override
+                public int compare(IndexRecord o1, IndexRecord o2) {
+                    return o1.getTime().compareTo(o2.getTime());
+                }
+            });
+        } else {
+            // Sort anagram groups according to size
+            Collections.sort(results.matches, new Comparator<IndexRecord>() {
+
+                @Override
+                public int compare(IndexRecord o1, IndexRecord o2) {
+                    return o2.getTime().compareTo(o1.getTime());
+                }
+            });
+        }
+
+        return results;
+    }
+
+    /** Sort a collection of IndexRecords by ascending or descending time */
+    public static void sortRecordsByTime(ArrayList<IndexRecord> matches, boolean ascending) {
+        if (matches != null) {
+            if (ascending) {
+                // Sort anagram groups according to size
+                Collections.sort(matches, new Comparator<IndexRecord>() {
+
+                    @Override
+                    public int compare(IndexRecord o1, IndexRecord o2) {
+                        return o1.getTime().compareTo(o2.getTime());
+                    }
+                });
+            } else {
+                // Sort anagram groups according to size
+                Collections.sort(matches, new Comparator<IndexRecord>() {
+
+                    @Override
+                    public int compare(IndexRecord o1, IndexRecord o2) {
+                        return o2.getTime().compareTo(o1.getTime());
+                    }
+                });
+            }
+        }
     }
 }

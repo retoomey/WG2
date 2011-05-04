@@ -4,8 +4,9 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.Set;
-import java.util.TreeSet;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -17,12 +18,17 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.SourceManager.SourceCommand;
+import org.wdssii.gui.commands.ProductLoadCommand;
+import org.wdssii.gui.commands.ProductLoadCommand.ProductLoadCaller;
 import org.wdssii.gui.views.ProductPickerView;
 import org.wdssii.index.HistoricalIndex;
+import org.wdssii.index.HistoricalIndex.RecordQuery;
+import org.wdssii.index.IndexRecord;
 import org.wdssii.index.IndexWatcher;
 
 /**
@@ -58,9 +64,7 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         InputOutput io = IOProvider.getDefault().getIO("WDSSII", true);
         io.getOut().println("-->Update from Source manager...bleh");
     }
-    
     private String[] mySelection = new String[3];
-    
     private javax.swing.JTable jSourceListTable;
     private javax.swing.JTable jProductsListTable;
     private javax.swing.JTable jChoicesListTable;
@@ -75,12 +79,17 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
     private ChoicesListTableModel myChoicesListTableModel;
     /** Show the actual records for selected source, product, choices */
     private ResultsListTableModel myResultsListTableModel;
+    protected String myIndexName;
+    //  protected String myDataType;
+    //  protected String mySubType;
 
-    // The data model for the 'source' list (copies source manager record at
-    // moment)  Copy best for thread safety, though might save some memory
-    // on large data sets if we didn't.  The reason for our own data structure
-    // is that we might have stuff likes colors, etc. that are GUI only.
+    /**The data model for the 'source' list (copies source manager record at
+     * moment)  Copy best for thread safety, though might save some memory
+     * on large data sets if we didn't.  The reason for our own data structure
+     * is that we might have stuff likes colors, etc. that are GUI only.
+     */
     private static class SourceTableData {
+
         public String visibleName;
         public String indexKey;
         public boolean realtime;
@@ -91,6 +100,7 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
 
     /** Storage for the current product list */
     private static class ProductTableData {
+
         String visibleName; // Name shown in list
         String datatype; // The datatype (used to access the record);
         Color textColor; // The text color for the datatype (null is system
@@ -98,13 +108,30 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         Color background; // The background color for the datatype (null is
         // system default)
     }
-    
+
     /** Storage for the current Choices list */
     private static class ChoicesTableData {
+
         String visibleName; // Name shown in list
     }
-    
-    //private ArrayList<SourceTableData> mySourceList;
+
+    /** Storage for a single row of the Results table */
+    private static class ResultsTableData {
+
+        public ResultsTableData(Date time, String timestamp, String subtype,
+                String datatype, String source) {
+            this.time = time;
+            this.timestamp = timestamp;
+            this.subtype = subtype;
+            this.datatype = datatype;
+            this.source = source;
+        }
+        Date time;
+        String timestamp;
+        String subtype;
+        String datatype;
+        String source;
+    }
 
     /** Table model to handle the Sources list */
     private class SourceListTableModel extends AbstractTableModel {
@@ -212,7 +239,7 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
 
         @Override
         public Object getValueAt(int row, int column) {
-              if (myDataTypes != null) {
+            if (myDataTypes != null) {
                 ProductTableData d = myDataTypes.get(row);
                 switch (column) {
                     case 0: // name
@@ -228,12 +255,12 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         @Override
         public void setValueAt(Object value, int row, int column) {
         }
-        
-        public void setDataTypes(ArrayList<ProductTableData> n){
+
+        public void setDataTypes(ArrayList<ProductTableData> n) {
             myDataTypes = n;
             this.fireTableDataChanged();
         }
-        
+
         private ProductTableData getProductTableDataForRow(int row) {
             ProductTableData s = null;
             if (myDataTypes != null) {
@@ -249,9 +276,8 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
 
         /** The column headers */
         private final String headers[];
-
         private ArrayList<ChoicesTableData> myChoicesTableData;
-        
+
         public ChoicesListTableModel() {
 
             // Hardcoded to match bookmarks.
@@ -281,7 +307,7 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
 
         @Override
         public Object getValueAt(int row, int column) {
-                if (myChoicesTableData != null) {
+            if (myChoicesTableData != null) {
                 ChoicesTableData d = myChoicesTableData.get(row);
                 switch (column) {
                     case 0: // name
@@ -297,13 +323,13 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         @Override
         public void setValueAt(Object value, int row, int column) {
         }
-        
-        public void setChoices(ArrayList<ChoicesTableData> n){
+
+        public void setChoices(ArrayList<ChoicesTableData> n) {
             myChoicesTableData = n;
             this.fireTableDataChanged();
         }
-        
-         private ChoicesTableData getChoicesTableDataForRow(int row) {
+
+        private ChoicesTableData getChoicesTableDataForRow(int row) {
             ChoicesTableData s = null;
             if (myChoicesTableData != null) {
                 if ((row >= 0) && (row < myChoicesTableData.size())) {
@@ -318,6 +344,9 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
 
         /** The column headers */
         private final String headers[];
+        private ArrayList<ResultsTableData> myResultsTableData;
+        private boolean myShowChoices = false;
+        private boolean myShowProducts = false;
 
         public ResultsListTableModel() {
 
@@ -325,17 +354,28 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
             this.headers = new String[]{
                 "Times", "Choices", "Products"
             };
+
         }
 
         @Override
         public int getColumnCount() {
-            return headers.length;
+            // Times always show.  Two other columns are hidden iff
+            // the data is the same for each row.
+            if (!myShowChoices) {
+                return 1;
+            }
+            if (!myShowProducts) {
+                return 2;
+            }
+            return 3;
         }
 
         @Override
         public int getRowCount() {
-            int size = 20;
-
+            int size = 0;
+            if (myResultsTableData != null) {
+                size = myResultsTableData.size();
+            }
             return size;
         }
 
@@ -346,23 +386,45 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
 
         @Override
         public Object getValueAt(int row, int column) {
+            if (myResultsTableData != null) {
+                ResultsTableData d = myResultsTableData.get(row);
+                switch (column) {
+                    case 0: // Time
+                        return d.time;
+                    case 1: // Choice
+                        return d.subtype;
+                    case 2: // Products
+                        return d.datatype;
+                    default:
+                        return "";
+                }
 
-            // if (bookmarks != null) {
-            //    BookmarkURLSource bookmark = bookmarks.data.get(row);
-            switch (column) {
-                case 0: // name
-                    return "a source";
-                case 1:
-                    return "a path";
-                case 2:
-                    return "a product";
-                default:
-                    return "";
+            } else {
+                return "";
             }
         }
 
         @Override
         public void setValueAt(Object value, int row, int column) {
+        }
+
+        private void setRecordData(ArrayList<ResultsTableData> d,
+                boolean showSubtypes, boolean showDatatypes) {
+            myResultsTableData = d;
+            myShowChoices = showSubtypes;
+            myShowProducts = showDatatypes;
+            this.fireTableStructureChanged();
+            //   this.fireTableDataChanged();
+        }
+
+        private ResultsTableData getResultsTableDataForRow(int row) {
+            ResultsTableData s = null;
+            if (myResultsTableData != null) {
+                if ((row >= 0) && (row < myResultsTableData.size())) {
+                    s = myResultsTableData.get(row);
+                }
+            }
+            return s;
         }
     }
 
@@ -413,20 +475,28 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
                 jSourceListTableValueChanged(e);
             }
         });
-        
-         jProductsListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+
+        jProductsListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 jProductsListTableValueChanged(e);
             }
         });
-         
+
         jChoicesListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 jChoicesListTableValueChanged(e);
+            }
+        });
+
+        jResultsListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                jResultsListTableValueChanged(e);
             }
         });
         // Update all data....
@@ -440,38 +510,42 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         int row = jSourceListTable.getSelectedRow();
         if (mySourceListTableModel != null) {
             SourceTableData d = mySourceListTableModel.getSourceTableDataForRow(row);
-            if (d != null) {
-                setSourceIndexSelection(d.indexKey);
-            }
+            setSourceIndexSelection(d.indexKey);
         }
     }
-    
-     private void jProductsListTableValueChanged(ListSelectionEvent evt) {
+
+    private void jProductsListTableValueChanged(ListSelectionEvent evt) {
         if (evt.getValueIsAdjusting()) {
             return;
         }
         int row = jProductsListTable.getSelectedRow();
         if (myProductListTableModel != null) {
             ProductTableData d = myProductListTableModel.getProductTableDataForRow(row);
-            if (d != null) {
-                setProductSelection(d.datatype);
-            }
+            setProductSelection(d);
         }
     }
-     
-     private void jChoicesListTableValueChanged(ListSelectionEvent evt) {
+
+    private void jChoicesListTableValueChanged(ListSelectionEvent evt) {
         if (evt.getValueIsAdjusting()) {
             return;
         }
         int row = jChoicesListTable.getSelectedRow();
         if (myChoicesListTableModel != null) {
             ChoicesTableData d = myChoicesListTableModel.getChoicesTableDataForRow(row);
-            if (d != null) {
-                setChoicesSelection(d.visibleName);
-            }
+            setChoicesSelection(d);
         }
     }
-    
+
+    private void jResultsListTableValueChanged(ListSelectionEvent evt) {
+        if (evt.getValueIsAdjusting()) {
+            return;
+        }
+        int row = jResultsListTable.getSelectedRow();
+        if (myResultsListTableModel != null) {
+            ResultsTableData d = myResultsListTableModel.getResultsTableDataForRow(row);
+            setResultsSelection(d);
+        }
+    }
 
     protected void setSourceIndexSelection(String key) {
         SourceManager.getInstance().selectIndexKey(key);
@@ -479,21 +553,35 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         //clearProductList();
         fillDatatypeList(key, "", "");
     }
-    
-    protected void setProductSelection(String key) {
-       // Keep the current datatype to allow it to track over different
-			// sources
-			// Ref is selected, change source and auto selects reflectivity in
-			// new source
-			//myLatestClickedDatatype = aData.datatype;
-			//myLatestClickedDatatypeVisible = aData.visibleName;
-			//System.out.println("ok call fillsubtype with "
-			//		+ myLatestClickedDatatype + ", " + aData.datatype);
-			fillChoicesList(key);
+
+    protected void setProductSelection(ProductTableData d) {
+        // Keep the current datatype to allow it to track over different
+        // sources
+        // Ref is selected, change source and auto selects reflectivity in
+        // new source
+        //myLatestClickedDatatype = aData.datatype;
+        //myLatestClickedDatatypeVisible = aData.visibleName;
+        //System.out.println("ok call fillsubtype with "
+        //		+ myLatestClickedDatatype + ", " + aData.datatype);
+        if (d != null) {
+            fillChoicesList(d.datatype);
+        }
     }
-    
-    protected void setChoicesSelection(String key){
-        
+
+    protected void setChoicesSelection(ChoicesTableData d) {
+        if (d != null) {
+            fillRecordList(d.visibleName);
+        }
+    }
+
+    protected void setResultsSelection(ResultsTableData d) {
+        if (d != null) {
+
+            // Fire command to load the clicked product
+            ProductLoadCommand doIt = new ProductLoadCommand(
+                    ProductLoadCaller.FROM_RECORD_PICKER, myIndexName, d.datatype, d.subtype, d.time);
+            CommandManager.getInstance().executeCommand(doIt, true);
+        }
     }
 
     /** This method is called from within the constructor to
@@ -665,12 +753,12 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
     }
 
     void updateParts() {
-        
+
         // Fill in the source list...
         fillSourceList();
-        
+
         //  mySourcesViewer.setItemCount(0);
-       // mySourceList = newList;
+        // mySourceList = newList;
         // mySourcesViewer.setItemCount(mySourceList.size());
 
         // Refresh the table...
@@ -694,8 +782,8 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
     /** Fill in the list of sources
      * 
      */
-    public void fillSourceList(){
-      // ----------------------------------------------------------------------
+    public void fillSourceList() {
+        // ----------------------------------------------------------------------
         // Fill in the sources table model with information from the
         // SourceManager IndexWatcher.  Add extra graphic info here too
         SourceManager manager = SourceManager.getInstance();
@@ -732,11 +820,12 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         }
 
         // Finally update the table....
-        mySourceListTableModel.setSourceTableData(newList);  
+        mySourceListTableModel.setSourceTableData(newList);
         myProductListTableModel.setDataTypes(null);
-        
+        myChoicesListTableModel.setChoices(null);
+
     }
-    
+
     public void fillDatatypeList(String indexFilter, String oldDatatype,
             String oldSubtype) {
 
@@ -767,8 +856,6 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
                     // color which requires a display pointer
                     java.awt.Color raw = theInfo.getListColor();
                     if (raw != null) {
-                        // FIXME: this is leaking (Java doesn't know to clean it
-                        // up)
                         theData.textColor = new Color(raw.getRed(), raw.getGreen(), raw.getBlue());
                         //theData.textColor = new Color(myDisplay, raw.getRed(),
                         //		raw.getGreen(), raw.getBlue());
@@ -790,7 +877,6 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
                     sortedList.add(theData);
                 }
             }
-            // }
 
             Collections.sort(sortedList, new Comparator<ProductTableData>() {
 
@@ -801,9 +887,9 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
             });
         }
         myProductListTableModel.setDataTypes(sortedList);
-        
-      //  this.myProductsListTableModel
-      //  myDataTypes = sortedList; // List is ready to use now
+
+        //  this.myProductsListTableModel
+        //  myDataTypes = sortedList; // List is ready to use now
 
         // When switching products, try to keep the selected datatype (if found)
         // int oldIndex = Collections.binarySearch(sortedList, oldDatatype);
@@ -811,15 +897,15 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         //holder.visibleName = this.myLatestClickedDatatypeVisible;
         // System.out.println("OLD DATATYPE IS "+oldDatatype);
       /*  int oldIndex = Collections.binarySearch(sortedList, holder,
-                new Comparator<datatypeData>() {
-
-                    @Override
-                    // FIXME: same search as above, maybe make it non-anonymous
-                    public int compare(datatypeData o1, datatypeData o2) {
-                        return (o1.visibleName.compareTo(o2.visibleName));
-                    }
-                });
-*/
+        new Comparator<datatypeData>() {
+        
+        @Override
+        // FIXME: same search as above, maybe make it non-anonymous
+        public int compare(datatypeData o1, datatypeData o2) {
+        return (o1.visibleName.compareTo(o2.visibleName));
+        }
+        });
+         */
         /*int actualIndex = oldIndex;
         int aSize = myDataTypes.size();
         if (myStarDatatype) {
@@ -840,111 +926,119 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         
         // It found the visible datatype in current list, so it should be in
         // the index.
-       fillSubtypeList(myLatestClickedDatatype);
+        fillSubtypeList(myLatestClickedDatatype);
         // fillSubtypeList(oldDatatype, oldSubtype);
         }
          * 
          */
     }
-    
-    	public void fillChoicesList(String datatype) {
 
-		String key = SourceManager.getInstance().getSelectedIndexKey();
-		if (key != null){
-			HistoricalIndex anIndex = SourceManager.getIndexByName(key);
-			if (anIndex != null) {
-				mySelection[0] = datatype;
-				ArrayList<String> strings = filterDatatypes(anIndex, datatype, true);
-                                ArrayList<ChoicesTableData> newlist = new ArrayList<ChoicesTableData>();
-                                
-                                for(String s: strings){
-                                    ChoicesTableData d = new ChoicesTableData();
-                                    d.visibleName = s;
-                                    // Add anything else we need, color, etc...
-                                    newlist.add(d);
-                                }
-                                myChoicesListTableModel.setChoices(newlist);
-                                
-				// FIXME: rare case of null here? what to do...probably empty
-				// subtype list
+    public void fillChoicesList(String datatype) {
+
+        String key = SourceManager.getInstance().getSelectedIndexKey();
+        if (key != null) {
+            HistoricalIndex anIndex = SourceManager.getIndexByName(key);
+            if (anIndex != null) {
+                mySelection[0] = datatype;
+                ArrayList<String> strings = anIndex.getSortedSubTypesForDataType(datatype, true);
+                ArrayList<ChoicesTableData> newlist = new ArrayList<ChoicesTableData>();
+
+                for (String s : strings) {
+                    ChoicesTableData d = new ChoicesTableData();
+                    d.visibleName = s;
+                    // Add anything else we need, color, etc...
+                    newlist.add(d);
+                }
+                myChoicesListTableModel.setChoices(newlist);
+
+                // FIXME: rare case of null here? what to do...probably empty
+                // subtype list
 				/*mySubTypes = strings;
+                
+                // ------------------------------------------------------------
+                // Search the list for latest clicked subtype, we'll stay there
+                int oldIndex = Collections.binarySearch(strings, myLatestClickedSubtypeVisible);
+                int actualIndex = oldIndex;
+                int aSize = mySubTypes.size();
+                if (myStarSubtype) {
+                aSize += 1;
+                actualIndex += 1; // move selection down because of '*'
+                if (myLatestClickedSubtypeVisible.equals("*")) {
+                oldIndex = 0;
+                actualIndex = 0;
+                }
+                }
+                myElevations.setItemCount(aSize);
+                myElevations.clearAll();
+                if (oldIndex >= 0) {
+                myElevations.select(actualIndex);
+                myElevations.showSelection();
+                // click the subtype
+                fillRecordList(myLatestClickedSubtypeVisible);
+                } else {
+                clearResultsList();
+                }*/
+            }
+        }
+    }
 
-				// ------------------------------------------------------------
-				// Search the list for latest clicked subtype, we'll stay there
-				int oldIndex = Collections.binarySearch(strings, myLatestClickedSubtypeVisible);
-				int actualIndex = oldIndex;
-				int aSize = mySubTypes.size();
-				if (myStarSubtype) {
-					aSize += 1;
-					actualIndex += 1; // move selection down because of '*'
-					if (myLatestClickedSubtypeVisible.equals("*")) {
-						oldIndex = 0;
-						actualIndex = 0;
-					}
-				}
-				myElevations.setItemCount(aSize);
-				myElevations.clearAll();
-				if (oldIndex >= 0) {
-					myElevations.select(actualIndex);
-					myElevations.showSelection();
-					// click the subtype
-					fillRecordList(myLatestClickedSubtypeVisible);
-				} else {
-					clearResultsList();
-				}*/
-			}
-		}
-	}
-        
-        	/**
-	 * 
-	 * @param anIndex
-	 *            Index to filter records from
-	 * @param upto
-	 *            Sub-product to check
-	 */
-	public static ArrayList<String> filterDatatypes(HistoricalIndex anIndex,
-			String datatype, boolean ascending) {
+    public void fillRecordList(String selectedSubtype) {
+        String key = SourceManager.getInstance().getSelectedIndexKey();
+        if (key != null) {
+            HistoricalIndex anIndex = SourceManager.getIndexByName(key);
+            if (anIndex != null) {
+                String[] list = new String[2];
+                list[0] = mySelection[0];
+                list[1] = selectedSubtype;
+                mySelection[1] = selectedSubtype;
+                setRecordList(key, list);
+            }
+        }
+    }
 
-		ArrayList<String> strings = new ArrayList<String>();
-		if (anIndex == null) {
-			System.out.println("filterDatatypes called on null index");
-		} else {
+    /** Ok this is seting the record list with an index and args. */
+    public void setRecordList(String indexName, String[] upto) {
+        myIndexName = indexName;
+        // myDataType = upto[0];
+        // mySubType = upto[1];
 
-			// Try it from index directly
-			TreeSet<String> subtypeList = anIndex.getSubTypesForDataType(datatype);
-			for (String s: subtypeList){
-				//System.out.println("Subtype: "+s);
-				strings.add(s);
-			}
-			// Sort the strings (though index should return them sorted already now)
-			if (ascending) {
-				Collections.sort(strings);
-			} else {
-				Collections.sort(strings, new Comparator<String>() {
-					@Override
-					public int compare(String o1, String o2) {
-						return o2.compareTo(o1);
-					}
-				});
-			}
-			
-		}
-		return strings;
-	}
-        
-        	public void fillRecordList(String selectedSubtype) {
-		String key = SourceManager.getInstance().getSelectedIndexKey();
-		if (key != null){
-			HistoricalIndex anIndex = SourceManager.getIndexByName(key);
-			if (anIndex != null) {
-				String[] list = new String[2];
-				list[0] = mySelection[0];
-				list[1] = selectedSubtype;
-				mySelection[1] = selectedSubtype;
-				//setRecordList(key, list);
-			}
-		}
-	}
+        HistoricalIndex anIndex = SourceManager.getIndexByName(myIndexName);
+        if (anIndex != null) {
+            RecordQuery q = anIndex.gatherRecords(upto, false);
+            setRecordList(q.matches, indexName, upto[0], upto[1], (q.uniqueSubtypes.size() > 1), (q.uniqueDatatypes.size() > 1));
+        } else {
+            clearRecords();
+        }
+    }
 
+    public void clearRecords() {
+        myResultsListTableModel.setRecordData(null, false, false);
+        jResultsLabel.setText("No record results");
+
+    }
+
+    /** Set our selection of records from a given list of records */
+    public void setRecordList(ArrayList<IndexRecord> indexRecords, String indexName, String dataType, String subtype,
+            boolean showSubtypes, boolean showDatatypes) {
+        myIndexName = indexName;
+        //  myDataType = dataType;
+        //  mySubType = subtype;
+
+        ArrayList<ResultsTableData> stuffToShow = new ArrayList<ResultsTableData>();
+        if (indexRecords != null) {
+            Iterator<IndexRecord> iter = indexRecords.iterator();
+            while (iter.hasNext()) {
+                IndexRecord r = iter.next();
+                ResultsTableData data = new ResultsTableData(
+                        r.getTime(), r.getTimeStamp(), r.getSubType(),
+                        r.getDataType(), "?");
+                stuffToShow.add(data);
+            }
+        }
+        this.myResultsListTableModel.setRecordData(stuffToShow, showSubtypes, showDatatypes);
+        String shortName = SourceManager.getInstance().getNiceShortName(myIndexName);
+        String recordInfo = String.format("Results: %s %s %s (%d found)",
+                shortName, dataType, subtype, stuffToShow.size());
+        this.jResultsLabel.setText(recordInfo);
+    }
 }

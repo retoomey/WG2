@@ -7,13 +7,22 @@ package org.wdssii.gui.nbm.views;
 import gov.nasa.worldwind.Model;
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.avlist.AVKey;
+import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.awt.WorldWindowGLJPanel;
+import gov.nasa.worldwind.layers.LayerList;
+import gov.nasa.worldwind.render.DrawContext;
 import java.awt.BorderLayout;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.wdssii.geom.Location;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.views.EarthBallView;
+import org.wdssii.gui.worldwind.LLHAreaLayer;
+import org.wdssii.gui.worldwind.ProductLayer;
+
 /**
  * Top component which displays something.
  */
@@ -27,17 +36,21 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_EarthAction",
 preferredID = "EarthTopComponent")
-public final class EarthTopComponent extends TopComponent {
+public final class EarthTopComponent extends TopComponent implements EarthBallView {
+
+    private WorldWindowGLJPanel myWorld;
+    /** The worldwind layer that holds our radar products */
+    private ProductLayer myProducts;
 
     public EarthTopComponent() {
         initComponents();
-        
+
         // Basic worldwind setup...
         Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
-        WorldWindowGLJPanel p = new WorldWindowGLJPanel();
-        p.setModel(m);
+        myWorld = new WorldWindowGLJPanel();
+        myWorld.setModel(m);
         jPanel1.setLayout(new BorderLayout());
-        jPanel1.add(p, BorderLayout.CENTER);
+        jPanel1.add(myWorld, BorderLayout.CENTER);
 
         // Either:
         // 1. current worldwind has a VBO bug
@@ -45,8 +58,9 @@ public final class EarthTopComponent extends TopComponent {
         // 3. my nvidia driver is leaking..
         // 4.  something else.. lol
         // but we keep getting VBO exceptions...so turn it off in our worldwind for now...
-        p.getSceneController().getGLRuntimeCapabilities().setVertexBufferObjectEnabled(false);
-  
+        myWorld.getSceneController().getGLRuntimeCapabilities().setVertexBufferObjectEnabled(false);
+        myProducts = new ProductLayer();
+        myWorld.getModel().getLayers().add(myProducts);
         setName(NbBundle.getMessage(EarthTopComponent.class, "CTL_EarthTopComponent"));
         setToolTipText(NbBundle.getMessage(EarthTopComponent.class, "HINT_EarthTopComponent"));
 
@@ -93,11 +107,11 @@ public final class EarthTopComponent extends TopComponent {
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel1;
     private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
+
     @Override
     public void componentOpened() {
         // TODO add custom code on component opening
@@ -118,5 +132,67 @@ public final class EarthTopComponent extends TopComponent {
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
+    }
+
+    @Override
+    public void takeDialogSnapshot() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public LayerList getLayerList() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void setLayerEnabled(String name, boolean flag) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void updateOnMinTime() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public String getProjection() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void setProjection(String projection) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void loadProduct(Product aProduct) {
+        if (myWorld != null) {
+            myWorld.redraw();
+        }
+    }
+
+    @Override
+    public void gotoLocation(Location loc) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public WorldWindowGLCanvas getWwd() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void DrawProductOutline(DrawContext dc) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void getColor(int x, int y) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public LLHAreaLayer getVolumeLayer() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

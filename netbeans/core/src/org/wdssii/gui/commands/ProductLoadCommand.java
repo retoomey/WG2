@@ -44,10 +44,12 @@ public class ProductLoadCommand extends ProductCommand {
                 ProductHandlerList h = CommandManager.getInstance().getProductOrderedSet();
                 h.recordPickerSelectedProduct(myIndexKey, myDataType, mySubType, myTime);
             }
+            break;
             case FROM_TIME_LOOPER: {
                 ProductHandlerList h = CommandManager.getInstance().getProductOrderedSet();
                 h.recordPickerSelectedProduct(myIndexKey, myDataType, mySubType, myTime);
             }
+            break;
             default:
                 break;
         }

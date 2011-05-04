@@ -24,7 +24,7 @@ iconBase = "org/wdssii/gui/nbm/views/world.png",
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "explorer", openAtStartup = true)
 @ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.EarthTopComponent")
-@ActionReference(path = "Menu/Window/Display" /*, position = 333 */)
+@ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_EarthAction",
 preferredID = "EarthTopComponent")
 public final class EarthTopComponent extends TopComponent {

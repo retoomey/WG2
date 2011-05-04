@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.wdssii.gui.nbm.views;
 
 import org.openide.util.NbBundle;
@@ -30,13 +26,20 @@ import org.wdssii.core.SourceBookmarks;
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Sources//EN",
 autostore = false)
 @TopComponent.Description(preferredID = "SourcesTopComponent",
-//iconBase="SET/PATH/TO/ICON/HERE", 
+iconBase = "org/wdssii/gui/nbm/views/cart_add.png",
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "explorer", openAtStartup = false)
 @ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.SourcesTopComponent")
-@ActionReference(path = "Menu/Window/Display" /*, position = 333 */)
+@ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_SourcesAction",
 preferredID = "SourcesTopComponent")
+
+/** The source view is what allows us to browse to various data sources, 
+ * by URL, disk location (url too), etc...
+ * 
+ * @author Robert Toomey
+ * 
+ */
 public final class SourcesTopComponent extends TopComponent {
 
     private ArrayList<BookmarkURLSource> mySourceList;
@@ -55,7 +58,7 @@ public final class SourcesTopComponent extends TopComponent {
 
         public BookmarkURLDataTableModel(BookmarkURLData b) {
             this.bookmarks = b;
-            
+
             // Hardcoded to match bookmarks.
             this.headers = new String[]{
                 "Name", "Location", "Path", "Latest", "Group"
@@ -110,15 +113,16 @@ public final class SourcesTopComponent extends TopComponent {
             }
         }
 
-        public BookmarkURLSource getBookmarkURLSourceForRow(int row){
+        public BookmarkURLSource getBookmarkURLSourceForRow(int row) {
             BookmarkURLSource s = null;
-            if (bookmarks != null){
-               if ((row >= 0) && (row < bookmarks.data.size())){
-                 s = bookmarks.data.get(row); 
-               }
+            if (bookmarks != null) {
+                if ((row >= 0) && (row < bookmarks.data.size())) {
+                    s = bookmarks.data.get(row);
+                }
             }
             return s;
         }
+
         @Override
         public void setValueAt(Object value, int row, int column) {
         }
@@ -346,25 +350,24 @@ public final class SourcesTopComponent extends TopComponent {
     private javax.swing.JTextField jURLTextField;
     // End of variables declaration//GEN-END:variables
 
-    
     /** From our manually added table, handle selection of a line by filling
      * in the fields
      */
-    private void jSourceListTableValueChanged(ListSelectionEvent evt) { 
-       if (evt.getValueIsAdjusting()) {
-                return;
-       }
-       int row = jSourceListTable.getSelectedRow();
-       BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
-       if (model != null){
-           BookmarkURLSource s = model.getBookmarkURLSourceForRow(row);
-           if (s != null){
-               jNameTextField.setText(s.name);
-               jURLTextField.setText(s.path);
-           }
-       }
-    }      
-    
+    private void jSourceListTableValueChanged(ListSelectionEvent evt) {
+        if (evt.getValueIsAdjusting()) {
+            return;
+        }
+        int row = jSourceListTable.getSelectedRow();
+        BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
+        if (model != null) {
+            BookmarkURLSource s = model.getBookmarkURLSourceForRow(row);
+            if (s != null) {
+                jNameTextField.setText(s.name);
+                jURLTextField.setText(s.path);
+            }
+        }
+    }
+
     @Override
     public void componentOpened() {
         // TODO add custom code on component opening

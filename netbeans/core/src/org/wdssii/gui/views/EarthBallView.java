@@ -1,10 +1,10 @@
 package org.wdssii.gui.views;
 
+import gov.nasa.worldwind.WorldWindow;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 
-import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.layers.LayerList;
 import gov.nasa.worldwind.render.DrawContext;
 
@@ -33,7 +33,7 @@ public interface EarthBallView extends WdssiiView {
 
     public void gotoLocation(Location loc);
 
-    public WorldWindowGLCanvas getWwd();
+    public WorldWindow getWwd();
 
     public void DrawProductOutline(DrawContext dc);
 

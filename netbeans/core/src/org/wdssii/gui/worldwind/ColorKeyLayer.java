@@ -15,7 +15,7 @@ import java.awt.geom.Rectangle2D;
 import com.sun.opengl.util.j2d.TextRenderer;
 import org.wdssii.gui.views.EarthBallView;
 
-public class ColorKeyLayer extends RenderableLayer {
+public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
     // private double toViewportScale = 0.2;
 
     private double iconScale = 1.0d;
@@ -31,6 +31,11 @@ public class ColorKeyLayer extends RenderableLayer {
     // Draw it as ordered with an eye distance of 0 so that it shows up in front
     // of most other things.
     private OrderedIcon orderedImage = new OrderedIcon();
+
+    @Override
+    public String getCategory() {
+        return WDSSII_CATEGORY;
+    }
 
     private class OrderedIcon implements OrderedRenderable {
 

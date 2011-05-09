@@ -18,7 +18,6 @@ import org.wdssii.gui.volumes.LLHAreaSliceFactory;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 
 import gov.nasa.worldwind.WorldWindow;
-import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.geom.Matrix;
@@ -132,7 +131,7 @@ public class LLHAreaManager implements Singleton {
         if (layer != null) {
 
             boolean success = false;
-            WorldWindowGLCanvas world = getWorld();
+            WorldWindow world = getWorld();
             VolumeTableData theData = new VolumeTableData();
 
             if (myCurrentFactory != null) {
@@ -173,7 +172,7 @@ public class LLHAreaManager implements Singleton {
         if (theVolume != mySelectedVolume) {
             //System.out.println("Select volume called "+theVolume);
 
-            WorldWindowGLCanvas world = getWorld(); // What if world is different now???
+            WorldWindow world = getWorld(); // What if world is different now???
 
             /*
              * Old 'different' layer editor...we merged it into one layer...
@@ -232,8 +231,8 @@ public class LLHAreaManager implements Singleton {
     }
 
     /** Get the world we use.  Currently only one earthball */
-    private WorldWindowGLCanvas getWorld() {
-        WorldWindowGLCanvas world = null;
+    private WorldWindow getWorld() {
+        WorldWindow world = null;
 
         WdssiiView view = CommandManager.getInstance().getNamedViewed(EarthBallView.ID);
         if (view instanceof EarthBallView) {

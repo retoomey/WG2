@@ -11,7 +11,7 @@ import org.wdssii.gui.products.ProductHandlerList;
  * @author Robert Toomey
  * @version $Id$
  */
-public class ProductLayer extends AbstractLayer {
+public class ProductLayer extends AbstractLayer implements WWCategoryLayer {
 
     protected Product myProduct;
     protected boolean myDirty = true;
@@ -48,5 +48,10 @@ public class ProductLayer extends AbstractLayer {
         return "Product layer";
         // Not sure what this is yet, some database
         // return Logging.getMessage("layers.layer.Name");
+    }
+
+    @Override
+    public String getCategory() {
+        return WDSSII_CATEGORY;
     }
 }

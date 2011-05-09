@@ -6,8 +6,8 @@ package org.wdssii.gui.nbm.views;
 
 import gov.nasa.worldwind.Model;
 import gov.nasa.worldwind.WorldWind;
+import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
-import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.awt.WorldWindowGLJPanel;
 import gov.nasa.worldwind.layers.LayerList;
 import gov.nasa.worldwind.render.DrawContext;
@@ -18,8 +18,10 @@ import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.wdssii.geom.Location;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.views.EarthBallView;
+import org.wdssii.gui.worldwind.ColorKeyLayer;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.gui.worldwind.ProductLayer;
 
@@ -38,7 +40,9 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 preferredID = "EarthTopComponent")
 public final class EarthTopComponent extends TopComponent implements EarthBallView {
 
-    private WorldWindowGLJPanel myWorld;
+    /** The WorldWindow we contain.  Eventually we might want multiple of these */
+    private WorldWindow myWorld;
+    
     /** The worldwind layer that holds our radar products */
     private ProductLayer myProducts;
 
@@ -47,10 +51,11 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
 
         // Basic worldwind setup...
         Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
-        myWorld = new WorldWindowGLJPanel();
+        WorldWindowGLJPanel p = new WorldWindowGLJPanel();
+        myWorld = p;
         myWorld.setModel(m);
         jPanel1.setLayout(new BorderLayout());
-        jPanel1.add(myWorld, BorderLayout.CENTER);
+        jPanel1.add(p, BorderLayout.CENTER);
 
         // Either:
         // 1. current worldwind has a VBO bug
@@ -61,9 +66,12 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         myWorld.getSceneController().getGLRuntimeCapabilities().setVertexBufferObjectEnabled(false);
         myProducts = new ProductLayer();
         myWorld.getModel().getLayers().add(myProducts);
+        myWorld.getModel().getLayers().add(new ColorKeyLayer());
+        
+
         setName(NbBundle.getMessage(EarthTopComponent.class, "CTL_EarthTopComponent"));
         setToolTipText(NbBundle.getMessage(EarthTopComponent.class, "HINT_EarthTopComponent"));
-
+        CommandManager.getInstance().registerView(EarthBallView.ID, this);
     }
 
     /** This method is called from within the constructor to
@@ -141,7 +149,11 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
 
     @Override
     public LayerList getLayerList() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        LayerList l = null;
+        if (myWorld != null){
+            l = myWorld.getModel().getLayers();
+        }
+        return l;
     }
 
     @Override
@@ -177,13 +189,16 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
     }
 
     @Override
-    public WorldWindowGLCanvas getWwd() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public WorldWindow getWwd() {
+        return myWorld;
     }
+   
 
     @Override
     public void DrawProductOutline(DrawContext dc) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // FIXME: implement.  Disable for now since color key layer
+        // calls it constantly
+      //  throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

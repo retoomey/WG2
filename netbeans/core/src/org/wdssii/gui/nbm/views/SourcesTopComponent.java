@@ -16,6 +16,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableRowSorter;
 
 import org.wdssii.core.SourceBookmarks.*;
 import org.wdssii.core.SourceBookmarks;
@@ -33,7 +34,6 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_SourcesAction",
 preferredID = "SourcesTopComponent")
-
 /** The source view is what allows us to browse to various data sources, 
  * by URL, disk location (url too), etc...
  * 
@@ -52,7 +52,6 @@ public final class SourcesTopComponent extends TopComponent {
 
         /** The bookmark data structure backing our stuff */
         private BookmarkURLData bookmarks;
-        
         /** The column headers */
         private final String headers[];
 
@@ -133,7 +132,8 @@ public final class SourcesTopComponent extends TopComponent {
 
         // Have to create our virtual table within the GUI
         jSourceListTable = new javax.swing.JTable();
-        jSourceListTable.setModel(new BookmarkURLDataTableModel(null));
+        BookmarkURLDataTableModel model = new BookmarkURLDataTableModel(null);
+        jSourceListTable.setModel(model);
         jSourceListTable.setFillsViewportHeight(true);
         jSourceListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jSourceTableScrollPane.setViewportView(jSourceListTable);
@@ -144,6 +144,12 @@ public final class SourcesTopComponent extends TopComponent {
                 jSourceListTableValueChanged(e);
             }
         });
+
+        // Enable basic sorting on each column
+        TableRowSorter<BookmarkURLDataTableModel> sorter =
+                new TableRowSorter<BookmarkURLDataTableModel>(model);
+        jSourceListTable.setRowSorter(sorter);
+
         setName(NbBundle.getMessage(SourcesTopComponent.class, "CTL_SourcesTopComponent"));
         setToolTipText(NbBundle.getMessage(SourcesTopComponent.class, "HINT_SourcesTopComponent"));
 
@@ -357,13 +363,19 @@ public final class SourcesTopComponent extends TopComponent {
         if (evt.getValueIsAdjusting()) {
             return;
         }
-        int row = jSourceListTable.getSelectedRow();
+
         BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
         if (model != null) {
-            BookmarkURLSource s = model.getBookmarkURLSourceForRow(row);
-            if (s != null) {
-                jNameTextField.setText(s.name);
-                jURLTextField.setText(s.path);
+            int row = jSourceListTable.getSelectedRow();
+            if (row > -1) {
+                int modelRow = jSourceListTable.convertRowIndexToModel(row);
+                if (modelRow > -1) {
+                    BookmarkURLSource s = model.getBookmarkURLSourceForRow(modelRow);
+                    if (s != null) {
+                        jNameTextField.setText(s.name);
+                        jURLTextField.setText(s.path);
+                    }
+                }
             }
         }
     }

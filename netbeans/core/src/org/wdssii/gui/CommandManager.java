@@ -175,9 +175,7 @@ public class CommandManager implements Singleton {
     }
 
     // / Used by the Layers view to get the list of global worldwind layers from
-    // the
-    // / primary window
-    // FIXME: hide interface by returning names only....
+    // the primary window
     public LayerList getLayerList() {
         return getEarthBall().getLayerList();
     }

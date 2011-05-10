@@ -163,6 +163,10 @@ public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
         double height = this.getScaledIconHeight();
 
         // Created text renderer once for bin labels
+        // Resize in netbeans causing TextRenderer to get messed up
+        // somehow.  This fixes it for now at least until I can investigate
+        // further..might be gl state.
+        aText = null;
         if (aText == null) {  // Only create once for speed.  We draw a LOT
             aText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
         }

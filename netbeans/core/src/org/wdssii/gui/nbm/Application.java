@@ -1,11 +1,13 @@
 package org.wdssii.gui.nbm;
 
+import java.awt.Frame;
 import javax.swing.UIManager;
 import org.openide.modules.ModuleInstall;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
+import org.openide.windows.WindowManager;
 import org.wdssii.core.WDSSII;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.gui.PreferencesManager;
@@ -56,6 +58,20 @@ public class Application extends ModuleInstall {
         // Fixme: probably need a log4j appender to wrap the output console
         InputOutput io = IOProvider.getDefault().getIO("WDSSII", true);
         io.getOut().println("WDSSII GUI VERSION 2.0");
+        
+        // Only change the window title when all the UI components are fully loaded.
+        WindowManager.getDefault().invokeWhenUIReady(new Runnable() {
+            @Override
+            public void run() {
+                Frame w = WindowManager.getDefault().getMainWindow();
+                if (w != null){
+                  String currentTitle = w.getTitle();
+                  String dir = DataManager.getInstance().getRootTempDir();
+                  String newTitle = currentTitle.replaceAll("tempdir", dir);
+                  w.setTitle(newTitle);
+                }
+            }
+        });
     }
 
     public boolean closing() {

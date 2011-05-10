@@ -19,6 +19,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.commands.DataCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.views.EarthBallView;
 import org.wdssii.gui.worldwind.ColorKeyLayer;
@@ -39,10 +40,18 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_EarthAction",
 preferredID = "EarthTopComponent")
 public final class EarthTopComponent extends TopComponent implements EarthBallView {
+    // ----------------------------------------------------------------
+    // Reflection called updates from CommandManager.
+    // See CommandManager execute and gui updating for how this works
 
+    // Typically ANY command dealing with data will require us to refresh
+    // our world view. (Data commands consist of Product movement,
+    // Source add/delete, etc...)
+    public void DataCommandUpdate(DataCommand command) {
+        updateOnMinTime(); // load, delete, etc..	
+    }
     /** The WorldWindow we contain.  Eventually we might want multiple of these */
     private WorldWindow myWorld;
-    
     /** The worldwind layer that holds our radar products */
     private ProductLayer myProducts;
 
@@ -67,7 +76,7 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         myProducts = new ProductLayer();
         myWorld.getModel().getLayers().add(myProducts);
         myWorld.getModel().getLayers().add(new ColorKeyLayer());
-        
+
 
         setName(NbBundle.getMessage(EarthTopComponent.class, "CTL_EarthTopComponent"));
         setToolTipText(NbBundle.getMessage(EarthTopComponent.class, "HINT_EarthTopComponent"));
@@ -150,7 +159,7 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
     @Override
     public LayerList getLayerList() {
         LayerList l = null;
-        if (myWorld != null){
+        if (myWorld != null) {
             l = myWorld.getModel().getLayers();
         }
         return l;
@@ -163,7 +172,9 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
 
     @Override
     public void updateOnMinTime() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (myWorld != null){
+          myWorld.redraw();
+        }
     }
 
     @Override
@@ -192,13 +203,12 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
     public WorldWindow getWwd() {
         return myWorld;
     }
-   
 
     @Override
     public void DrawProductOutline(DrawContext dc) {
         // FIXME: implement.  Disable for now since color key layer
         // calls it constantly
-      //  throw new UnsupportedOperationException("Not supported yet.");
+        //  throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

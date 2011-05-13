@@ -8,7 +8,7 @@ import gov.nasa.worldwind.Model;
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
-import gov.nasa.worldwind.awt.WorldWindowGLJPanel;
+import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.layers.LayerList;
 import gov.nasa.worldwind.render.DrawContext;
 import java.awt.BorderLayout;
@@ -60,12 +60,13 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
 
         // Basic worldwind setup...
         Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
-        WorldWindowGLJPanel p = new WorldWindowGLJPanel();
+        WorldWindowGLCanvas p = new WorldWindowGLCanvas();
         myWorld = p;
-        myWorld.setModel(m);
+        myWorld.setModel(m);  
         jPanel1.setLayout(new BorderLayout());
         jPanel1.add(p, BorderLayout.CENTER);
-
+        jPanel1.setOpaque(false); 
+        
         // Either:
         // 1. current worldwind has a VBO bug
         // 2. Netbeans is using opengl somewhere and leaking opengl state (vbo)
@@ -77,7 +78,10 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         myWorld.getModel().getLayers().add(myProducts);
         myWorld.getModel().getLayers().add(new ColorKeyLayer());
 
-
+        // FIXME: should probably make a preference for this that can be
+        // toggled by user if it works correctly/incorrectly
+        System.setProperty("sun.awt.noerasebackground", "true");
+        
         setName(NbBundle.getMessage(EarthTopComponent.class, "CTL_EarthTopComponent"));
         setToolTipText(NbBundle.getMessage(EarthTopComponent.class, "HINT_EarthTopComponent"));
         CommandManager.getInstance().registerView(EarthBallView.ID, this);

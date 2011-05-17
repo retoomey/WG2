@@ -1,5 +1,6 @@
 package org.wdssii.gui.nbm.views;
 
+import java.io.File;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -10,20 +11,21 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.JFrame;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableRowSorter;
 
 import org.wdssii.core.SourceBookmarks.*;
 import org.wdssii.core.SourceBookmarks;
+import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.commands.SourceAddCommand;
 
-/**
- * Top component which displays something.
- */
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Sources//EN",
 autostore = false)
 @TopComponent.Description(preferredID = "SourcesTopComponent",
@@ -46,6 +48,24 @@ public final class SourcesTopComponent extends TopComponent {
     private ArrayList<BookmarkURLSource> myVisibleSourceList;
     private static final String ALLGROUPS = "All";
     private javax.swing.JTable jSourceListTable;
+    private final String myDebugList = "Debug List";
+    private BookmarkURLDataTableModel myModel;
+
+    /** Filter to looks for local data files.  We can make this more 
+     * advanced
+     */
+    private class LocalDataFilter extends FileFilter {
+
+        @Override
+        public boolean accept(File f) {
+            return f.isDirectory() || f.getName().toLowerCase().endsWith(".xml");
+        }
+
+        @Override
+        public String getDescription() {
+            return "XML Data files";
+        }
+    }
 
     /** A class that uses a BookmarkURLData as its model */
     private class BookmarkURLDataTableModel extends AbstractTableModel {
@@ -54,6 +74,34 @@ public final class SourcesTopComponent extends TopComponent {
         private BookmarkURLData bookmarks;
         /** The column headers */
         private final String headers[];
+        /** Our filter for groups */
+        private BookmarkRowFilter myRowFilter = new BookmarkRowFilter();
+
+        // Set up a row filter for the group combo box
+        private class BookmarkRowFilter extends RowFilter<Object, Object> {
+
+            private String myGroupName;
+            private boolean myFilterOn = false;
+
+            @Override
+            public boolean include(Entry entry) {
+                String pop = entry.getStringValue(4);
+                if (myFilterOn) {
+                    return pop.equals(myGroupName);
+                } else {
+                    return true;
+                }
+            }
+
+            public void setGroupToShow(String filter) {
+                myGroupName = filter;
+                myFilterOn = true;
+            }
+
+            public void showAllGroups() {
+                myFilterOn = false;
+            }
+        }
 
         public BookmarkURLDataTableModel(BookmarkURLData b) {
             this.bookmarks = b;
@@ -62,10 +110,30 @@ public final class SourcesTopComponent extends TopComponent {
             this.headers = new String[]{
                 "Name", "Location", "Path", "Latest", "Group"
             };
+
+        }
+
+        public TableRowSorter<BookmarkURLDataTableModel> getGroupModelSorter() {
+            TableRowSorter<BookmarkURLDataTableModel> sorter =
+                    new TableRowSorter<BookmarkURLDataTableModel>(this);
+            sorter.setRowFilter(myRowFilter);
+            return sorter;
         }
 
         public void setBookmarks(BookmarkURLData b) {
             this.bookmarks = b;
+            this.fireTableDataChanged();
+        }
+
+        public void setGroupToShow(String filter) {
+            myRowFilter.setGroupToShow(filter);
+            //this.fireTableStructureChanged();
+            this.fireTableDataChanged();
+        }
+
+        public void showAllGroups() {
+            myRowFilter.showAllGroups();
+            // this.fireTableStructureChanged();
             this.fireTableDataChanged();
         }
 
@@ -132,8 +200,8 @@ public final class SourcesTopComponent extends TopComponent {
 
         // Have to create our virtual table within the GUI
         jSourceListTable = new javax.swing.JTable();
-        BookmarkURLDataTableModel model = new BookmarkURLDataTableModel(null);
-        jSourceListTable.setModel(model);
+        myModel = new BookmarkURLDataTableModel(null);
+        jSourceListTable.setModel(myModel);
         jSourceListTable.setFillsViewportHeight(true);
         jSourceListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jSourceTableScrollPane.setViewportView(jSourceListTable);
@@ -145,10 +213,10 @@ public final class SourcesTopComponent extends TopComponent {
             }
         });
 
-        // Enable basic sorting on each column
-        TableRowSorter<BookmarkURLDataTableModel> sorter =
-                new TableRowSorter<BookmarkURLDataTableModel>(model);
-        jSourceListTable.setRowSorter(sorter);
+        jBookmarkComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[]{
+                    "http://tensor.protect.nssl/rindexv2.xml", "file:/Q:/testing.xml", myDebugList}));
+        jSourceListTable.setRowSorter(myModel.getGroupModelSorter());
+        updateListToCurrent();
 
         setName(NbBundle.getMessage(SourcesTopComponent.class, "CTL_SourcesTopComponent"));
         setToolTipText(NbBundle.getMessage(SourcesTopComponent.class, "HINT_SourcesTopComponent"));
@@ -171,13 +239,13 @@ public final class SourcesTopComponent extends TopComponent {
         jURLTextField = new javax.swing.JTextField();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel4 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         jGroupComboBox = new javax.swing.JComboBox();
         jBrowseButton = new javax.swing.JButton();
         jRefreshButton = new javax.swing.JButton();
         jComboBox2 = new javax.swing.JComboBox();
         jLoadNewSourceButton = new javax.swing.JButton();
+        jBookmarkComboBox = new javax.swing.JComboBox();
         jSourceTableScrollPane = new javax.swing.JScrollPane();
 
         setToolTipText(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.toolTipText")); // NOI18N
@@ -199,11 +267,14 @@ public final class SourcesTopComponent extends TopComponent {
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jLabel4.text")); // NOI18N
 
-        jTextField4.setText(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jTextField4.text")); // NOI18N
-
         org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jLabel5.text")); // NOI18N
 
         jGroupComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "All" }));
+        jGroupComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jGroupComboBoxActionPerformed(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(jBrowseButton, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jBrowseButton.text")); // NOI18N
         jBrowseButton.addActionListener(new java.awt.event.ActionListener() {
@@ -222,6 +293,17 @@ public final class SourcesTopComponent extends TopComponent {
         jComboBox2.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "All", "30", "60", "90", "120" }));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLoadNewSourceButton, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jLoadNewSourceButton.text")); // NOI18N
+        jLoadNewSourceButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jLoadNewSourceButtonActionPerformed(evt);
+            }
+        });
+
+        jBookmarkComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBookmarkComboBoxActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -255,7 +337,7 @@ public final class SourcesTopComponent extends TopComponent {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jGroupComboBox, 0, 355, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jTextField4, javax.swing.GroupLayout.DEFAULT_SIZE, 276, Short.MAX_VALUE)
+                        .addComponent(jBookmarkComboBox, 0, 276, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jRefreshButton)))
                 .addContainerGap())
@@ -282,8 +364,8 @@ public final class SourcesTopComponent extends TopComponent {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
-                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jRefreshButton))
+                    .addComponent(jRefreshButton)
+                    .addComponent(jBookmarkComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
@@ -316,28 +398,36 @@ public final class SourcesTopComponent extends TopComponent {
     }//GEN-LAST:event_jURLTextFieldActionPerformed
 
     private void jBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBrowseButtonActionPerformed
-        // TODO add your handling code here:
-        if (JOptionPane.showConfirmDialog(new JFrame(),
-                "Do you want to quit this application ?", "Title",
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            System.exit(0);
-        }
+        String file = doSourceOpenDialog();
+        if (file != null) {
 
+            jURLTextField.setText(file + "?p=xml");
+        }
     }//GEN-LAST:event_jBrowseButtonActionPerformed
 
     private void jRefreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRefreshButtonActionPerformed
-        try {
-            // FIXME: should be from GUI, not hardcoded
-            URL aURL = new URL("http://tensor.protect.nssl/rindexv2.xml");
-            //BookmarkURLData bookmarks = SourceBookmarks.getBookmarksFromURL(aURL);
-            BookmarkURLData bookmarks = SourceBookmarks.getFakeBookmarks(20, 5);
-
-            setBookmarks(bookmarks);
-        } catch (MalformedURLException e) {
-            // FIXME: dialog?
-        }
+        updateListToCurrent();
     }//GEN-LAST:event_jRefreshButtonActionPerformed
+
+    private void jLoadNewSourceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jLoadNewSourceButtonActionPerformed
+        addNewSourceFromFields();
+    }//GEN-LAST:event_jLoadNewSourceButtonActionPerformed
+
+    private void jBookmarkComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBookmarkComboBoxActionPerformed
+        // Refresh the list to the new selection...
+        updateListToCurrent();
+
+    }//GEN-LAST:event_jBookmarkComboBoxActionPerformed
+
+    private void jGroupComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jGroupComboBoxActionPerformed
+
+        // Set the group to the current combo selection.
+        String theItem = (String) jGroupComboBox.getSelectedItem();
+        setShownGroup(theItem);
+
+    }//GEN-LAST:event_jGroupComboBoxActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox jBookmarkComboBox;
     private javax.swing.JButton jBrowseButton;
     private javax.swing.JComboBox jComboBox2;
     private javax.swing.JComboBox jGroupComboBox;
@@ -352,9 +442,38 @@ public final class SourcesTopComponent extends TopComponent {
     private javax.swing.JButton jRefreshButton;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JScrollPane jSourceTableScrollPane;
-    private javax.swing.JTextField jTextField4;
     private javax.swing.JTextField jURLTextField;
     // End of variables declaration//GEN-END:variables
+
+    /** Update the table of bookmarks to the current combo box selection */
+    private void updateListToCurrent() {
+        try {
+            // FIXME: should be from GUI, not hardcoded
+            String text = (String) jBookmarkComboBox.getSelectedItem();
+            BookmarkURLData bookmarks = null;
+            if (myDebugList.equals(text)) {
+                bookmarks = SourceBookmarks.getFakeBookmarks(20, 5);
+            } else {
+                URL aURL = new URL(text);
+                bookmarks = SourceBookmarks.getBookmarksFromURL(aURL);
+            }
+            setBookmarks(bookmarks);
+        } catch (MalformedURLException e) {
+            JOptionPane.showMessageDialog(null, "Bookmark must be a valid URL");
+        }
+    }
+
+    public void setShownGroup(String theItem) {
+        if (theItem != null) {
+            if ("All".equals(theItem)) {
+                myModel.showAllGroups();
+            } else {
+                myModel.setGroupToShow(theItem);
+            }
+        } else {
+            myModel.showAllGroups();
+        }
+    }
 
     /** From our manually added table, handle selection of a line by filling
      * in the fields
@@ -408,7 +527,6 @@ public final class SourcesTopComponent extends TopComponent {
         BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
         mySourceList = bookmarks.data;
         myVisibleSourceList = mySourceList; // Same for moment
-        // FIXME: filter by group into sublist...?
         model.setBookmarks(bookmarks);
 
         // Add each unique group item to list
@@ -419,7 +537,6 @@ public final class SourcesTopComponent extends TopComponent {
         int select = 0;
         while (it.hasNext()) {
             String current = it.next();
-            // RCP  myGroupText.add(current);
             jGroupComboBox.addItem(current);
             if (current.equalsIgnoreCase("Realtime")) {
                 select = i;
@@ -427,6 +544,44 @@ public final class SourcesTopComponent extends TopComponent {
             i++;
         }
         jGroupComboBox.setSelectedIndex(select);
-        //RCP++ setShownGroup("Realtime");
+
+        String theItem = (String) jGroupComboBox.getSelectedItem();
+        setShownGroup(theItem);
+    }
+
+    /** Try to add a source to the display from the currently showing
+     * fields
+     */
+    public void addNewSourceFromFields() {
+        String path = jURLTextField.getText();
+        String name = jNameTextField.getText();
+
+        // Assuming realtime?  FIXME
+        boolean realtime = true;
+        boolean connect = true;
+        CommandManager.getInstance().executeCommand(new SourceAddCommand(name, path, true, realtime, connect), false);
+    }
+
+    public String doSourceOpenDialog() {
+
+        String pickedFile = null;
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new LocalDataFilter());
+        chooser.setDialogTitle("Load local source");
+        // rcp chooiser.setFilterPath("D:/") ?
+
+        int returnVal = chooser.showOpenDialog(null);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            // pickedFile = chooser.getSelectedFile().getName();
+            pickedFile = chooser.getSelectedFile().getAbsolutePath();
+            File f = chooser.getSelectedFile();
+            try {
+                pickedFile = f.toURI().toURL().toString();
+            } catch (MalformedURLException ex) {
+                pickedFile = "Couldn't parse file location";
+            }
+
+        }
+        return pickedFile;
     }
 }

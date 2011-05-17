@@ -16,8 +16,6 @@ import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
-import org.openide.windows.IOProvider;
-import org.openide.windows.InputOutput;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
@@ -61,9 +59,12 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
     public void SourceCommandUpdate(SourceCommand command) {
 
         // FIXME: we're not getting these yet, are we?
-        InputOutput io = IOProvider.getDefault().getIO("WDSSII", true);
-        io.getOut().println("-->Update from Source manager...bleh");
+       // InputOutput io = IOProvider.getDefault().getIO("WDSSII", true);
+       // io.getOut().println("-->Update from Source manager...bleh");
+        updateParts();
     }
+   
+    
     private String[] mySelection = new String[3];
     private javax.swing.JTable jSourceListTable;
     private javax.swing.JTable jProductsListTable;
@@ -431,6 +432,7 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
     public ProductPickerTopComponent() {
         initComponents();
         initTables();
+        CommandManager.getInstance().registerView(ProductPickerView.ID, this);
         setName(NbBundle.getMessage(ProductPickerTopComponent.class, "CTL_ProductPickerTopComponent"));
         setToolTipText(NbBundle.getMessage(ProductPickerTopComponent.class, "HINT_ProductPickerTopComponent"));
     }

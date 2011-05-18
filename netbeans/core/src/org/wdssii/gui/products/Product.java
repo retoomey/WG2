@@ -73,7 +73,7 @@ public class Product {
         BAD_PRODUCT
     };
     // Raw DataType, if loaded. DataType is loaded in background thread
-    protected Object myRawDataSync = new Object();
+    final protected Object myRawDataSync = new Object();
     protected DataType myRawDataType = null;
     protected String myDataType; // FIXME: Store this or just get from record?
     protected boolean myDirtyRenderer = true;
@@ -106,7 +106,11 @@ public class Product {
             ready = true;
             synchronized (myRawDataSync) {
                 myRawDataType = myDataRequest.getDataType();
-                myDataUnits = myRawDataType.getUnit();
+                if (myRawDataType != null) {
+                    myDataUnits = myRawDataType.getUnit();
+                } else {
+                    myDataUnits = "?";
+                }
             }
         }
         return ready;
@@ -276,7 +280,9 @@ public class Product {
     final public Location getBaseLocation() {
         if (updateDataTypeIfLoaded()) {
             synchronized (myRawDataSync) {
-                return myRawDataType.getJumpToLocation();
+                if (myRawDataType != null) {
+                    return myRawDataType.getJumpToLocation();
+                }
             }
         }
         return null;
@@ -455,21 +461,23 @@ public class Product {
 
         Object newClass = null;
 
-        String dataTypeName = dt.getClass().getSimpleName();    // Such as
-        // 'RadialSet'
-        String createIt = rootpath + "." + dataTypeName + suffix;
-        log.info("Looking for class " + createIt);
+        if (dt != null) {
+            String dataTypeName = dt.getClass().getSimpleName();    // Such as
+            // 'RadialSet'
+            String createIt = rootpath + "." + dataTypeName + suffix;
+            log.info("Looking for class " + createIt);
 
-        Class<?> c = null;
+            Class<?> c = null;
 
-        //boolean foundByName = false;
-        try {
-            c = Class.forName(createIt);
-            newClass = c.newInstance();
-        } catch (Exception e) {
-            log.warn("DataType " + dataTypeName + " doesn't have a " + suffix + " it seems");
+            //boolean foundByName = false;
+            try {
+                c = Class.forName(createIt);
+                newClass = c.newInstance();
+            } catch (Exception e) {
+                log.warn("DataType " + dataTypeName + " doesn't have a " + suffix + " it seems");
+            }
+            log.info("Generated " + suffix + " for datatype " + dataTypeName);
         }
-        log.info("Generated " + suffix + " for datatype " + dataTypeName);
         return newClass;
     }
 
@@ -493,7 +501,7 @@ public class Product {
             myDataType = myRecord.getDataType();
             mySubtypeType = IndexSubType.getSubtypeType(myRecord.getSubType());
         } else {
-            myDataType = new String("UNKNOWN");
+            myDataType = "UNKNOWN";
             mySubtypeType = IndexSubType.SubtypeType.ELEVATION;
         }
         myIndexKey = anIndex;
@@ -750,13 +758,16 @@ public class Product {
     }
 
     public String getProductType() {
-        // A hack that gets the product 'type' from the class name...
-        // Product classes are of the form "*Product" where "*" denotes the
-        // name.
-        Class<?> c = this.getClass();
-        String name = c.getSimpleName();
-        String shorter = name.replace("Product", "");
-        return (shorter);
+        String name = "loading";
+        if (updateDataTypeIfLoaded()) {
+            if (myRawDataType == null) {
+                name = "failed";
+            } else {
+                Class<?> c = myRawDataType.getClass();
+                name = c.getSimpleName();
+            }
+        }
+        return (name);
     }
 
     /*  Makes no sense for mode products

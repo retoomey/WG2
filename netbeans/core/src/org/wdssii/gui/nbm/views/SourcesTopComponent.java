@@ -31,7 +31,7 @@ autostore = false)
 @TopComponent.Description(preferredID = "SourcesTopComponent",
 iconBase = "org/wdssii/gui/nbm/views/cart_add.png",
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
-@TopComponent.Registration(mode = "explorer", openAtStartup = false)
+@TopComponent.Registration(mode = "explorer", openAtStartup = true)
 @ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.SourcesTopComponent")
 @ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_SourcesAction",

@@ -52,7 +52,7 @@ autostore = false)
 @TopComponent.Description(preferredID = "LayersTopComponent",
 iconBase = "org/wdssii/gui/nbm/views/layers.png",
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
-@TopComponent.Registration(mode = "explorer", openAtStartup = false)
+@TopComponent.Registration(mode = "explorer", openAtStartup = true)
 @ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.LayersTopComponent")
 @ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_LayersAction",

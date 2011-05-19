@@ -384,7 +384,6 @@ public class RadialSetRenderer extends ProductRenderer {
                 monitor.done();
             } catch (Exception e) {
                 log.error("3D gen error" + e.toString());
-                e.printStackTrace();
                 if (monitor != null) {
                     monitor.done();
                 }

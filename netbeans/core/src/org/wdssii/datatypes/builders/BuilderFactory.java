@@ -16,9 +16,19 @@ public abstract class BuilderFactory {
 
     private static Log log = LogFactory.getLog(BuilderFactory.class);
     /** name to Builder */
-    private static PrototypeFactory<Builder> factory = new PrototypeFactory<Builder>(
-            "java/Builder.xml");
+    private static final PrototypeFactory<Builder> factory;
 
+    /** Create the factory from Builder.xml in the xml, OR use
+     * a stock set of built in defaults.  This rarely changes, so this
+     * allows overriding without breaking if w2config is missing.
+     */
+    static {
+        factory = new PrototypeFactory<Builder>(
+            "java/Builder.xml");
+        factory.addDefault("netcdf", "org.wdssii.datatypes.builders.NetcdfBuilder");
+        factory.addDefault("W2ALGS", "org.wdssii.datatypes.builders.W2algsBuilder");
+    };
+    
     /** The single thread do all the work call.  This blocks until DataType is completely loaded and ready.
      * This is what you want for algorithms probably.
      * @param rec

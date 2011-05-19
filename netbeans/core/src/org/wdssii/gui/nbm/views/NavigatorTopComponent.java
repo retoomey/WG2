@@ -19,7 +19,6 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -60,57 +59,37 @@ preferredID = "NavigatorTopComponent")
  * 
  * @author Robert Toomey
  */
-public final class NavigatorTopComponent extends TopComponent implements NavView {
+public final class NavigatorTopComponent extends ThreadedTopComponent implements NavView {
 
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
     // When sources or products change, update the navigation controls
     public void ProductCommandUpdate(ProductCommand command) {
-        testing(command);
+        updateGUI(command);
     }
 
-    public void ProductSelectCommandUpdate(ProductSelectCommand command) {
-        testing(command);
-    }
+    //public void ProductSelectCommandUpdate(ProductSelectCommand command) {
+    //    updateGUI(command);
+    //}
 
     public void SourceCommandUpdate(SourceCommand command) {
-        testing(command);
+        updateGUI(command);
     }
 
     public void AnimateCommandUpdate(AnimateCommand command) {
-        testing(command);
+        updateGUI(command);
     }
-    private String SWING_THREAD;
-    
-    // Just like swt, Swing isn't thread safe. Soooo, we'll end up using the
-    // same trick for any window updates...just snag the Swing thread name
-    // and either 1. update immediately if thread is the Swing one, or
-    // 2.  Invoke later (which will run in the swing thread)
-    // FIXME: needs to be in a root class like in the RCP version.
-    public void testing(WdssiiCommand command) {
-        Thread t = Thread.currentThread();
-        String currentName = t.getName();
-        if (currentName.equals(SWING_THREAD)){
-            // Go ahead and update swing widgets....
-            updateNavButtons();
-            updateProductList(command);
-        }else{
-            // Invoke it later in the swing thread....
-            // FIXME: Maybe we should make sure only one of these is in there
-            // at a time (so queue doesn't fill up)
-            final WdssiiCommand aCommand = command;
-            SwingUtilities.invokeLater(new Runnable(){
 
-                @Override
-                public void run() {
-                   updateNavButtons();
-                   updateProductList(aCommand);
-                }
-                
-            });
+    @Override
+    public void updateInSwingThread(Object command) {
+        WdssiiCommand w = null;
+        updateNavButtons();
+        if (command instanceof WdssiiCommand) {
+            w = (WdssiiCommand) (command);
         }
-}
+        updateProductList(w);
+    }
     private static final int myGridRows = 4;
     private static final int myGridCols = 4;
     private static final int myGridCount = myGridRows * myGridCols;
@@ -376,12 +355,6 @@ public final class NavigatorTopComponent extends TopComponent implements NavView
         }
     }
 
-    @Override
-    public void update() {
-        updateNavButtons();
-        updateProductList(null);
-    }
-
     /** Our special class for drawing the grid controls */
     public static class NavButton extends JButton {
 
@@ -452,14 +425,7 @@ public final class NavigatorTopComponent extends TopComponent implements NavView
     }
 
     public NavigatorTopComponent() {
-        
-        // Assume this is the Swing thread....
-        // Looks like we are having thread issues updating the GUI, just
-        // like swt it's not thread safe so we'll have to make it thread safe
-    
-        Thread t = Thread.currentThread();
-        SWING_THREAD = t.getName();
-        
+
         initComponents();
         initButtonGrid();
         initProductTable();
@@ -546,13 +512,12 @@ public final class NavigatorTopComponent extends TopComponent implements NavView
 
 
                         /** a click on visible checkbox toggles layer visibility */
-                          if (orgColumn == ProductsListTableModel.NAV_VISIBLE) {
-                              
-                        //     LayerList list = getLayerList();
-                        //      Layer l = list.getLayerByName(entry.name);
-                        //     l.setEnabled(!l.isEnabled());
-                        //     updateProductList();
-                          }
+                        if (orgColumn == ProductsListTableModel.NAV_VISIBLE) {
+                            //     LayerList list = getLayerList();
+                            //      Layer l = list.getLayerByName(entry.name);
+                            //     l.setEnabled(!l.isEnabled());
+                            //     updateProductList();
+                        }
                     }
                 }
             }
@@ -592,28 +557,12 @@ public final class NavigatorTopComponent extends TopComponent implements NavView
                 }
                 currentLine++;
             }
+            myProductsListTableModel.setDataTypes(sortedList);
 
-      
-try{
-                myProductsListTableModel.setDataTypes(sortedList);
-           
-                //jProductsListTable.rev
-                //jProductsListTable.updateUI();
-}catch(Exception z){
-    System.out.println("set exception "+z.toString());
-}
-             try {
-                if (select > -1) {
-                    jProductsListTable.setRowSelectionInterval(select, select);
-                }
-
-
-            } catch (Exception e) {
-                Thread t = Thread.currentThread();
-                String name = t.getName();
-                System.out.println("DEBUG THIS:" + name + ", " + SWING_THREAD+", "+jProductsListTable + ", " + sortedList);
+            if (select > -1) {
+                jProductsListTable.setRowSelectionInterval(select, select);
             }
-                  jProductsListTable.repaint();
+            jProductsListTable.repaint();
         }
     }
 

@@ -29,9 +29,6 @@ public class FilterList {
         myFilters.clear();
         myFilters.add(new StormRMFilter());
         myFilters.add(new LowCutFilter());
-        if (p != null) {
-            setColorMap(p.getColorMap());  // hummm circular...
-        }
     }
 
     public void setColorMap(ColorMap c) {
@@ -55,11 +52,15 @@ public class FilterList {
     /** Fill a ColorMapOutput given original input */
     public void fillColor(ColorMapOutput out, DataTypeQuery q, boolean filter) {
 
-        // Note that colormap is going to become a filter
-        if (filter) {
-            myColorMap.fillColor(out, f(q));
+        if (myColorMap == null) {
+            out.setColor(255, 0, 0, 255);
         } else {
-            myColorMap.fillColor(out, q.inDataValue);
+            // Note that colormap is going to become a filter
+            if (filter) {
+                myColorMap.fillColor(out, f(q));
+            } else {
+                myColorMap.fillColor(out, q.inDataValue);
+            }
         }
     }
 

@@ -31,8 +31,19 @@ import org.wdssii.core.PrototypeFactory;
 public abstract class IndexFactory {
 
     private static Log log = LogFactory.getLog(IndexFactory.class);
-    private static PrototypeFactory<Index> myFactory = new PrototypeFactory<Index>(
-            "java/Index.xml");
+    private static final PrototypeFactory<Index> myFactory;
+
+    /** Create the factory from Index.xml in the xml, OR use
+     * a stock set of built in defaults.  This rarely changes, so this
+     * allows overriding without breaking if w2config is missing.
+     */
+    static {
+        myFactory = new PrototypeFactory<Index>(
+                "java/Index.xml");
+        myFactory.addDefault("xml", "org.wdssii.index.XMLIndex");
+        myFactory.addDefault("fam", "org.wdssii.index.FamIndex");
+        myFactory.addDefault("webindex", "org.wdssii.index.webindex");
+    }
     private static List<Index> toUpdate = new ArrayList<Index>();
     // FIXME: we're gonna have to steal this and make it controllable (for the GUI)
     private static TimerTask timerTask = new TimerTask() {

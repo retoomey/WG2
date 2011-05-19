@@ -97,7 +97,29 @@
                     </run-dependency>
                 </dependency>
             </module-dependencies>
-            <public-packages/>
+            <public-packages>
+                <package>org.wdssii.core</package>
+                <package>org.wdssii.datatypes</package>
+                <package>org.wdssii.datatypes.builders</package>
+                <package>org.wdssii.geom</package>
+                <package>org.wdssii.gui</package>
+                <package>org.wdssii.gui.animators</package>
+                <package>org.wdssii.gui.charts</package>
+                <package>org.wdssii.gui.commands</package>
+                <package>org.wdssii.gui.nbm</package>
+                <package>org.wdssii.gui.nbm.views</package>
+                <package>org.wdssii.gui.products</package>
+                <package>org.wdssii.gui.products.filters</package>
+                <package>org.wdssii.gui.util</package>
+                <package>org.wdssii.gui.views</package>
+                <package>org.wdssii.gui.volumes</package>
+                <package>org.wdssii.gui.worldwind</package>
+                <package>org.wdssii.index</package>
+                <package>org.wdssii.index.fam</package>
+                <package>org.wdssii.storage</package>
+                <package>org.wdssii.tests</package>
+                <package>org.wdssii.util</package>
+            </public-packages>
         </data>
     </configuration>
 </project>

@@ -198,11 +198,12 @@ public class CommandManager implements Singleton {
     public void setProductHandlerVisible(ProductHandler h, boolean flag) {
         h.setIsVisible(flag);
 
-        WdssiiView view = getNamedViewed(NavView.ID);
-        if (view instanceof NavView) {
-            NavView nav = (NavView) (view);
-            nav.update();
-        }
+        // This should be a command actually...
+        //WdssiiView view = getNamedViewed(NavView.ID);
+       // if (view instanceof NavView) {
+        //    NavView nav = (NavView) (view);
+       //     nav.updateGUI(null);
+        //}
 
         getEarthBall().updateOnMinTime();
     }
@@ -263,11 +264,12 @@ public class CommandManager implements Singleton {
             getEarthBall().updateOnMinTime();
         }
 
-        WdssiiView view = getNamedViewed(NavView.ID);
-        if (view instanceof NavView) {
-            NavView navView = (NavView) (view);
-            navView.update();
-        }
+        // This should be a command actually
+        //WdssiiView view = getNamedViewed(NavView.ID);
+        //if (view instanceof NavView) {
+        //    NavView navView = (NavView) (view);
+        //    navView.update();
+       // }
     }
 
     @Override

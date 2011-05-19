@@ -9,6 +9,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
+ * Prototype factory registers a map of names to classes.
+ * <pre>
+ * {@code
+ * <prototypes>
+ * <class name="xml" proto="org.wdssii.index.XMLIndex"/>
+ * <class name="fam" proto="org.wdssii.index.FamIndex"/>
+ * </prototypes>
+ * }
+ * </pre>
  * @author lakshman
  * 
  */
@@ -17,12 +26,27 @@ public class PrototypeFactory<X extends Object> {
     private Log log = LogFactory.getLog(PrototypeFactory.class);
     private Map<String, X> myMap = new HashMap<String, X>();
 
+    /** Add the object for given name */
     private void register(String name, X prototype) {
         myMap.put(name, prototype);
     }
 
+    /** Add a default class to the list, iff it is not there. 
+     */
+    public void addDefault(String name, String className) {
+        if (!myMap.containsKey(name)) {
+            X theClass;
+            try {
+                theClass = (X) Class.forName(className).newInstance();
+                register(name, theClass);
+            } catch (Exception e) {
+                log.error(e);
+            }
+        }
+    }
+
     /**
-     * Get the master
+     * Get the object for a given name, if available
      * 
      * @return null if no such prototype was registered
      */
@@ -47,7 +71,7 @@ public class PrototypeFactory<X extends Object> {
                 }
             }
         } catch (Exception e) {
-            log.error(e);
+             log.error(e);
         }
     }
-}
+    }

@@ -60,6 +60,7 @@ public class ProductHandler { // Interface?
             myFList.createFiltersForProduct(p);
         }
         myProduct = p;
+        myFList.setColorMap(p.getColorMap());
         p.myProductHandler = this;
 
         myKey = getKeyForProduct(p);
@@ -80,6 +81,9 @@ public class ProductHandler { // Interface?
     }
 
     public FilterList getFList() {
+        if (myProduct != null){
+             myFList.setColorMap(myProduct.getColorMap());
+        }
         return myFList;
     }
 

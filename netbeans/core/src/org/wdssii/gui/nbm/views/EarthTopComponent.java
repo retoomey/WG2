@@ -4,14 +4,22 @@
  */
 package org.wdssii.gui.nbm.views;
 
+import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.Model;
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
+import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.layers.LayerList;
 import gov.nasa.worldwind.render.DrawContext;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.geom.Rectangle2D;
+import javax.media.opengl.GL;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -21,10 +29,13 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.DataCommand;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.ProductRenderer;
 import org.wdssii.gui.views.EarthBallView;
 import org.wdssii.gui.worldwind.ColorKeyLayer;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.gui.worldwind.ProductLayer;
+import org.wdssii.gui.worldwind.ReadoutStatusBar;
 
 /**
  * Top component which displays something.
@@ -54,7 +65,10 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
     private WorldWindow myWorld;
     /** The worldwind layer that holds our radar products */
     private ProductLayer myProducts;
-
+    /** The Readout */
+    private ReadoutStatusBar myStatusBar;
+    private TextRenderer myText = null;
+    
     public EarthTopComponent() {
         initComponents();
 
@@ -63,7 +77,6 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         WorldWindowGLCanvas p = new WorldWindowGLCanvas();
         myWorld = p;
         myWorld.setModel(m);  
-        jPanel1.setLayout(new BorderLayout());
         jPanel1.add(p, BorderLayout.CENTER);
         jPanel1.setOpaque(false); 
         
@@ -78,6 +91,10 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         myWorld.getModel().getLayers().add(myProducts);
         myWorld.getModel().getLayers().add(new ColorKeyLayer());
 
+        myStatusBar = new ReadoutStatusBar();
+        jPanel2.add(myStatusBar, BorderLayout.CENTER);
+        myStatusBar.setEventSource(myWorld);
+ 
         // FIXME: should probably make a preference for this that can be
         // toggled by user if it works correctly/incorrectly
         System.setProperty("sun.awt.noerasebackground", "true");
@@ -86,7 +103,7 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         setToolTipText(NbBundle.getMessage(EarthTopComponent.class, "HINT_EarthTopComponent"));
         CommandManager.getInstance().registerView(EarthBallView.ID, this);
     }
-
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -95,41 +112,42 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
+        jButton1 = new javax.swing.JButton();
+        jSplitPane1 = new javax.swing.JSplitPane();
+        jPanel1 = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 51, 51), 2));
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 396, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 270, Short.MAX_VALUE)
-        );
+        setLayout(new java.awt.BorderLayout());
 
         jToolBar1.setRollover(true);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(1, 1, 1)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(EarthTopComponent.class, "EarthTopComponent.jButton1.text")); // NOI18N
+        jButton1.setFocusable(false);
+        jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(jButton1);
+
+        add(jToolBar1, java.awt.BorderLayout.NORTH);
+
+        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane1.setResizeWeight(1.0);
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 2));
+        jPanel1.setLayout(new java.awt.BorderLayout());
+        jSplitPane1.setLeftComponent(jPanel1);
+
+        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 0, 51), 2));
+        jPanel2.setLayout(new java.awt.BorderLayout());
+        jSplitPane1.setRightComponent(jPanel2);
+
+        add(jSplitPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
 
@@ -210,10 +228,114 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
 
     @Override
     public void DrawProductOutline(DrawContext dc) {
-        // FIXME: implement.  Disable for now since color key layer
-        // calls it constantly
-        //  throw new UnsupportedOperationException("Not supported yet.");
+       	Product aProduct = CommandManager.getInstance().getTopProduct();
+					if (aProduct == null){ return; }
+					ProductRenderer r = aProduct.getRenderer();
+					if (r != null){
+						r.drawProductOutline(dc);
+					}
+					Point p1 = dc.getPickPoint();
+					if (p1 != null){
+						ProductReadout pr = aProduct.getProductReadout(p1, dc);
+						String readout = pr.getReadoutString();
+						myStatusBar.setReadoutString(readout);
+						if (r !=null){
+							drawLabel(dc, readout, new Vec4(p1.x, p1.y, 0), Color.BLACK);
+						}
+						//System.out.println("READOUT BACK IS:"+aProduct.getReadoutString(p1, dc));
+					}
     }
+	
+			/** Currently the drawer for readout. */
+    public void drawLabel(DrawContext dc, String text, Vec4 screenPoint, Color textColor)
+    {
+        int x = (int) screenPoint.x();
+        int y = (int) screenPoint.y();
+        y = dc.getDrawableHeight()-y-1;
+
+   		if (myText == null){  // Only create once for speed.  We draw a LOT
+			myText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
+		}
+   		// Bounds calculations
+   		java.awt.Rectangle viewport = dc.getView().getViewport();
+
+   		Rectangle2D rect = myText.getBounds(text);
+   		
+	//	final int fontYOffset = 5;
+	//	final Rectangle2D maxText = myText.getBounds("gW"); // a guess of
+														// size
+														// (FIXME:
+														// better
+														// guess?)
+	//	final int textHeight = (int) (maxText.getHeight());	
+	//	final int bheight = textHeight + fontYOffset + fontYOffset;
+	//	int top = viewport.y + bheight - 1;
+	//	int bottom = top - bheight;
+		
+   		boolean attribsPushed = false;
+		boolean modelviewPushed = false;
+		boolean projectionPushed = false;
+		
+        GL gl = dc.getGL();
+      
+        try {
+        	gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT
+					| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT
+					| GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
+					| GL.GL_CURRENT_BIT);
+			attribsPushed = true;
+
+			gl.glEnable(GL.GL_BLEND);
+			gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+			gl.glDisable(GL.GL_DEPTH_TEST);
+			
+			// Load a parallel projection with xy dimensions (viewportWidth,
+			// viewportHeight)
+			// into the GL projection matrix.
+			gl.glMatrixMode(javax.media.opengl.GL.GL_PROJECTION);
+			gl.glPushMatrix();
+			projectionPushed = true;
+			
+			gl.glLoadIdentity();
+			gl.glOrtho(0d, viewport.width, 0d, viewport.height, -1,
+					1);
+			gl.glMatrixMode(GL.GL_MODELVIEW);
+			gl.glPushMatrix();
+			modelviewPushed = true;
+			
+			gl.glLoadIdentity();
+			
+			gl.glColor3i(0, 0, 255);
+			gl.glBegin(GL.GL_QUADS);
+			gl.glVertex2f(x, y);
+			gl.glVertex2f(x, y+(float)rect.getHeight());
+
+			gl.glVertex2f(x+(float)rect.getWidth(), y+(float)rect.getHeight());
+			gl.glVertex2f(x+(float)rect.getWidth(), y);
+			gl.glEnd();
+        myText.begin3DRendering();
+        myText.setColor(Color.BLACK);
+        myText.draw(text, x+1, y+1);
+         myText.setColor(Color.WHITE);
+        myText.draw(text, x, y);
+        myText.end3DRendering();
+        
+        }catch(Exception e){
+     
+        } finally {
+			if (projectionPushed) {
+				gl.glMatrixMode(GL.GL_PROJECTION);
+				gl.glPopMatrix();
+			}
+			if (modelviewPushed) {
+				gl.glMatrixMode(GL.GL_MODELVIEW);
+				gl.glPopMatrix();
+			}
+			if (attribsPushed)
+				gl.glPopAttrib();
+		}
+	}
+
 
     @Override
     public void getColor(int x, int y) {

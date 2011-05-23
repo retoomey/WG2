@@ -20,6 +20,7 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import javax.media.opengl.GL;
+import javax.swing.JOptionPane;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -72,6 +73,10 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
     public EarthTopComponent() {
         initComponents();
 
+        String bits = System.getProperty("sun.arch.data.model");
+        if (bits.equals("32")){
+            JOptionPane.showMessageDialog(null, "Sorry, currently no 32 bit support.  You really want to run a 64 bit java if you can for this program.");
+        }else{
         // Basic worldwind setup...
         Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
         WorldWindowGLCanvas p = new WorldWindowGLCanvas();
@@ -94,7 +99,7 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         myStatusBar = new ReadoutStatusBar();
         jPanel2.add(myStatusBar, BorderLayout.CENTER);
         myStatusBar.setEventSource(myWorld);
- 
+        }
         // FIXME: should probably make a preference for this that can be
         // toggled by user if it works correctly/incorrectly
         System.setProperty("sun.awt.noerasebackground", "true");

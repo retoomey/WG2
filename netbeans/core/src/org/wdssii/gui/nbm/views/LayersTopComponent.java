@@ -19,7 +19,7 @@ import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.UIManager;
 import javax.swing.plaf.TableHeaderUI;
-import      javax.swing.table.JTableHeader;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -33,7 +33,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.worldwind.WWCategoryLayer;
-import	com.sun.java.swing.plaf.windows.WindowsTableHeaderUI;
+import com.sun.java.swing.plaf.windows.WindowsTableHeaderUI;
 
 /**
  * LayersTopCompoent
@@ -336,8 +336,10 @@ public final class LayersTopComponent extends TopComponent {
                         /** a click on visible checkbox toggles layer visibility */
                         if (orgColumn == LayerTableModel.COL_VISIBLE) {
                             LayerList list = getLayerList();
-                            Layer l = list.getLayerByName(entry.name);
-                            l.setEnabled(!l.isEnabled());
+                            if (list != null) {
+                                Layer l = list.getLayerByName(entry.name);
+                                l.setEnabled(!l.isEnabled());
+                            }
                             updateLayerList();
                         }
                     }
@@ -407,17 +409,19 @@ public final class LayersTopComponent extends TopComponent {
         int oldRow = myTable.getSelectedRow();
 
         LayerList layers = getLayerList();
-        for (Layer layer : layers) {
-            LayerTableEntry n = new LayerTableEntry();
-            layer.getName();
-            n.name = layer.getName();
-            n.enabled = layer.isEnabled();
-            if (layer instanceof WWCategoryLayer) {
-                n.category = ((WWCategoryLayer) layer).getCategory();
-            } else {
-                n.category = "NASA WorldWind Layer";
+        if (layers != null) {
+            for (Layer layer : layers) {
+                LayerTableEntry n = new LayerTableEntry();
+                layer.getName();
+                n.name = layer.getName();
+                n.enabled = layer.isEnabled();
+                if (layer instanceof WWCategoryLayer) {
+                    n.category = ((WWCategoryLayer) layer).getCategory();
+                } else {
+                    n.category = "NASA WorldWind Layer";
+                }
+                e.add(n);
             }
-            e.add(n);
         }
         myModel.setLayerTableEntries(e);
         if (oldRow > -1) {

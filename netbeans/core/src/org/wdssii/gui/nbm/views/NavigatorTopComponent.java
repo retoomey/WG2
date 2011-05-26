@@ -2,6 +2,8 @@ package org.wdssii.gui.nbm.views;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -373,6 +375,24 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
             });
         }
 
+        protected void paintComponent(Graphics g){
+            super.paintComponent(g);
+          //  Dimension originalSize = super.getPreferredSize();
+         //   int gap = (int) (originalSize.height * 0.2);
+         //   int x = originalSize.width + gap;
+        //    int y = gap;
+        //    int diameter = originalSize.height - (gap * 2);
+            
+         //   g.setColor(Color.BLACK);
+    
+         //   g.fillOval(x, y, diameter, diameter);
+        }
+        
+        public Dimension getPreferredSize(){
+            Dimension size = super.getPreferredSize();
+            //size.width += size.height;
+            return size;
+        }
         public void handleActionPerformed(ActionEvent e) {
             CommandManager m = CommandManager.getInstance();
             m.executeCommand(myCommand, true);

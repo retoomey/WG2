@@ -396,7 +396,7 @@ public class Product {
         ProductManager cman = ProductManager.getInstance();
 
         /** Force generation test */
-        boolean forceGenerate = true;
+        boolean forceGenerate = false;
 
         if (forceGenerate) {  // For testing.
             if (cman.hasColorMap(myDataType)) {

@@ -39,7 +39,7 @@ public class ProductManager implements Singleton {
     final public static int MAX_CACHE_SIZE = 500;
     private int myProductCacheSize = MIN_CACHE_SIZE;  // The cache size (number of products we hold)
     // FIXME: Color map might be part of product info object?
-    TreeMap<String, ColorMap> myColorMaps = new TreeMap<String, ColorMap>();
+   // TreeMap<String, ColorMap> myColorMaps = new TreeMap<String, ColorMap>();
     TreeMap<String, ProductDataInfo> myProductInfo = new TreeMap<String, ProductDataInfo>();
     ProductDataInfo myDefaults = new ProductDataInfo();
     // Cache stuff
@@ -164,7 +164,6 @@ public class ProductManager implements Singleton {
             myListName = name;
         }
 
-        // FIXME: this will be the real color map
         public ColorMap getColorMap() {
             return myColorMap;
         }
@@ -287,8 +286,10 @@ public class ProductManager implements Singleton {
     }
 
     public boolean hasColorMap(String name) {
-        ColorMap aColorMap = myColorMaps.get(name);
-        return (aColorMap != null);
+       // ColorMap aColorMap = myColorMaps.get(name);
+        //return (aColorMap != null);
+        ProductDataInfo d = getProductDataInfo(name);
+        return (d.getColorMap() != null);
     }
 
     /**
@@ -298,14 +299,20 @@ public class ProductManager implements Singleton {
      */
     public ColorMap getColorMap(String name) {
         // Not sure we should allow others to 'get' a color map.
-        ColorMap aColorMap = myColorMaps.get(name);
-        if (aColorMap == null) {
-            aColorMap = loadColorMap(name);
+        //ColorMap aColorMap = myColorMaps.get(name);
+       // if (aColorMap == null) {
+       //     aColorMap = loadColorMap(name);
+       // }
+      //  if (aColorMap == null) {
+       //     // Ok, create a fake color map here...
+      //  }
+      //  return aColorMap;
+        
+        ProductDataInfo d = getProductDataInfo(name);
+        if (d.getColorMap() == null){
+            d.setColorMap(loadColorMap(name));
         }
-        if (aColorMap == null) {
-            // Ok, create a fake color map here...
-        }
-        return aColorMap;
+        return d.getColorMap();
     }
 
     /**
@@ -352,8 +359,13 @@ public class ProductManager implements Singleton {
      */
     public boolean storeNewColorMap(String colorMapName, ColorMap map, boolean force) {
         boolean success = false;
-        if (force || !myColorMaps.containsKey(colorMapName)) {
-            myColorMaps.put(colorMapName, map);
+      //  if (force || !myColorMaps.containsKey(colorMapName)) {
+      //      myColorMaps.put(colorMapName, map);
+      //      success = true;
+     //   }
+        ProductDataInfo d = getProductDataInfo(colorMapName);
+        if (force || (d.getColorMap()==null)){
+            d.setColorMap(map);
             success = true;
         }
         return success;
@@ -363,6 +375,12 @@ public class ProductManager implements Singleton {
         return (storeNewColorMap(colorMapName, map, false));
     }
 
+    // FIXME: what about any sync issues with access?
+    
+    public TreeMap<String, ProductDataInfo> getProductDataInfoSet(){
+        return myProductInfo;
+    }
+    
     public ProductDataInfo getProductDataInfo(String name) {
         ProductDataInfo d = myProductInfo.get(name);
         if (d == null) {
@@ -372,8 +390,7 @@ public class ProductManager implements Singleton {
             d.copyFrom(myDefaults);
             d.setName(name);
             d.setListName(name);
-            // FIXME: Could store this object to avoid recreation.
-            // Will only work if defaults never change on the fly
+            myProductInfo.put(name, d);
         }
         return d;
     }

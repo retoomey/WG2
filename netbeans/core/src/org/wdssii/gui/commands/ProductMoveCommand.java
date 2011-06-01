@@ -28,6 +28,15 @@ public class ProductMoveCommand extends ProductCommand {
     private static final SimpleDateFormat tipFormat = new SimpleDateFormat(
             "---HH:mm:ss");
 
+    // Default icons for navigation directions, these are passed to the
+    // IconFactory
+    private static final String RIGHT_ARROW_ICON = "RightArrowIcon";
+    private static final String RIGHT_ARROW_END_ICON = "RightArrowEndIcon";
+    private static final String DOWN_ARROW_ICON = "DownArrowIcon";
+    private static final String UP_ARROW_ICON = "UpArrowIcon";
+    private static final String LEFT_ARROW_ICON = "LeftArrowIcon";
+    private static final String PREV_NOT_VIRTUAL_ICON = "LeftArrowEndIcon";
+    
     @Override
     public boolean execute() {
         return false;
@@ -98,9 +107,9 @@ public class ProductMoveCommand extends ProductCommand {
                     } else {
                         /*
                          * if (volume.baseIsInLatestVolume()){ red = 144; green
-                         * = 238; blue = 144; icon = "rightEndIcon"; useColor =
+                         * = 238; blue = 144; icon = RIGHT_END_ICON; useColor =
                          * true; }else{ red = 255; green = 192; blue = 203; icon
-                         * = "prevNotVirtualIcon"; useColor = true; }
+                         * = PREV_NOT_VIRTUAL_ICON; useColor = true; }
                          */
                     }
 
@@ -184,13 +193,14 @@ public class ProductMoveCommand extends ProductCommand {
                                 red = 144;
                                 green = 238;
                                 blue = 144; /* light green */
-                                icon = "rightEndIcon";
+                                icon = RIGHT_ARROW_END_ICON;
+                                
                                 useColor = true;
                             } else {
                                 red = 255;
                                 green = 192;
                                 blue = 203; /* pink */
-                                icon = "prevNotVirtualIcon";
+                                icon = PREV_NOT_VIRTUAL_ICON;
                                 useColor = true;
                             }
                         }
@@ -246,10 +256,10 @@ public class ProductMoveCommand extends ProductCommand {
                     if (volume != null) {
                         newRecord = volume.peekUp();
                         if (volume.upIsInLatestVolume()) {
-                            status.setIconString("rightEndIcon");
+                            status.setIconString(RIGHT_ARROW_END_ICON);
                             status.setColor(144, 238, 144);
                         } else {
-                            status.setIconString("prevNotVirtualIcon");
+                            status.setIconString(PREV_NOT_VIRTUAL_ICON);
                             status.setColor(255, 192, 203);
                         }
                     } else {
@@ -304,10 +314,10 @@ public class ProductMoveCommand extends ProductCommand {
                     if (volume != null) {
                         newRecord = volume.peekDown();
                         if (volume.upIsInLatestVolume()) {
-                            status.setIconString("rightEndIcon");
+                            status.setIconString(RIGHT_ARROW_END_ICON);
                             status.setColor(144, 238, 144);
                         } else {
-                            status.setIconString("prevNotVirtualIcon");
+                            status.setIconString(PREV_NOT_VIRTUAL_ICON);
                             status.setColor(255, 192, 203);
                         }
                     } else {
@@ -377,7 +387,7 @@ public class ProductMoveCommand extends ProductCommand {
                             + newRecord.getSubType() + " "
                             + newRecord.getTimeStamp();
                 }
-                icon = "upIcon";
+                icon = UP_ARROW_ICON;
 
             }
 
@@ -440,8 +450,8 @@ public class ProductMoveCommand extends ProductCommand {
                     tip = tipFormat.format(aDate) + " "
                             + newRecord.getSubType() + " "
                             + newRecord.getTimeStamp();
-                }
-                icon = "downIcon";
+                }  
+                icon = DOWN_ARROW_ICON;
             }
 
             // Humm this forces all buttons to be the same
@@ -502,7 +512,7 @@ public class ProductMoveCommand extends ProductCommand {
                 } else {
                     enabled = false;
                 }
-                icon = "leftIcon";
+                icon = LEFT_ARROW_ICON;
             }
 
             // Humm this forces all buttons to be the same
@@ -617,7 +627,7 @@ public class ProductMoveCommand extends ProductCommand {
             } else {
 
                 IndexRecord newRecord = p.peekRecord(NavigationMessage.NextTime);
-                icon = "rightIcon";
+                icon = RIGHT_ARROW_ICON;
                 enabled = false;
 
                 if (newRecord != null) {
@@ -681,7 +691,7 @@ public class ProductMoveCommand extends ProductCommand {
             } else {
 
                 IndexRecord newRecord = p.peekRecord(NavigationMessage.LatestTime);
-                icon = "rightEndIcon";
+                icon = RIGHT_ARROW_END_ICON;
                 enabled = false;
 
                 if (newRecord != null) {

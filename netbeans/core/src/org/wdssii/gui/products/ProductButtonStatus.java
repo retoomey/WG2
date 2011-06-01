@@ -1,15 +1,12 @@
 package org.wdssii.gui.products;
 
-//import org.eclipse.swt.graphics.Image;
-//import org.eclipse.swt.graphics.PaletteData;
-//import org.eclipse.swt.graphics.RGB;
-//import org.eclipse.swt.widgets.Display;
 import org.wdssii.gui.commands.WdssiiCommand;
-//import org.wdssii.gui.swt.widgets.BuiltInIcons;
-import org.wdssii.gui.util.FileUtil;
 import org.wdssii.index.IndexRecord;
 
-/** Button status used to update WJButtons.
+/** Button status used to update the product navigation buttons.
+ * It is up to the navigation GUI to use the IconString and color info
+ * to set the display accordingly.
+ * 
  * @author Robert Toomey
  *
  */
@@ -89,22 +86,6 @@ public class ProductButtonStatus {
         return myBlue;
     }
 
-    /*public Image getIcon(Display display) {
-    Image image = null;
-    PaletteData paletteData = new PaletteData(
-    new RGB[] { new RGB(255, 255, 255), new RGB(0, 255, 0),
-    new RGB(0, 0, 255) });
-    if (myIconString == "") {
-    image = BuiltInIcons.noIcon(paletteData, display);
-    } else {
-    image = BuiltInIcons
-    .imageByName(myIconString, paletteData, display);
-    if (image == null){
-    image =  FileUtil.imageFromFile(display,myIconString);
-    }
-    }
-    return (image);
-    }*/
     public void setIconString(String s) {
         myIconString = s;
     }

@@ -15,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -44,6 +43,8 @@ import org.wdssii.gui.products.ProductButtonStatus;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.ProductNavigator;
+import org.wdssii.gui.swing.SimplerJButton;
+import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.NavView;
 
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Navigator//EN",
@@ -74,7 +75,6 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
     //public void ProductSelectCommandUpdate(ProductSelectCommand command) {
     //    updateGUI(command);
     //}
-
     public void SourceCommandUpdate(SourceCommand command) {
         updateGUI(command);
     }
@@ -358,7 +358,7 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
     }
 
     /** Our special class for drawing the grid controls */
-    public static class NavButton extends JButton {
+    public static class NavButton extends SimplerJButton {
 
         private int myGridIndex;
         private WdssiiCommand myCommand = null;
@@ -375,24 +375,6 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
             });
         }
 
-        protected void paintComponent(Graphics g){
-            super.paintComponent(g);
-          //  Dimension originalSize = super.getPreferredSize();
-         //   int gap = (int) (originalSize.height * 0.2);
-         //   int x = originalSize.width + gap;
-        //    int y = gap;
-        //    int diameter = originalSize.height - (gap * 2);
-            
-         //   g.setColor(Color.BLACK);
-    
-         //   g.fillOval(x, y, diameter, diameter);
-        }
-        
-        public Dimension getPreferredSize(){
-            Dimension size = super.getPreferredSize();
-            //size.width += size.height;
-            return size;
-        }
         public void handleActionPerformed(ActionEvent e) {
             CommandManager m = CommandManager.getInstance();
             m.executeCommand(myCommand, true);
@@ -415,7 +397,7 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
             updateNavButton(p);
 
         }
-
+        
         public void updateNavButton(ProductButtonStatus p) {
             if (p == null) {
                 setVisible(false);
@@ -424,22 +406,19 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
                 setText(p.getButtonText());
                 setToolTipText(p.getToolTip());
                 setEnabled(p.getValidRecord());
-                Color c;
+                Color background = null;
                 if (p.getUseColor()) {
-                    c = new Color(p.getRed(), p.getGreen(), p.getBlue());
+                    background = new Color(p.getRed(), p.getGreen(), p.getBlue());
+                    // FIXME: maybe should be contrasting color instead...
+                    setForeground(Color.BLACK);
                 } else {
-                    c = new Color(255, 0, 0);
+                    setForeground(Color.BLACK);
+                    background = Color.WHITE;
                 }
 
-                // Everytime we update status we recreate the icon, which is kinda
-                // messy..but then
-                // again we could do things like change icon colors/animate? Lots of
-                // possibilities.
-                // Need to read SWT well make sure we aren't leaking here.
-                //setImage(p.getIcon(myDisplay));
-                setBackground(c);
+                setIcon(SwingIconFactory.getIconByName(p.getIconString()));
+                setBackground(background);
                 setEnabled(p.getEnabled());
-
             }
         }
     }
@@ -465,7 +444,7 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
         l.setHgap(2);
         for (int i = 0; i < myGridCount; i++) {
             NavButton b = new NavButton("Test" + i, i);
-            b.setBackground(Color.red);
+            //  b.setBackground(Color.red);
             if (i == 0) {
                 b.setVisible(false);
             }

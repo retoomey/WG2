@@ -12,6 +12,8 @@ import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
+import org.wdssii.datatypes.DataType;
+import org.wdssii.datatypes.Table2DView;
 
 /** ProductRenderer is a helper class of Product.  It draws the DataType in the 3D world
  * 
@@ -68,6 +70,13 @@ public abstract class ProductRenderer {
     public void drawGridOutline(DrawContext dc, GridVisibleArea a) {
         Product aProduct = getProduct();
         if ((aProduct != null) && (a != null)) {
+            
+            // Synchronization lazy data check
+            aProduct.updateDataTypeIfLoaded();
+            DataType dt = aProduct.getRawDataType();
+            if (dt == null){  return; }  // Data not loaded yet...
+            if (!(dt instanceof Table2DView)){ return; }  // Not a table
+          
             Globe myGlobe = dc.getGlobe();
             GL gl = dc.getGL();
 
@@ -79,8 +88,8 @@ public abstract class ProductRenderer {
             int counter = 0;
             location = new Location(1.0, 1.0, 1.0);
 
-            Product2DTable table = aProduct.get2DTable();
-
+           // Product2DTable table = aProduct.get2DTable();
+            Table2DView table = (Table2DView)(dt);
             int lastColumn = a.lastFullColumn;
             int lastRow = a.lastFullRow;
             int startColumn = a.startCol;
@@ -103,7 +112,7 @@ public abstract class ProductRenderer {
                 // and a lot of redundant code. Use a DFA to loop around the data
                 gl.glLineWidth(5.0f);
                 gl.glBegin(GL.GL_LINE_LOOP);
-                /*
+                
                 while (dfaState <= lastState) {
                 
                 // Get point for the bzscan outline
@@ -159,7 +168,7 @@ public abstract class ProductRenderer {
                 }
                 }
                 }
-                 */
+                 
                 gl.glEnd();
             }
             gl.glPopAttrib();

@@ -22,6 +22,8 @@ import org.wdssii.gui.ColorMap.ColorMapOutput;
 /** Any DataType implementing the Table2D interface can be displayed with this
  * class.
  * @author Robert Toomey
+ * @deprecated
+ * 
  */
 public class Product2DTable { //implements VirtualGridModel {
 

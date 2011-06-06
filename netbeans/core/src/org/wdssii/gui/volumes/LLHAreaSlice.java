@@ -594,6 +594,7 @@ public class LLHAreaSlice extends LLHArea {
         // 		d.prepFilterForVolume(volume);
         // 	}
         //}
+        if (aList == null){ return; }
         aList.prepForVolume(volume);
 
         // For dynamic sizing outlines...I might need this code for 'smart' legend over vslice, so

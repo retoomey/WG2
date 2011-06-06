@@ -3,7 +3,6 @@ package org.wdssii.gui.nbm.views;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -12,14 +11,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.RowSorter;
-import javax.swing.RowSorter.SortKey;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -45,6 +39,8 @@ import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.ProductNavigator;
 import org.wdssii.gui.swing.SimplerJButton;
 import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
+import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.views.NavView;
 
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Navigator//EN",
@@ -154,6 +150,11 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
         }
 
         @Override
+        public Class<?> getColumnClass(int column) {
+            return ProductsTableData.class;
+        }
+
+        @Override
         public Object getValueAt(int rowIndex, int column) {
             if (rowIndex == -1) {
                 return "H";
@@ -192,95 +193,19 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
     /** Our custom renderer for our product view table */
     private static class ProductTableCellRenderer extends DefaultTableCellRenderer {
 
-        protected ImageIcon createImageIcon(String path,
-                String description) {
-            java.net.URL imgURL = getClass().getResource(path);
-            if (imgURL != null) {
-                return new ImageIcon(imgURL, description);
-            } else {
-                return null;
-            }
-        }
-
-        /** Code taken from open source example on web:
-         * http://tips4java.wordpress.com/2009/02/27/default-table-header-cell-renderer/
-         * 
-         */
-        protected Icon getIcon(JTable table, int column) {
-            SortKey sortKey = getSortKey(table, column);
-            if (sortKey != null && table.convertColumnIndexToView(sortKey.getColumn()) == column) {
-                switch (sortKey.getSortOrder()) {
-                    case ASCENDING:
-                        return UIManager.getIcon("Table.ascendingSortIcon");
-                    case DESCENDING:
-                        return UIManager.getIcon("Table.descendingSortIcon");
-                }
-            }
-            return null;
-        }
-
-        protected String getSortText(JTable table, int column) {
-            SortKey sortKey = getSortKey(table, column);
-            if (sortKey != null && table.convertColumnIndexToView(sortKey.getColumn()) == column) {
-                switch (sortKey.getSortOrder()) {
-                    case ASCENDING:
-                        return "-";
-                    case DESCENDING:
-                        return "+";
-                }
-            }
-            return "";
-        }
-
-        protected SortKey getSortKey(JTable table, int column) {
-            RowSorter rowSorter = table.getRowSorter();
-            if (rowSorter == null) {
-                return null;
-            }
-
-            List sortedColumns = rowSorter.getSortKeys();
-            if (sortedColumns.size() > 0) {
-                return (SortKey) sortedColumns.get(0);
-            }
-            return null;
-        }
         /** A shared JCheckBox for rendering every check box in the list */
         private JCheckBox checkbox = new JCheckBox();
-        /** The icon for the 'visible' checkbox column of table */
-        private ImageIcon p1 = createImageIcon("layervisible.png", "Layer is visible");
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean cellHasFocus, int row, int col) {
 
+            // Let super set all the defaults...
+            super.getTableCellRendererComponent(table, "",
+                    isSelected, cellHasFocus, row, col);
+
             String info = "";
             int trueCol = table.convertColumnIndexToModel(col);
-
-            // Only our headers are type 'string'
-            if (value instanceof String) {
-                info = (String) (value);
-
-                // First, set the basic label stuff...
-                super.getTableCellRendererComponent(table, info,
-                        isSelected, cellHasFocus, row, col);
-
-                // Change the needed drawing for a table 'header'
-                // Note state is KEPT, so must undo this for other rows
-                setHorizontalAlignment(CENTER);
-                setVerticalAlignment(BOTTOM);
-                setHorizontalTextPosition(LEFT);
-                setOpaque(false);
-                setBorder(UIManager.getBorder("TableHeader.cellBorder"));
-                if (info.equals("Visible")) {
-                    setIcon(p1);
-                    setText(getSortText(table, col));
-                } else {
-                    setIcon(getIcon(table, col));
-
-                }
-                return this;
-
-            }
 
             // Each row uses a single LayerTableEntry...
             if (value instanceof ProductsTableData) {
@@ -341,19 +266,12 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
 
                 }
 
+                // For text...
+                setText(info);
+            } else {
+                setText((String) (value));
             }
-
-            // Default is to render a stock label.
-            setHorizontalAlignment(LEFT);
-            setVerticalAlignment(BOTTOM);
-            //  setHorizontalTextPosition(LEFT);
-            setOpaque((row != -1));
-            setBorder(null);
-            setIcon(null);
-            return super.getTableCellRendererComponent(table, info,
-                    isSelected, cellHasFocus, row, col);
-
-
+            return this;
         }
     }
 
@@ -397,7 +315,7 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
             updateNavButton(p);
 
         }
-        
+
         public void updateNavButton(ProductButtonStatus p) {
             if (p == null) {
                 setVisible(false);
@@ -466,13 +384,35 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
 
         ProductTableCellRenderer p = new ProductTableCellRenderer();
         jProductsListTable.setDefaultRenderer(ProductsTableData.class, p);
-        // Set each column individually, since above doesn't work.
+
         int count = jProductsListTable.getColumnCount();
         TableColumnModel cm = jProductsListTable.getColumnModel();
+        JCheckBox aBox = new JCheckBox();
+        Dimension d = aBox.getMinimumSize();
+        IconHeaderRenderer r = new IconHeaderRenderer();
         for (int i = 0; i < count; i++) {
             TableColumn col = cm.getColumn(i);
-            col.setCellRenderer(p);
-            col.setHeaderRenderer(p);
+            col.setHeaderRenderer(r);
+            switch (i) {
+                case 0: {
+                    IconHeaderInfo info = new IconHeaderInfo("layervisible.png");
+                    col.setHeaderValue(info);
+                    // FIXME: this isn't right, how to do it with look + feel
+                    col.setWidth(2 * d.width);
+                    col.setMaxWidth(2 * d.width);
+                    col.setResizable(false);
+                }
+                break;
+                case 1: {
+                    IconHeaderInfo info = new IconHeaderInfo("picture.png");
+                    col.setHeaderValue(info);
+                    // FIXME: this isn't right, how to do it with look + feel
+                    col.setWidth(2 * d.width);
+                    col.setMaxWidth(2 * d.width);
+                    col.setResizable(false);
+                    break;
+                }
+            }
         }
 
         jProductsListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {

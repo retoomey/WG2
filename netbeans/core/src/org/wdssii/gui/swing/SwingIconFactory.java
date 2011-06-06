@@ -9,6 +9,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import org.wdssii.gui.nbm.views.EarthTopComponent;
 
 /**
  * A factory that returns an icon based on a passed name.  We can have
@@ -32,9 +34,39 @@ public class SwingIconFactory {
             System.out.println("Exception is " + e.toString());
         }
         if (image == null) {
-            return new MissingIcon();
+           image = getImageIconByName(name, "");
+           if (image == null){
+               image = new MissingIcon();
+           }
         }
         return image;
+    }
+
+    /** Load an image icon from the nbm.viems directory.
+     * Netbeans puts view icons there, probably will make a general 'icon'
+     * folder later on.
+     */
+    public static ImageIcon getImageIconByName(String path,
+            String description) {
+        java.net.URL imgURL = EarthTopComponent.class.getResource(path);
+        if (imgURL != null) {
+            return new ImageIcon(imgURL, description);
+        } else {
+            return null;
+        }
+    }
+
+    /** Load an image icon from the nbm.viems directory.
+     * Netbeans puts view icons there, probably will make a general 'icon'
+     * folder later on.
+     */
+    public static ImageIcon getImageIconByName(String path) {
+        java.net.URL imgURL = EarthTopComponent.class.getResource(path);
+        if (imgURL != null) {
+            return new ImageIcon(imgURL);
+        } else {
+            return null;
+        }
     }
 
     /** Return an image of the icon.  This locks the drawing

@@ -177,7 +177,14 @@ public class CommandManager implements Singleton {
     // / Used by the Layers view to get the list of global worldwind layers from
     // the primary window
     public LayerList getLayerList() {
-        return getEarthBall().getLayerList();
+        LayerList list;
+        EarthBallView v = getEarthBall();
+        if (v != null){
+            list = v.getLayerList();
+        }else{
+            list = null;
+        }
+       return list;
     }
 
     public void setLayerEnabled(String name, boolean flag) {

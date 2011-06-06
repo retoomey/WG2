@@ -55,7 +55,7 @@ import gov.nasa.worldwind.globes.Globe;
  * 
  * Merged Editor ability into this class, since we have a single 'selected' object that is the currently edited one.
  */
-public class LLHAreaLayer extends AbstractLayer {
+public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
     public static final String DRAW_STYLE_FILL = "Airspace.DrawStyleFill";
     public static final String DRAW_STYLE_OUTLINE = "Airspace.DrawStyleOutline";
@@ -90,6 +90,11 @@ public class LLHAreaLayer extends AbstractLayer {
     protected static final int LOWER_ALTITUDE = AirspaceEditorUtil.LOWER_ALTITUDE;
     protected static final int UPPER_ALTITUDE = AirspaceEditorUtil.UPPER_ALTITUDE;
     private static final double DEFAULT_POLYGON_HEIGHT = 10.0;
+
+    @Override
+    public String getCategory() {
+        return WDSSII_CATEGORY;
+    }
 
     public static class LLHAreaEdgeInfo {
 
@@ -1469,7 +1474,7 @@ public class LLHAreaLayer extends AbstractLayer {
     protected void assembleControlPoints(DrawContext dc) {
         // If selection isn't visible, don't show control points....
         VolumeTableData d = LLHAreaManager.getInstance().getSelection();
-        if (!d.checked) {
+        if ((d == null) || (!d.checked)) {
             return;
         }
 

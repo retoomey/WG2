@@ -3,26 +3,18 @@ package org.wdssii.gui.nbm.views;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.layers.LayerList;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
-import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.RowSorter;
-import javax.swing.RowSorter.SortKey;
 import javax.swing.UIManager;
-import javax.swing.plaf.TableHeaderUI;
-import javax.swing.table.JTableHeader;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
@@ -32,8 +24,9 @@ import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
+import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.worldwind.WWCategoryLayer;
-import com.sun.java.swing.plaf.windows.WindowsTableHeaderUI;
 
 /**
  * LayersTopCompoent
@@ -65,96 +58,19 @@ public final class LayersTopComponent extends TopComponent {
     /** Our custom renderer for our layer view table */
     private static class LayerTableCellRenderer extends DefaultTableCellRenderer {
 
-        protected ImageIcon createImageIcon(String path,
-                String description) {
-            java.net.URL imgURL = getClass().getResource(path);
-            if (imgURL != null) {
-                return new ImageIcon(imgURL, description);
-            } else {
-                // System.err.println("Couldn't find file: " + path);
-                return null;
-            }
-        }
-
-        /** Code taken from open source example on web:
-         * http://tips4java.wordpress.com/2009/02/27/default-table-header-cell-renderer/
-         * 
-         */
-        protected Icon getIcon(JTable table, int column) {
-            SortKey sortKey = getSortKey(table, column);
-            if (sortKey != null && table.convertColumnIndexToView(sortKey.getColumn()) == column) {
-                switch (sortKey.getSortOrder()) {
-                    case ASCENDING:
-                        return UIManager.getIcon("Table.ascendingSortIcon");
-                    case DESCENDING:
-                        return UIManager.getIcon("Table.descendingSortIcon");
-                }
-            }
-            return null;
-        }
-
-        protected String getSortText(JTable table, int column) {
-            SortKey sortKey = getSortKey(table, column);
-            if (sortKey != null && table.convertColumnIndexToView(sortKey.getColumn()) == column) {
-                switch (sortKey.getSortOrder()) {
-                    case ASCENDING:
-                        return "-";
-                    case DESCENDING:
-                        return "+";
-                }
-            }
-            return "";
-        }
-
-        protected SortKey getSortKey(JTable table, int column) {
-            RowSorter rowSorter = table.getRowSorter();
-            if (rowSorter == null) {
-                return null;
-            }
-
-            List sortedColumns = rowSorter.getSortKeys();
-            if (sortedColumns.size() > 0) {
-                return (SortKey) sortedColumns.get(0);
-            }
-            return null;
-        }
         /** A shared JCheckBox for rendering every check box in the list */
         private JCheckBox checkbox = new JCheckBox();
-        /** The icon for the 'visible' checkbox column of table */
-        private ImageIcon p1 = createImageIcon("layervisible.png", "Layer is visible");
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean cellHasFocus, int row, int col) {
 
+            // Let super set all the defaults...
+            super.getTableCellRendererComponent(table, "",
+                    isSelected, cellHasFocus, row, col);
+
             String info = "";
             int trueCol = table.convertColumnIndexToModel(col);
-
-            // Only our headers are type 'string'
-            if (value instanceof String) {
-                info = (String) (value);
-
-                // First, set the basic label stuff...
-                super.getTableCellRendererComponent(table, info,
-                        isSelected, cellHasFocus, row, col);
-
-                // Change the needed drawing for a table 'header'
-                // Note state is KEPT, so must undo this for other rows
-                setHorizontalAlignment(CENTER);
-                setVerticalAlignment(BOTTOM);
-                setHorizontalTextPosition(LEFT);
-                setOpaque(false);
-                setBorder(UIManager.getBorder("TableHeader.cellBorder"));
-                if (info.equals("Visible")) {
-                    setIcon(p1);
-                    setText(getSortText(table, col));
-                } else {
-                    setIcon(getIcon(table, col));
-
-                }
-                return this;
-
-            }
 
             // Each row uses a single LayerTableEntry...
             if (value instanceof LayerTableEntry) {
@@ -185,24 +101,17 @@ public final class LayersTopComponent extends TopComponent {
                         break;
                 }
 
+                // For text...
+                setText(info);
+            } else {
+                setText((String) (value));
             }
-
-            // Default is to render a stock label.
-            setHorizontalAlignment(LEFT);
-            setVerticalAlignment(BOTTOM);
-            //  setHorizontalTextPosition(LEFT);
-            setOpaque((row != -1));
-            setBorder(null);
-            setIcon(null);
-            return super.getTableCellRendererComponent(table, info,
-                    isSelected, cellHasFocus, row, col);
-
-
+            return this;
         }
     }
 
     /** Each row in our table will have a LayerTableEntry */
-    private static class LayerTableEntry {
+    public static class LayerTableEntry {
 
         String name;
         boolean enabled;
@@ -242,8 +151,14 @@ public final class LayersTopComponent extends TopComponent {
         }
 
         @Override
+        public Class<?> getColumnClass(int col) {
+            return LayerTableEntry.class;
+        }
+
+        @Override
         public int getColumnCount() {
             return headers.length;
+
         }
 
         @Override
@@ -253,9 +168,6 @@ public final class LayersTopComponent extends TopComponent {
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            if (rowIndex == -1) {
-                return "H";
-            }
             if (myEntries != null) {
                 if (rowIndex < myEntries.size()) {
                     return myEntries.get(rowIndex);
@@ -276,27 +188,27 @@ public final class LayersTopComponent extends TopComponent {
                 true);
         t.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Ok, wtf? setDefaultRenderer is supposed to work, but doesn't..
-        // our model is returning a LayerTableEntry object  Either it's
-        // broken or I'm missing something in the API
-        // FIXME: figure out what I'm doing wrong.
+        // Set renderer for all LayerTableEntry cells
         LayerTableCellRenderer l = new LayerTableCellRenderer();
         t.setDefaultRenderer(LayerTableEntry.class, l);
 
-        // Set each column individually, since above doesn't work.
+        JCheckBox aBox = new JCheckBox();
+        Dimension d = aBox.getMinimumSize();
+
+
         int count = t.getColumnCount();
         TableColumnModel cm = t.getColumnModel();
         for (int i = 0; i < count; i++) {
             TableColumn col = cm.getColumn(i);
-            col.setCellRenderer(l);
-            col.setHeaderRenderer(l);
-
+            // Make all headers draw the same to be consistent.
+            col.setHeaderRenderer(new IconHeaderRenderer());
             switch (i) {
                 case 0:
-                    col.setWidth(
-                            50 * JCheckBox.WIDTH);
-                    col.setMaxWidth(
-                            50 * JCheckBox.WIDTH);
+                    IconHeaderInfo info = new IconHeaderInfo("layervisible.png");
+                    col.setHeaderValue(info);
+                    // FIXME: this isn't right, how to do it with look + feel
+                    col.setWidth(2 * d.width);
+                    col.setMaxWidth(2 * d.width);
                     col.setResizable(false);
                     break;
             }

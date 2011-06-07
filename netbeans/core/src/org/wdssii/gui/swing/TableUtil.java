@@ -3,6 +3,7 @@ package org.wdssii.gui.swing;
 import java.awt.Component;
 import java.util.List;
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
@@ -74,30 +75,45 @@ public class TableUtil {
     public static class IconHeaderRenderer extends DefaultTableCellRenderer {
 
         public static class IconHeaderInfo {
-           private Icon icon;
-           private String text;
-           private String iconName;
-           public Icon getIcon(){ return icon; }
-           public void setIcon(Icon i){ icon = i; }
-           public String getText(){ return text; }
-           public void setText(String s){ text = s; }
-           public void update(){
-               if (icon == null){
-                  setIcon(SwingIconFactory.getIconByName(iconName));
-               }
-           }
-           public IconHeaderInfo(String iName){
-               iconName = iName;
-           }
+
+            private Icon icon;
+            private String text;
+            private String iconName;
+
+            public Icon getIcon() {
+                return icon;
+            }
+
+            public void setIcon(Icon i) {
+                icon = i;
+            }
+
+            public String getText() {
+                return text;
+            }
+
+            public void setText(String s) {
+                text = s;
+            }
+
+            public void update() {
+                if (icon == null) {
+                    setIcon(SwingIconFactory.getIconByName(iconName));
+                }
+            }
+
+            public IconHeaderInfo(String iName) {
+                iconName = iName;
+            }
         }
-        
+
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean cellHasFocus, int row, int col) {
 
             // First, let super set defaults...
             super.getTableCellRendererComponent(table, "", isSelected, cellHasFocus, row, col);
-            
+
             // Basic settings for a 'header'
             setHorizontalAlignment(CENTER);
             setVerticalAlignment(BOTTOM);
@@ -106,18 +122,46 @@ public class TableUtil {
             setBorder(UIManager.getBorder("TableHeader.cellBorder"));
 
             // Draw our stuff..
-            if (value instanceof IconHeaderInfo){
-                IconHeaderInfo info = (IconHeaderInfo)(value);
+            if (value instanceof IconHeaderInfo) {
+                IconHeaderInfo info = (IconHeaderInfo) (value);
                 info.update();
-                if (info.icon != null){
+                if (info.icon != null) {
                     setIcon(info.icon);
                 }
                 setText(getSortText(table, col));
-            }else{
-                setText((String)(value));
+            } else {
+                setText((String) (value));
                 setIcon(TableUtil.getIcon(table, col));
             }
             return this;
+        }
+    }
+
+    /** A table I'll end up using for all tables in the display I think
+     * in order to be consistent
+     */
+    public static class WG2TableCellRenderer extends DefaultTableCellRenderer {
+
+        /** A shared JCheckBox for rendering every check box in the list */
+        private JCheckBox checkbox = new JCheckBox();
+
+        /** Render this cell as a checkbox */
+        public Component getJCheckBox(JTable table, boolean checked,
+                boolean isSelected, boolean cellHasFocus, int row, int col) {
+            // We have to make sure we set EVERYTHING we use everytime,
+            // since we are just using a single checkbox.        
+            checkbox.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+            checkbox.setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
+            checkbox.setEnabled(isEnabled());
+
+            checkbox.setSelected(checked);
+
+            checkbox.setFont(getFont());
+            checkbox.setFocusPainted(false);
+            checkbox.setBorderPainted(true);
+            checkbox.setBorder(isSelected ? UIManager.getBorder("List.focusCellHighlightBorder")
+                    : noFocusBorder);
+            return checkbox;
         }
     }
 }

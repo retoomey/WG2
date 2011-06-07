@@ -26,6 +26,7 @@ import org.openide.awt.ActionReference;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
+import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.gui.worldwind.WWCategoryLayer;
 
 /**
@@ -56,7 +57,7 @@ public final class LayersTopComponent extends TopComponent {
     private final JTable myTable;
 
     /** Our custom renderer for our layer view table */
-    private static class LayerTableCellRenderer extends DefaultTableCellRenderer {
+    private static class LayerTableCellRenderer extends WG2TableCellRenderer {
 
         /** A shared JCheckBox for rendering every check box in the list */
         private JCheckBox checkbox = new JCheckBox();
@@ -78,21 +79,7 @@ public final class LayersTopComponent extends TopComponent {
 
                 switch (trueCol) {
                     case LayerTableModel.COL_VISIBLE:
-
-                        // We have to make sure we set EVERYTHING we use everytime,
-                        // since we are just using a single checkbox.        
-                        checkbox.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-                        checkbox.setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
-                        checkbox.setEnabled(isEnabled());
-                        checkbox.setSelected(e.enabled);
-                        checkbox.setFont(getFont());
-                        checkbox.setFocusPainted(false);
-                        checkbox.setBorderPainted(true);
-                        checkbox.setBorder(isSelected ? UIManager.getBorder("List.focusCellHighlightBorder")
-                                : noFocusBorder);
-                        return checkbox;
-
-
+                        return getJCheckBox(table, e.enabled, isSelected, cellHasFocus, row, col);
                     case LayerTableModel.COL_LAYER_NAME:
                         info = e.name;
                         break;

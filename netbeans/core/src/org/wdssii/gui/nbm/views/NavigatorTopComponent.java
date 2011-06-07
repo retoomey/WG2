@@ -14,11 +14,9 @@ import java.util.Iterator;
 import javax.swing.JCheckBox;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import org.openide.util.NbBundle;
@@ -41,6 +39,7 @@ import org.wdssii.gui.swing.SimplerJButton;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
+import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.gui.views.NavView;
 
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Navigator//EN",
@@ -82,11 +81,13 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
     @Override
     public void updateInSwingThread(Object command) {
         WdssiiCommand w = null;
+        updateContentDescription();
         updateNavButtons();
         if (command instanceof WdssiiCommand) {
             w = (WdssiiCommand) (command);
         }
         updateProductList(w);
+
     }
     private static final int myGridRows = 4;
     private static final int myGridCols = 4;
@@ -118,9 +119,9 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
         public static final int NAV_VISIBLE = 0;
         public static final int NAV_ONLY = 1;
         public static final int NAV_TIME = 2;
-        public static final int NAV_TYPE = 3;
+        public static final int NAV_NAME = 3;
+        public static final int NAV_TYPE = 5;
         public static final int NAV_SUBTYPE = 4;
-        public static final int NAV_NAME = 5;
         public static final int NAV_MESSAGE = 6;
 
         public ProductsListTableModel() {
@@ -191,7 +192,7 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
     }
 
     /** Our custom renderer for our product view table */
-    private static class ProductTableCellRenderer extends DefaultTableCellRenderer {
+    private static class ProductTableCellRenderer extends WG2TableCellRenderer {
 
         /** A shared JCheckBox for rendering every check box in the list */
         private JCheckBox checkbox = new JCheckBox();
@@ -214,39 +215,10 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
                 switch (trueCol) {
 
                     case ProductsListTableModel.NAV_VISIBLE:
-
-                        // We have to make sure we set EVERYTHING we use everytime,
-                        // since we are just using a single checkbox.        
-                        checkbox.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-                        checkbox.setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
-                        checkbox.setEnabled(isEnabled());
-
-                        checkbox.setSelected(e.checked);
-
-                        checkbox.setFont(getFont());
-                        checkbox.setFocusPainted(false);
-                        checkbox.setBorderPainted(true);
-                        checkbox.setBorder(isSelected ? UIManager.getBorder("List.focusCellHighlightBorder")
-                                : noFocusBorder);
-                        return checkbox;
+                        return getJCheckBox(table, e.checked, isSelected, cellHasFocus, row, col);
 
                     case ProductsListTableModel.NAV_ONLY:
-
-                        // We have to make sure we set EVERYTHING we use everytime,
-                        // since we are just using a single checkbox.        
-                        checkbox.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-                        checkbox.setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
-                        checkbox.setEnabled(isEnabled());
-
-                        checkbox.setSelected(e.checked);
-
-                        checkbox.setFont(getFont());
-                        checkbox.setFocusPainted(false);
-                        checkbox.setBorderPainted(true);
-                        checkbox.setBorder(isSelected ? UIManager.getBorder("List.focusCellHighlightBorder")
-                                : noFocusBorder);
-                        return checkbox;
-
+                        return getJCheckBox(table, e.onlyMode, isSelected, cellHasFocus, row, col);
 
                     case ProductsListTableModel.NAV_TIME:
                         info = e.timeStamp;
@@ -347,6 +319,8 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
         initButtonGrid();
         initProductTable();
 
+        // For box layout, have to align label center...
+        jProductInfoLabel.setAlignmentX(LEFT_ALIGNMENT);
         updateNavButtons();
         updateProductList(null);
 
@@ -394,7 +368,7 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
             TableColumn col = cm.getColumn(i);
             col.setHeaderRenderer(r);
             switch (i) {
-                case 0: {
+                case ProductsListTableModel.NAV_VISIBLE: {
                     IconHeaderInfo info = new IconHeaderInfo("layervisible.png");
                     col.setHeaderValue(info);
                     // FIXME: this isn't right, how to do it with look + feel
@@ -403,7 +377,7 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
                     col.setResizable(false);
                 }
                 break;
-                case 1: {
+                case ProductsListTableModel.NAV_ONLY: {
                     IconHeaderInfo info = new IconHeaderInfo("picture.png");
                     col.setHeaderValue(info);
                     // FIXME: this isn't right, how to do it with look + feel
@@ -464,10 +438,17 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
 
     }
 
-    private void updateProductList(WdssiiCommand command) {
-
+    /** Get our product handler list.  For now at least,  this is global */
+    private ProductHandlerList getProductHandlerList() {
         CommandManager m = CommandManager.getInstance();
         ProductHandlerList p = m.getProductOrderedSet();
+        return p;
+    }
+
+    /** Regenerate the list of products in the navigator */
+    private void updateProductList(WdssiiCommand command) {
+
+        ProductHandlerList p = getProductHandlerList();
 
         if (p != null) {
             ArrayList<ProductsTableData> sortedList = null;
@@ -506,9 +487,9 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
     }
 
     private Product updateNavButtons() {
+
         // Update the navigation button array
-        CommandManager m = CommandManager.getInstance();
-        ProductHandlerList l = m.getProductOrderedSet();
+        ProductHandlerList l = getProductHandlerList();
         ProductHandler h = l.getTopProductHandler();
         Product d = null;
         if (h != null) {
@@ -534,6 +515,23 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
 
     }
 
+    private void updateContentDescription() {
+        CommandManager m = CommandManager.getInstance();
+        ProductHandlerList l = m.getProductOrderedSet();
+        ProductHandler h = l.getTopProductHandler();
+        Product d = null;
+        if (h != null) {
+            d = h.getProduct();
+        }
+        String text;
+        if (d == null) {
+            text = "No Current Product";
+        } else {
+            text = d.getProductInfoString();
+        }
+        jProductInfoLabel.setText(text);
+    }
+
     private void jProductsListTableValueChanged(ListSelectionEvent evt) {
         if (evt.getValueIsAdjusting()) {
             return;
@@ -553,39 +551,51 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
+        jProductInfoLabel = new javax.swing.JLabel();
         jNavPanel = new javax.swing.JPanel();
         jLoopPanel = new javax.swing.JPanel();
         jProductsScrollPane = new javax.swing.JScrollPane();
 
+        setLayout(new java.awt.GridBagLayout());
+
+        org.openide.awt.Mnemonics.setLocalizedText(jProductInfoLabel, org.openide.util.NbBundle.getMessage(NavigatorTopComponent.class, "NavigatorTopComponent.jProductInfoLabel.text")); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        add(jProductInfoLabel, gridBagConstraints);
+
         jNavPanel.setBackground(new java.awt.Color(0, 102, 51));
         jNavPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 0, 0)));
         jNavPanel.setLayout(null);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        add(jNavPanel, gridBagConstraints);
 
         jLoopPanel.setBackground(new java.awt.Color(153, 0, 153));
         jLoopPanel.setLayout(null);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jNavPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
-            .addComponent(jLoopPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
-            .addComponent(jProductsScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jNavPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLoopPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 12, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProductsScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE))
-        );
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        add(jLoopPanel, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(jProductsScrollPane, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jLoopPanel;
     private javax.swing.JPanel jNavPanel;
+    private javax.swing.JLabel jProductInfoLabel;
     private javax.swing.JScrollPane jProductsScrollPane;
     // End of variables declaration//GEN-END:variables
 

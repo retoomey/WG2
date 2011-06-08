@@ -140,10 +140,22 @@ public class TableUtil {
     /** A table I'll end up using for all tables in the display I think
      * in order to be consistent
      */
+    public static class WG2Table extends JTable {
+        
+    }
+    
+    /** A renderer with a bit more power */
     public static class WG2TableCellRenderer extends DefaultTableCellRenderer {
 
         /** A shared JCheckBox for rendering every check box in the list */
         private JCheckBox checkbox = new JCheckBox();
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean cellHasFocus, int row, int col) {
+            setIcon(null);
+            return super.getTableCellRendererComponent(table, value, isSelected, cellHasFocus, row, col);
+        }
 
         /** Render this cell as a checkbox */
         public Component getJCheckBox(JTable table, boolean checked,
@@ -162,6 +174,24 @@ public class TableUtil {
             checkbox.setBorder(isSelected ? UIManager.getBorder("List.focusCellHighlightBorder")
                     : noFocusBorder);
             return checkbox;
+        }
+
+        /** Render this cell as an icon that toggles two pictures by state */
+        public Component getJCheckBoxIcon(JTable table, boolean checked,
+                String iconOn, String iconOff,
+                boolean isSelected, boolean cellHasFocus, int row, int col) {
+
+            // Superclass is a JLabel, set the defaults, no text though
+            super.getTableCellRendererComponent(table, "",
+                    isSelected, cellHasFocus, row, col);
+            Icon i = null;
+            if (checked) {
+                i = SwingIconFactory.getIconByName(iconOn);
+            } else {
+                i = SwingIconFactory.getIconByName(iconOff);
+            }
+            setIcon(i);
+            return this;
         }
     }
 }

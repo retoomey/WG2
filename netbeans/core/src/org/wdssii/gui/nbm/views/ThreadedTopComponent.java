@@ -42,6 +42,10 @@ public class ThreadedTopComponent extends TopComponent {
             });
         }
     }
+    
+    public final void updateGUI(){
+        updateGUI(null);
+    }
 
     /** Override to update GUI objects within the TopComponent */
     public void updateInSwingThread(Object info) {

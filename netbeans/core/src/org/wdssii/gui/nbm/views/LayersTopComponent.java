@@ -24,6 +24,7 @@ import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
@@ -108,59 +109,15 @@ public final class LayersTopComponent extends TopComponent {
     /** We have a custom model that stores a single LayerTableEntry
      * for each row of the table
      */
-    private static class LayerTableModel extends AbstractTableModel {
+    private static class LayerTableModel extends RowEntryTableModel {
 
-        private final String headers[];
-        private ArrayList<LayerTableEntry> myEntries;
         private static final int COL_VISIBLE = 0;
         private static final int COL_LAYER_NAME = 1;
         private static final int COL_CATEGORY_NAME = 2;
 
         public LayerTableModel() {
-
-            this.headers = new String[]{
-                "Visible", "Layer", "Category"
-            };
-        }
-
-        public void setLayerTableEntries(ArrayList<LayerTableEntry> l) {
-            myEntries = l;
-            this.fireTableDataChanged();
-        }
-
-        @Override
-        public int getRowCount() {
-            int size = 0;
-            if (myEntries != null) {
-                size = myEntries.size();
-            }
-            return size;
-        }
-
-        @Override
-        public Class<?> getColumnClass(int col) {
-            return LayerTableEntry.class;
-        }
-
-        @Override
-        public int getColumnCount() {
-            return headers.length;
-
-        }
-
-        @Override
-        public String getColumnName(int column) {
-            return headers[column];
-        }
-
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            if (myEntries != null) {
-                if (rowIndex < myEntries.size()) {
-                    return myEntries.get(rowIndex);
-                }
-            }
-            return null;
+            super(LayerTableEntry.class, new String[]{
+                        "Visible", "Layer", "Category"});
         }
     }
 
@@ -225,23 +182,27 @@ public final class LayersTopComponent extends TopComponent {
                     Point p = e.getPoint();
                     int row = t.rowAtPoint(p);
                     int column = t.columnAtPoint(p);
-                    int orgColumn = myTable.convertColumnIndexToModel(column);
-                    int orgRow = myTable.convertRowIndexToModel(row);
-                    Object stuff = myModel.getValueAt(orgRow, orgColumn);
-                    if (stuff instanceof LayerTableEntry) {
-                        LayerTableEntry entry = (LayerTableEntry) (stuff);
+
+                    if ((row > -1) && (column > -1)) {
+                        int orgColumn = myTable.convertColumnIndexToModel(column);
+                        int orgRow = myTable.convertRowIndexToModel(row);
+                        Object stuff = myModel.getValueAt(orgRow, orgColumn);
+                        if (stuff instanceof LayerTableEntry) {
+                            LayerTableEntry entry = (LayerTableEntry) (stuff);
 
 
-                        /** a click on visible checkbox toggles layer visibility */
-                        if (orgColumn == LayerTableModel.COL_VISIBLE) {
-                            LayerList list = getLayerList();
-                            if (list != null) {
-                                Layer l = list.getLayerByName(entry.name);
-                                l.setEnabled(!l.isEnabled());
+                            /** a click on visible checkbox toggles layer visibility */
+                            if (orgColumn == LayerTableModel.COL_VISIBLE) {
+                                LayerList list = getLayerList();
+                                if (list != null) {
+                                    Layer l = list.getLayerByName(entry.name);
+                                    l.setEnabled(!l.isEnabled());
+                                }
+                                updateLayerList();
                             }
-                            updateLayerList();
                         }
                     }
+
                 }
             }
         });
@@ -322,7 +283,8 @@ public final class LayersTopComponent extends TopComponent {
                 e.add(n);
             }
         }
-        myModel.setLayerTableEntries(e);
+        myModel.setDataTypes(e);
+        myModel.fireTableDataChanged();
         if (oldRow > -1) {
             myTable.setRowSelectionInterval(oldRow, oldRow);
         }

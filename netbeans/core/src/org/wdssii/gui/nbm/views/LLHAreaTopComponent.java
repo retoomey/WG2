@@ -23,6 +23,7 @@ import org.openide.awt.ActionReference;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.gui.LLHAreaManager;
+import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 
@@ -62,85 +63,22 @@ public final class LLHAreaTopComponent extends TopComponent {
         public String message;
     }
 
-    private class Object3DListTableModel extends AbstractTableModel {
-
-        /** The column headers */
-        private final String headers[];
-        private ArrayList<Objects3DTableData> myDataTypes;
+    private class Object3DListTableModel extends RowEntryTableModel {
+        
         public static final int OBJ_VISIBLE = 0;
         public static final int OBJ_ONLY = 1;
         public static final int OBJ_NAME = 2;
         public static final int OBJ_MESSAGE = 3;
 
         public Object3DListTableModel() {
-
-            this.headers = new String[]{
+            super(Objects3DTableData.class, new String[]{
                 "Visible", "Only", "Name", "Message"
-            };
-        }
-
-        @Override
-        public int getColumnCount() {
-            return headers.length;
-        }
-
-        @Override
-        public int getRowCount() {
-            int size = 0;
-            if (myDataTypes != null) {
-                size = myDataTypes.size();
-            }
-            return size;
-        }
-
-        @Override
-        public String getColumnName(int column) {
-            return headers[column];
-        }
-
-        @Override
-        public Class<?> getColumnClass(int column) {
-            return Objects3DTableData.class;
-        }
-
-        @Override
-        public Object getValueAt(int rowIndex, int column) {
-            if (myDataTypes != null) {
-                if (rowIndex < myDataTypes.size()) {
-                    return myDataTypes.get(rowIndex);
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public void setValueAt(Object value, int row, int column) {
-        }
-
-        public void setDataTypes(ArrayList<Objects3DTableData> n) {
-            myDataTypes = n;
-            // Wow causes a null pointer exception in Swing...probably
-            // because of changing the data out on the fly.  Just call
-            // table.repaint after setDataTypes to force a full redraw.
-            // this.fireTableDataChanged();
-        }
-
-        private Objects3DTableData getProductTableDataForRow(int row) {
-            Objects3DTableData s = null;
-            if (myDataTypes != null) {
-                if ((row >= 0) && (row < myDataTypes.size())) {
-                    s = myDataTypes.get(row);
-                }
-            }
-            return s;
+            });
         }
     }
 
     /** Our custom renderer for our product view table */
     private static class Objects3DTableCellRenderer extends WG2TableCellRenderer {
-
-        /** A shared JCheckBox for rendering every check box in the list */
-        private JCheckBox checkbox = new JCheckBox();
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,

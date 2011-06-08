@@ -277,9 +277,9 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         int y = (int) screenPoint.y();
         y = dc.getDrawableHeight() - y - 1;
 
-        if (myText == null) {  // Only create once for speed.  We draw a LOT
+       // if (myText == null) {  // Only create once for speed.  We draw a LOT
             myText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
-        }
+       // }
         // Bounds calculations
         java.awt.Rectangle viewport = dc.getView().getViewport();
 

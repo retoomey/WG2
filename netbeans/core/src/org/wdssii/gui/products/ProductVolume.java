@@ -281,7 +281,8 @@ public class ProductVolume {
             VolumeSlice2DOutput dest,
             FilterList list,
             boolean useFilters) {
-        //if (g == null){ return ; }
+        
+        if (g == null){ return ; }
         if (list != null) {
             list.prepForVolume(this);
         }

@@ -73,7 +73,7 @@ public class VSliceChart extends ChartViewJFreeChart {
         VSlicePaintScale myPrivate = null;
         public int[] myColors = null;
         private static final long serialVersionUID = -1814981271936657507L;
-
+        
         @Override
         public void drawItem(Graphics2D g2, XYItemRendererState state,
                 Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
@@ -88,7 +88,9 @@ public class VSliceChart extends ChartViewJFreeChart {
                 //p = this.getPaintScale().getPaint(z);
             } else {
                 int cstart = item * 3;
-                myPrivate.hack(myColors[cstart], myColors[cstart + 1], myColors[cstart + 2]);
+                if (myColors.length > cstart+2){
+                     myPrivate.hack(myColors[cstart], myColors[cstart + 1], myColors[cstart + 2]);
+                }
             }
             //setPaintScale(myPrivate); inf loop
 
@@ -300,7 +302,7 @@ public class VSliceChart extends ChartViewJFreeChart {
 
         /** Get the volume we are following */
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(getUseProductKey(), getUseVirtualVolume());
-
+        if (volume == null){ return; }
         //	String key = volume.getKey();
         //	boolean keyDifferent = false;
         //	if (!key.equals(myCurrentKey)){
@@ -316,7 +318,8 @@ public class VSliceChart extends ChartViewJFreeChart {
                 aList = tph.getFList();
             }
         }
-
+        if (aList == null){ return; }
+        
         /** Get the GIS key of the slice */
         String key = slice.getGISKey();
 

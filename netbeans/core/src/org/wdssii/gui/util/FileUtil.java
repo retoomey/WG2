@@ -1,10 +1,12 @@
 package org.wdssii.gui.util;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wdssii.gui.nbm.views.EarthTopComponent;
 //import org.eclipse.jface.resource.ImageDescriptor;
 //import org.eclipse.swt.graphics.Image;
 //import org.eclipse.swt.widgets.Display;
@@ -99,9 +101,22 @@ public class FileUtil {
     public static InputStream streamFromFile(String relativePath) {
         // We want the 'root' of the plugin or project directory, without a '/'
         // java appends the package path "org/test/etc/relativePath"
-        InputStream s = FileUtil.class.getResourceAsStream("/" + relativePath);
+        //InputStream s = FileUtil.class.getResourceAsStream("/" + relativePath);
 
-        return s;
+        // FIXME: I've been sloppy with resources, need more work..for now
+        // gonna make this stuff be in the nbm directory like the icons
+
+        java.net.URL url = EarthTopComponent.class.getResource(relativePath);
+        if (url != null) {
+            try {
+                return url != null ? url.openStream() : null;
+            } catch (IOException e) {
+            }
+        }
+        return null;
+        // Wow this is actually bugged in java, getResource hunts more
+        //InputStream s = EarthTopComponent.class.getResourceAsStream(relativePath);
+        // return s;
     }
     /*public static URL getClassDirectoryFromPackage(String pckgname){	
     

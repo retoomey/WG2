@@ -1,5 +1,6 @@
 package org.wdssii.gui.charts;
 
+import java.awt.Graphics;
 import java.io.File;
 import java.io.IOException;
 
@@ -28,7 +29,7 @@ public class ChartViewJFreeChart extends ChartViewChart {
 
         /*	Composite holder = new Composite((Composite)myChartBox, SWT.EMBEDDED | SWT.NO_BACKGROUND);
         Frame frame = SWT_AWT.new_Frame(holder);
-        
+        */
         myChartPanel = new ChartPanel(null){
         private static final long serialVersionUID = 1L;
         
@@ -39,14 +40,14 @@ public class ChartViewJFreeChart extends ChartViewChart {
         }
         
         };
-        frame.add(myChartPanel);
+      //  frame.add(myChartPanel);
         myChartPanel.setMouseWheelEnabled(true);
         myChartPanel.setChart(this.myJFreeChart);
         
-        return holder;
-         * 
-         */
-        return null;
+        return myChartPanel;
+        //return holder;
+        
+       // return null;
     }
 
     @Override

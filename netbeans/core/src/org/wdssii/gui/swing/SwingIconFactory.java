@@ -1,5 +1,6 @@
 package org.wdssii.gui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -31,7 +32,7 @@ public class SwingIconFactory {
             image = (Icon) c.newInstance();
             // It's ok...we just return null...
         } catch (Exception e) {
-            System.out.println("Exception is " + e.toString());
+           // It's ok, we'll try by file....
         }
         if (image == null) {
            image = getImageIconByName(name, "");
@@ -95,6 +96,10 @@ public class SwingIconFactory {
 
         @Override
         public void paintIcon(Component c, Graphics g, int x, int y) {
+        Graphics2D g2d = (Graphics2D) g.create();
+        g2d.setColor(Color.RED);
+        g2d.fillRect(x, y, getIconWidth(), getIconHeight());
+        g2d.dispose();
         }
 
         @Override

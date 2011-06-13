@@ -12,7 +12,7 @@ import org.wdssii.gui.views.EarthBallView;
  *
  */
 public class ProductJumpToCommand extends ProductCommand {
-
+       
     @Override
     public boolean execute() {
         Product p = getOurProduct();
@@ -55,7 +55,7 @@ public class ProductJumpToCommand extends ProductCommand {
         status.setButtonText(label);
         status.setToolTip(tip);
         status.setValidRecord(p != null);
-        status.setIconString(icon);
+        status.setIconString(ProductMoveCommand.BLANK_FILL_ICON);
         status.setEnabled(enabled);
 
         return status;

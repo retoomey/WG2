@@ -27,7 +27,6 @@ public class ProductMoveCommand extends ProductCommand {
     // Tool tip formatter. FIXME: from product?
     private static final SimpleDateFormat tipFormat = new SimpleDateFormat(
             "---HH:mm:ss");
-
     // Default icons for navigation directions, these are passed to the
     // IconFactory
     private static final String RIGHT_ARROW_ICON = "RightArrowIcon";
@@ -36,28 +35,13 @@ public class ProductMoveCommand extends ProductCommand {
     private static final String UP_ARROW_ICON = "UpArrowIcon";
     private static final String LEFT_ARROW_ICON = "LeftArrowIcon";
     private static final String PREV_NOT_VIRTUAL_ICON = "LeftArrowEndIcon";
-    
+    public static final String BLANK_FILL_ICON = "PadIcon";
+
     @Override
     public boolean execute() {
         return false;
     }
 
-    /* If myProduct is NULL, then grab the current top product in the display for
-     * movement, otherwise, use the product we were set to.
-     * FIXME: we're only getting top right now */
-    /*public Product getOurProduct(){
-    Product p = null;
-    
-    // Snag top product in the display
-    ProductHandlerList pos = CommandManager.getInstance().getProductOrderedSet();
-    if (pos != null){
-    ProductHandler tph = pos.getTopProductHandler();
-    if (tph != null){
-    p = tph.getProduct();
-    }
-    }
-    return p;
-    }*/
     public static class ProductMovePreviousLowestSubType extends ProductMoveCommand {
 
         @Override
@@ -76,17 +60,14 @@ public class ProductMoveCommand extends ProductCommand {
             String label, tip, icon;
             label = "None";
             tip = "";
-            icon = "";
+            icon = BLANK_FILL_ICON;
             boolean enabled = true;
 
             boolean useColor = false;
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
 
-            if (p == null) {
-                label = new String("None");
-                tip = new String("");
-            } else {
+            if (p != null) {
                 VolumeRecord volume = p.getVolumeRecord();
                 IndexRecord newRecord = volume.getBaseRecord();
 
@@ -154,17 +135,14 @@ public class ProductMoveCommand extends ProductCommand {
             String label, tip, icon;
             label = "None";
             tip = "";
-            icon = "";
+            icon = BLANK_FILL_ICON;
             boolean enabled = true;
 
             boolean useColor = false;
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
 
-            if (p == null) {
-                label = new String("None");
-                tip = new String("");
-            } else {
+            if (p != null) {
 
                 // IndexRecord newRecord =
                 // peekRecord(NavigationMessage.LatestBase);
@@ -194,7 +172,7 @@ public class ProductMoveCommand extends ProductCommand {
                                 green = 238;
                                 blue = 144; /* light green */
                                 icon = RIGHT_ARROW_END_ICON;
-                                
+
                                 useColor = true;
                             } else {
                                 red = 255;
@@ -365,16 +343,13 @@ public class ProductMoveCommand extends ProductCommand {
             String label, tip, icon;
             label = "None";
             tip = "";
-            icon = "";
+            icon = BLANK_FILL_ICON;
             boolean enabled = true;
             boolean useColor = false;
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
 
-            if (p == null) {
-                label = new String("None");
-                tip = new String("");
-            } else {
+            if (p != null){
 
                 // FIXME: shouldn't be using peekRecord....crap.
                 IndexRecord newRecord = p.peekRecord(NavigationMessage.NextSubType);
@@ -429,17 +404,14 @@ public class ProductMoveCommand extends ProductCommand {
             String label, tip, icon;
             label = "None";
             tip = "";
-            icon = "";
+            icon = BLANK_FILL_ICON;
             boolean enabled = true;
 
             boolean useColor = false;
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
 
-            if (p == null) {
-                label = new String("None");
-                tip = new String("");
-            } else {
+            if (p != null) {
 
                 IndexRecord newRecord = p.peekRecord(NavigationMessage.PreviousSubType);
                 if (newRecord != null) {
@@ -450,7 +422,7 @@ public class ProductMoveCommand extends ProductCommand {
                     tip = tipFormat.format(aDate) + " "
                             + newRecord.getSubType() + " "
                             + newRecord.getTimeStamp();
-                }  
+                }
                 icon = DOWN_ARROW_ICON;
             }
 
@@ -490,17 +462,14 @@ public class ProductMoveCommand extends ProductCommand {
             String label, tip, icon;
             label = "None";
             tip = "";
-            icon = "";
+            icon = BLANK_FILL_ICON;
             boolean enabled = true;
 
             boolean useColor = false;
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
 
-            if (p == null) {
-                label = new String("None");
-                tip = new String("");
-            } else {
+            if (p != null) {
 
                 IndexRecord newRecord = p.peekRecord(NavigationMessage.PreviousTime);
                 if (newRecord != null) {
@@ -552,17 +521,14 @@ public class ProductMoveCommand extends ProductCommand {
             String label, tip, icon;
             label = "None";
             tip = "";
-            icon = "";
+            icon = BLANK_FILL_ICON;
             boolean enabled = true;
 
             boolean useColor = false;
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
 
-            if (p == null) {
-                label = new String("None");
-                tip = new String("");
-            } else {
+            if (p != null) {
 
                 Date aDate = p.getTime();
                 label = buttonFormat.format(aDate); // FIXME: exception
@@ -621,10 +587,7 @@ public class ProductMoveCommand extends ProductCommand {
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
 
-            if (p == null) {
-                label = new String("None");
-                tip = new String("");
-            } else {
+            if (p != null) {
 
                 IndexRecord newRecord = p.peekRecord(NavigationMessage.NextTime);
                 icon = RIGHT_ARROW_ICON;
@@ -685,10 +648,7 @@ public class ProductMoveCommand extends ProductCommand {
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
 
-            if (p == null) {
-                label = new String("None");
-                tip = new String("");
-            } else {
+            if (p != null) {
 
                 IndexRecord newRecord = p.peekRecord(NavigationMessage.LatestTime);
                 icon = RIGHT_ARROW_END_ICON;

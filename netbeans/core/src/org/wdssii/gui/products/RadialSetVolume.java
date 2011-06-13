@@ -72,6 +72,7 @@ public class RadialSetVolume extends ProductVolume {
             }
         }
     }
+    public static boolean myExperiment = false;
 
     /** Get filtered value of from a volume location, store into ColorMapOutput.
      * This function needs to be callable by multiple threads at once, example: 3D vslice render by GL thread, 2D table render by VSliceChart.
@@ -95,9 +96,17 @@ public class RadialSetVolume extends ProductVolume {
         // Smooth in the vertical direction....?? how
         // We would need a weight based on range
         float value = DataType.MissingData;
+        float weightAtValue;
 
         RadialSet.RadialSetQuery q = new RadialSet.RadialSetQuery();
         q.inLocation = output.location;
+        // Testing interpolation ability (alpha experiment)
+        // This tells query to return a distance from closest point...
+        // for each of the Lat, Lon, Height 'axis'
+        if (myExperiment) {
+            q.inNeedInterpolationWeight = true;
+        }
+
         q.outDataValue = DataType.MissingData;
 
         RadialSet.SphericalLocation buffer = new RadialSet.SphericalLocation();
@@ -129,22 +138,73 @@ public class RadialSetVolume extends ProductVolume {
                         q.inSphere = buffer;
                     }
                     r.queryData(q);
-                    value = q.outDataValue;
-                    if (DataType.isRealDataValue(value)) {
 
-                        // Ok, check 'next' radial for a hit..this means beamwidths are overlapping..
-                        //if (iter.hasNext()){
-                        //float value2 = iter.next().getRadialSet().getValueAtLocation(locationBuffer);
-                        //}
-                        break;
+                    if (myExperiment) {
+                        value = DataType.MissingData;
+                        weightAtValue = q.outDistanceHeight;
+
+                        // Interpolate in true height...
+                        if (true) {
+                            // So it's a 'hit' if within .5 kilometer height of beam.
+                            if (Math.abs(weightAtValue) < .5){
+                                value = q.outDataValue;
+                                break;
+                                /*
+                                
+                                // We're above a radial..now we can height
+                                // interpolate with one right above....bleh...
+                                if (iter.hasNext()){
+                                DataType dt2 = iter.next().getRawDataType();
+                                RadialSet r2 = null;
+                                if (dt2 != null) {
+                                r2 = (RadialSet) (dt2);
+                                if (r2 != null) {
+                                r.queryData(q);
+                                float v2= q.outDataValue;
+                                float w2 = q.outDistanceHeight;
+                                if (w2 < 0){
+                                // woo hooo!
+                                value = 100;
+                                break;
+                                }
+                                }
+                                }
+                                }
+                                 * 
+                                 */
+                            }// else {
+                            // value = DataType.MissingData;
+                            //   break;
+                            //break;
+                            //  break;
+                            // Continue until over a first radial.
+                            // }
+                        } else {
+                            // Break on first 'hit' when not interpolating...
+                            if (DataType.isRealDataValue(value)) {
+
+                                // Ok, check 'next' radial for a hit..this means beamwidths are overlapping..
+                                //if (iter.hasNext()){
+                                //float value2 = iter.next().getRadialSet().getValueAtLocation(locationBuffer);
+                                //}
+                                break;
+                            }
+                        }
+                    } else {
+                        // Cheapest...first 'hit' gives us value
+                        value = q.outDataValue;
+                        if (DataType.isRealDataValue(value)) {
+                            break;
+                        }
                     }
                 }
                 radialSetIndex++;
             }
         }
         q.inDataValue = value;
+        q.outDataValue = value;
         q.outRadialSetNumber = radialSetIndex;
-
+        out.hWeight = q.outDistanceHeight;
         list.fillColor(output, q, useFilters);
 
         // Find a location value in our radial set collection...

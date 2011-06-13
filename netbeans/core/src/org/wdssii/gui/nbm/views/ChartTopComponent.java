@@ -1,8 +1,18 @@
 package org.wdssii.gui.nbm.views;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JToggleButton;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openide.util.NbBundle;
@@ -10,6 +20,7 @@ import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.DropDownButtonFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.WdssiiXMLDocument;
 import org.wdssii.gui.charts.*;
@@ -25,6 +36,8 @@ import org.wdssii.gui.WdssiiXMLAttributeList.WdssiiXMLAttribute;
 import org.wdssii.gui.WdssiiXMLCollection;
 import org.wdssii.gui.commands.ChartSetTypeCommand;
 import org.wdssii.gui.products.ProductHandlerList;
+import org.wdssii.gui.products.RadialSetVolume;
+import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.ChartView;
 
 /**
@@ -48,9 +61,9 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
 // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
-
     // Default for any product commands....
     // FIXME: probably should update on ANY data command...
+
     public void ProductCommandUpdate(ProductCommand command) {
         updateGUI(); // load, delete, etc..
     }
@@ -63,6 +76,7 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
     public void VolumeSetTypeCommandUpdate(VolumeSetTypeCommand command) {
         updateGUI();
     }
+    private JToggleButton jVirtualToggleButton;
     private String myCurrentChoice = null;
     /** The box for the chart.  This is reused when chart changes */
     private JComponent myChartBox = null;
@@ -82,17 +96,93 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
     /** Do charts use the current filter settings? */
     private boolean myUseProductFilters;
     static int counter = 1;
+    public final String[] myInterps = new String[]{"None", "Experiment: Binomial I"};
 
     public ChartTopComponent() {
         initComponents();
         initCharts();
+
+        // FIXME: Swing getting messy, need to figure out exactly
+        // how to do everything cleanly.
+
+        // Creating these buttons by hand because I'm not sure if they
+        // should be here.  Most likely we'll need an ability for charts
+        // to setup their own toolbar buttons...
+
+        // Virtual/Non-virtual toggle
+        // Wow, could netbeans make the function calls a bit smaller, lol...
+        // Still, using all strings from properties might be a good way to go
+        jVirtualToggleButton = new JToggleButton();
+        jVirtualToggleButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/wdssii/gui/nbm/views/brick_add.png"))); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jVirtualToggleButton, org.openide.util.NbBundle.getMessage(ChartTopComponent.class, "ChartTopComponent.jVirtualToggleButton.text")); // NOI18N
+        jVirtualToggleButton.setToolTipText(org.openide.util.NbBundle.getMessage(ChartTopComponent.class, "ChartTopComponent.jVirtualToggleButton.toolTipText")); // NOI18N
+        jVirtualToggleButton.setFocusable(false);
+        jVirtualToggleButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jVirtualToggleButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jVirtualToggleButton.addActionListener(new java.awt.event.ActionListener() {
+
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jVirtualToggleButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jVirtualToggleButton);
+
+        // Interpolation button
+        // FIXME: gonna take some work, will need a dynamic menu list.
+
+        Icon test = SwingIconFactory.getIconByName("layers.png");
+        JPopupMenu menu = new JPopupMenu();
+        ActionListener menuAction = new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                jPopupMenuActionPerformed(e);
+            }
+        };
+
+        ButtonGroup group = new ButtonGroup();
+        // Should use Radio buttons but they usually look nasty in menus
+        JCheckBoxMenuItem item;
+        boolean selectedOne = false;
+        for (String s : myInterps) {
+            item = new JCheckBoxMenuItem(s);
+            if (!selectedOne){item.setSelected(true); selectedOne = true; }
+            item.addActionListener(menuAction);
+            group.add(item);
+            menu.add(item);
+        }
+       
+
+        JButton b = DropDownButtonFactory.createDropDownButton(test, menu);
+        b.setFocusPainted(false);
+        b.setToolTipText("Choose the type of interpolation"); // properties?
+        this.jToolBar1.add(b);
+
+
         setName(NbBundle.getMessage(ChartTopComponent.class, "CTL_ChartTopComponent"));
         setToolTipText(NbBundle.getMessage(ChartTopComponent.class, "HINT_ChartTopComponent"));
 
     }
 
-    public void initCharts() {
+    private void jPopupMenuActionPerformed(java.awt.event.ActionEvent evt) {
+        String item = evt.getActionCommand();
+        // Hack in my experiment I guess...until it works don't bother
+        // doing all the fancy GUI work...will have to manually refresh
+        // by moving.
+        RadialSetVolume.myExperiment =  (myInterps[1].equals(item));
+    }
 
+    private void jVirtualToggleButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        AbstractButton abstractButton = (AbstractButton) evt.getSource();
+        boolean selected = abstractButton.getModel().isSelected();
+        VolumeSetTypeCommand vToggle = new VolumeSetTypeCommand(this, selected);
+
+        vToggle.setToggleState(selected);
+        CommandManager.getInstance().executeCommand(vToggle, true);
+    }
+
+    public void initCharts() {
 
         // Top area where chart goes
         myChartBox = this.jChartPanel; // strange
@@ -100,7 +190,6 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
         // Bottom area where GUI items will go
         myChartGUIBox = this.jGUIPanel;
         //myChartGUIBox.setVisible(false);
-
         // FIXME: Will need a scrolling panel for the GUI....
         //myParent = parent;
 
@@ -120,10 +209,14 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jToolBar1 = new javax.swing.JToolBar();
         jChartPanel = new javax.swing.JPanel();
         jGUIPanel = new javax.swing.JPanel();
 
         setLayout(new java.awt.BorderLayout());
+
+        jToolBar1.setRollover(true);
+        add(jToolBar1, java.awt.BorderLayout.NORTH);
 
         jChartPanel.setLayout(new java.awt.BorderLayout());
         add(jChartPanel, java.awt.BorderLayout.CENTER);
@@ -134,6 +227,7 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jChartPanel;
     private javax.swing.JPanel jGUIPanel;
+    private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
 
     @Override
@@ -238,7 +332,7 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
 
             // Dispose old chart and GUI
             if (myChartPanel != null) {
-                myChartBox.remove(myChartPanel); 
+                myChartBox.remove(myChartPanel);
                 myChartPanel = null;
             }
             if (myCurrentChartControls != null) {
@@ -248,9 +342,13 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
 
             if (myChart != null) {
                 myChartPanel = (JComponent) myChart.getNewGUIForChart(myChartBox);
-                if (myChartPanel != null){myChartBox.add(myChartPanel);}
+                if (myChartPanel != null) {
+                    myChartBox.add(myChartPanel);
+                }
                 myCurrentChartControls = (JComponent) myChart.getNewGUIBox(myChartGUIBox);
-                if (myCurrentChartControls != null){ myChartGUIBox.add(myCurrentChartControls);}
+                if (myCurrentChartControls != null) {
+                    myChartGUIBox.add(myCurrentChartControls);
+                }
             }
 
             updateGUI();
@@ -272,13 +370,13 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
 
     @Override
     public void updateInSwingThread(Object info) {
-       // if (myParent != null) {
-            //if (!myParent.isDisposed()){
-            if (myChart != null) {
-                myChart.updateChart();
-            }
-            //}
-       // }
+        // if (myParent != null) {
+        //if (!myParent.isDisposed()){
+        if (myChart != null) {
+            myChart.updateChart();
+        }
+        //}
+        // }
         if (myUseVirtualVolume) {
             setContentDescription("Virtual volume");
         } else {

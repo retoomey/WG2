@@ -317,9 +317,9 @@ public class RadialSet extends DataType implements Table2DView {
     public static class SphericalLocation {
 
         /** Angle in degrees */
-        public double azimuth;
+        public double azimuthDegs;
         /** Angle in degrees */
-        public double elev;
+        public double elevDegs;
         /** Distance in Kms */
         public double range;
     }
@@ -380,10 +380,10 @@ public class RadialSet extends DataType implements Table2DView {
         double dotx = crossX * myUx.x + crossY * myUx.y + crossZ * myUx.z;
         double doty = crossX * myUy.x + crossY * myUy.y + crossZ * myUy.z;
         double az = (360.0 - (Math.toDegrees(Math.atan2(doty, dotx))));
-        out.azimuth = Radial.normalizeAzimuth((float) az);
+        out.azimuthDegs = Radial.normalizeAzimuth((float) az);
 
         double dotz = coneX * myUz.x + coneY * myUz.y + coneZ * myUz.z;
-        out.elev = Math.asin(dotz / out.range) * 180 / Math.PI;
+        out.elevDegs = Math.asin(dotz / out.range) * 180 / Math.PI;
     }
 
     /** For a given location, get the information into a data object.
@@ -410,15 +410,70 @@ public class RadialSet extends DataType implements Table2DView {
 
         if (haveLocation) {
 
-            q.outAzimuthDegrees = (float) a.azimuth;
+            q.outAzimuthDegrees = (float) a.azimuthDegs;
 
             // Get the elevation of the point (estimate)
             if (q.inUseHeight) {
                 Radial first = getRadial(0);
                 double bw = first.getBeamWidth();
                 //double elev = Math.asin(fromConeApex.dotProduct(myUz) / norm) * 180 / Math.PI;
-                double elev_diff = a.elev - elevation;
+                double elev_diff = a.elevDegs - elevation;
 
+                // We want the interpolation weight (for bi/tri-linear)
+                if (q.inNeedInterpolationWeight){
+                    // FIXME: math could be cached in a for speed in volumes
+                    
+/* Math for height calculation....
+  This is first part of the lat/lon/height weights so I can do true
+  bilinear/trilinear interpolation.  Bleh..  Here's the math:
+                     * 
+Line 1:  Line from sample point straight down to ground...The height
+  Polar to cartesion of the 'sample' point...
+e = a.elev;
+(r*cos(e), r*sin(e));
+Point 2:
+(r*cos(e), 0)
+==> X = r*cos(e); the vertical line....
+
+Line 2 (radial beam)
+Point 1:
+(0,0);
+Point 2:
+(R*cos(elevation), R*sin(elevation);
+
+y = mx+b where
+ z = elevation;
+ m = tan(z);
+ b = 0;
+==> y = x*tan(z); // For radar beam line...
+
+x1 = r*cos(e);              // Sample point
+y1 = r*sin(e);
+x2 = r*cos(e);              // Point on the 'beam'
+y2 = r*cos(e)*tan(z);
+
+// Now the distance from the beam point to the sample point...
+(x2-x1)^2 = 0;
+(y2-y1)^2 = (r*cos(e)*tan(z)-(r*sin(e)))^2
+ distance = abs(r*(cos(e)*tan(z)-sin(e)));
+                     */
+                     // Calculate the weight for interpolation in height
+                     // We convert from radial polar space to cartesian and get 
+                     // the distance from sample point to the beam line.
+
+                    // Projection in Height of the sampled point onto the beam
+                    // of the radar....or is it? rofl..
+                    double eR = Math.toRadians(a.elevDegs);
+                    double d2R = Math.toRadians(elevation);
+                    double h = a.range*(Math.cos(eR)*Math.sin(d2R)/Math.cos(d2R)-Math.sin(eR));
+                    if (h < 0){ h = -h; } // sqrt of square is abs         
+                    if (a.elevDegs < elevation){ h = -h; }
+                    q.outDistanceHeight = (float)(h);
+                    // Ignore beam width filter, we want
+                    // the value AND the weight for interpolation
+                    elev_diff = 0;
+                }
+               
                 // Beam width filter.  Outside beam width in the vertical?
                 if (Math.abs(elev_diff) > bw / 2.0) {
                     q.outDataValue = MissingData;
@@ -434,13 +489,13 @@ public class RadialSet extends DataType implements Table2DView {
             }
 
             // Search radials by end azimuth
-            int index = Arrays.binarySearch(angleToRadial, (float) a.azimuth);
+            int index = Arrays.binarySearch(angleToRadial, (float) a.azimuthDegs);
             int radialIndex = (index < 0) ? -(index + 1) : index;
 
             if ((radialIndex >= 0) && (radialIndex < angleToRadial.length)) { // within all radial end values
                 Radial candidate = azimuthRadials[radialIndex];
                 q.outHitRadialNumber = candidate.getIndex();
-                q.outInAzimuth = candidate.contains((float) a.azimuth);
+                q.outInAzimuth = candidate.contains((float) a.azimuthDegs);
 
                 // Gate calculation.  Assumes all gates the same width.
                 int gateNumber = (int) Math.floor((a.range - this.getRangeToFirstGateKms()) / candidate.getGateWidthKms());

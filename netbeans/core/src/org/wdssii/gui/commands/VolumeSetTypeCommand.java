@@ -18,30 +18,22 @@ public class VolumeSetTypeCommand extends WdssiiCommand {
         boolean getUseVirtualVolume();
     }
 
+    public VolumeSetTypeCommand(WdssiiView v, boolean newState){
+        myWdssiiView = v;
+        setToggleState(newState);
+    }
+    
     @Override
     public boolean execute() {
         // We are a toggle command...look for current value:
         boolean current = getToggleState();
 
-        // Get the parameter out of us.  Should be "wdssii.ChartSetTypeParameter"
-        //if (myParameters != null){
-        //String value = myParameters.get("wdssii.ChartSetTypeParameter");
-
-        // Null choice currently means button was picked..should bring up dialog..
-        //if (value != null){
         // Need the view in order to send the command...
         if (myWdssiiView != null) {
             if (myWdssiiView instanceof VolumeTypeFollowerView) {
                 ((VolumeTypeFollowerView) myWdssiiView).setUseVirtualVolume(current);
             }
         }
-        //}
-        //}else{
-        //System.out.println("EXECUTE ChartSetType without any params (FIXME: Dialog for user)");
-
-        // Ok this is the 'top' button..not the drop menu...so bring up a dialog or do nothing?
-        // Need the view though...
-        //}
         return true;
     }
 }

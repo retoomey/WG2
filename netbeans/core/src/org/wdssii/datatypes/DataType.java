@@ -72,10 +72,21 @@ public class DataType {
          * filters might need access to the original data value
          */
         public float inDataValue;
+        
+        /** Get weight for interpolation.  The weight is a 'distance' from
+         * the closest data point.
+         */
+        public boolean inNeedInterpolationWeight = false;
+        
+        /** The distance from the 'true' value of the beam, to the location asked
+         * for.  This will give us part of the weight for any linear interpolation
+         */
+        public float outDistanceHeight = 0.0f;
+                
         /** The simple data value (most if all DataTypes have this).  Note a DataType such as WindField could have
          * multiple out values */
         public float outDataValue = DataType.DataUnavailable;
-
+        
         /** Get the final filtered data value */
         public float getFinalValue() {
             return outDataValue;
@@ -282,7 +293,9 @@ public class DataType {
 
     /** Get the location in the GUI to 'jump' to the data.  Default is the origin location */
     public Location getJumpToLocation() {
-        return originLocation;
+        Location loc = new Location(originLocation.getLatitude(), originLocation.getLongitude(),
+                100);
+        return loc;
     }
 
     /** Set the origin of the data type */

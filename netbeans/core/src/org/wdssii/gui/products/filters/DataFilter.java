@@ -31,6 +31,7 @@ public abstract class DataFilter {
         public double lat;
         public double lon;
         public double height;
+        public double hWeight;
     }
     /** Default enabled setting.  This is the global toggle in the GUI for this filter */
     private boolean myEnabled = false;

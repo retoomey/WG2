@@ -10,12 +10,15 @@ import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
+import gov.nasa.worldwind.geom.Angle;
+import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.layers.LayerList;
 import gov.nasa.worldwind.render.DrawContext;
+import gov.nasa.worldwind.view.orbit.FlyToOrbitViewAnimator;
+import gov.nasa.worldwind.view.orbit.OrbitView;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
@@ -239,9 +242,38 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         }
     }
 
+    
+    // Currently called by clicking on Jump button which is within Swing thread.
+    // Calling command from different thread will require invokeLater probably.
     @Override
     public void gotoLocation(Location loc) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        OrbitView view = (OrbitView) (myWorld.getView());  // humm not always orbit right?
+        if (view != null) {
+
+
+            Position p = Position.fromDegrees(loc.getLatitude(), loc.getLongitude(), loc.getHeightKms());
+            Position beginCenterPos = view.getCenterPosition();
+            Position endCenterPos = p;
+            Angle beginHeading = view.getHeading();
+            Angle endHeading = beginHeading;
+            Angle beginPitch = view.getPitch();
+            Angle endPitch = beginPitch;
+            double beginZoom = view.getZoom();   // here to set the 'height'
+            double endZoom = beginZoom;
+            long timeToMove = 2000;
+           // boolean endCenterOnSurface = true;
+            view.addAnimator(FlyToOrbitViewAnimator.createFlyToOrbitViewAnimator(
+                    view,
+                    beginCenterPos, endCenterPos,
+                    beginHeading, endHeading,
+                    beginPitch, endPitch,
+                    beginZoom, endZoom,
+                    timeToMove,
+                    1)); // What does animationMode mean?
+            
+           // OrbitView ov, Position pstn, Position pstn1, Angle angle, Angle angle1, Angle angle2, Angle angle3, double d, double d1, long l, int i
+            view.firePropertyChange(AVKey.VIEW, null, view);
+        }
     }
 
     @Override
@@ -277,9 +309,9 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
         int y = (int) screenPoint.y();
         y = dc.getDrawableHeight() - y - 1;
 
-       // if (myText == null) {  // Only create once for speed.  We draw a LOT
-            myText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
-       // }
+        // if (myText == null) {  // Only create once for speed.  We draw a LOT
+        myText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
+        // }
         // Bounds calculations
         java.awt.Rectangle viewport = dc.getView().getViewport();
 
@@ -367,6 +399,6 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
 
     @Override
     public LLHAreaLayer getVolumeLayer() {
-       return myVolumeLayer;
+        return myVolumeLayer;
     }
 }

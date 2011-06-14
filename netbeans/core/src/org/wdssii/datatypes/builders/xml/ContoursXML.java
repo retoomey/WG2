@@ -1,7 +1,9 @@
-package org.wdssii.datatypes.builders;
+package org.wdssii.datatypes.builders.xml;
 
 import java.util.ArrayList;
 
+// FIXME: to do.  Make contours work, remove XML dependency by 
+// making it the same as the netcdf builder.
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 

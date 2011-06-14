@@ -18,6 +18,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
+import org.wdssii.datatypes.builders.xml.ContoursXML;
+import org.wdssii.datatypes.builders.xml.DataTableXML;
 import org.wdssii.index.IndexRecord;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.wdssii.datatypes.builders.DataTypeXML.DataTypeXMLHeader;
+import org.wdssii.datatypes.builders.xml.DataTypeXML.DataTypeXMLHeader;
 import org.wdssii.geom.Location;
 
 /**

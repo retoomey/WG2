@@ -2,7 +2,7 @@ package org.wdssii.datatypes;
 
 import java.util.ArrayList;
 
-import org.wdssii.datatypes.builders.DataTypeXML.DataTypeXMLHeader;
+import org.wdssii.datatypes.builders.xml.DataTypeXML.DataTypeXMLHeader;
 import org.wdssii.geom.Location;
 
 /** A set of contour objects inside a DataType 

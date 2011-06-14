@@ -1,4 +1,4 @@
-package org.wdssii.datatypes.builders;
+package org.wdssii.datatypes.builders.xml;
 
 import java.util.Calendar;
 import java.util.Date;

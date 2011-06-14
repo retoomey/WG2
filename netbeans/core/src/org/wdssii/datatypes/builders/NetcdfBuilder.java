@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -260,21 +261,22 @@ public class NetcdfBuilder implements Builder {
                 log.info("Replaced class name " + oldName + " with class name " + dataType);
             }
 
-            // Create class from reflection.  Note this will create a 'RadialSet',
-            // 'LatLonGrid', 'Windfield', etc. based on DataType from netcdf file
-            //String createByName = "org.wdssii.core." + dataType;	
-            String createByName = "org.wdssii.datatypes." + dataType;
+            // Create class from reflection.  Note this will create a 'RadialSetNetcdf',
+            // 'LatLonGridNetcdf', 'WindfieldNetcdf', etc. based on DataType from netcdf file
+            String createByName = "org.wdssii.datatypes.builders.netcdf." + dataType+"Netcdf";
             Class<?> aClass = null;
             try {
                 aClass = Class.forName(createByName);
                 Class<?>[] argTypes = new Class[]{NetcdfFile.class, boolean.class};
                 Object[] args = new Object[]{ncfile, sparse}; // Actual args
-                Constructor<?> c = aClass.getConstructor(argTypes);
-                if (c == null) {
-                    log.warn("Couldn't find a constructor " + dataType + "(NetcdfFile, boolean)");
-                }
-                obj = (DataType) c.newInstance(args); // 'RadialSet' or 'SparseRadialSet' for example.
+                
+                //DataType createFromNetcdf(NetcdfFile ncfile, boolean sparse)
+                //Constructor<?> c = aClass.getConstructor(argTypes);
+                Object classInstance = aClass.newInstance();
+                Method aMethod = aClass.getMethod("createFromNetcdf", argTypes);
+                obj = (DataType) aMethod.invoke(classInstance, args);
             } catch (Exception e) {
+                System.out.println("ERROR "+createByName+", "+e.toString());
                 log.warn("Couldn't create object by name '"
                         + createByName + "' because " + e.toString());
             } finally {

@@ -3,14 +3,11 @@ package org.wdssii.datatypes;
 //import java.util.Date;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.geom.Location;
 import org.wdssii.storage.Array2Dfloat;
 
-import ucar.nc2.NetcdfFile;
-
 /**
- * Alpha version of windfield datatype.  Just a hook to get things started in GUI
+ * Alpha version of WindField datatype.  Just a hook to get things started in GUI
  * 
  * @author Robert Toomey
  * 
@@ -25,55 +22,25 @@ public class WindField extends DataType implements Table2DView {
         public float u;
         public float v;
     };
-    private final float deltaLat, deltaLon;
+    
+    private final float deltaLat;
+    private final float deltaLon;
     private Array2Dfloat uArray;
     private Array2Dfloat vArray;
 
-    public WindField(NetcdfFile ncfile, boolean sparse) {
-        super(ncfile, sparse); // Let DataType fill in the basics
-
-        System.out.println("Constructor for WINDFIELD OBJECT CALLED.  Yay");
-        float latres = 0;
-        float lonres = 0;
-        Array2Dfloat gridu = null;
-        Array2Dfloat gridv = null;
-
-        try {
-            // These exist in windfield as well
-            latres = ncfile.findGlobalAttribute("LatGridSpacing").getNumericValue().floatValue();
-            lonres = ncfile.findGlobalAttribute("LonGridSpacing").getNumericValue().floatValue();
-
-            try {
-                gridu = sparse ? NetcdfBuilder.readSparseArray2Dfloat(ncfile, "uArray", myDataTypeMetric)
-                        : NetcdfBuilder.readArray2Dfloat(ncfile, "uArray", myDataTypeMetric);
-                gridv = sparse ? NetcdfBuilder.readSparseArray2Dfloat(ncfile, "vArray", null)
-                        : NetcdfBuilder.readArray2Dfloat(ncfile, "vArray", null);
-
-            } catch (OutOfMemoryError mem) {
-                // Windfield is currently a LOT smaller than conus..shouldn't see this
-                log.warn("Running out of ram trying to read in WindField data (FIXME)");
-            }
-        } catch (Exception e) {
-            // FIXME: recover or throw instead, not 100% sure yet
-            log.warn("WindField failing " + e.toString());
-        }
-        this.deltaLat = latres;
-        this.deltaLon = lonres;
-        this.uArray = gridu;
-        this.vArray = gridv;
-
-        if (gridu != null) {
-            //System.out.println("Windfield managed to read in uArray of "+gridu.length);
-            System.out.println("Windfield managed to read in uArray of " + gridu.size());
-        } else {
-            System.out.println("Windfield didn't get the uArray");
-        }
-        if (gridv != null) {
-            //System.out.println("Windfield managed to read in vArray of "+gridv.length);
-            System.out.println("Windfield managed to read in vArray of " + gridv.size());
-        } else {
-            System.out.println("Windfield didn't get the vArray");
-        }
+    public static class WindFieldMemento extends DataTypeMemento {
+        public float deltaLat;
+        public float deltaLon;
+        public Array2Dfloat uArray;
+        public Array2Dfloat vArray;
+    }
+    
+    public WindField(WindFieldMemento m){
+        super(m);
+        this.deltaLat = m.deltaLat;
+        this.deltaLon = m.deltaLon;
+        this.uArray = m.uArray;
+        this.vArray = m.vArray;
     }
 
     /* For moment no manual creation...

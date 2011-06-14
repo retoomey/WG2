@@ -3,7 +3,6 @@ package org.wdssii.datatypes;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.Map.Entry;
@@ -14,9 +13,6 @@ import javax.xml.stream.XMLStreamReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.geom.Location;
-import org.wdssii.util.StringUtil;
-
-import ucar.nc2.NetcdfFile;
 
 /**
  * Base class of all the data types that can be displayed.
@@ -43,7 +39,24 @@ public class DataType {
     public static final float MissingData = -99900;
     public static final float RangeFolded = -99901;
     public static final float DataUnavailable = -99903;
-    protected DataTypeMetric myDataTypeMetric = new DataTypeMetric();
+    protected DataTypeMetric myDataTypeMetric;
+
+    /** Passed in by builder objects to use to initialize ourselves.
+     * This allows us to have final field access from builders.
+     */
+    public static class DataTypeMemento {
+
+        /** Origin location of the data. */
+        public Location originLocation;
+        /** Start time that this data is valid */
+        public Date startTime;
+        /** A type name for this data.  FIXME: should we use this? */
+        public String typeName;
+        /** A list of attribute fields for data type */
+        public Map<String, String> attributes;
+        /** The metric holder for this data type */
+        public DataTypeMetric datametric;
+    }
 
     /** The base type for a query.  Rather than just getting a 'double' value back from data,
      * this allows us to request/receive more detailed information.
@@ -72,21 +85,18 @@ public class DataType {
          * filters might need access to the original data value
          */
         public float inDataValue;
-        
         /** Get weight for interpolation.  The weight is a 'distance' from
          * the closest data point.
          */
         public boolean inNeedInterpolationWeight = false;
-        
         /** The distance from the 'true' value of the beam, to the location asked
          * for.  This will give us part of the weight for any linear interpolation
          */
         public float outDistanceHeight = 0.0f;
-                
         /** The simple data value (most if all DataTypes have this).  Note a DataType such as WindField could have
          * multiple out values */
         public float outDataValue = DataType.DataUnavailable;
-        
+
         /** Get the final filtered data value */
         public float getFinalValue() {
             return outDataValue;
@@ -123,10 +133,8 @@ public class DataType {
             maxValue = -90000;
         }
 
-        ;
-		
-		/** Update for a data value */
-		public void updateArray2D(int x, int y, float value) {
+        /** Update for a data value */
+        public void updateArray2D(int x, int y, float value) {
             if (DataType.isRealDataValue(value)) {
                 if (value > maxValue) {
                     maxValue = value;
@@ -152,64 +160,21 @@ public class DataType {
         originLocation = l;
     }
 
-    /** Most DataTypes can be optionally created from netcdf data.  This function tries 
-     * to fill in our fields from a NetCdfFile.  Subclasses should create a constructor
-     * to parse more stuff (first calling super).  This is called by reflection from the NetcdfBuilder
-     * @param ncfile the netcdf file to read from
-     * @param sparse was the netcdf file a sparse datatype
-     */
-    public DataType(NetcdfFile ncfile, boolean sparse) {
+    /** Create a DataType given a DataTyupeMemento object */
+    public DataType(DataTypeMemento m) {
+        // We move all fields.  Some of our fields may be final due to
+        // synchronization needs.  This is why we don't have a 'memento' object
+        // directly stored in us.
+        this.originLocation = m.originLocation;
+        this.startTime = m.startTime;
+        this.typeName = m.typeName;
+        this.attributes = m.attributes;
+        this.myDataTypeMetric = m.datametric;
+    }
 
-        String typeName = "DataType";
-        Location loc = null; // FIXME: defaults if netcdf fails?
-        Date dt = null;
-
-        // These are the shared attributes that are gathered from a netcdf
-        // file for any subclass of DataType.  Note that this never has to be
-        // called.
-        try {
-            typeName = ncfile.findGlobalAttribute("TypeName").getStringValue();
-
-            // location and time
-            double lat = ncfile.findGlobalAttribute("Latitude").getNumericValue().doubleValue();
-            double lon = ncfile.findGlobalAttribute("Longitude").getNumericValue().doubleValue();
-            double ht = ncfile.findGlobalAttribute("Height").getNumericValue().doubleValue();
-            long tm = ncfile.findGlobalAttribute("Time").getNumericValue().longValue();
-
-            loc = new Location(lat, lon, ht / 1000);
-            long tm_long = 1000 * tm;
-
-            try {
-                double ftm = ncfile.findGlobalAttribute("FractionalTime").getNumericValue().doubleValue();
-                tm_long += (int) Math.round(1000 * ftm);
-            } catch (Exception e) {
-            } // okay if no fractional
-            dt = new Date(tm_long);
-
-        } catch (Exception e) {
-            log.warn("Couldn't read in location/time/type shared attibutes from netcdf file", e);
-        } finally {
-            this.originLocation = loc;
-            this.startTime = dt;
-            this.typeName = typeName;
-        }
-
-        // The global list of attributes directly from the netcdf
-        Map<String, String> attr = new HashMap<String, String>();
-        try {
-            List<String> attrNames = StringUtil.split(ncfile.findGlobalAttribute("attributes").getStringValue());
-            for (int i = 0; i < attrNames.size(); ++i) {
-                String name = attrNames.get(i);
-                if (name.equals("") == false) {
-                    String val = ncfile.findGlobalAttribute(name + "-value").getStringValue();
-                    attr.put(name, val);
-                }
-            }
-        } catch (Exception e) {
-            // If attr fails, just keep what we have so far
-            log.warn("While extracting attributes.", e);
-        }
-        setAttributes(attr);
+    /** Create the data metric for this class */
+    public static DataTypeMetric createDataMetric() {
+        return new DataTypeMetric();
     }
 
     /** Convenience test for if a data value is 'real' or one of the special

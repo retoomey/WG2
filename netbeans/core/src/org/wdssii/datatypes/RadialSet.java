@@ -7,18 +7,11 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
 import org.wdssii.geom.Location;
 import org.wdssii.storage.Array1Dfloat;
-import org.wdssii.storage.Array2Dfloat;
 import org.wdssii.util.RadialUtil;
-
-import ucar.ma2.Array;
-import ucar.ma2.Index;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
 
 /** A radial set
  * 
@@ -29,21 +22,21 @@ public class RadialSet extends DataType implements Table2DView {
 
     private static Log log = LogFactory.getLog(RadialSet.class);
     /** Elevation in degrees of this radial set */
-    private float elevation;
+    private final float elevation;
     /** Our radials */
     protected Radial[] radials;
     /** Cache the radar location CPoint for speed */
-    private CPoint radarLocation;
+    private final CPoint radarLocation;
     /** Cross product of z and y vector */
-    private CVector myUx;
+    private final CVector myUx;
     /** Y-azis vector north-ward relative to RadialSet center */
-    private CVector myUy;
+    private final CVector myUy;
     /** Z-axis perpendicular to the earth's surface */
-    private CVector myUz;
+    private final CVector myUz;
     /** Range to the first gate of the RadialSet in Kms */
-    private float rangeToFirstGate;
+    private final float rangeToFirstGate;
     /** The maximum number of gates of all Radial */
-    private int myMaxGateNumber = 0;
+    private final int myMaxGateNumber;
     // This is a radial set lookup that finds an exact match for a radial given an azimuth.  Need this for the vslice/isosurface
     // in the GUI.
     /** A sorted array of end azimuth, each corresponding to azimuthRadials below, this gives us a o(nlogn) binary
@@ -53,6 +46,29 @@ public class RadialSet extends DataType implements Table2DView {
     private float[] angleToRadial;
     /** Radials corresponding the angleToRadial above (these are sorted by increasing end azimuth). */
     private Radial[] azimuthRadials;
+
+    /** Passed in by builder objects to use to initialize ourselves.
+     * This allows us to have final field access from builders.
+     */
+    public static class RadialSetMemento extends DataTypeMemento {
+
+        /** Elevation in degrees of this radial set */
+        public float elevation;
+        /** Our radials */
+        public Radial[] radials;
+        /** Cache the radar location CPoint for speed */
+        public CPoint radarLocation;
+        /** Cross product of z and y vector */
+        public CVector myUx;
+        /** Y-azis vector north-ward relative to RadialSet center */
+        public CVector myUy;
+        /** Z-axis perpendicular to the earth's surface */
+        public CVector myUz;
+        /** Range to the first gate of the RadialSet in Kms */
+        public float rangeToFirstGate;
+        /** The maximum number of gates of all Radial */
+        public int maxGateNumber = 0;
+    };
 
     /** The query object for RadialSets. */
     public static class RadialSetQuery extends DataTypeQuery {
@@ -81,87 +97,19 @@ public class RadialSet extends DataType implements Table2DView {
         public float outAzimuthDegrees;
     };
 
-    /** Try to create a RadialSet by reflection.  This is called from NetcdfBuilder by reflection	
-     * @param ncfile	the netcdf file to read from
-     * @param sparse 	did we come from a "SparseRadialSet"?
-     */
-    public RadialSet(NetcdfFile ncfile, boolean sparse) {
-
-        super(ncfile, sparse); // Let DataType fill in the basics
-
-        try {
-            Variable v_az = ncfile.findVariable("Azimuth");
-            Variable v_bw = ncfile.findVariable("BeamWidth");
-            Variable v_as = ncfile.findVariable("AzimuthalSpacing");
-            Variable v_gw = ncfile.findVariable("GateWidth");
-            Variable v_ny = ncfile.findVariable("NyquistVelocity");
-            float elev = ncfile.findGlobalAttribute("Elevation").getNumericValue().floatValue();
-            float distToFirstGate = ncfile.findGlobalAttribute("RangeToFirstGate").getNumericValue().floatValue();
-            float nyquist = DataType.MissingData;
-
-            if (attributes.containsKey("Nyquist_Vel")) {
-                nyquist = Float.parseFloat(attributes.get("Nyquist_Vel"));
-            }
-            Array az_values = v_az.read();
-            Array bw_values = v_bw.read();
-            Array gw_values = v_gw.read();
-
-            // optional
-            Array as_values = null;
-            if (v_as != null) {
-                as_values = v_as.read();
-            }
-            Array ny_values = null;
-            if (v_ny != null) {
-                ny_values = v_ny.read();
-            }
-
-            // Valid for all info but the radials
-            this.elevation = elev;
-            this.rangeToFirstGate = distToFirstGate / 1000;
-            // set up the co-ordinate system
-            this.radarLocation = originLocation.getCPoint();
-            this.myUz = radarLocation.minus(new CPoint(0, 0, 0)).unit();
-            this.myUx = new CVector(0, 0, 1).crossProduct(myUz).unit();
-            this.myUy = myUz.crossProduct(myUx);
-
-            Array2Dfloat values = null;
-            int num_radials = 0;
-            try {
-                values = sparse ? NetcdfBuilder.readSparseArray2Dfloat(ncfile, typeName, myDataTypeMetric)
-                        : NetcdfBuilder.readArray2Dfloat(ncfile, typeName, myDataTypeMetric);
-                num_radials = values.getX();
-            } catch (Exception e) {
-                // If we can't get the values for any reason, 
-                // just make a zero size radial set (nice recovery)
-                log.warn("Couldn't create radials of radial set, leaving as empty");
-            }
-
-            this.radials = new Radial[num_radials];
-            Index radial_index = az_values.getIndex();
-            for (int i = 0; i < num_radials; ++i) {
-                radial_index.set(i);
-                float az = az_values.getFloat(radial_index);
-                float bw = bw_values.getFloat(radial_index);
-                float as = (as_values == null) ? bw : as_values.getFloat(radial_index);
-                float gw = gw_values.getFloat(radial_index) / 1000; // meters to kms
-                float ny = (ny_values == null) ? nyquist : ny_values.getFloat(radial_index);
-
-                // This wraps around the column of the 2D array, _not_ a copy
-                Array1Dfloat col = values.getCol(i);
-                if (col != null) {
-                    if (myMaxGateNumber < col.size()) {
-                        myMaxGateNumber = col.size();
-                    }
-                }
-                radials[i] = new Radial(az, bw, as, gw, ny, col, i);
-            }
-        } catch (Exception e) { // FIXME: what to do if anything?
-            log.warn("Couldn't create radial set from netcdf file");
-        }
+    public RadialSet(RadialSetMemento m){
+        super(m);
+        this.elevation = m.elevation;
+        this.radials = m.radials;
+        this.radarLocation = m.radarLocation;
+        this.myUx = m.myUx;
+        this.myUy = m.myUy;
+        this.myUz = m.myUz;
+        this.rangeToFirstGate = m.rangeToFirstGate; 
+        this.myMaxGateNumber = m.maxGateNumber;
         createAzimuthSearch();
     }
-
+    
     public RadialSet(float elevation, Location radarLoc, Date scanTime,
             float rangeToFirstGate,
             String typeName, Radial[] radials) {
@@ -174,13 +122,14 @@ public class RadialSet extends DataType implements Table2DView {
         myUz = radarLocation.minus(new CPoint(0, 0, 0)).unit();
         myUx = new CVector(0, 0, 1).crossProduct(myUz).unit();
         myUy = myUz.crossProduct(myUx);
+        myMaxGateNumber = 0; // FIXME?
         createAzimuthSearch();
     }
 
     /** Create a sorted list of end azimuth numbers, which allows us to binary
      * search for a Radial by azimuth very quickly
      */
-    protected void createAzimuthSearch() {
+    protected final void createAzimuthSearch() {
         // This assumes no two radials have the same end angle, even if they do,
         // should still work, just indeterminate which of the 2 radials you'll get
         angleToRadial = new float[radials.length];
@@ -420,60 +369,64 @@ public class RadialSet extends DataType implements Table2DView {
                 double elev_diff = a.elevDegs - elevation;
 
                 // We want the interpolation weight (for bi/tri-linear)
-                if (q.inNeedInterpolationWeight){
+                if (q.inNeedInterpolationWeight) {
                     // FIXME: math could be cached in a for speed in volumes
-                    
-/* Math for height calculation....
-  This is first part of the lat/lon/height weights so I can do true
-  bilinear/trilinear interpolation.  Bleh..  Here's the math:
+
+                    /* Math for height calculation....
+                    This is first part of the lat/lon/height weights so I can do true
+                    bilinear/trilinear interpolation.  Bleh..  Here's the math:
                      * 
-Line 1:  Line from sample point straight down to ground...The height
-  Polar to cartesion of the 'sample' point...
-e = a.elev;
-(r*cos(e), r*sin(e));
-Point 2:
-(r*cos(e), 0)
-==> X = r*cos(e); the vertical line....
-
-Line 2 (radial beam)
-Point 1:
-(0,0);
-Point 2:
-(R*cos(elevation), R*sin(elevation);
-
-y = mx+b where
- z = elevation;
- m = tan(z);
- b = 0;
-==> y = x*tan(z); // For radar beam line...
-
-x1 = r*cos(e);              // Sample point
-y1 = r*sin(e);
-x2 = r*cos(e);              // Point on the 'beam'
-y2 = r*cos(e)*tan(z);
-
-// Now the distance from the beam point to the sample point...
-(x2-x1)^2 = 0;
-(y2-y1)^2 = (r*cos(e)*tan(z)-(r*sin(e)))^2
- distance = abs(r*(cos(e)*tan(z)-sin(e)));
+                    Line 1:  Line from sample point straight down to ground...The height
+                    Polar to cartesion of the 'sample' point...
+                    e = a.elev;
+                    (r*cos(e), r*sin(e));
+                    Point 2:
+                    (r*cos(e), 0)
+                    ==> X = r*cos(e); the vertical line....
+                    
+                    Line 2 (radial beam)
+                    Point 1:
+                    (0,0);
+                    Point 2:
+                    (R*cos(elevation), R*sin(elevation);
+                    
+                    y = mx+b where
+                    z = elevation;
+                    m = tan(z);
+                    b = 0;
+                    ==> y = x*tan(z); // For radar beam line...
+                    
+                    x1 = r*cos(e);              // Sample point
+                    y1 = r*sin(e);
+                    x2 = r*cos(e);              // Point on the 'beam'
+                    y2 = r*cos(e)*tan(z);
+                    
+                    // Now the distance from the beam point to the sample point...
+                    (x2-x1)^2 = 0;
+                    (y2-y1)^2 = (r*cos(e)*tan(z)-(r*sin(e)))^2
+                    distance = abs(r*(cos(e)*tan(z)-sin(e)));
                      */
-                     // Calculate the weight for interpolation in height
-                     // We convert from radial polar space to cartesian and get 
-                     // the distance from sample point to the beam line.
+                    // Calculate the weight for interpolation in height
+                    // We convert from radial polar space to cartesian and get 
+                    // the distance from sample point to the beam line.
 
                     // Projection in Height of the sampled point onto the beam
                     // of the radar....or is it? rofl..
                     double eR = Math.toRadians(a.elevDegs);
                     double d2R = Math.toRadians(elevation);
-                    double h = a.range*(Math.cos(eR)*Math.sin(d2R)/Math.cos(d2R)-Math.sin(eR));
-                    if (h < 0){ h = -h; } // sqrt of square is abs         
-                    if (a.elevDegs < elevation){ h = -h; }
-                    q.outDistanceHeight = (float)(h);
+                    double h = a.range * (Math.cos(eR) * Math.sin(d2R) / Math.cos(d2R) - Math.sin(eR));
+                    if (h < 0) {
+                        h = -h;
+                    } // sqrt of square is abs         
+                    if (a.elevDegs < elevation) {
+                        h = -h;
+                    }
+                    q.outDistanceHeight = (float) (h);
                     // Ignore beam width filter, we want
                     // the value AND the weight for interpolation
                     elev_diff = 0;
                 }
-               
+
                 // Beam width filter.  Outside beam width in the vertical?
                 if (Math.abs(elev_diff) > bw / 2.0) {
                     q.outDataValue = MissingData;

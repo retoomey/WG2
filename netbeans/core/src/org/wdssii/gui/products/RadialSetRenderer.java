@@ -515,28 +515,32 @@ public class RadialSetRenderer extends ProductRenderer {
                         FloatBuffer z = verts.getRawBuffer();
                         //FloatBuffer c = colors.getRawBuffer();
                         FloatBuffer c = readoutMode ? readout.getRawBuffer() : colors.getRawBuffer();
-                        gl.glVertexPointer(3, GL.GL_FLOAT, 0, z.rewind());
 
-                        // Isn't this color kinda wasteful really?  We have 4 floats per color,
-                        // or 4 bytes * 4 = 16 bytes, when GL only stores 4 bytes per color lol
-                        // We should use GL.GL_BYTE and convert ourselves to it, will save memory...
+                        // Only render if there is data to render
+                        if (z.capacity() > 0) {
+                            gl.glVertexPointer(3, GL.GL_FLOAT, 0, z.rewind());
 
-                        gl.glColorPointer(4, GL.GL_UNSIGNED_BYTE, 0, c.rewind());
-                        //gl.glColorPointer(4, GL.GL_FLOAT, 0, c.rewind());
+                            // Isn't this color kinda wasteful really?  We have 4 floats per color,
+                            // or 4 bytes * 4 = 16 bytes, when GL only stores 4 bytes per color lol
+                            // We should use GL.GL_BYTE and convert ourselves to it, will save memory...
 
-                        int size = myOffsets.size();
-                        if (size > 1) {
-                            for (int i = 0; i < size - 1; i++) {
-                                int start_index = myOffsets.get(i);
-                                int end_index = myOffsets.get(i + 1);
-                                int run_indices = end_index - start_index;
-                                int start_vertex = start_index / 3;
-                                int run_vertices = run_indices / 3;
-                                gl.glDrawArrays(GL.GL_QUAD_STRIP, start_vertex,
-                                        run_vertices);
+                            gl.glColorPointer(4, GL.GL_UNSIGNED_BYTE, 0, c.rewind());
+                            //gl.glColorPointer(4, GL.GL_FLOAT, 0, c.rewind());
+
+                            int size = myOffsets.size();
+                            if (size > 1) {
+                                for (int i = 0; i < size - 1; i++) {
+                                    int start_index = myOffsets.get(i);
+                                    int end_index = myOffsets.get(i + 1);
+                                    int run_indices = end_index - start_index;
+                                    int start_vertex = start_index / 3;
+                                    int run_vertices = run_indices / 3;
+                                    gl.glDrawArrays(GL.GL_QUAD_STRIP, start_vertex,
+                                            run_vertices);
+                                }
                             }
-                        }
 
+                        }
                     }
                 }
             } finally {

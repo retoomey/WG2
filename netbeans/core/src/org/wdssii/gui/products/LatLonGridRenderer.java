@@ -78,13 +78,15 @@ public class LatLonGridRenderer extends TileRenderer {
             // Note...another thread might add more tiles before we are done..
             Tile currentTile = null;
             int size = 0;
+            // Unknown because more tiles may add while we're running
+            monitor.beginTask("Tiles", WdssiiJobMonitor.UNKNOWN); 
             while (true) {
 
                 // Get the size and top tile from the current stack...
                 synchronized (myStackLock) {
                     size = myBackgroundTiles.size();
-                    monitor.beginTask("Tiles", size);  // hummmm
                     // Always start the most recent tile....
+                    monitor.subTask("Tiles left "+size);
                     if (size > 0) {
                         currentTile = myBackgroundTiles.pop();
 
@@ -94,6 +96,7 @@ public class LatLonGridRenderer extends TileRenderer {
                     } else {
                         // Stack is empty, finish this job....
                         isDone = true;
+                        monitor.done();
                         return WdssiiJobStatus.OK_STATUS;
                     }
                 }

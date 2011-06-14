@@ -5,9 +5,6 @@ import java.util.Date;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import ucar.nc2.NetcdfFile;
-
-import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.geom.Location;
 import org.wdssii.storage.Array2Dfloat;
 import org.wdssii.storage.Array2DfloatAsTiles;
@@ -24,32 +21,29 @@ import org.wdssii.storage.Array2DfloatAsTiles;
 public class LatLonGrid extends DataType implements Table2DView {
 
     private static Log log = LogFactory.getLog(LatLonGrid.class);
-    private final float deltaLat, deltaLon;
+    /** The change in lat distance per grid square */
+    private final float deltaLat;
+    
+    /** The change in lon distance per grid squart */
+    private final float deltaLon;
+    
     /** The array that stores our data */
     private Array2Dfloat values;
 
-    public LatLonGrid(NetcdfFile ncfile, boolean sparse) {
-        super(ncfile, sparse); // Let DataType fill in the basics
-
-        float latres = 0;
-        float lonres = 0;
-        Array2Dfloat grid = null;
-        try {
-            latres = ncfile.findGlobalAttribute("LatGridSpacing").getNumericValue().floatValue();
-            lonres = ncfile.findGlobalAttribute("LonGridSpacing").getNumericValue().floatValue();
-            try {
-                grid = sparse ? NetcdfBuilder.readSparseArray2Dfloat(ncfile, typeName, myDataTypeMetric)
-                        : NetcdfBuilder.readArray2Dfloat(ncfile, typeName, myDataTypeMetric);
-            } catch (OutOfMemoryError mem) {
-                log.warn("Running out of ram trying to read in LatLonGrid data (FIXME)");
-            }
-        } catch (Exception e) {
-            // FIXME: recover or throw instead, not 100% sure yet
-            log.warn("LatLonGrid failing " + e.toString());
-        }
-        this.deltaLat = latres;
-        this.deltaLon = lonres;
-        this.values = grid;
+    public static class LatLonGridMemento extends DataTypeMemento {
+        /** The change in lat distance per grid square */
+        public float deltaLat;
+        /** The change in lon distance per grid square */
+        public float deltaLon;
+        /** The 2D array of data values. */
+        public Array2Dfloat values;
+    }
+    
+    public LatLonGrid(LatLonGridMemento m){
+        super(m);
+        this.deltaLat = m.deltaLat;
+        this.deltaLon = m.deltaLon;
+        this.values = m.values;
     }
 
     /** {@inheritDoc} */

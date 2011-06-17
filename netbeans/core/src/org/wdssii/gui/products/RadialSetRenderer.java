@@ -101,10 +101,8 @@ public class RadialSetRenderer extends ProductRenderer {
                 Location radarLoc = aRadialSet.getRadarLocation();
                 // Precompute the sin/cos of the elevation angle of the radar.
                 final float RAD = 0.017453293f;
-                double elevationRAD = aRadialSet.getElevation() * RAD; // Make
-                // radians
-                double sinElevAngle = Math.sin(elevationRAD);
-                double cosElevAngle = Math.cos(elevationRAD);
+                double sinElevAngle = aRadialSet.getElevationSin();
+                double cosElevAngle = aRadialSet.getElevationCos();
 
                 float firstGateKms = aRadialSet.getRangeToFirstGateKms();
 
@@ -242,8 +240,8 @@ public class RadialSetRenderer extends ProductRenderer {
                     }
 
                     // Reset range to starting gate
-                    float startRAD = aRadial.getStartAzimuth() * RAD;
-                    float endRAD = aRadial.getEndAzimuth() * RAD;
+                    float startRAD = aRadial.getStartAzimuthDegs() * RAD;
+                    float endRAD = aRadial.getEndAzimuthDegs() * RAD;
                     double sinStartRAD = Math.sin(startRAD);
                     double cosStartRAD = Math.cos(startRAD);
                     double sinEndRAD = Math.sin(endRAD);

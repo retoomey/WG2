@@ -51,7 +51,7 @@ iconBase = "org/wdssii/gui/nbm/views/chart_bar.png",
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "explorer", openAtStartup = false)
 @ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.ChartTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_ChartAction",
 preferredID = "ChartTopComponent")
 public final class ChartTopComponent extends ThreadedTopComponent implements
@@ -171,6 +171,9 @@ public final class ChartTopComponent extends ThreadedTopComponent implements
         // doing all the fancy GUI work...will have to manually refresh
         // by moving.
         RadialSetVolume.myExperiment =  (myInterps[1].equals(item));
+         if (myChart != null) {
+             myChart.updateChart();
+         }
     }
 
     private void jVirtualToggleButtonActionPerformed(java.awt.event.ActionEvent evt) {

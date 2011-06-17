@@ -120,12 +120,15 @@ public class RadialSetVolume extends ProductVolume {
 
         // Make sure the reading of data values is sync locked with updating in initProduct...
         synchronized (myRadialLock) {
-            Iterator<Product> iter = myRadials.iterator();
-            while (iter.hasNext()) {
+
+        for(int i = 0; i< myRadials.size(); i++){
+            //Iterator<Product> iter = myRadials.iterator();
+           // while (iter.hasNext()) {
 
                 // For each radial in the radial set....
                 //RadialSet r = iter.next().getRadialSet();
-                DataType dt = iter.next().getRawDataType();
+               // DataType dt = iter.next().getRawDataType();
+                DataType dt = myRadials.get(i).getRawDataType();
                 RadialSet r = null;
                 if (dt != null) {
                     r = (RadialSet) (dt);
@@ -145,40 +148,41 @@ public class RadialSetVolume extends ProductVolume {
 
                         // Interpolate in true height...
                         if (true) {
-                            // So it's a 'hit' if within .5 kilometer height of beam.
-                            if (Math.abs(weightAtValue) < .5){
+                            // Since we go bottom up, we want the first beam we are UNDER
+                            if (weightAtValue < 0) {
+                                //   if (Math.abs(weightAtValue) < .5){
                                 value = q.outDataValue;
-                                break;
-                                /*
-                                
-                                // We're above a radial..now we can height
-                                // interpolate with one right above....bleh...
-                                if (iter.hasNext()){
-                                DataType dt2 = iter.next().getRawDataType();
-                                RadialSet r2 = null;
-                                if (dt2 != null) {
-                                r2 = (RadialSet) (dt2);
-                                if (r2 != null) {
-                                r.queryData(q);
-                                float v2= q.outDataValue;
-                                float w2 = q.outDistanceHeight;
-                                if (w2 < 0){
-                                // woo hooo!
-                                value = 100;
-                                break;
+                               if (i-1 > 0){
+                                    DataType dt2 = myRadials.get(i-1).getRawDataType();
+                                    RadialSet r2 = null;
+                                    if (dt2 != null) {
+                                        r2 = (RadialSet) (dt2);
+                                        if (r2 != null) {
+                                            r2.queryData(q);
+                                            float v2 = q.outDataValue;
+                                            float w2 = q.outDistanceHeight;
+                                            // Sign tells me over or under radial
+                                            if (w2 > 0){
+                                                // Ok now we have 2 weights...
+                                                // and 2 values...
+                                                // This is R2 and R1 of the Binomail interpolation
+                                      //r1 = value,  r2 = v2;  
+                                                float totalWeight = Math.abs(w2)+Math.abs(weightAtValue);
+                                                float i1 = Math.abs(w2/totalWeight)*value;
+                                                float i2 = Math.abs(weightAtValue/totalWeight)*v2;
+                                                
+                                         //  float vInterp = (Math.abs(w2/totalWeight)*q.outDataValue)+(Math.abs(weightAtValue/totalWeight)*v2); 
+                                                float vInterp = i1+i2;
+                                            value = vInterp;    
+                                            }else{
+                                                value = DataType.MissingData;
+                                            }
+                                        }
+                                    }
                                 }
-                                }
-                                }
-                                }
-                                 * 
-                                 */
-                            }// else {
-                            // value = DataType.MissingData;
-                            //   break;
-                            //break;
-                            //  break;
-                            // Continue until over a first radial.
-                            // }
+                                    break;
+
+                            }
                         } else {
                             // Break on first 'hit' when not interpolating...
                             if (DataType.isRealDataValue(value)) {

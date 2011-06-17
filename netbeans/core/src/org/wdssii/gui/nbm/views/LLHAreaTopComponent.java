@@ -38,7 +38,7 @@ autostore = false)
 @TopComponent.Description(preferredID = "LLHAreaTopComponent",
 iconBase = "org/wdssii/gui/nbm/views/brick_add.png",
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
-@TopComponent.Registration(mode = "editor", openAtStartup = false)
+@TopComponent.Registration(mode = "explorer", openAtStartup = false)
 @ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.LLHAreaTopComponent")
 @ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_LLHAreaAction",

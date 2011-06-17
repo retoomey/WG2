@@ -5,6 +5,8 @@ import org.wdssii.geom.CVector;
 import org.wdssii.storage.Array1Dfloat;
 
 /**
+ * Radial holds a set of gate data that share an azimuth range.
+ * 
  * @author lakshman
  * 
  */
@@ -12,11 +14,21 @@ public class Radial {
 
     /** The 1D float that stores the radial */
     private Array1Dfloat array;
-    private final float startAzimuth;
-    private final float beamWidth;
-    private final float azimuthalSpacing;
-    private final float nyquist;
-    private final float gateWidth;
+    /** The start Azimuth in degrees.  In the 'sweep' of the radar the beginning of the beam */
+    private final float startAzimuthDegs;
+    /** The width of the beam in degrees */
+    private final float beamWidthDegs;
+    /** The total degrees in azimuth of the beam */
+    private final float azimuthalSpacingDegs;
+    /** The nyquist of this radial in meters per second */
+    private final float nyquistMetersPerSecond;
+    /** The constant length in Kms from radar center that each gate is */
+    private final float gateWidthKms;
+    /** Cache the sin of the radial elevation */
+   // private final sinElevation;
+    /** Cache the cos of the radial elevation */
+   // private final cosElevation;
+    /** Unit vector of radial.  FIXME: kinda want to get rid of this */
     private CVector unitVector;
     /** The index of this radial inside of a RadialSet in creation order */
     private int index = -1;
@@ -24,20 +36,20 @@ public class Radial {
     /** in degrees and kilometers. Does not copy array 
      * @param ny 
      * @param  */
-    public Radial(float startAz, float beamWidth,
+    public Radial(float startAz, float beamWidthDegs,
             float azimuthalSpacing, float gateWidth,
             float nyquist, Array1Dfloat values, int i) {
-        this.gateWidth = gateWidth;
+        this.gateWidthKms = gateWidth;
         this.array = values;
-        this.startAzimuth = startAz;
-        this.beamWidth = beamWidth;
-        this.azimuthalSpacing = azimuthalSpacing;
-        this.nyquist = nyquist;
+        this.startAzimuthDegs = startAz;
+        this.beamWidthDegs = beamWidthDegs;
+        this.azimuthalSpacingDegs = azimuthalSpacing;
+        this.nyquistMetersPerSecond = nyquist;
         this.index = i;
     }
 
     /** puts the given angle in the range [0,360) */
-    public static float normalizeAzimuth(float az) {
+    public static float normalizeAzimuthDegs(float az) {
         // in range [0,360)
         if (az < 0) {
             az += 360;
@@ -49,8 +61,8 @@ public class Radial {
 
     public boolean contains(float az) {
         // returns range [0,360)
-        float diff = normalizeAzimuth(az - startAzimuth);
-        return (diff < azimuthalSpacing);
+        float diff = normalizeAzimuthDegs(az - startAzimuthDegs);
+        return (diff < azimuthalSpacingDegs);
     }
 
     public Array1Dfloat getValues() {
@@ -66,53 +78,51 @@ public class Radial {
     }
 
     /** may not be normalized */
-    public float getStartAzimuth() {
-        return startAzimuth;
+    public float getStartAzimuthDegs() {
+        return startAzimuthDegs;
     }
 
     /**
      * the end azimuth is not normalized in range [0,360) -- the rule instead is
      * that the azimuth will be greater than the start azimuth.
      */
-    public float getEndAzimuth() {
-        return (startAzimuth + azimuthalSpacing);
+    public float getEndAzimuthDegs() {
+        return (startAzimuthDegs + azimuthalSpacingDegs);
     }
 
     /**
      * the mid azimuth is not normalized in range [0,360) -- the rule instead is
      * that the azimuth will be greater than the start azimuth.
      */
-    public float getMidAzimuth() {
-        return (float) (startAzimuth + 0.5 * azimuthalSpacing);
+    public float getMidAzimuthDegs() {
+        return (float) (startAzimuthDegs + 0.5 * azimuthalSpacingDegs);
     }
 
     /** always positive */
     public float getBeamWidth() {
-        return beamWidth;
+        return beamWidthDegs;
     }
 
-    public float getAzimuthalSpacing() {
-        return azimuthalSpacing;
+    public float getAzimuthalSpacingDegs() {
+        return azimuthalSpacingDegs;
     }
 
     /** in meters */
     public float getGateWidthKms() {
-        return gateWidth;
+        return gateWidthKms;
     }
 
     public float getValue(int index) {
-        //return values[index];
         return array.get(index);
     }
 
     public int getNumGates() {
-        //	return values.length;
         return array.size();
     }
 
     /** in m/s */
-    public float getNyquist() {
-        return nyquist;
+    public float getNyquistMetersPerSecond() {
+        return nyquistMetersPerSecond;
     }
 
     /**
@@ -124,7 +134,7 @@ public class Radial {
         if (unitVector == null) {
             // unit vector in co-ordinate system tangential to
             // earth at the radar location.
-            double angle_to_xdir = (90 - getMidAzimuth()) * Math.PI / 180.0;
+            double angle_to_xdir = (90 - getMidAzimuthDegs()) * Math.PI / 180.0;
             unitVector = new CVector(Math.cos(angle_to_xdir), Math.sin(angle_to_xdir), Math.sin(elevation * Math.PI / 180.0)).unit();
             return unitVector;
         }
@@ -147,8 +157,8 @@ public class Radial {
 
     /** debugging output */
     public String toStringDB() {
-        String s = "Radial " + startAzimuth + " to " + getEndAzimuth() + " deg"
-                + " " + gateWidth + "km " + " first 10 values: \n";
+        String s = "Radial " + startAzimuthDegs + " to " + getEndAzimuthDegs() + " deg"
+                + " " + gateWidthKms + "km " + " first 10 values: \n";
         for (int i = 0; i < 10; ++i) {
             s += getValue(i) + " ";
         }

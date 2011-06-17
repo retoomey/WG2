@@ -13,7 +13,7 @@ import org.wdssii.geom.Location;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.util.RadialUtil;
 
-/** A radial set
+/** A radial set is a collection of radials.
  * 
  * @author lakshman
  * 
@@ -22,7 +22,15 @@ public class RadialSet extends DataType implements Table2DView {
 
     private static Log log = LogFactory.getLog(RadialSet.class);
     /** Elevation in degrees of this radial set */
-    private final float elevation;
+    private final float elevDegs;
+    /** Elevation in radians of this radial set */
+    private final float elevRads;
+    /** Tan of elevation, cached for the beam height distance function */
+    private final float tanElevation;
+    /** Sin of the elevation cached for getLocation and other needs */
+    private final float sinElevation;
+    /** Cos of the elevation cached for getLocation and other needs */
+    private final float cosElevation;
     /** Our radials */
     protected Radial[] radials;
     /** Cache the radar location CPoint for speed */
@@ -97,25 +105,33 @@ public class RadialSet extends DataType implements Table2DView {
         public float outAzimuthDegrees;
     };
 
-    public RadialSet(RadialSetMemento m){
+    public RadialSet(RadialSetMemento m) {
         super(m);
-        this.elevation = m.elevation;
+        this.elevDegs = m.elevation;
+        this.elevRads = (float) Math.toRadians(elevDegs);
+        this.tanElevation = (float) Math.tan(elevRads);
+        this.sinElevation = (float) Math.sin(elevRads);
+        this.cosElevation = (float) Math.cos(elevRads);
         this.radials = m.radials;
         this.radarLocation = m.radarLocation;
         this.myUx = m.myUx;
         this.myUy = m.myUy;
         this.myUz = m.myUz;
-        this.rangeToFirstGate = m.rangeToFirstGate; 
+        this.rangeToFirstGate = m.rangeToFirstGate;
         this.myMaxGateNumber = m.maxGateNumber;
         createAzimuthSearch();
     }
-    
+
     public RadialSet(float elevation, Location radarLoc, Date scanTime,
             float rangeToFirstGate,
             String typeName, Radial[] radials) {
         super(radarLoc, scanTime, typeName);
         this.radials = radials;
-        this.elevation = elevation;
+        this.elevDegs = elevation;
+        this.elevRads = (float) Math.toRadians(elevDegs);
+        this.tanElevation = (float) Math.tan(elevRads);
+        this.sinElevation = (float) Math.sin(elevRads);
+        this.cosElevation = (float) Math.cos(elevRads);
         this.rangeToFirstGate = rangeToFirstGate;
         // set up the co-ordinate system
         this.radarLocation = originLocation.getCPoint();
@@ -127,7 +143,8 @@ public class RadialSet extends DataType implements Table2DView {
     }
 
     /** Create a sorted list of end azimuth numbers, which allows us to binary
-     * search for a Radial by azimuth very quickly
+     * search for a Radial by azimuth very quickly.  Note that this doesn't
+     * mean the RadialSet is sorted.
      */
     protected final void createAzimuthSearch() {
         // This assumes no two radials have the same end angle, even if they do,
@@ -140,8 +157,8 @@ public class RadialSet extends DataType implements Table2DView {
 
             @Override
             public int compare(Radial o1, Radial o2) {
-                double u1 = o1.getEndAzimuth();
-                double u2 = o2.getEndAzimuth();
+                double u1 = o1.getEndAzimuthDegs();
+                double u2 = o2.getEndAzimuthDegs();
                 if (u1 < u2) {
                     return -1;
                 }
@@ -154,7 +171,7 @@ public class RadialSet extends DataType implements Table2DView {
 
         // Create the angle list from the sorted radials...
         for (int i = 0; i < angleToRadial.length; i++) {
-            angleToRadial[i] = azimuthRadials[i].getEndAzimuth();
+            angleToRadial[i] = azimuthRadials[i].getEndAzimuthDegs();
         }
     }
 
@@ -164,11 +181,27 @@ public class RadialSet extends DataType implements Table2DView {
      */
     @Override
     public double sortInVolume() {
-        return elevation;
+        return elevDegs;
     }
 
-    public float getElevation() {
-        return elevation;
+    public float getElevationDegs() {
+        return elevDegs;
+    }
+
+    public float getElevationRads() {
+        return elevRads;
+    }
+    
+    public float getElevationSin(){
+        return sinElevation;
+    }
+    
+    public float getElevationCos(){
+        return cosElevation;
+    }
+    
+    public float getElevationTan(){
+        return tanElevation;
     }
 
     /** meters */
@@ -179,7 +212,7 @@ public class RadialSet extends DataType implements Table2DView {
     /**
      * beamwidth of first radial, or 1 degree if there is no radial.
      */
-    public float getBeamWidth() {
+    public float getBeamWidthKms() {
         if (radials.length > 0) {
             return getRadial(0).getBeamWidth();
         }
@@ -189,9 +222,9 @@ public class RadialSet extends DataType implements Table2DView {
     /**
      * nyquist of first radial, or 0 if there is no radial.
      */
-    public float getNyquist() {
+    public float getNyquistMetersPerSecond() {
         if (radials.length > 0) {
-            return getRadial(0).getNyquist();
+            return getRadial(0).getNyquistMetersPerSecond();
         }
         return 0;
     }
@@ -202,7 +235,7 @@ public class RadialSet extends DataType implements Table2DView {
     public float getAzimuthalSpacing() {
         float as = 0;
         for (Radial r : radials) {
-            as += r.getAzimuthalSpacing();
+            as += r.getAzimuthalSpacingDegs();
         }
         float result = (radials.length <= 1) ? as : (as / radials.length);
         return result;
@@ -271,6 +304,31 @@ public class RadialSet extends DataType implements Table2DView {
         public double elevDegs;
         /** Distance in Kms */
         public double range;
+        /** True if we cached this stuff. Will be the same value for all
+         * RadialSets for a particular sample location
+         */
+        private boolean cachedSinCos = false;
+        private double elevSin;
+        private double elevCos;
+
+        /** Given the tan of an elevation, get the weight in height from the
+         * actual beam at our elevDegs.  For example, if inElev == elevDegs, 
+         * then the value is zero, if inElev < elevDegs the value is -,
+         * if inElev > elevDegs the value is +
+         * 
+         * @param inElevTan The tan of the other elevation
+         * @return 
+         */
+        public double getHeightWeight(double inElevTan) {
+            // Trig so slow, cache it...
+            if (!cachedSinCos) {
+                double rads = Math.toRadians(elevDegs);
+                elevCos = Math.cos(rads);
+                elevSin = Math.sin(rads);
+                cachedSinCos = true;
+            }
+            return -(range * (elevCos * inElevTan - elevSin));
+        }
     }
 
     /** In volumes, a location is used to query multiple radial sets that share the
@@ -329,7 +387,7 @@ public class RadialSet extends DataType implements Table2DView {
         double dotx = crossX * myUx.x + crossY * myUx.y + crossZ * myUx.z;
         double doty = crossX * myUy.x + crossY * myUy.y + crossZ * myUy.z;
         double az = (360.0 - (Math.toDegrees(Math.atan2(doty, dotx))));
-        out.azimuthDegs = Radial.normalizeAzimuth((float) az);
+        out.azimuthDegs = Radial.normalizeAzimuthDegs((float) az);
 
         double dotz = coneX * myUz.x + coneY * myUz.y + coneZ * myUz.z;
         out.elevDegs = Math.asin(dotz / out.range) * 180 / Math.PI;
@@ -366,10 +424,10 @@ public class RadialSet extends DataType implements Table2DView {
                 Radial first = getRadial(0);
                 double bw = first.getBeamWidth();
                 //double elev = Math.asin(fromConeApex.dotProduct(myUz) / norm) * 180 / Math.PI;
-                double elev_diff = a.elevDegs - elevation;
+                double elev_diff = a.elevDegs - elevDegs;
 
                 // We want the interpolation weight (for bi/tri-linear)
-                if (q.inNeedInterpolationWeight) {
+                if (q.inNeedInterpolationWeight) {             
                     // FIXME: math could be cached in a for speed in volumes
 
                     /* Math for height calculation....
@@ -412,24 +470,26 @@ public class RadialSet extends DataType implements Table2DView {
 
                     // Projection in Height of the sampled point onto the beam
                     // of the radar....or is it? rofl..
-                    double eR = Math.toRadians(a.elevDegs);
-                    double d2R = Math.toRadians(elevation);
-                    double h = a.range * (Math.cos(eR) * Math.sin(d2R) / Math.cos(d2R) - Math.sin(eR));
-                    if (h < 0) {
-                        h = -h;
-                    } // sqrt of square is abs         
-                    if (a.elevDegs < elevation) {
-                        h = -h;
-                    }
+                    // double eR = Math.toRadians(a.elevDegs);
+                    // double d2R = elevRads;
+                    // double h = a.range * (Math.cos(eR) * Math.sin(d2R) / Math.cos(d2R) - Math.sin(eR));
+                    // double h = a.range * (Math.cos(eR) * Math.tan(d2R) - Math.sin(eR));
+                    double h = a.getHeightWeight(tanElevation);
+
+                    // if (h < 0) {
+                    //     h = -h;
+                    // } // sqrt of square is abs         
+                    // if (a.elevDegs < elevDegs) {
+                    //     h = -h;
+                    //  }
                     q.outDistanceHeight = (float) (h);
                     // Ignore beam width filter, we want
                     // the value AND the weight for interpolation
-                    elev_diff = 0;
+                    //elev_diff = 0;
                 }
 
                 // Beam width filter.  Outside beam width in the vertical?
                 if (Math.abs(elev_diff) > bw / 2.0) {
-                    q.outDataValue = MissingData;
 
                     // FIXME: Should we still get this stuff anyway?  Will slow down volumes like vslice
                     // Probably need more in flags
@@ -437,7 +497,10 @@ public class RadialSet extends DataType implements Table2DView {
                     q.outHitGateNumber = -1;
                     q.outInAzimuth = false;
                     q.outInRange = false;
-                    return;
+                    if (!q.inNeedInterpolationWeight) {
+                        q.outDataValue = MissingData;
+                         return;
+                     }
                 }
             }
 
@@ -450,17 +513,74 @@ public class RadialSet extends DataType implements Table2DView {
                 q.outHitRadialNumber = candidate.getIndex();
                 q.outInAzimuth = candidate.contains((float) a.azimuthDegs);
 
-                // Gate calculation.  Assumes all gates the same width.
-                int gateNumber = (int) Math.floor((a.range - this.getRangeToFirstGateKms()) / candidate.getGateWidthKms());
+                final double gate = (a.range - this.getRangeToFirstGateKms()) / candidate.getGateWidthKms();
+                final int gateNumber = (int) Math.floor(gate);
                 q.outHitGateNumber = gateNumber;
-
+                
                 // Is the query within range for this Radial?  Range is up to the last piece of available data.
                 Array1Dfloat gates = candidate.getValues();
                 q.outInRange = (gateNumber >= 0) && (gateNumber < gates.size());
-
+ 
                 // Valid data must be in azimuth and range...? Note for vslice this will make black gaps in azimuth
                 //if ((q.outInAzimuth) && (q.outInRange)){
                 if (q.outInRange) {
+                  /* Experiment, playing with range interpolation to see how it looks...
+                    float dataCore = gates.get(gateNumber);
+                    q.outDataValue = dataCore;
+                   
+                    if (DataType.isRealDataValue(q.outDataValue)){
+                    if (q.inNeedInterpolationWeight) {
+                        double weight1 = gate - gateNumber; // .5 = center, 0 floor, 1 to
+                        q.outDataValue = dataCore;
+                        if (weight1 >= .5) {
+                            if (gateNumber + 1 < gates.size()) {
+                                float dataUp1 = gates.get(gateNumber + 1);
+                                if (DataType.isRealDataValue(dataUp1)){
+                                // at weight == 1, 50% up, 50% core   0
+                                // at weight = .5, 0% up, 100% core.  .5
+                                // y2 = 1
+                                // y1 = .5
+                                // y = weight1
+                                // R1 core
+                                // R2 .5*dataUp1;
+
+                                float i1 = (float) ((1 - weight1) / .5) * dataCore;
+                                //float i2 = (float) (((weight1 - .5) / .5) * (.5 * dataUp1));
+                                float i2 = (float) (((weight1 - .5) / .5) * (dataUp1));
+                                q.outDataValue = i1 + i2;
+                                //q.outDataValue = 1000;
+                                return;
+                                }
+                            } else {
+                              //  q.outDataValue = dataCore;
+                                return;
+                            }
+                        } else {
+                            if (gateNumber - 1 > 0) {
+                                float dataDown = gates.get(gateNumber - 1);
+                                 if (DataType.isRealDataValue(dataDown)){
+                                // y2 = .5
+                                // y1 = 0
+                                // y = weight1
+                                // R2 core
+                                // R1 .5*dataDown;
+
+                                float i1 = (float) (((.5 - weight1) / .5) * (.5 * dataDown));
+                                float i2 = (float) (((weight1) / .5) * (dataCore));
+                               // q.outDataValue = i1 + i2;
+                               
+                                return;
+                                 }
+                            } else {
+                               // q.outDataValue = dataCore;
+                                return;
+                            }
+
+                        }
+                    } 
+                    }
+                }else{
+                    */
                     q.outDataValue = gates.get(gateNumber);
                     return;
                 }
@@ -477,7 +597,7 @@ public class RadialSet extends DataType implements Table2DView {
     public ArrayList<Float> createSRMDeltas(float speedMS, float dirDegrees) {
         ArrayList<Float> srmDeltas = new ArrayList<Float>();
         for (Radial r : azimuthRadials) {
-            float aglRadians = (float) Math.toRadians((r.getMidAzimuth() - dirDegrees));
+            float aglRadians = (float) Math.toRadians((r.getMidAzimuthDegs() - dirDegrees));
             float vr = (float) (Math.cos(aglRadians) * speedMS);
             vr = ((int) (vr * 2.0f + 0.5f)) * 0.5f;
             srmDeltas.add(vr);
@@ -488,7 +608,7 @@ public class RadialSet extends DataType implements Table2DView {
     /** debugging output */
     @Override
     public String toStringDB() {
-        String s = "RadialSet " + getTypeName() + " at " + elevation + " has "
+        String s = "RadialSet " + getTypeName() + " at " + elevDegs + " has "
                 + radials.length + " radials." + " the first:\n"
                 + getRadial(0).toStringDB() + super.toStringDB();
         return s;
@@ -521,7 +641,7 @@ public class RadialSet extends DataType implements Table2DView {
         if (col < getNumRadials()) { // Do we need this check?
             Radial aRadial = getRadial((col));
             if (aRadial != null) {
-                float azDegs = aRadial.getStartAzimuth();
+                float azDegs = aRadial.getStartAzimuthDegs();
                 return (String.format("%6.2f", azDegs));
             }
         }
@@ -555,15 +675,12 @@ public class RadialSet extends DataType implements Table2DView {
             int count = getNumGates();
             if (count > 0) {
                 final float RAD = 0.017453293f;
-                double elevationRAD = getElevation() * RAD; // Make
                 Location center = getRadarLocation();
-                double sinElevAngle = Math.sin(elevationRAD);
-                double cosElevAngle = Math.cos(elevationRAD);
                 int irow = getNumRows() - row - 1;
                 float rangeKms = getRangeToFirstGateKms();
                 float w = r.getGateWidthKms();
-                float startRAD = r.getStartAzimuth() * RAD;
-                float endRAD = r.getEndAzimuth() * RAD;
+                float startRAD = r.getStartAzimuthDegs() * RAD;
+                float endRAD = r.getEndAzimuthDegs() * RAD;
 
                 // FIXME clean this up.
                 switch (type) {
@@ -574,8 +691,8 @@ public class RadialSet extends DataType implements Table2DView {
                                 center,
                                 Math.sin((startRAD + endRAD) / 2.0f), // Precomputed azimuth sin and cos around	
                                 Math.cos((startRAD + endRAD) / 2.0f), fullRangeKms, // at range in kilometers
-                                sinElevAngle, // sin of the elevation (precomputed)
-                                cosElevAngle // cos of the elevation (precomputed)
+                                sinElevation, // sin of the elevation (precomputed)
+                                cosElevation // cos of the elevation (precomputed)
                                 );
                     }
                     break;
@@ -585,8 +702,8 @@ public class RadialSet extends DataType implements Table2DView {
                                 center,
                                 Math.sin(startRAD), // Precomputed azimuth sin and cos around	
                                 Math.cos(startRAD), fullRangeKms, // at range in kilometers
-                                sinElevAngle, // sin of the elevation (precomputed)
-                                cosElevAngle // cos of the elevation (precomputed)
+                                sinElevation, // sin of the elevation (precomputed)
+                                cosElevation // cos of the elevation (precomputed)
                                 );
                     }
                     break;
@@ -596,8 +713,8 @@ public class RadialSet extends DataType implements Table2DView {
                                 center,
                                 Math.sin(endRAD), // Precomputed azimuth sin and cos around	
                                 Math.cos(endRAD), fullRangeKms, // at range in kilometers
-                                sinElevAngle, // sin of the elevation (precomputed)
-                                cosElevAngle // cos of the elevation (precomputed)
+                                sinElevation, // sin of the elevation (precomputed)
+                                cosElevation // cos of the elevation (precomputed)
                                 );
                     }
                     break;
@@ -607,8 +724,8 @@ public class RadialSet extends DataType implements Table2DView {
                                 center,
                                 Math.sin(startRAD), // Precomputed azimuth sin and cos around	
                                 Math.cos(startRAD), fullRangeKms, // at range in kilometers
-                                sinElevAngle, // sin of the elevation (precomputed)
-                                cosElevAngle // cos of the elevation (precomputed)
+                                sinElevation, // sin of the elevation (precomputed)
+                                cosElevation // cos of the elevation (precomputed)
                                 );
                     }
                     break;
@@ -619,8 +736,8 @@ public class RadialSet extends DataType implements Table2DView {
                                 center,
                                 Math.sin(endRAD), // Precomputed azimuth sin and cos around	
                                 Math.cos(endRAD), fullRangeKms, // at range in kilometers
-                                sinElevAngle, // sin of the elevation (precomputed)
-                                cosElevAngle // cos of the elevation (precomputed)
+                                sinElevation, // sin of the elevation (precomputed)
+                                cosElevation // cos of the elevation (precomputed)
                                 );
                     }
                     break;

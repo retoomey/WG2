@@ -8,13 +8,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
@@ -180,31 +180,47 @@ public class NetcdfBuilder implements Builder {
 
     }
 
+      // Read all available bytes from one channel and copy them to the other.
+  public static void copy(ReadableByteChannel in, WritableByteChannel out) throws IOException {
+    // First, we need a buffer to hold blocks of copied bytes.
+    ByteBuffer buffer = ByteBuffer.allocateDirect(32 * 1024);
+
+    // Now loop until no more bytes to read and the buffer is empty
+    while (in.read(buffer) != -1 || buffer.position() > 0) {
+      // The read() call leaves the buffer in "fill mode". To prepare
+      // to write bytes from the bufferwe have to put it in "drain mode"
+      // by flipping it: setting limit to position and position to zero
+      buffer.flip();
+
+      // Now write some or all of the bytes out to the output channel
+      out.write(buffer);
+
+      // Compact the buffer by discarding bytes that were written,
+      // and shifting any remaining bytes. This method also
+      // prepares the buffer for the next call to read() by setting the
+      // position to the limit and the limit to the buffer capacity.
+      buffer.compact();
+    }
+  }
+  
     private DataType readRemoteNetcdfFile(String path, WdssiiJobMonitor m) {
         File localFile = null;
         try {
             // read from remote file and store it as uncompressed file,
             // so that netcdf doesn't need to uncompress a copy (saves IO)
             // because we don't copy it.
+            m.subTask("Reading "+path);
             URL url = new URL(path);
 
             File dir = DataManager.getInstance().getTempDir("netcdf");
             InputStream is2 = url.openStream();
             InputStream gzip = new GZIPInputStream(is2);
             ReadableByteChannel urlC = Channels.newChannel(gzip);
-
-            //localFile = File.createTempFile("wdssiijava", ".nc.gz", dir);
             localFile = File.createTempFile("ncdf", ".nc", dir);
             FileOutputStream fos2 = new FileOutputStream(localFile);
-            FileChannel fc = fos2.getChannel();
-
-            // Be nice not to copy it at all, but netcdf makes a file 
-            long len2 = 0;
-            long pos = 0;
-            while ((len2 = fc.transferFrom(urlC, pos, 1024 * 1024 * 4)) > 0) {
-                pos += len2;
-            }
-            fc.close();
+            WritableByteChannel fc = fos2.getChannel();
+            
+            copy(urlC, fc);
 
             if (localFile.exists()) {
                 log.info("File exists " + localFile.getAbsolutePath());
@@ -236,6 +252,7 @@ public class NetcdfBuilder implements Builder {
         DataType obj = null;
 
         try {
+            m.subTask("Opening " + path);
             log.info("Opening " + path + " for reading");
             ncfile = NetcdfFile.open(path);
 
@@ -266,6 +283,7 @@ public class NetcdfBuilder implements Builder {
             String createByName = "org.wdssii.datatypes.builders.netcdf." + dataType+"Netcdf";
             Class<?> aClass = null;
             try {
+                m.subTask("Creating "+dataType);
                 aClass = Class.forName(createByName);
                 Class<?>[] argTypes = new Class[]{NetcdfFile.class, boolean.class};
                 Object[] args = new Object[]{ncfile, sparse}; // Actual args

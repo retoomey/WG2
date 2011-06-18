@@ -116,7 +116,7 @@ public class DataType {
      */
     public static class DataTypeMetric {
 
-        private float minValue;
+        public float minValue;
 
         public float getMinValue() {
             return minValue;

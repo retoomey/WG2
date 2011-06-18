@@ -50,7 +50,7 @@ public class RadialSetNetcdf extends DataTypeNetcdf {
         if (m instanceof RadialSetMemento) {
             RadialSetMemento r = (RadialSetMemento) (m);
             try {
-
+                
                 Variable v_az = ncfile.findVariable("Azimuth");
                 Variable v_bw = ncfile.findVariable("BeamWidth");
                 Variable v_as = ncfile.findVariable("AzimuthalSpacing");

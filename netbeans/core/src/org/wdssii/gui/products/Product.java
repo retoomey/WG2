@@ -434,10 +434,14 @@ public class Product {
         ColorMap aColorMap = null;
         if (updateDataTypeIfLoaded()) {
             aColorMap = new ColorMap();
-            DataTypeMetric m = myRawDataType.getDataTypeMetric();
-            float minValue = m.getMinValue();
-            float maxValue = m.getMaxValue();
-            aColorMap.initFromLinear(30, minValue, maxValue, units);
+            if (myRawDataType != null) {
+                DataTypeMetric m = myRawDataType.getDataTypeMetric();
+                float minValue = m.getMinValue();
+                float maxValue = m.getMaxValue();
+                aColorMap.initFromLinear(30, minValue, maxValue, units);
+            } else {
+                aColorMap.initFromLinear(30, -1000, 1000, "?");
+            }
         }
         return aColorMap;
     }

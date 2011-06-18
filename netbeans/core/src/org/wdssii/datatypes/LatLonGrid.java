@@ -54,17 +54,17 @@ public class LatLonGrid extends DataType implements Table2DView {
         // FIXME: broken values = copyOf(master.values);
     }
 
-    public LatLonGrid(Location nwCorner, Date time, String typeName, float deltaLat, float deltaLon, Array2Dfloat values) {
-        super(nwCorner, time, typeName);
-        this.deltaLat = deltaLat;
-        this.deltaLon = deltaLon;
-        this.values = values;
-    }
+   // public LatLonGrid(Location nwCorner, Date time, String typeName, float deltaLat, float deltaLon, Array2Dfloat values) {
+   //     super(nwCorner, time, typeName);
+   //     this.deltaLat = deltaLat;
+   //     this.deltaLon = deltaLon;
+   //     this.values = values;
+   // }
 
     /** All the values are initialized to zero */
-    public LatLonGrid(Location nwCorner, Date time, String typeName, float deltaLat, float deltaLon, int numLat, int numLon) {
-        this(nwCorner, time, typeName, deltaLat, deltaLon, new Array2DfloatAsTiles(numLat, numLon, 0.0f));
-    }
+  //  public LatLonGrid(Location nwCorner, Date time, String typeName, float deltaLat, float deltaLon, int numLat, int numLon) {
+   //     this(nwCorner, time, typeName, deltaLat, deltaLon, new Array2DfloatAsTiles(numLat, numLon, 0.0f));
+   // }
 
     public Array2Dfloat getValues() {
         return values;

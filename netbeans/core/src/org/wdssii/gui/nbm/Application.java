@@ -29,6 +29,12 @@ public class Application extends ModuleInstall {
 
     @Override
     public void restored() {
+        
+        //To remove the annoying error alert on the right-corner
+       // System.setProperty("netbeans.exception.alert.min.level", "99999");
+        //To remove the annoying error dialog box
+        //System.setProperty("netbeans.exception.report.min.level", "99999"); 
+        
         // Start up WDSSII base here ?
         log.info("WDSSII GUI VERSION 2.0 ----------------------------------------------------------");
         log.info("Startup: JAVA VERSION   = " + System.getProperty("java.specification.version"));
@@ -65,9 +71,10 @@ public class Application extends ModuleInstall {
             public void run() {
                 Frame w = WindowManager.getDefault().getMainWindow();
                 if (w != null){
-                  String currentTitle = w.getTitle();
+                 // String currentTitle = w.getTitle();
                   String dir = DataManager.getInstance().getRootTempDir();
-                  String newTitle = currentTitle.replaceAll("tempdir", dir);
+                 // String newTitle = currentTitle.replaceAll("tempdir", "["+dir+"]");
+                  String newTitle = "WDSSII GUI 2.0 "+dir;
                   w.setTitle(newTitle);
                 }
             }

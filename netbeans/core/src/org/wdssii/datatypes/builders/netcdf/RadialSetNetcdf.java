@@ -60,9 +60,9 @@ public class RadialSetNetcdf extends DataTypeNetcdf {
                 float distToFirstGate = ncfile.findGlobalAttribute("RangeToFirstGate").getNumericValue().floatValue();
                 float nyquist = DataType.MissingData;
 
-                if (r.attributes != null) {
-                    if (r.attributes.containsKey("Nyquist_Vel")) {
-                        nyquist = Float.parseFloat(r.attributes.get("Nyquist_Vel"));
+                if (r.attriNameToValue != null) {
+                    if (r.attriNameToValue.containsKey("Nyquist_Vel")) {
+                        nyquist = Float.parseFloat(r.attriNameToValue.get("Nyquist_Vel"));
                     }
                 }
                 Array az_values = v_az.read();

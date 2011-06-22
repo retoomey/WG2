@@ -80,6 +80,6 @@ public abstract class DataTypeNetcdf {
             // If attr fails, just keep what we have so far
             log.warn("While extracting attributes.", e);
         }
-        m.attributes = attr;
+        m.attriNameToValue = attr;
     }
 }

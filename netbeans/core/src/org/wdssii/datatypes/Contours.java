@@ -2,7 +2,6 @@ package org.wdssii.datatypes;
 
 import java.util.ArrayList;
 
-import org.wdssii.datatypes.builders.xml.DataTypeXML.DataTypeXMLHeader;
 import org.wdssii.geom.Location;
 
 /** A set of contour objects inside a DataType 
@@ -19,19 +18,19 @@ public class Contours extends DataType implements Table2DView {
     public static class Contour {
 
         /** Stock datatype header */
-        private DataTypeXMLHeader datatypeHeader;
+       // private DataTypeXMLHeader datatypeHeader;
         /** Points of the contour */
         private ArrayList<Location> locations;
 
         /** Get the standard datatype header for this contour */
-        public DataTypeXMLHeader getDataTypeHeader() {
-            return datatypeHeader;
-        }
+      //  public DataTypeXMLHeader getDataTypeHeader() {
+       //     return datatypeHeader;
+      //  }
 
         /** Set the standard datatype header for this contour */
-        public void setDataTypeHeader(DataTypeXMLHeader h) {
-            datatypeHeader = h;
-        }
+      //  public void setDataTypeHeader(DataTypeXMLHeader h) {
+      //      datatypeHeader = h;
+     //   }
 
         /** Get the number of points in this contour */
         public int getSize() {
@@ -58,13 +57,13 @@ public class Contours extends DataType implements Table2DView {
     public Contours() {
     }
 
-    public Contours(DataTypeXMLHeader header) {
-        super(header.location, header.time, header.datatype);
+    public Contours(DataTypeMemento header) {
+        super(header.originLocation, header.startTime, header.typeName);
 
         System.out.println("Contours constructor");
         System.out.println("Header is " + header);
-        System.out.println("Header location " + header.location);
-        System.out.println("Header time " + header.time);
+        System.out.println("Header location " + header.originLocation);
+        System.out.println("Header time " + header.startTime);
         // FIXME: do the contours....
     }
 
@@ -85,10 +84,10 @@ public class Contours extends DataType implements Table2DView {
         return myContours;
     }
 
-    public void setDatatypeHeader(DataTypeXMLHeader header) {
-        setLocation(header.location);
-        setTime(header.time);
-    }
+    //public void setDatatypeHeader(DataTypeXMLHeader header) {
+   //  //   setLocation(header.location);
+   //     setTime(header.time);
+   // }
 
     @Override
     public int getNumCols() {

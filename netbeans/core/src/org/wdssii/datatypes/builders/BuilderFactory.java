@@ -24,11 +24,21 @@ public abstract class BuilderFactory {
      */
     static {
         factory = new PrototypeFactory<Builder>(
-            "java/Builder.xml");
+                "java/Builder.xml");
         factory.addDefault("netcdf", "org.wdssii.datatypes.builders.NetcdfBuilder");
         factory.addDefault("W2ALGS", "org.wdssii.datatypes.builders.W2algsBuilder");
-    };
+        factory.addDefault("test", "org.wdssii.datatypes.builders.TestBuilder");
+
+    }
+
+    ;
     
+    /** Get the builder for a given builder name */
+    public static Builder getBuilder(String builderName) {
+        Builder builder = factory.getPrototypeMaster(builderName);
+        return builder;
+    }
+
     /** The single thread do all the work call.  This blocks until DataType is completely loaded and ready.
      * This is what you want for algorithms probably.
      * @param rec

@@ -1,5 +1,7 @@
 package org.wdssii.index;
 
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +22,8 @@ public class IndexRecord {
     private String[][] paramsArray;
     private String sourceName = null;
 
+    private static Format myFormatter = new SimpleDateFormat("yyyyMMdd-HHmmss");
+    
     public void setSourceName(String s) {
         sourceName = s;
     }
@@ -42,7 +46,7 @@ public class IndexRecord {
     public IndexRecord(Date time, String[] selections, String[] params) {
         this(time, selections, new String[][]{params});
     }
-
+    
     public String[] getParams(int index) {
         return paramsArray[index];
     }
@@ -63,7 +67,8 @@ public class IndexRecord {
         return (paramsArray.length);
     }
 
-    static private Date getDateFromString(String timeString, String frac) {
+    /** Convert from our xml date format to a real Date */
+    public static Date getDateFromString(String timeString, String frac) {
         long tm_long = 1000 * Long.parseLong(timeString.trim());
         if (frac != null) {
             double ftm = Double.parseDouble(frac);
@@ -72,10 +77,16 @@ public class IndexRecord {
         Date time = new Date(tm_long);
         return time;
     }
+    
+    /** Convert from date into our xml date format */
+    public static String getStringFromDate(Date in) {
+       String s = myFormatter.format(in);
+       return s;
+    }
 
-    public static IndexRecord createIndexRecord(String timeString, String timeFrac, String[] paramsList, String[] paramsChanges, String selectionsString, String indexLocation) {
+    public static IndexRecord createIndexRecord(Date time, String[] paramsList, String[] paramsChanges, String selectionsString, String indexLocation) {
         // time
-        Date time = getDateFromString(timeString, timeFrac);
+       // Date time = getDateFromString(timeString, timeFrac);
 
         // selections
         List<String> selectionList = StringUtil.split(selectionsString.trim());
@@ -143,8 +154,8 @@ public class IndexRecord {
             params[i] = pe.getTextContent();
             changes[i] = pe.getAttribute("changes");
         }
-
-        return createIndexRecord(timeString, timeFrac, params, changes, selections, indexLocation);
+        Date time = getDateFromString(timeString, timeFrac);
+        return createIndexRecord(time, params, changes, selections, indexLocation);
     }
 
     @Override

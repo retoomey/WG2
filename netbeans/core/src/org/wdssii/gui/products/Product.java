@@ -102,7 +102,7 @@ public class Product {
     /** Update product if DataType is loaded */
     public boolean updateDataTypeIfLoaded() {
         boolean ready = false;
-        if (myDataRequest.isReady()) {
+        if ((myDataRequest != null) && (myDataRequest.isReady())) {
             ready = true;
             synchronized (myRawDataSync) {
                 myRawDataType = myDataRequest.getDataType();
@@ -452,9 +452,11 @@ public class Product {
         if (updateDataTypeIfLoaded()) {
             helper = getHelperClass(name + ":" + extrainfo);
             if (helper == null) {
-                DataType dt = myDataRequest.getDataType();
-                helper = createClassFromDataType(dt, root, name);
-                setHelperClass(name + ":" + extrainfo, helper);
+                if (myDataRequest != null) {
+                    DataType dt = myDataRequest.getDataType();
+                    helper = createClassFromDataType(dt, root, name);
+                    setHelperClass(name + ":" + extrainfo, helper);
+                }
             }
         }
         return helper;

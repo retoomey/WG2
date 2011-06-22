@@ -9,6 +9,7 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.wdssii.datatypes.Contours;
 import org.wdssii.datatypes.Contours.Contour;
+import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.geom.Location;
 
 /** Parse read/write contour XML data files.
@@ -43,7 +44,7 @@ public class ContoursXML extends DataTypeXML {
         //  
         // </contours>
         Contours contours = new Contours();
-        DataTypeXMLHeader header = null;
+        DataTypeMemento header = null;
         try {
             String tag = null;
             String startTag = p.getLocalName();   // <contour>
@@ -56,8 +57,8 @@ public class ContoursXML extends DataTypeXML {
                     if (XML_DATATYPE.equals(tag)) {             // <datatype>
                         header = readXML_datatype(p);
                         //contours.setDatatypeHeader(header);
-                        contours.setLocation(header.location);
-                        contours.setTime(header.time);
+                        contours.setLocation(header.originLocation);
+                        contours.setTime(header.startTime);
                         contours.setAttributes(header.attriNameToValue);
                         contours.setUnitsForAttributes(header.attriNameToUnits);
                     } else {
@@ -150,7 +151,7 @@ public class ContoursXML extends DataTypeXML {
             Contour c1 = new Contour();
 
             // Create a header for contour.
-            DataTypeXMLHeader header = new DataTypeXMLHeader();
+            DataTypeMemento header = new DataTypeMemento();
             boolean foundHeader = false;
 
             while (p.hasNext()) {
@@ -170,7 +171,9 @@ public class ContoursXML extends DataTypeXML {
             }
 
             if (foundHeader) {
-                c1.setDataTypeHeader(header);
+                
+                // FIXME:
+              //  c1.setDataTypeHeader(header);
                 c.addContour(c1);
                 success = true;
             } else {

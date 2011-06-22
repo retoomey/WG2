@@ -43,6 +43,7 @@ public abstract class IndexFactory {
         myFactory.addDefault("xml", "org.wdssii.index.XMLIndex");
         myFactory.addDefault("fam", "org.wdssii.index.FamIndex");
         myFactory.addDefault("webindex", "org.wdssii.index.webindex");
+        myFactory.addDefault("test", "org.wdssii.index.TestIndex");
     }
     private static List<Index> toUpdate = new ArrayList<Index>();
     // FIXME: we're gonna have to steal this and make it controllable (for the GUI)

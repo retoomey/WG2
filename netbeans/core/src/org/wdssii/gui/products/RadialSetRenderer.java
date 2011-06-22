@@ -113,7 +113,7 @@ public class RadialSetRenderer extends ProductRenderer {
                 // a attenuation height cache
 
                 int maxGateCount = 0;
-                for (int i = 0; i < numRadials; ++i) {
+                for (int i = 0; i < numRadials; i++) {
 
                     // Get each radial from center out to end
                     Radial aRadial = aRadialSet.getRadial(i);
@@ -134,7 +134,7 @@ public class RadialSetRenderer extends ProductRenderer {
                         maxGateCount = numGates;
                     }
 
-                    for (int j = 0; j < numGates; ++j) {
+                    for (int j = 0; j < numGates; j++) {
                         //double value = values[j];
                         float value = values.get(j);
                         // value = -10+( ((float)(j)/(float)(numGates))
@@ -224,7 +224,7 @@ public class RadialSetRenderer extends ProductRenderer {
                 RadialSetQuery rq = new RadialSetQuery();
 
                 // System.out.println("end height cache....");
-                for (int i = 0; i < numRadials; ++i) {
+                for (int i = 0; i < numRadials; i++) {
 
                     monitor.subTask("Radial " + i + "/" + numRadials);
                     monitor.worked(1);   // Do it first to ensure it's called
@@ -261,7 +261,7 @@ public class RadialSetRenderer extends ProductRenderer {
                     // draw 'up to' current count...
                     //float[] values = aRadial.getValues();
                     Array1Dfloat values = aRadial.getValues();
-                    for (int j = 0; j < numGates; ++j) {
+                    for (int j = 0; j < numGates; j++) {
 
                         rangeKms += gateWidthKms;
                         // rangeKms += gateWidthKms;
@@ -379,6 +379,7 @@ public class RadialSetRenderer extends ProductRenderer {
                     }
 
                 }
+                
                 monitor.done();
             } catch (Exception e) {
                 log.error("3D gen error" + e.toString());

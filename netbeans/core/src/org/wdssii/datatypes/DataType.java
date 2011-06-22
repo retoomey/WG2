@@ -53,7 +53,9 @@ public class DataType {
         /** A type name for this data.  FIXME: should we use this? */
         public String typeName;
         /** A list of attribute fields for data type */
-        public Map<String, String> attributes;
+        public Map<String, String> attriNameToValue;
+        /** A list of names to units */
+        public Map<String, String> attriNameToUnits;
         /** The metric holder for this data type */
         public DataTypeMetric datametric;
     }
@@ -168,7 +170,7 @@ public class DataType {
         this.originLocation = m.originLocation;
         this.startTime = m.startTime;
         this.typeName = m.typeName;
-        this.attributes = m.attributes;
+        this.attributes = m.attriNameToValue;
         this.myDataTypeMetric = m.datametric;
     }
 

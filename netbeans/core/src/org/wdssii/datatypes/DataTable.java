@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.wdssii.datatypes.builders.xml.DataTypeXML.DataTypeXMLHeader;
 import org.wdssii.geom.Location;
 
 /**
@@ -87,8 +86,8 @@ public class DataTable extends DataType {
     }
 
     // Build from XML
-    public DataTable(DataTypeXMLHeader header, ArrayList<Column> columns) {
-        super(header.location, header.time, header.datatype);
+    public DataTable(DataTypeMemento header, ArrayList<Column> columns) {
+        super(header.originLocation, header.startTime, header.typeName);
         this.columns = null;
         this.setAttributes(header.attriNameToValue);
         this.setUnitsForAttributes(header.attriNameToUnits);

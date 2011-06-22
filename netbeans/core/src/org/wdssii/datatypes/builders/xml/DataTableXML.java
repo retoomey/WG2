@@ -8,6 +8,7 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
+import org.wdssii.datatypes.DataType.DataTypeMemento;
 
 /** The XML routines for DataTable.  This can read/write XML data for a DataTable
  * Uses Stax to read/write DataTable
@@ -34,7 +35,7 @@ public class DataTableXML extends DataTypeXML {
         //  (1) <data> which is the column values
         // </datatable>
         DataTable table = null;
-        DataTypeXMLHeader header = null;
+        DataTypeMemento header = null;
         try {
             myWorkingColumns = new ArrayList<Column>();
             String tag = null;
@@ -57,8 +58,8 @@ public class DataTableXML extends DataTypeXML {
             }
             table = new DataTable(header, myWorkingColumns);
 
-            System.out.println("XML CREATED TABLE LOCATION IS " + header.location);
-            System.out.println("--->TYPENAME " + header.datatype);
+            System.out.println("XML CREATED TABLE LOCATION IS " + header.originLocation);
+            System.out.println("--->TYPENAME " + header.typeName);
         } catch (Exception e) {
             // Recover on any exception by returning a null table
             System.out.println("XML PARSING ERROR " + e.toString());

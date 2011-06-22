@@ -213,9 +213,12 @@ public class NetcdfBuilder implements Builder {
             URL url = new URL(path);
 
             File dir = DataManager.getInstance().getTempDir("netcdf");
-            InputStream is2 = url.openStream();
-            InputStream gzip = new GZIPInputStream(is2);
-            ReadableByteChannel urlC = Channels.newChannel(gzip);
+            InputStream theStream = url.openStream();
+            if (path.endsWith(".gz")){
+                  InputStream gzip = new GZIPInputStream(theStream);
+                  theStream = gzip;
+            }
+            ReadableByteChannel urlC = Channels.newChannel(theStream);
             localFile = File.createTempFile("ncdf", ".nc", dir);
             FileOutputStream fos2 = new FileOutputStream(localFile);
             WritableByteChannel fc = fos2.getChannel();

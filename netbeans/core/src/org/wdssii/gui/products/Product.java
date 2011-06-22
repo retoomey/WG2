@@ -87,12 +87,7 @@ public class Product {
     // We're going to hide the record details
     protected IndexRecord myRecord; // /< The index record we hold
     private String myIndexKey; 		// /< The key used to query the source manager
-    // for index
-    // The comparator that tells record ordering in a volume
-    // For now, static final (shared for all products )since we'll probably never need to change the volume subtype order,
-    // but ya never know.
-    // FIXME: maybe push into DataType class
-    protected static final Comparator<IndexRecord> myRecordComparer = VolumeRecord.getDefaultComparator();
+
 
     public void superInit(DataRequest dr, String anIndex, IndexRecord init) {
         myDataRequest = dr;
@@ -566,32 +561,6 @@ public class Product {
         return less;
     }
 
-    /** Load every product in our virtual volume... 
-     * FIXME: move into ProductVolume helper class
-     */
-    public ArrayList<Product> loadVolumeProducts(boolean virtual) {
-        ArrayList<Product> list = new ArrayList<Product>();
-        VolumeRecord volume = null;
-        if (virtual) {
-            volume = getVirtualVolumeRecord(myIndexKey, myRecord);
-        } else {
-            volume = getVolumeRecord(myIndexKey, myRecord);
-        }
-
-        if (volume != null) {
-            Iterator<IndexRecord> iter = volume.iterator();
-            while (iter.hasNext()) {
-                // Create a cache key for product....
-                IndexRecord record = iter.next();
-                String productCacheKey = Product.createCacheKey(myIndexKey, record);
-                Product p = ProductManager.CreateProduct(productCacheKey, myIndexKey, record);
-                list.add(p);
-            }
-        }
-
-        return list;
-    }
-
     /** Sort the given product list into volume order.  For RadialSets, this would be the
      * elevation order.
      * 
@@ -636,7 +605,7 @@ public class Product {
 
         switch (mySubtypeType) { // FIXME: Could create subclass
             case ELEVATION: {
-                VolumeRecord volume = getVirtualVolumeRecord(myIndexKey,
+                VolumeRecord volume = IndexRecordVolume.getVirtualVolumeRecord(myIndexKey,
                         myRecord);
                 if (volume != null) {
                     newRecord = volume.peekUp();
@@ -656,7 +625,7 @@ public class Product {
 
         switch (mySubtypeType) { // FIXME: Could create subclass
             case ELEVATION: {
-                VolumeRecord volume = getVirtualVolumeRecord(myIndexKey,
+                VolumeRecord volume = IndexRecordVolume.getVirtualVolumeRecord(myIndexKey,
                         myRecord);
                 if (volume != null) {
                     newRecord = volume.peekDown();
@@ -747,7 +716,7 @@ public class Product {
                 newRecord = getLatestDown();
                 break;
             case LatestBase: {
-                VolumeRecord volume = getVirtualVolumeRecord(myIndexKey, myRecord);
+                VolumeRecord volume = IndexRecordVolume.getVirtualVolumeRecord(myIndexKey, myRecord);
                 newRecord = volume.getBaseRecord();
             }
             break;
@@ -774,85 +743,6 @@ public class Product {
             }
         }
         return (name);
-    }
-
-    /*  Makes no sense for mode products
-     * 
-    public IndexRecord getVirtualVolumeUp() {
-    VolumeRecord volume = getVirtualVolumeRecord(myIndexKey, myRecord);
-    return (volume.peekUp());
-    }
-    
-    public IndexRecord getVirtualVolumeDown() {
-    VolumeRecord volume = getVirtualVolumeRecord(myIndexKey, myRecord);
-    return (volume.peekDown());
-    }
-     */
-    /** Get the VolumeRecord for this product
-     * 
-     * @param indexKey	SourceManager index key
-     * @param reference	IndexRecord to use as reference to find the volume
-     * @return	the VolumeRecord
-     */
-    public static VolumeRecord getVolumeRecord(String indexKey, IndexRecord reference) {
-        HistoricalIndex index = SourceManager.getIndexByName(indexKey);
-        VolumeRecord newOne = VolumeRecord.getVolumeRecord(index, reference, myRecordComparer);
-        for (IndexRecord r : newOne) { // We require the source name
-            r.setSourceName(indexKey);
-        }
-        return newOne;
-    }
-
-    /** Get the VolumeRecord for this product
-     * 
-     * @param indexKey	SourceManager index key
-     * @param reference	IndexRecord to use as reference to find the volume
-     * @return	the VolumeRecord
-     */
-    public VolumeRecord getVolumeRecord() {
-        HistoricalIndex index = SourceManager.getIndexByName(myIndexKey);
-        VolumeRecord newOne = VolumeRecord.getVolumeRecord(index, myRecord, myRecordComparer);
-        for (IndexRecord r : newOne) { // We require the source name
-            r.setSourceName(myIndexKey);
-        }
-        return newOne;
-    }
-
-    /** Get the virtual VolumeRecord for this product
-     * 
-     * @param indexKey	SourceManager index key
-     * @param reference	IndexRecord to use as reference to find the volume
-     * @return	the virtual (latest records per subtype) VolumeRecord
-     */
-    // FIXME: This is meaningless for anything but elevation product
-    public static VolumeRecord getVirtualVolumeRecord(String indexKey,
-            IndexRecord reference) {
-        HistoricalIndex index = SourceManager.getIndexByName(indexKey);
-        VolumeRecord newOne = VolumeRecord.getVirtualVolumeRecord(index, reference, myRecordComparer);
-        if (newOne != null) {
-            for (IndexRecord r : newOne) { // We require the source name
-                r.setSourceName(indexKey);
-            }
-        }
-        return newOne;
-    }
-
-    /** Get the virtual VolumeRecord for this product
-     * 
-     * @param indexKey	SourceManager index key
-     * @param reference	IndexRecord to use as reference to find the volume
-     * @return	the virtual (latest records per subtype) VolumeRecord
-     */
-    // FIXME: This is meaningless for anything but elevation product
-    public VolumeRecord getVirtualVolumeRecord() {
-        HistoricalIndex index = SourceManager.getIndexByName(myIndexKey);
-        VolumeRecord newOne = VolumeRecord.getVirtualVolumeRecord(index, myRecord, myRecordComparer);
-        if (newOne != null) {
-            for (IndexRecord r : newOne) { // We require the source name
-                r.setSourceName(myIndexKey);
-            }
-        }
-        return newOne;
     }
 
     /** @return true if product is in valid time window */

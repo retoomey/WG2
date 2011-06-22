@@ -7,9 +7,8 @@ import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductButtonStatus;
+import org.wdssii.gui.products.ProductVolume;
 import org.wdssii.index.IndexRecord;
-import org.wdssii.index.VolumeRecord;
-import org.wdssii.index.IndexSubType.SubtypeType;
 
 /** A product change caused by a navigation move 
  * We stick the basic moves inside this class for now (they are static can be pulled out)
@@ -29,12 +28,12 @@ public class ProductMoveCommand extends ProductCommand {
             "---HH:mm:ss");
     // Default icons for navigation directions, these are passed to the
     // IconFactory
-    private static final String RIGHT_ARROW_ICON = "RightArrowIcon";
-    private static final String RIGHT_ARROW_END_ICON = "RightArrowEndIcon";
-    private static final String DOWN_ARROW_ICON = "DownArrowIcon";
-    private static final String UP_ARROW_ICON = "UpArrowIcon";
-    private static final String LEFT_ARROW_ICON = "LeftArrowIcon";
-    private static final String PREV_NOT_VIRTUAL_ICON = "LeftArrowEndIcon";
+    public static final String RIGHT_ARROW_ICON = "RightArrowIcon";
+    public static final String RIGHT_ARROW_END_ICON = "RightArrowEndIcon";
+    public static final String DOWN_ARROW_ICON = "DownArrowIcon";
+    public static final String UP_ARROW_ICON = "UpArrowIcon";
+    public static final String LEFT_ARROW_ICON = "LeftArrowIcon";
+    public static final String PREV_NOT_VIRTUAL_ICON = "LeftArrowEndIcon";
     public static final String BLANK_FILL_ICON = "PadIcon";
 
     @Override
@@ -57,54 +56,61 @@ public class ProductMoveCommand extends ProductCommand {
         public ProductButtonStatus getButtonStatus() {
 
             Product p = getOurProduct();
+            ProductVolume v = p.getProductVolume(false);
+            if (v != null){
+            return (v.getCurrentBaseStatus());
+            }else{
+                return null;
+            }
+            /*
             String label, tip, icon;
             label = "None";
             tip = "";
             icon = BLANK_FILL_ICON;
             boolean enabled = true;
-
+            
             boolean useColor = false;
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
-
+            
             if (p != null) {
-                VolumeRecord volume = p.getVolumeRecord();
-                IndexRecord newRecord = volume.getBaseRecord();
-
-                if (newRecord != null) {
-                    Date aDate = newRecord.getTime();
-                    String subtype = newRecord.getSubType();
-                    label = String.format("%s", subtype); // will be more
-                    // advanced
-                    tip = tipFormat.format(aDate) + " "
-                            + newRecord.getSubType() + " "
-                            + newRecord.getTimeStamp();
-
-                    Date current = p.getTime(); // FIXME: sim time
-                    if (current.compareTo(aDate) == 0) {
-                        enabled = false;
-                        label = "Synced";
-                        tip = "You're at this record";
-                    } else {
-                        /*
-                         * if (volume.baseIsInLatestVolume()){ red = 144; green
-                         * = 238; blue = 144; icon = RIGHT_END_ICON; useColor =
-                         * true; }else{ red = 255; green = 192; blue = 203; icon
-                         * = PREV_NOT_VIRTUAL_ICON; useColor = true; }
-                         */
-                    }
-
-                } else {
-                    enabled = false;
-                    label = "fail";// FIXME:
-                }
+            VolumeRecord volume = p.getVolumeRecord();
+            IndexRecord newRecord = volume.getBaseRecord();
+            
+            if (newRecord != null) {
+            Date aDate = newRecord.getTime();
+            String subtype = newRecord.getSubType();
+            label = String.format("%s", subtype); // will be more
+            // advanced
+            tip = tipFormat.format(aDate) + " "
+            + newRecord.getSubType() + " "
+            + newRecord.getTimeStamp();
+            
+            Date current = p.getTime(); // FIXME: sim time
+            if (current.compareTo(aDate) == 0) {
+            enabled = false;
+            label = "Synced";
+            tip = "You're at this record";
+            } else {
+            //
+             * if (volume.baseIsInLatestVolume()){ red = 144; green
+             * = 238; blue = 144; icon = RIGHT_END_ICON; useColor =
+             * true; }else{ red = 255; green = 192; blue = 203; icon
+             * = PREV_NOT_VIRTUAL_ICON; useColor = true; }
+            //
             }
-
+            
+            } else {
+            enabled = false;
+            label = "fail";// FIXME:
+            }
+            }
+            
             // Humm this forces all buttons to be the same
             if (!enabled) {
-                useColor = true;
-                enabled = false;
-                red = green = blue = 200; /* Gainsboro grey */
+            useColor = true;
+            enabled = false;
+            red = green = blue = 200; // Gainsboro grey
             }
             status.setButtonText(label);
             status.setToolTip(tip);
@@ -112,10 +118,12 @@ public class ProductMoveCommand extends ProductCommand {
             status.setIconString(icon);
             status.setEnabled(enabled);
             if (useColor) {
-                status.setColor(red, green, blue);
+            status.setColor(red, green, blue);
             }
-
+            
             return status;
+            
+             */
         }
     }
 
@@ -131,71 +139,77 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public ProductButtonStatus getButtonStatus() {
             Product p = getOurProduct();
-
+            ProductVolume v = p.getProductVolume(true);
+             if (v != null){
+            return v.getLatestBaseStatus();
+             }else{
+                 return null;
+             }
+            /*
             String label, tip, icon;
             label = "None";
             tip = "";
             icon = BLANK_FILL_ICON;
             boolean enabled = true;
-
+            
             boolean useColor = false;
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
-
+            
             if (p != null) {
-
-                // IndexRecord newRecord =
-                // peekRecord(NavigationMessage.LatestBase);
-                VolumeRecord volume = p.getVirtualVolumeRecord();
-                if (volume != null) {
-                    IndexRecord newRecord = volume.getBaseRecord();
-
-                    if (newRecord != null) {
-                        Date aDate = newRecord.getTime();
-                        String subtype = newRecord.getSubType();
-                        label = String.format("%s", subtype); // will be more
-                        // advanced
-                        tip = tipFormat.format(aDate) + " "
-                                + newRecord.getSubType() + " "
-                                + newRecord.getTimeStamp();
-
-                        // Date current = myRecord.getTime(); // FIXME: sim time
-                        Date current = CommandManager.getInstance().getProductOrderedSet().getSimulationTime();
-                        if (current.compareTo(aDate) == 0) {
-                            enabled = false;
-                            label = "Synced";
-                            tip = "You're at this record";
-                        } else {
-
-                            if (volume.baseIsInLatestVolume()) {
-                                red = 144;
-                                green = 238;
-                                blue = 144; /* light green */
-                                icon = RIGHT_ARROW_END_ICON;
-
-                                useColor = true;
-                            } else {
-                                red = 255;
-                                green = 192;
-                                blue = 203; /* pink */
-                                icon = PREV_NOT_VIRTUAL_ICON;
-                                useColor = true;
-                            }
-                        }
-
-                    } else {
-                        enabled = false;
-                        label = "fail";// FIXME:
-                    }
-                }
-
+            
+            // IndexRecord newRecord =
+            // peekRecord(NavigationMessage.LatestBase);
+            VolumeRecord volume = p.getVirtualVolumeRecord();
+            if (volume != null) {
+            IndexRecord newRecord = volume.getBaseRecord();
+            
+            if (newRecord != null) {
+            Date aDate = newRecord.getTime();
+            String subtype = newRecord.getSubType();
+            label = String.format("%s", subtype); // will be more
+            // advanced
+            tip = tipFormat.format(aDate) + " "
+            + newRecord.getSubType() + " "
+            + newRecord.getTimeStamp();
+            
+            // Date current = myRecord.getTime(); // FIXME: sim time
+            Date current = CommandManager.getInstance().getProductOrderedSet().getSimulationTime();
+            if (current.compareTo(aDate) == 0) {
+            enabled = false;
+            label = "Synced";
+            tip = "You're at this record";
+            } else {
+            
+            if (volume.baseIsInLatestVolume()) {
+            red = 144;
+            green = 238;
+            blue = 144; // light green 
+            icon = RIGHT_ARROW_END_ICON;
+            
+            useColor = true;
+            } else {
+            red = 255;
+            green = 192;
+            blue = 203; // pink 
+            icon = PREV_NOT_VIRTUAL_ICON;
+            useColor = true;
             }
-
+            }
+            
+            } else {
+            enabled = false;
+            label = "fail";// FIXME:
+            }
+            }
+            
+            }
+            
             // Humm this forces all buttons to be the same
             if (!enabled) {
-                useColor = true;
-                enabled = false;
-                red = green = blue = 200; /* Gainsboro grey */
+            useColor = true;
+            enabled = false;
+            red = green = blue = 200; //Gainsboro grey 
             }
             status.setButtonText(label);
             status.setToolTip(tip);
@@ -203,9 +217,11 @@ public class ProductMoveCommand extends ProductCommand {
             status.setIconString(icon);
             status.setEnabled(enabled);
             if (useColor) {
-                status.setColor(red, green, blue);
+            status.setColor(red, green, blue);
             }
             return status;
+             * */
+
         }
     }
 
@@ -221,52 +237,58 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public ProductButtonStatus getButtonStatus() {
             Product p = getOurProduct();
-
+            ProductVolume v = p.getProductVolume(true);
+            if (v != null){
+                 return (v.getLatestUpStatus());
+            }else{
+                return null;
+            }
+            /*
             ProductButtonStatus status = new ProductButtonStatus();
-
+            
             IndexRecord newRecord = null;
             status.setButtonText("Test");
             SubtypeType theType = p.getSubtypeType();
-
+            
             switch (theType) { // FIXME: Could create subclass
-                case ELEVATION: {
-                    VolumeRecord volume = p.getVirtualVolumeRecord();
-                    if (volume != null) {
-                        newRecord = volume.peekUp();
-                        if (volume.upIsInLatestVolume()) {
-                            status.setIconString(RIGHT_ARROW_END_ICON);
-                            status.setColor(144, 238, 144);
-                        } else {
-                            status.setIconString(PREV_NOT_VIRTUAL_ICON);
-                            status.setColor(255, 192, 203);
-                        }
-                    } else {
-                        status.setButtonText("NVol");
-                    }
-                }
-                break;
-                case MODE_SELECTION: {
-                    status.setButtonText("Mode");
-                    status.setEnabled(false);
-                }
-                break;
-            }
-
-            if (newRecord != null) {
-                status.setIndexRecord(newRecord);
-                Date aDate = newRecord.getTime();
-                String subtype = newRecord.getSubType();
-                String label = String.format("%s", subtype);
-                String tip = tipFormat.format(aDate) + " "
-                        + newRecord.getSubType() + " "
-                        + newRecord.getTimeStamp();
-                status.setButtonText(label);
-                status.setToolTip(tip);
+            case ELEVATION: {
+            VolumeRecord volume = p.getVirtualVolumeRecord();
+            if (volume != null) {
+            newRecord = volume.peekUp();
+            if (volume.upIsInLatestVolume()) {
+            status.setIconString(RIGHT_ARROW_END_ICON);
+            status.setColor(144, 238, 144);
             } else {
-                status.setColor(200, 200, 200); // disabled grey
+            status.setIconString(PREV_NOT_VIRTUAL_ICON);
+            status.setColor(255, 192, 203);
+            }
+            } else {
+            status.setButtonText("NVol");
+            }
+            }
+            break;
+            case MODE_SELECTION: {
+            status.setButtonText("Mode");
+            status.setEnabled(false);
+            }
+            break;
+            }
+            
+            if (newRecord != null) {
+            status.setIndexRecord(newRecord);
+            Date aDate = newRecord.getTime();
+            String subtype = newRecord.getSubType();
+            String label = String.format("%s", subtype);
+            String tip = tipFormat.format(aDate) + " "
+            + newRecord.getSubType() + " "
+            + newRecord.getTimeStamp();
+            status.setButtonText(label);
+            status.setToolTip(tip);
+            } else {
+            status.setColor(200, 200, 200); // disabled grey
             }
             return status;
-
+             */
         }
     }
 
@@ -282,47 +304,57 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public ProductButtonStatus getButtonStatus() {
             Product p = getOurProduct();
+            ProductVolume v = p.getProductVolume(true);
+            if (v != null){
+            return (v.getLatestDownStatus());
+            }else{
+                return null;
+            }
+            /*
             ProductButtonStatus status = new ProductButtonStatus();
             IndexRecord newRecord = null;
             status.setButtonText("Test");
             SubtypeType theType = p.getSubtypeType();
             switch (theType) { // FIXME: Could create subclass
-                case ELEVATION: {
-                    VolumeRecord volume = p.getVirtualVolumeRecord();
-                    if (volume != null) {
-                        newRecord = volume.peekDown();
-                        if (volume.upIsInLatestVolume()) {
-                            status.setIconString(RIGHT_ARROW_END_ICON);
-                            status.setColor(144, 238, 144);
-                        } else {
-                            status.setIconString(PREV_NOT_VIRTUAL_ICON);
-                            status.setColor(255, 192, 203);
-                        }
-                    } else {
-                        status.setButtonText("NVol");
-                    }
-                }
-                break;
-                case MODE_SELECTION: {
-                    status.setButtonText("Mode");
-                }
-                break;
-            }
-
-            if (newRecord != null) {
-                status.setIndexRecord(newRecord);
-                Date aDate = newRecord.getTime();
-                String subtype = newRecord.getSubType();
-                String label = String.format("%s", subtype);
-                String tip = tipFormat.format(aDate) + " "
-                        + newRecord.getSubType() + " "
-                        + newRecord.getTimeStamp();
-                status.setButtonText(label);
-                status.setToolTip(tip);
+            case ELEVATION: {
+            VolumeRecord volume = p.getVirtualVolumeRecord();
+            if (volume != null) {
+            newRecord = volume.peekDown();
+            if (volume.upIsInLatestVolume()) {
+            status.setIconString(RIGHT_ARROW_END_ICON);
+            status.setColor(144, 238, 144);
             } else {
-                status.setColor(200, 200, 200); // disabled grey
+            status.setIconString(PREV_NOT_VIRTUAL_ICON);
+            status.setColor(255, 192, 203);
+            }
+            } else {
+            status.setButtonText("NVol");
+            }
+            }
+            break;
+            case MODE_SELECTION: {
+            status.setButtonText("Mode");
+            }
+            break;
+            }
+            
+            if (newRecord != null) {
+            status.setIndexRecord(newRecord);
+            Date aDate = newRecord.getTime();
+            String subtype = newRecord.getSubType();
+            String label = String.format("%s", subtype);
+            String tip = tipFormat.format(aDate) + " "
+            + newRecord.getSubType() + " "
+            + newRecord.getTimeStamp();
+            status.setButtonText(label);
+            status.setToolTip(tip);
+            } else {
+            status.setColor(200, 200, 200); // disabled grey
             }
             return status;
+            }
+            
+             */
         }
     }
 
@@ -338,8 +370,13 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public ProductButtonStatus getButtonStatus() {
             Product p = getOurProduct();
-
-
+            ProductVolume v = p.getProductVolume(false);
+            if (v!= null){
+                return v.getCurrentUpStatus();
+            }else{
+                return null;               
+            }
+            /*
             String label, tip, icon;
             label = "None";
             tip = "";
@@ -349,7 +386,7 @@ public class ProductMoveCommand extends ProductCommand {
             int red = 0, green = 0, blue = 0;
             ProductButtonStatus status = new ProductButtonStatus();
 
-            if (p != null){
+            if (p != null) {
 
                 // FIXME: shouldn't be using peekRecord....crap.
                 IndexRecord newRecord = p.peekRecord(NavigationMessage.NextSubType);
@@ -370,7 +407,7 @@ public class ProductMoveCommand extends ProductCommand {
             if (!enabled) {
                 useColor = true;
                 enabled = false;
-                red = green = blue = 200; /* Gainsboro grey */
+                red = green = blue = 200; // Gainsboro grey 
             }
             status.setButtonText(label);
             status.setToolTip(tip);
@@ -380,7 +417,9 @@ public class ProductMoveCommand extends ProductCommand {
             if (useColor) {
                 status.setColor(red, green, blue);
             }
-            return status;
+            return status;     
+        }
+        */
         }
     }
 
@@ -396,11 +435,16 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public ProductButtonStatus getButtonStatus() {
             Product p = getOurProduct();
-
+            ProductVolume v = p.getProductVolume(false);
+            if (v!= null){
+                return v.getCurrentDownStatus();
+            }else{
+                return null;
+            }
             // Return status for the standard nav grid, a 4x4 array of buttons
             // all products have for navigation purposes.
             // FIXME: Kind of a mess.
-
+/*
             String label, tip, icon;
             label = "None";
             tip = "";
@@ -430,7 +474,7 @@ public class ProductMoveCommand extends ProductCommand {
             if (!enabled) {
                 useColor = true;
                 enabled = false;
-                red = green = blue = 200; /* Gainsboro grey */
+                red = green = blue = 200; // Gainsboro grey 
             }
             status.setButtonText(label);
             status.setToolTip(tip);
@@ -442,7 +486,7 @@ public class ProductMoveCommand extends ProductCommand {
             }
 
             return status;
-
+*/
         }
     }
 
@@ -516,7 +560,6 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public ProductButtonStatus getButtonStatus() {
             Product p = getOurProduct();
-
 
             String label, tip, icon;
             label = "None";

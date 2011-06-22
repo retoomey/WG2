@@ -14,7 +14,7 @@ import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
  * @author Robert Toomey
  *
  */
-public class RadialSetVolume extends ProductVolume {
+public class RadialSetVolume extends IndexRecordVolume {
 
     // Synchronize access to these...
     private Object myRadialLock = new Object();
@@ -28,13 +28,14 @@ public class RadialSetVolume extends ProductVolume {
     @Override
     public void initVirtual(Product init, boolean virtual) {
 
+        super.initVirtual(init, virtual);
         // Create an array list of products and sort them...
         // This list can change over time due to autoupdates.
         // If these are NEW products, they will start background thread loading.
         StringBuilder newKey = new StringBuilder("");
         ArrayList<Product> newRadials = new ArrayList<Product>();
         Product first = init;
-        ArrayList<Product> p = first.loadVolumeProducts(virtual);
+        ArrayList<Product> p = loadVolumeProducts(first.getIndexKey(), first.getRecord(), virtual);
         Iterator<Product> iter = p.iterator();
         while (iter.hasNext()) {
             Product product = iter.next();

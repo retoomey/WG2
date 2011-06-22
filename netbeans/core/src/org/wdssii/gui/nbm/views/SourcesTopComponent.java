@@ -1,5 +1,9 @@
 package org.wdssii.gui.nbm.views;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
@@ -210,6 +214,36 @@ public final class SourcesTopComponent extends TopComponent {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 jSourceListTableValueChanged(e);
+            }
+        });
+
+        jSourceListTable.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                /** On double click, try to add the source */
+                if (e.getClickCount() == 2) {
+                    addNewSourceFromFields();
+                }
+            }
+        });
+        jSourceListTable.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                /** Have to do enter pressed to snag before the table scroll */
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    addNewSourceFromFields();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
             }
         });
 

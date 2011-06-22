@@ -16,11 +16,11 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
 
-/** The volume product is a collection of regular products that is 3D in the data dimension. 
- * It has extra abilities, such as vertical slice
- * or isosurfaces.  Typically collections of products have a 'merged' 3d created by interpolating data
- * of multiple single products.  For example, a RadialSet is '3d' on the screen, but is '2d' in data..that is,
- * it has a range and angle.
+/** The ProductVolume handles the 'up', 'down' and 'base' controls in the
+ * display and the data required for it.  It is a helper object for Product.
+ * Any Product that uses these controls creates a 'volume'.
+ * Typically, a volume can be displayed in 3D with 
+ * vertical slicing and/or isosurfaces.
  * 
  * @author Robert Toomey
  */
@@ -29,17 +29,20 @@ public class ProductVolume {
     /** The key that uniquely defines this volume (for caching/updating purposes) */
     protected String myKey = "";
 
+    /** The 'root' product of the volume.  The reference for the rest of the
+     * volume
+     */
+    protected Product myRootProduct = null;
+    
+    /** Are we a virtual volume? */
+    protected boolean myIsVirtual = false;
+    
     /** Called on every access to VolumeProduct.  Allows lazy checking of state changes, initialization */
     public void initVirtual(Product p, boolean virtual) {
+        myRootProduct = p;
+        myIsVirtual = virtual;
     }
 
-    /*  Get the record list displayed for this volume in the volume viewer,
-     * assuming they are available for this type of volume product
-     */
-    // Sync errors
-    //public ArrayList<IndexRecord> getRecordList(){
-    //	return null;
-    //}
     /** The data value record used to run filters.  Subclasses can extend this for their own type,
      * and add more information for filters to use. */
     public DataValueRecord getNewDataValueRecord() {
@@ -337,4 +340,28 @@ public class ProductVolume {
             System.out.println("Exception during 2D VSlice grid generation " + message);
         }
     }
+    
+    
+    // The regular volume status objects
+    public ProductButtonStatus getCurrentUpStatus(){
+        return null;
+    }
+    public ProductButtonStatus getCurrentBaseStatus(){
+      return null;  
+    }
+    public ProductButtonStatus getCurrentDownStatus(){
+        return null;
+    }
+    
+    // The virtual volume status objects
+    public ProductButtonStatus getLatestUpStatus(){
+        return null;
+    }
+    public ProductButtonStatus getLatestDownStatus(){
+        return null;
+    }
+    public ProductButtonStatus getLatestBaseStatus(){
+        return null;
+    }
+
 }

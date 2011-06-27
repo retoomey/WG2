@@ -7,6 +7,7 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.RadialSet;
 import org.wdssii.datatypes.RadialSet.RadialSetMemento;
 import org.wdssii.datatypes.builders.test.DataTypeTest;
+import org.wdssii.datatypes.builders.test.LatLonHeightGridTest;
 import org.wdssii.datatypes.builders.test.RadialSetTest;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.index.TestIndex;
@@ -23,7 +24,8 @@ public class TestBuilder implements Builder {
         
         // Introduce tests we want in a test index
         // Annoying no easy way to just add the test folder classes.
-        myTests.add(new RadialSetTest());
+        //myTests.add(new RadialSetTest());
+        myTests.add(new LatLonHeightGridTest());
     }
 
     @Override
@@ -35,7 +37,10 @@ public class TestBuilder implements Builder {
     @Override
     public DataRequest createObjectBackground(IndexRecord rec) {
         DataRequest dr = new DataRequest();
-        RadialSetTest t = new RadialSetTest();
+        
+        // FIXME: need something in record to tell us what test object to use
+        //RadialSetTest t = new RadialSetTest();
+        LatLonHeightGridTest t = new LatLonHeightGridTest();
         DataType d = t.createTest(rec, false);
         dr.setReady(d);
         return dr;

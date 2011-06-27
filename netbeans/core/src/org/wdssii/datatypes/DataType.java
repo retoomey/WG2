@@ -134,9 +134,27 @@ public class DataType {
             minValue = 100000;
             maxValue = -90000;
         }
-
+        
+        /** Do any init needed */
+        public void beginArray3D() {
+            minValue = 100000;
+            maxValue = -90000;
+        }
+        
         /** Update for a data value */
         public void updateArray2D(int x, int y, float value) {
+            if (DataType.isRealDataValue(value)) {
+                if (value > maxValue) {
+                    maxValue = value;
+                }
+                if (value < minValue) {
+                    minValue = value;
+                }
+            }
+        }
+        
+        /** Update for a data value */
+        public void updateArray3D(int x, int y, int z, float value) {
             if (DataType.isRealDataValue(value)) {
                 if (value > maxValue) {
                     maxValue = value;

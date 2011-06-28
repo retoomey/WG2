@@ -160,4 +160,13 @@ public class LatLonHeightGrid extends DataType implements Table2DView {
            // q.outDataValue = r2;
         }
     }
+    
+    public int getNumHeights() {
+        return data.getX();
+    }
+    
+    public float getHeight(int index){
+        return heightsMeters.get(index);
+    }
+
 }

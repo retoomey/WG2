@@ -88,7 +88,6 @@ public class Product {
     protected IndexRecord myRecord; // /< The index record we hold
     private String myIndexKey; 		// /< The key used to query the source manager
 
-
     public void superInit(DataRequest dr, String anIndex, IndexRecord init) {
         myDataRequest = dr;
         init(anIndex, init, null);
@@ -294,7 +293,7 @@ public class Product {
 // Stock helper objects -------------------------------------------------------
     // Return the thing that draws this product
     public ProductRenderer getRenderer() {
-        ProductRenderer pr = (ProductRenderer) getHelperObject("Renderer", RENDERER_CLASSPATH, "");
+        ProductRenderer pr = (ProductRenderer) getHelperObject("Renderer", false, RENDERER_CLASSPATH, "");
         return pr;
     }
 
@@ -303,7 +302,7 @@ public class Product {
         // We create one Volume for virtual, one for regular. We need unique ones
         // since multiple threads hit this.  Example: Chart draws a virtual VSlice in one thread,
         // while worldwind window draws regular volume 3D Slice in it.
-        ProductVolume vp = (ProductVolume) getHelperObject("Volume", VOLUME_CLASSPATH, virtual ? "Virtual" : "");
+        ProductVolume vp = (ProductVolume) getHelperObject("Volume", false, VOLUME_CLASSPATH, virtual ? "Virtual" : "");
         if (vp != null) {
             vp.initVirtual(this, virtual);
         }
@@ -312,7 +311,7 @@ public class Product {
 
     /** Convenience method to get the 2D Table for this Product, if any */
     public Product2DTable get2DTable() {
-        Product2DTable t = (Product2DTable) getHelperObject("2DTable", TABLE_CLASSPATH, "");
+        Product2DTable t = (Product2DTable) getHelperObject("2DTable", false, TABLE_CLASSPATH, "");
         if (t == null) {  // Do a default...for the moment at least....
             t = new Product2DTable();
             setHelperClass("2DTable:", t);
@@ -320,13 +319,16 @@ public class Product {
         return t;
     }
 
-    /** Convenience method to get the navigator for this Product */
-    public ProductNavigator getNavigator() {
-        ProductNavigator t = (ProductNavigator) getHelperObject("Navigator", NAVIGATOR_CLASSPATH, "");
-        if (t == null) {  // Do a default...for the moment at least....
-            t = new ProductNavigator();
-            setHelperClass("Navigator:", t);
-        }
+    /** Create a navigator for this product.  Every ProductHandler will have
+    a unique ProductNavigator.  Imagine two windows..each would have 
+    a different ProductHandler with the SAME Product, different actual
+    navigated location...
+     * 
+     * This is called by ProductHandler to get the Navigator for this product.
+     * Note it will return NULL until the product DataType is loaded.
+     */
+    public ProductNavigator createNavigator() {
+        ProductNavigator t = (ProductNavigator) getHelperObject("Navigator", true, NAVIGATOR_CLASSPATH, "");
         return t;
     }
 
@@ -441,44 +443,57 @@ public class Product {
         return aColorMap;
     }
 
-    /** Get a helper object  */
-    protected Object getHelperObject(String name, String root, String extrainfo) {
+    /** Get a helper object from cache */
+    protected Object getHelperObject(String classSuffix, boolean useBaseClass, String root, String extrainfo) {
         Object helper = null;
-        if (updateDataTypeIfLoaded()) {
-            helper = getHelperClass(name + ":" + extrainfo);
-            if (helper == null) {
+        
+        // Is it cached?
+        helper = getHelperClass(classSuffix + ":" + extrainfo);
+        if (helper == null) {
+
+            // If we are loaded as of NOW....
+            if (updateDataTypeIfLoaded()) {
                 if (myDataRequest != null) {
                     DataType dt = myDataRequest.getDataType();
-                    helper = createClassFromDataType(dt, root, name);
-                    setHelperClass(name + ":" + extrainfo, helper);
+                    // Try to load by NAME.  This fails only if class doesn't
+                    // actually exist...
+                    String dataName = dt.getClass().getSimpleName();
+                    helper = createClassFromDataType(dataName, root, classSuffix);
+                    
+                    // If "RadialSetVolume" missing, create "ProductVolume" (example)
+                    if ((helper == null) && (useBaseClass == true)) {
+                        helper = createClassFromDataType("Product", root, classSuffix);
+                    }
                 }
+            }
+            
+            // Store object in cache
+            if (helper != null) {
+                setHelperClass(classSuffix + ":" + extrainfo, helper);
             }
         }
         return helper;
     }
 
     /** Create a helper object class from a valid DataType */
-    public Object createClassFromDataType(DataType dt, String rootpath, String suffix) {
+    protected Object createClassFromDataType(String dataName, String rootpath, String suffix) {
 
         Object newClass = null;
 
-        if (dt != null) {
-            String dataTypeName = dt.getClass().getSimpleName();    // Such as
-            // 'RadialSet'
-            String createIt = rootpath + "." + dataTypeName + suffix;
-            log.info("Looking for class " + createIt);
+        String createIt = rootpath + "." + dataName + suffix;
+        log.info("Looking for class " + createIt);
 
-            Class<?> c = null;
+        Class<?> c = null;
 
-            //boolean foundByName = false;
-            try {
-                c = Class.forName(createIt);
-                newClass = c.newInstance();
-            } catch (Exception e) {
-                log.warn("DataType " + dataTypeName + " doesn't have a " + suffix + " it seems");
-            }
-            log.info("Generated " + suffix + " for datatype " + dataTypeName);
+        //boolean foundByName = false;
+        try {
+            c = Class.forName(createIt);
+            newClass = c.newInstance();
+        } catch (Exception e) {
+            log.warn("DataType " + dataName + " doesn't have a " + suffix + " it seems");
         }
+        log.info("Generated " + suffix + " for datatype " + dataName);
+
         return newClass;
     }
 
@@ -653,7 +668,10 @@ public class Product {
         return null;
     }
 
-    /** Get the product in the given navigation direction, if any */
+    /** Get the product in the given navigation direction, if any.
+     FIXME: this routine only works for index-record products that change
+     subtype on each IndexRecord...
+     */
     public Product getProduct(NavigationMessage nav) {
         Product navigateTo = null;
         IndexRecord newRecord = null; // do it by a record

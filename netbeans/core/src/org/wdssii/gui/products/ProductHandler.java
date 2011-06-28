@@ -23,6 +23,10 @@ public class ProductHandler { // Interface?
 
     /** The current product we are using */
     protected Product myProduct;
+    
+    /** The navigator for our product type */
+    protected ProductNavigator myNavigator = null;
+    
     /** The filter list for this handler.
      * Humm..we'll need to 'spawn' a new ProductHandler with different filters right? 
      */
@@ -292,4 +296,14 @@ public class ProductHandler { // Interface?
     return inWindow;
     }
      */
+
+    public ProductNavigator getNavigator() {
+        
+        // All Products we handle will be of the same type, thus
+        // we only create the navigator once.
+        if (myNavigator == null){
+            myNavigator = myProduct.createNavigator();
+        }
+        return myNavigator;
+    }
 }

@@ -62,68 +62,6 @@ public class ProductMoveCommand extends ProductCommand {
             }else{
                 return null;
             }
-            /*
-            String label, tip, icon;
-            label = "None";
-            tip = "";
-            icon = BLANK_FILL_ICON;
-            boolean enabled = true;
-            
-            boolean useColor = false;
-            int red = 0, green = 0, blue = 0;
-            ProductButtonStatus status = new ProductButtonStatus();
-            
-            if (p != null) {
-            VolumeRecord volume = p.getVolumeRecord();
-            IndexRecord newRecord = volume.getBaseRecord();
-            
-            if (newRecord != null) {
-            Date aDate = newRecord.getTime();
-            String subtype = newRecord.getSubType();
-            label = String.format("%s", subtype); // will be more
-            // advanced
-            tip = tipFormat.format(aDate) + " "
-            + newRecord.getSubType() + " "
-            + newRecord.getTimeStamp();
-            
-            Date current = p.getTime(); // FIXME: sim time
-            if (current.compareTo(aDate) == 0) {
-            enabled = false;
-            label = "Synced";
-            tip = "You're at this record";
-            } else {
-            //
-             * if (volume.baseIsInLatestVolume()){ red = 144; green
-             * = 238; blue = 144; icon = RIGHT_END_ICON; useColor =
-             * true; }else{ red = 255; green = 192; blue = 203; icon
-             * = PREV_NOT_VIRTUAL_ICON; useColor = true; }
-            //
-            }
-            
-            } else {
-            enabled = false;
-            label = "fail";// FIXME:
-            }
-            }
-            
-            // Humm this forces all buttons to be the same
-            if (!enabled) {
-            useColor = true;
-            enabled = false;
-            red = green = blue = 200; // Gainsboro grey
-            }
-            status.setButtonText(label);
-            status.setToolTip(tip);
-            status.setValidRecord(p != null);
-            status.setIconString(icon);
-            status.setEnabled(enabled);
-            if (useColor) {
-            status.setColor(red, green, blue);
-            }
-            
-            return status;
-            
-             */
         }
     }
 
@@ -145,83 +83,6 @@ public class ProductMoveCommand extends ProductCommand {
              }else{
                  return null;
              }
-            /*
-            String label, tip, icon;
-            label = "None";
-            tip = "";
-            icon = BLANK_FILL_ICON;
-            boolean enabled = true;
-            
-            boolean useColor = false;
-            int red = 0, green = 0, blue = 0;
-            ProductButtonStatus status = new ProductButtonStatus();
-            
-            if (p != null) {
-            
-            // IndexRecord newRecord =
-            // peekRecord(NavigationMessage.LatestBase);
-            VolumeRecord volume = p.getVirtualVolumeRecord();
-            if (volume != null) {
-            IndexRecord newRecord = volume.getBaseRecord();
-            
-            if (newRecord != null) {
-            Date aDate = newRecord.getTime();
-            String subtype = newRecord.getSubType();
-            label = String.format("%s", subtype); // will be more
-            // advanced
-            tip = tipFormat.format(aDate) + " "
-            + newRecord.getSubType() + " "
-            + newRecord.getTimeStamp();
-            
-            // Date current = myRecord.getTime(); // FIXME: sim time
-            Date current = CommandManager.getInstance().getProductOrderedSet().getSimulationTime();
-            if (current.compareTo(aDate) == 0) {
-            enabled = false;
-            label = "Synced";
-            tip = "You're at this record";
-            } else {
-            
-            if (volume.baseIsInLatestVolume()) {
-            red = 144;
-            green = 238;
-            blue = 144; // light green 
-            icon = RIGHT_ARROW_END_ICON;
-            
-            useColor = true;
-            } else {
-            red = 255;
-            green = 192;
-            blue = 203; // pink 
-            icon = PREV_NOT_VIRTUAL_ICON;
-            useColor = true;
-            }
-            }
-            
-            } else {
-            enabled = false;
-            label = "fail";// FIXME:
-            }
-            }
-            
-            }
-            
-            // Humm this forces all buttons to be the same
-            if (!enabled) {
-            useColor = true;
-            enabled = false;
-            red = green = blue = 200; //Gainsboro grey 
-            }
-            status.setButtonText(label);
-            status.setToolTip(tip);
-            status.setValidRecord(p != null);
-            status.setIconString(icon);
-            status.setEnabled(enabled);
-            if (useColor) {
-            status.setColor(red, green, blue);
-            }
-            return status;
-             * */
-
         }
     }
 
@@ -243,52 +104,6 @@ public class ProductMoveCommand extends ProductCommand {
             }else{
                 return null;
             }
-            /*
-            ProductButtonStatus status = new ProductButtonStatus();
-            
-            IndexRecord newRecord = null;
-            status.setButtonText("Test");
-            SubtypeType theType = p.getSubtypeType();
-            
-            switch (theType) { // FIXME: Could create subclass
-            case ELEVATION: {
-            VolumeRecord volume = p.getVirtualVolumeRecord();
-            if (volume != null) {
-            newRecord = volume.peekUp();
-            if (volume.upIsInLatestVolume()) {
-            status.setIconString(RIGHT_ARROW_END_ICON);
-            status.setColor(144, 238, 144);
-            } else {
-            status.setIconString(PREV_NOT_VIRTUAL_ICON);
-            status.setColor(255, 192, 203);
-            }
-            } else {
-            status.setButtonText("NVol");
-            }
-            }
-            break;
-            case MODE_SELECTION: {
-            status.setButtonText("Mode");
-            status.setEnabled(false);
-            }
-            break;
-            }
-            
-            if (newRecord != null) {
-            status.setIndexRecord(newRecord);
-            Date aDate = newRecord.getTime();
-            String subtype = newRecord.getSubType();
-            String label = String.format("%s", subtype);
-            String tip = tipFormat.format(aDate) + " "
-            + newRecord.getSubType() + " "
-            + newRecord.getTimeStamp();
-            status.setButtonText(label);
-            status.setToolTip(tip);
-            } else {
-            status.setColor(200, 200, 200); // disabled grey
-            }
-            return status;
-             */
         }
     }
 
@@ -310,51 +125,6 @@ public class ProductMoveCommand extends ProductCommand {
             }else{
                 return null;
             }
-            /*
-            ProductButtonStatus status = new ProductButtonStatus();
-            IndexRecord newRecord = null;
-            status.setButtonText("Test");
-            SubtypeType theType = p.getSubtypeType();
-            switch (theType) { // FIXME: Could create subclass
-            case ELEVATION: {
-            VolumeRecord volume = p.getVirtualVolumeRecord();
-            if (volume != null) {
-            newRecord = volume.peekDown();
-            if (volume.upIsInLatestVolume()) {
-            status.setIconString(RIGHT_ARROW_END_ICON);
-            status.setColor(144, 238, 144);
-            } else {
-            status.setIconString(PREV_NOT_VIRTUAL_ICON);
-            status.setColor(255, 192, 203);
-            }
-            } else {
-            status.setButtonText("NVol");
-            }
-            }
-            break;
-            case MODE_SELECTION: {
-            status.setButtonText("Mode");
-            }
-            break;
-            }
-            
-            if (newRecord != null) {
-            status.setIndexRecord(newRecord);
-            Date aDate = newRecord.getTime();
-            String subtype = newRecord.getSubType();
-            String label = String.format("%s", subtype);
-            String tip = tipFormat.format(aDate) + " "
-            + newRecord.getSubType() + " "
-            + newRecord.getTimeStamp();
-            status.setButtonText(label);
-            status.setToolTip(tip);
-            } else {
-            status.setColor(200, 200, 200); // disabled grey
-            }
-            return status;
-            }
-            
-             */
         }
     }
 
@@ -376,50 +146,6 @@ public class ProductMoveCommand extends ProductCommand {
             }else{
                 return null;               
             }
-            /*
-            String label, tip, icon;
-            label = "None";
-            tip = "";
-            icon = BLANK_FILL_ICON;
-            boolean enabled = true;
-            boolean useColor = false;
-            int red = 0, green = 0, blue = 0;
-            ProductButtonStatus status = new ProductButtonStatus();
-
-            if (p != null) {
-
-                // FIXME: shouldn't be using peekRecord....crap.
-                IndexRecord newRecord = p.peekRecord(NavigationMessage.NextSubType);
-                if (newRecord != null) {
-                    Date aDate = newRecord.getTime();
-                    String subtype = newRecord.getSubType();
-                    label = String.format("%s", subtype); // will be more
-                    // advanced
-                    tip = tipFormat.format(aDate) + " "
-                            + newRecord.getSubType() + " "
-                            + newRecord.getTimeStamp();
-                }
-                icon = UP_ARROW_ICON;
-
-            }
-
-            // Humm this forces all buttons to be the same
-            if (!enabled) {
-                useColor = true;
-                enabled = false;
-                red = green = blue = 200; // Gainsboro grey 
-            }
-            status.setButtonText(label);
-            status.setToolTip(tip);
-            status.setValidRecord(p != null);
-            status.setIconString(icon);
-            status.setEnabled(enabled);
-            if (useColor) {
-                status.setColor(red, green, blue);
-            }
-            return status;     
-        }
-        */
         }
     }
 
@@ -441,52 +167,6 @@ public class ProductMoveCommand extends ProductCommand {
             }else{
                 return null;
             }
-            // Return status for the standard nav grid, a 4x4 array of buttons
-            // all products have for navigation purposes.
-            // FIXME: Kind of a mess.
-/*
-            String label, tip, icon;
-            label = "None";
-            tip = "";
-            icon = BLANK_FILL_ICON;
-            boolean enabled = true;
-
-            boolean useColor = false;
-            int red = 0, green = 0, blue = 0;
-            ProductButtonStatus status = new ProductButtonStatus();
-
-            if (p != null) {
-
-                IndexRecord newRecord = p.peekRecord(NavigationMessage.PreviousSubType);
-                if (newRecord != null) {
-                    Date aDate = newRecord.getTime();
-                    String subtype = newRecord.getSubType();
-                    label = String.format("%s", subtype); // will be more
-                    // advanced
-                    tip = tipFormat.format(aDate) + " "
-                            + newRecord.getSubType() + " "
-                            + newRecord.getTimeStamp();
-                }
-                icon = DOWN_ARROW_ICON;
-            }
-
-            // Humm this forces all buttons to be the same
-            if (!enabled) {
-                useColor = true;
-                enabled = false;
-                red = green = blue = 200; // Gainsboro grey 
-            }
-            status.setButtonText(label);
-            status.setToolTip(tip);
-            status.setValidRecord(p != null);
-            status.setIconString(icon);
-            status.setEnabled(enabled);
-            if (useColor) {
-                status.setColor(red, green, blue);
-            }
-
-            return status;
-*/
         }
     }
 

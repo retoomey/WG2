@@ -564,27 +564,30 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
         ProductHandlerList l = getProductHandlerList();
         ProductHandler h = l.getTopProductHandler();
         Product d = null;
+        ProductNavigator n = null;
         if (h != null) {
             d = h.getProduct();
-        }
-
-        ProductNavigator n = null;
-        if (d != null) {
-            n = d.getNavigator();
+            n = h.getNavigator();
         }
 
         // Update the button grid to the current ProductNavigator
         // product.  A product sets the commands/output of these
         // buttons depending on the product type
-        for (NavButton b : myNavControls) {
-            WdssiiCommand w = null;
-            if (n != null) {
-                w = n.getGridCommand(b.getGridIndex());
+        if (n != null) {
+            for (NavButton b : myNavControls) {
+                WdssiiCommand w = null;
+                if (n != null) {
+                    w = n.getGridCommand(b.getGridIndex());
+                }
+                b.setCommand(w);
+
             }
-            b.setCommand(w);
+        }else{
+            for(NavButton b:myNavControls){
+                b.setVisible(false);
+            }
         }
         return d;
-
     }
 
     private void updateContentDescription() {

@@ -1,9 +1,11 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.volumes;
 
 import java.util.ArrayList;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonHeightGrid;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
+import org.wdssii.gui.products.FilterList;
+import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.filters.DataFilter;
 import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
 

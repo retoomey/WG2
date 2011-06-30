@@ -56,7 +56,7 @@ public class LatLonHeightGridTest extends DataTypeTest {
             m.datametric.beginArray3D();
         }
         ArrayList<Float> theHeights = new ArrayList<Float>();
-        float currentHeightKms = 10;
+        float currentHeightKms = 1000;
         for (int height = 0; height < num_heights; height++) {
             for (int lat = 0; lat < num_lats; lat++) {
                 for (int lon = 0; lon < num_lons; lon++) {
@@ -86,7 +86,7 @@ public class LatLonHeightGridTest extends DataTypeTest {
                 }
             }
             theHeights.add(currentHeightKms);
-            currentHeightKms += 2.0;
+            currentHeightKms += 200.0;
         }
         if (m instanceof LatLonHeightGridMemento) {
             LatLonHeightGridMemento ll = (LatLonHeightGridMemento) (m);
@@ -95,7 +95,7 @@ public class LatLonHeightGridTest extends DataTypeTest {
             ll.lonResDegs = .01f;
             ll.numLats = 50;
             ll.numLons = 50;
-            ll.heightsMeters = new ArrayList<Float>();
+            ll.heightsMeters = theHeights;
         }
     }
 

@@ -6,6 +6,7 @@ import java.util.Date;
 import org.wdssii.gui.products.Product.ProductTimeWindowInfo;
 import org.wdssii.gui.products.filters.DataFilter;
 import gov.nasa.worldwind.render.DrawContext;
+import org.wdssii.gui.products.navigators.ProductNavigator;
 
 /**
  * The class that handles a collection of the same product type (i.e. KTLX

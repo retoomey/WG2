@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.navigators;
 
 import org.wdssii.gui.commands.AnimateCommand;
 import org.wdssii.gui.commands.ProductJumpToCommand;

@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.volumes;
 
 // I want to remove these dependencies
 import gov.nasa.worldwind.geom.Angle;
@@ -14,6 +14,12 @@ import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
+import org.wdssii.gui.products.FilterList;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductButtonStatus;
+import org.wdssii.gui.products.VolumeSlice2DOutput;
+import org.wdssii.gui.products.VolumeSlice3DOutput;
+import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
 
 /** The ProductVolume handles the 'up', 'down' and 'base' controls in the

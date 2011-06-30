@@ -38,7 +38,7 @@ import org.wdssii.gui.LLHAreaManager.VolumeTableData;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
-import org.wdssii.gui.products.ProductVolume;
+import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.volumes.LLHAreaSlice;
 
 public class TimeTrendChart extends ChartViewJFreeChart {

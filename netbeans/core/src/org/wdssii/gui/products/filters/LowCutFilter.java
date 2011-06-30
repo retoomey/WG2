@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeQuery;
 import org.wdssii.gui.GUISetting;
-import org.wdssii.gui.products.ProductVolume;
+import org.wdssii.gui.products.volumes.ProductVolume;
 
 /** A filter that removes/changes data values below a certain value.
  * This is one of the prove of concept filters (for now at least)

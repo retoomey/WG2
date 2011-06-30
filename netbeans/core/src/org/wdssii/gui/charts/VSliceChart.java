@@ -31,7 +31,7 @@ import org.wdssii.gui.LLHAreaManager.VolumeTableData;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
-import org.wdssii.gui.products.ProductVolume;
+import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.products.VolumeSlice2DOutput;
 import org.wdssii.gui.volumes.LLHAreaSlice;
 

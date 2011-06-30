@@ -8,6 +8,7 @@ import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.filters.DataFilter;
 import org.wdssii.gui.products.filters.LowCutFilter;
 import org.wdssii.gui.products.filters.StormRMFilter;
+import org.wdssii.gui.products.volumes.ProductVolume;
 
 /** This object is a ColorMap plus a list of DataFilters 
  * FIXME: a ColorMap should become just another Filter.

@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.navigators;
 
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonHeightGrid;
@@ -7,6 +7,8 @@ import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveNextTime;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousTime;
 import org.wdssii.gui.commands.WdssiiCommand;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductButtonStatus;
 
 /**
  *  Handles navigating within the elevations of a LatLonHeightGrid.

@@ -17,7 +17,8 @@ import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
-import org.wdssii.gui.products.ProductVolume;
+import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.index.IndexRecord;
 
 /**

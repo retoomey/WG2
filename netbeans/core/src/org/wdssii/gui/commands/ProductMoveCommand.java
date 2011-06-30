@@ -7,7 +7,7 @@ import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductButtonStatus;
-import org.wdssii.gui.products.ProductVolume;
+import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.index.IndexRecord;
 
 /** A product change caused by a navigation move 

@@ -36,7 +36,7 @@ import org.wdssii.gui.WdssiiXMLAttributeList.WdssiiXMLAttribute;
 import org.wdssii.gui.WdssiiXMLCollection;
 import org.wdssii.gui.commands.ChartSetTypeCommand;
 import org.wdssii.gui.products.ProductHandlerList;
-import org.wdssii.gui.products.RadialSetVolume;
+import org.wdssii.gui.products.volumes.RadialSetVolume;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.ChartView;
 

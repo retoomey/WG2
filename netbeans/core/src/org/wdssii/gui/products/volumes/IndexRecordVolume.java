@@ -1,8 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.volumes;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,6 +10,8 @@ import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.commands.ProductMoveCommand;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductButtonStatus;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.index.VolumeRecord;

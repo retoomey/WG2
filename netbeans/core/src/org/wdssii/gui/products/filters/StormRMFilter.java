@@ -6,8 +6,8 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeQuery;
 import org.wdssii.datatypes.RadialSet.RadialSetQuery;
 import org.wdssii.gui.GUISetting;
-import org.wdssii.gui.products.RadialSetVolume;
-import org.wdssii.gui.products.ProductVolume;
+import org.wdssii.gui.products.volumes.RadialSetVolume;
+import org.wdssii.gui.products.volumes.ProductVolume;
 
 /** A filter that applys Storm Relative Motion to a RadialSet or RadialSetVolume 
  * @author Robert Toomey

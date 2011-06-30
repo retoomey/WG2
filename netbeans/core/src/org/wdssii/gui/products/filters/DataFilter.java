@@ -6,7 +6,7 @@ import org.wdssii.datatypes.DataType.DataTypeQuery;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.GUISetting;
 import org.wdssii.gui.commands.ProductChangeCommand;
-import org.wdssii.gui.products.ProductVolume;
+import org.wdssii.gui.products.volumes.ProductVolume;
 
 /**
  * Filter a value, return something based on the value

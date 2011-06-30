@@ -37,7 +37,7 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductButtonStatus;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
-import org.wdssii.gui.products.ProductNavigator;
+import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.SimplerJButton;
 import org.wdssii.gui.swing.SwingIconFactory;

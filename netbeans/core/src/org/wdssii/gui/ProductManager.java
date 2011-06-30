@@ -1,7 +1,6 @@
 package org.wdssii.gui;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
@@ -10,14 +9,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.wdssii.core.ConfigurationException;
+import org.wdssii.core.LRUCache;
 import org.wdssii.core.W2Config;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.builders.BuilderFactory;
+import org.wdssii.core.LRUCache.LRUTrimComparator;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
-import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.index.IndexRecord;
 
@@ -38,72 +38,61 @@ public class ProductManager implements Singleton {
     private static ProductManager instance = null;
     final public static int MIN_CACHE_SIZE = 50;
     final public static int MAX_CACHE_SIZE = 500;
-    private int myProductCacheSize = MIN_CACHE_SIZE;  // The cache size (number of products we hold)
-    // FIXME: Color map might be part of product info object?
-   // TreeMap<String, ColorMap> myColorMaps = new TreeMap<String, ColorMap>();
+
+    /** A static database of information about products */
     TreeMap<String, ProductDataInfo> myProductInfo = new TreeMap<String, ProductDataInfo>();
     ProductDataInfo myDefaults = new ProductDataInfo();
-    // Cache stuff
-    TreeMap<String, Product> myProductCache = new TreeMap<String, Product>();
-    ArrayList<Product> myLRUStack = new ArrayList<Product>();  //0, 1, 2, ... LRU product (at end of list)
 
+    /** The cache for Product objects */
+    LRUCache<Product> myProductCache = new LRUCache<Product>();
+    
+    {
+        myProductCache.setMinCacheSize(MIN_CACHE_SIZE);
+        myProductCache.setMaxCacheSize(MAX_CACHE_SIZE);
+    }
+
+    /** Compare a product to a given indexKey, if it matchs, remove from cache */
+    private static class IndexKeyComparator<T> implements LRUTrimComparator<T> {
+
+        String indexKey;
+
+        public IndexKeyComparator(String key) {
+            indexKey = key;
+        }
+
+        @Override
+        public boolean shouldDelete(T test) {
+            boolean delete = false;
+            if (test instanceof Product) {
+                Product p = (Product) (test);
+                if (p.getIndexKey().compareTo(indexKey) == 0) {
+                    delete = true;
+                }
+            }
+            return true;
+        }
+    }
     // Product charts	
+
     /** Set the size of the product cache */
     public void setCacheSize(int size) {
-        if ((size >= MIN_CACHE_SIZE) && (size <= MAX_CACHE_SIZE)) {
-            myProductCacheSize = size;
-            PreferencesManager p = PreferencesManager.getInstance();
-            p.setValue(PrefConstants.PREF_cacheSize, myProductCacheSize);
-            trimCache(myProductCacheSize);
-            CommandManager.getInstance().cacheManagerNotify(); // added product it changed
-        }
+        myProductCache.setCacheSize(size);
+        int aSize = myProductCache.getCacheSize();
+        PreferencesManager p = PreferencesManager.getInstance();
+        p.setValue(PrefConstants.PREF_cacheSize, aSize);
+        CommandManager.getInstance().cacheManagerNotify(); // added product it changed
     }
 
     /** Get the size of the product cache */
     public int getCacheSize() {
-        return myProductCacheSize;
-    }
-
-    /** Trim cache down to the MIN_CACHE_SIZE */
-    private void trimCache(int toSize) {
-
-        // Don't trim less than zero
-        if (toSize < 0) {
-            toSize = 0;
-        }
-        try {
-            while (true) {
-                // Drop oldest from stack until we've got space...
-                if (myLRUStack.size() > toSize) {
-                    Product oldestProduct = myLRUStack.get(0); // Oldest
-                    myLRUStack.remove(0);
-                    myProductCache.remove(oldestProduct.getCacheKey());
-                } else {
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("Exception purging cache element " + e.toString());
-        }
+        return myProductCache.getCacheSize();
     }
 
     /** Trim all products from cache matching a given index key */
     public int trimCacheMatchingIndexKey(String indexKey) {
-        int removed = 0;
-        try {
-            ArrayList<Product> toDelete = new ArrayList<Product>();
-            for (Product p : myLRUStack) {
-                if (p.getIndexKey().compareTo(indexKey) == 0) {
-                    toDelete.add(p);
-                    myProductCache.remove(p.getCacheKey());
-                    removed++;
-                }
-            }
-            myLRUStack.removeAll(toDelete);
-        } catch (Exception e) {
-            System.out.println("Exception purging cache for index " + e.toString());
-        }
-        return removed;
+        
+        IndexKeyComparator<Product> c = new IndexKeyComparator<Product>(indexKey);
+        return (myProductCache.trimCacheMatching(c)); 
     }
 
     /**
@@ -272,7 +261,8 @@ public class ProductManager implements Singleton {
 
         // Load cache size from preferences
         PreferencesManager p = PreferencesManager.getInstance();
-        myProductCacheSize = p.getInteger(PrefConstants.PREF_cacheSize);
+        int aSize = p.getInteger(PrefConstants.PREF_cacheSize);
+        myProductCache.setCacheSize(aSize);
     }
 
     /**
@@ -287,7 +277,7 @@ public class ProductManager implements Singleton {
     }
 
     public boolean hasColorMap(String name) {
-       // ColorMap aColorMap = myColorMaps.get(name);
+        // ColorMap aColorMap = myColorMaps.get(name);
         //return (aColorMap != null);
         ProductDataInfo d = getProductDataInfo(name);
         return (d.getColorMap() != null);
@@ -301,16 +291,16 @@ public class ProductManager implements Singleton {
     public ColorMap getColorMap(String name) {
         // Not sure we should allow others to 'get' a color map.
         //ColorMap aColorMap = myColorMaps.get(name);
-       // if (aColorMap == null) {
-       //     aColorMap = loadColorMap(name);
-       // }
-      //  if (aColorMap == null) {
-       //     // Ok, create a fake color map here...
-      //  }
-      //  return aColorMap;
-        
+        // if (aColorMap == null) {
+        //     aColorMap = loadColorMap(name);
+        // }
+        //  if (aColorMap == null) {
+        //     // Ok, create a fake color map here...
+        //  }
+        //  return aColorMap;
+
         ProductDataInfo d = getProductDataInfo(name);
-        if (d.getColorMap() == null){
+        if (d.getColorMap() == null) {
             d.setColorMap(loadColorMap(name));
         }
         return d.getColorMap();
@@ -360,12 +350,12 @@ public class ProductManager implements Singleton {
      */
     public boolean storeNewColorMap(String colorMapName, ColorMap map, boolean force) {
         boolean success = false;
-      //  if (force || !myColorMaps.containsKey(colorMapName)) {
-      //      myColorMaps.put(colorMapName, map);
-      //      success = true;
-     //   }
+        //  if (force || !myColorMaps.containsKey(colorMapName)) {
+        //      myColorMaps.put(colorMapName, map);
+        //      success = true;
+        //   }
         ProductDataInfo d = getProductDataInfo(colorMapName);
-        if (force || (d.getColorMap()==null)){
+        if (force || (d.getColorMap() == null)) {
             d.setColorMap(map);
             success = true;
         }
@@ -377,11 +367,10 @@ public class ProductManager implements Singleton {
     }
 
     // FIXME: what about any sync issues with access?
-    
-    public TreeMap<String, ProductDataInfo> getProductDataInfoSet(){
+    public TreeMap<String, ProductDataInfo> getProductDataInfoSet() {
         return myProductInfo;
     }
-    
+
     public ProductDataInfo getProductDataInfo(String name) {
         ProductDataInfo d = myProductInfo.get(name);
         if (d == null) {
@@ -486,9 +475,9 @@ public class ProductManager implements Singleton {
         return (ProductManager.getInstance().getProduct(productCacheKey, anIndex, init));
     }
 
-    public static ArrayList<Product> getArrayList() {
-        return ProductManager.getInstance().myLRUStack;
-    }
+    //public static ArrayList<Product> getArrayList() {
+     //   return ProductManager.getInstance().myLRUStack;
+    //}
 
     private Product getProduct(String productCacheKey, String anIndex, IndexRecord init) {
 
@@ -508,25 +497,17 @@ public class ProductManager implements Singleton {
                     // First, check cache size and trim to maxsize -1 before adding new product
                     // Problem with this is if cache size can change on the fly we need to trim
                     // to the new lower size actually.  This only works with new cache == old
-                    trimCache(myProductCacheSize - 1);
-
                     myProductCache.put(productCacheKey, theProduct);
-                    myLRUStack.add(theProduct);
-                    CommandManager.getInstance().cacheManagerNotify(); // added product it changed
+                    CommandManager.getInstance().cacheManagerNotify(); // Raised product it changed
                 } else {
                     log.error("Wasn't able to create the product for data.  Nothing will show");
                 }
 
                 // Product already found in cache.  Raise it in the LRU to top
             } else {
-                //System.out.println("Product is IN cache: "+productCacheKey);
-                // Move item to top of LRU cache...
-                myLRUStack.remove(theProduct);  // Move product from inside stack to 'top'
-                myLRUStack.add(theProduct);
                 theProduct.updateDataTypeIfLoaded();
                 CommandManager.getInstance().cacheManagerNotify(); // Raised product it changed
             }
-
         }
         return (theProduct);
     }
@@ -625,7 +606,7 @@ public class ProductManager implements Singleton {
      */
     public void clearProductCache() {
         myProductCache.clear();
-        myLRUStack.clear();
+      //  myLRUStack.clear();
         CommandManager.getInstance().cacheManagerNotify(); // added product it changed
     }
 

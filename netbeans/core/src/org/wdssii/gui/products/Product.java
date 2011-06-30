@@ -21,11 +21,11 @@ import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.gui.CommandManager.NavigationMessage;
+import org.wdssii.core.LRUCache.LRUCacheItem;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.products.volumes.IndexRecordVolume;
 import org.wdssii.gui.products.volumes.ProductVolume;
 
-import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.index.IndexSubType;
 import org.wdssii.index.VolumeRecord;
@@ -54,7 +54,7 @@ import org.wdssii.index.IndexSubType.SubtypeType;
  *
  * @author Robert Toomey
  **/
-public class Product {
+public class Product implements LRUCacheItem {
 
     private static Log log = LogFactory.getLog(Product.class);
     // FIXME: Currently products will have only one possible product handler,
@@ -177,6 +177,7 @@ public class Product {
         myCacheKey = cacheKey;
     }
 
+    @Override
     public String getCacheKey() {
         return myCacheKey;
     }

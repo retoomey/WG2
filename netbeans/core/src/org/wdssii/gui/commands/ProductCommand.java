@@ -1,5 +1,6 @@
 package org.wdssii.gui.commands;
 
+import org.wdssii.datatypes.DataType;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
@@ -27,5 +28,14 @@ public abstract class ProductCommand extends DataCommand {
             }
         }
         return p;
+    }
+    
+    public DataType getOurDataType() {
+        DataType dt = null;
+        Product p = getOurProduct();
+        if (p != null){
+            dt = p.getRawDataType();
+        }
+        return dt;
     }
 }

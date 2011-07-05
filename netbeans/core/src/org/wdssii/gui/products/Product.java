@@ -439,9 +439,9 @@ public class Product implements LRUCacheItem {
                 DataTypeMetric m = myRawDataType.getDataTypeMetric();
                 float minValue = m.getMinValue();
                 float maxValue = m.getMaxValue();
-                aColorMap.initFromLinear(30, minValue, maxValue, units);
+                aColorMap.initFromLinear(30, minValue, maxValue, units, ProductTextFormatter.DEFAULT_FORMATTER);
             } else {
-                aColorMap.initFromLinear(30, -1000, 1000, "?");
+                aColorMap.initFromLinear(30, -1000, 1000, "?", ProductTextFormatter.DEFAULT_FORMATTER);
             }
         }
         return aColorMap;
@@ -450,7 +450,7 @@ public class Product implements LRUCacheItem {
     /** Get a helper object from cache */
     protected Object getHelperObject(String classSuffix, boolean useBaseClass, String root, String extrainfo) {
         Object helper = null;
-        
+
         // Is it cached?
         helper = getHelperClass(classSuffix + ":" + extrainfo);
         if (helper == null) {
@@ -461,16 +461,20 @@ public class Product implements LRUCacheItem {
                     DataType dt = myDataRequest.getDataType();
                     // Try to load by NAME.  This fails only if class doesn't
                     // actually exist...
-                    String dataName = dt.getClass().getSimpleName();
-                    helper = createClassFromDataType(dataName, root, classSuffix);
-                    
-                    // If "RadialSetVolume" missing, create "ProductVolume" (example)
-                    if ((helper == null) && (useBaseClass == true)) {
-                        helper = createClassFromDataType("Product", root, classSuffix);
+                    if (dt != null) {
+                        String dataName = dt.getClass().getSimpleName();
+                        helper = createClassFromDataType(dataName, root, classSuffix);
+
+                        // If "RadialSetVolume" missing, create "ProductVolume" (example)
+                        if ((helper == null) && (useBaseClass == true)) {
+                            helper = createClassFromDataType("Product", root, classSuffix);
+                        }
+                    }else{
+                        log.error("Datatype doesn't exist..should be here");
                     }
                 }
             }
-            
+
             // Store object in cache
             if (helper != null) {
                 setHelperClass(classSuffix + ":" + extrainfo, helper);
@@ -673,8 +677,8 @@ public class Product implements LRUCacheItem {
     }
 
     /** Get the product in the given navigation direction, if any.
-     FIXME: this routine only works for index-record products that change
-     subtype on each IndexRecord...
+    FIXME: this routine only works for index-record products that change
+    subtype on each IndexRecord...
      */
     public Product getProduct(NavigationMessage nav) {
         Product navigateTo = null;

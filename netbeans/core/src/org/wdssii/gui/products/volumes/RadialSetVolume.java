@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.RadialSet;
+import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
@@ -82,19 +83,19 @@ public class RadialSetVolume extends IndexRecordVolume {
      * So synchronize if you 'share' any memory here
      */
     @Override
-    public boolean getValueAt(double lat, double lon, double heightM, ColorMapOutput output, DataValueRecord out,
+    public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
             FilterList list, boolean useFilters) {
 
         // Maybe this could be a filter in the color map...  You could clip anything by height heh heh..
         // It would make sense for it to be a filter
-        if (heightM < 0) {
+        if (loc.getHeightKms() < 0) {
             output.setColor(255, 255, 255, 255);
             //output.red = output.green = output.blue = output.alpha = 255;
             output.filteredValue = 0.0f;
             return false;
         }
 
-        output.location.init(lat, lon, heightM / 1000.0);
+       // output.location.init(lat, lon, heightM / 1000.0);
 
         // Smooth in the vertical direction....?? how
         // We would need a weight based on range
@@ -102,7 +103,7 @@ public class RadialSetVolume extends IndexRecordVolume {
         float weightAtValue;
 
         RadialSet.RadialSetQuery q = new RadialSet.RadialSetQuery();
-        q.inLocation = output.location;
+        q.inLocation = loc;
         // Testing interpolation ability (alpha experiment)
         // This tells query to return a distance from closest point...
         // for each of the Lat, Lon, Height 'axis'
@@ -140,7 +141,7 @@ public class RadialSetVolume extends IndexRecordVolume {
                     // First time, get the location in object spherical coordinates.  This doesn't
                     // change for any of the radials in the set.
                     if (radialSetIndex == 0) {
-                        r.locationToSphere(output.location, buffer);
+                        r.locationToSphere(loc, buffer);
                         q.inSphere = buffer;
                     }
                     r.queryData(q);

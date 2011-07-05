@@ -3,6 +3,7 @@ package org.wdssii.gui.products.volumes;
 import java.util.ArrayList;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonHeightGrid;
+import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
@@ -68,26 +69,26 @@ public class LatLonHeightGridVolume extends ProductVolume {
      * So synchronize if you 'share' any memory here
      */
     @Override
-    public boolean getValueAt(double lat, double lon, double heightM, ColorMapOutput output, DataValueRecord out,
+    public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
             FilterList list, boolean useFilters) {
 
         // Maybe this could be a filter in the color map...  You could clip anything by height heh heh..
         // It would make sense for it to be a filter
-        if (heightM < 0) {
+        if (loc.getHeightKms() < 0) {
             output.setColor(255, 255, 255, 255);
             //output.red = output.green = output.blue = output.alpha = 255;
             output.filteredValue = 0.0f;
             return false;
         }
 
-        output.location.init(lat, lon, heightM / 1000.0);
+       // output.location.init(lat, lon, heightM / 1000.0);
 
         // Smooth in the vertical direction....?? how
         // We would need a weight based on range
         float value = DataType.MissingData;
 
         LatLonHeightGrid.LatLonHeightGridQuery q = new LatLonHeightGrid.LatLonHeightGridQuery();
-        q.inLocation = output.location;
+        q.inLocation = loc;
         q.outDataValue = DataType.MissingData;
 
         // Make sure the reading of data values is sync locked with updating in initProduct...

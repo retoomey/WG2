@@ -22,7 +22,6 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.gui.products.TileRenderer.Tile;
@@ -110,7 +109,7 @@ public class LatLonGridTile extends TileRenderer.Tile {
             }
         }
 
-        ColorMapOutput out = new ColorMapOutput();
+        ColorMapFloatOutput out = new ColorMapFloatOutput();
 
         // We match left to right, top to bottom for north hemisphere
         currentLon = minLong.degrees;

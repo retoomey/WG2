@@ -21,7 +21,6 @@ import org.wdssii.datatypes.WindField;
 import org.wdssii.datatypes.WindField.WindFieldDataPoint;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.TileRenderer.Tile;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array1DfloatAsNodes;
@@ -125,7 +124,7 @@ public class WindFieldTile extends TileRenderer.Tile {
             WindFieldDataPoint output = new WindFieldDataPoint();
             int vertCount = 0;
             int colorCount = 0;
-            ColorMapOutput c = new ColorMapOutput();
+            ColorMapFloatOutput c = new ColorMapFloatOutput();
 
             // We match left to right, top to bottom for north hemisphere
             currentLon = minLong.degrees;
@@ -187,7 +186,7 @@ public class WindFieldTile extends TileRenderer.Tile {
                                 Angle.fromDegrees(centerLon - (halfLon * Math.cos(angle) * arrowLength)),
                                 height);
 
-                        colorCount = c.put(colors, colorCount);
+                        colorCount = c.putUnsignedBytes(colors, colorCount);
 
                         verts.set(vertCount++, (float) point.x);
                         verts.set(vertCount++, (float) point.y);
@@ -200,7 +199,7 @@ public class WindFieldTile extends TileRenderer.Tile {
                                 height);
                         //System.out.println("sin(angle) = "+Math.sin(angle));
                         //System.out.println("cos(angle) = "+Math.cos(angle));
-                        colorCount = c.put(colors, colorCount);
+                        colorCount = c.putUnsignedBytes(colors, colorCount);
 
                         verts.set(vertCount++, (float) point.x);
                         verts.set(vertCount++, (float) point.y);
@@ -213,7 +212,7 @@ public class WindFieldTile extends TileRenderer.Tile {
                                 Angle.fromDegrees(centerLon + (halfLon * Math.cos(angle) * arrowLength)),
                                 height);
 
-                        colorCount = c.put(colors, colorCount);
+                        colorCount = c.putUnsignedBytes(colors, colorCount);
 
                         verts.set(vertCount++, (float) point.x);
                         verts.set(vertCount++, (float) point.y);
@@ -223,7 +222,7 @@ public class WindFieldTile extends TileRenderer.Tile {
                                 Angle.fromDegrees(centerLon + (halfLon * Math.cos(angle + arrowDelta) * arrowLength * arrowPercent)),
                                 height);
 
-                        colorCount = c.put(colors, colorCount);
+                        colorCount = c.putUnsignedBytes(colors, colorCount);
 
                         verts.set(vertCount++, (float) point.x);
                         verts.set(vertCount++, (float) point.y);
@@ -235,7 +234,7 @@ public class WindFieldTile extends TileRenderer.Tile {
                                 Angle.fromDegrees(centerLon + (halfLon * Math.cos(angle) * arrowLength)),
                                 height);
 
-                        colorCount = c.put(colors, colorCount);
+                        colorCount = c.putUnsignedBytes(colors, colorCount);
 
                         verts.set(vertCount++, (float) point.x);
                         verts.set(vertCount++, (float) point.y);
@@ -245,7 +244,7 @@ public class WindFieldTile extends TileRenderer.Tile {
                                 Angle.fromDegrees(centerLon + (halfLon * Math.cos(angle - arrowDelta) * arrowLength * arrowPercent)),
                                 height);
 
-                        colorCount = c.put(colors, colorCount);
+                        colorCount = c.putUnsignedBytes(colors, colorCount);
 
                         verts.set(vertCount++, (float) point.x);
                         verts.set(vertCount++, (float) point.y);
@@ -347,14 +346,16 @@ public class WindFieldTile extends TileRenderer.Tile {
                 Object lock1 = verts.getBufferLock();
                 Object lock2 = colors.getBufferLock();
 
+                // Nested locks considered dangerous, the order HAS to be
+                // the same for anyone locking.  Our convention is verts then colors.
                 synchronized (lock1) {
                     synchronized (lock2) {
 
                         FloatBuffer v = verts.getRawBuffer();
                         FloatBuffer c = colors.getRawBuffer();
                         gl.glVertexPointer(3, GL.GL_FLOAT, 0, v.rewind());
-                        gl.glColorPointer(4, GL.GL_FLOAT, 0, c.rewind());
-
+                        //gl.glColorPointer(4, GL.GL_FLOAT, 0, c.rewind());
+                        gl.glColorPointer(4, GL.GL_UNSIGNED_BYTE, 0, c.rewind());
                         int size = verts.size();
                         if (size > 1) {
                             int start_index = 0;

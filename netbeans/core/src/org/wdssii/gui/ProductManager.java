@@ -18,6 +18,7 @@ import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
+import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.index.IndexRecord;
 
@@ -334,7 +335,8 @@ public class ProductManager implements Singleton {
         if (colormapXML != null) {
             // System.out.println("Colormap:" + name);
             aColorMap = new ColorMap();
-            aColorMap.initFromXML(colormapXML);
+            // For the moment, all products use same formatter...
+            aColorMap.initFromXML(colormapXML, ProductTextFormatter.DEFAULT_FORMATTER);
             storeNewColorMap(name, aColorMap);
         } else {
             // FIXME: Some sort of constructed colop map from the data values?

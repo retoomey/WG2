@@ -21,7 +21,6 @@ import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialSet;
 import org.wdssii.datatypes.RadialSet.RadialSetQuery;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array1DfloatAsNodes;
@@ -186,7 +185,7 @@ public class RadialSetRenderer extends ProductRenderer {
                 Location gate2 = new Location(0, 0, 0);
                 Location gate3 = new Location(0, 0, 0);
                 //double[] c = new double[4];
-                ColorMapOutput out = new ColorMapOutput();
+                ColorMapFloatOutput out = new ColorMapFloatOutput();
 
                 // --------------------------------------------------------
                 // On first radial, create the attenuation cache...

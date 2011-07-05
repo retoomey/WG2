@@ -56,19 +56,19 @@ public class ProductVolume {
     }
 
     // filler function, will have to be more advanced..
-    public boolean getValueAt(double lat, double lon, double height, ColorMapOutput output, DataValueRecord out,
+    public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
             FilterList list, boolean useFilters) {
         //ArrayList<DataFilter> list){
 
         // Get value as fast as possible...
-        if (height < 0) {
+        if (loc.getHeightKms() < 0) {
             output.setColor(0, 0, 0, 0);
             //output.red = output.green = output.blue = output.alpha = 0;
             return true;
         }
         // Sphere test for vslice/isosurface.  Return a blue color based on distance from the center.
         // If past the radius, return 0/black for value...
-        Location l = new Location(lat, lon, 0);  // Newing this here slllows us down
+        Location l = new Location(loc.getLatitude(), loc.getLongitude(), 0);  // Newing this here slllows us down
         Location b = new Location(35.33, -97.27, 0.0);
 
         CPoint c1 = l.getCPoint();  // Really need to get rid of these cpoint thingies..because we have multiple projections in the new display.
@@ -140,7 +140,7 @@ public class ProductVolume {
         boolean useTerrain = false;
 
         Vec4 v;
-
+        Location buffer = new Location(0,0,0);
         for (int row = 0; row < g.rows; row++) {
             currentLat = g.startLat;
             currentLon = g.startLon;
@@ -241,9 +241,11 @@ public class ProductVolume {
                     // Get the color in the center of the quad below us...
                     try {
                         //	   double h = currentHeight-deltaHeight-(deltaHeight/2.0);
-                        getValueAt(currentLat + (deltaLat / 2.0),
-                                currentLon + (deltaLon / 2.0), currentHeight - deltaHeight - (deltaHeight / 2.0),
-                                data, rec, list, useFilters);
+                        buffer.init(currentLat +(deltaLat / 2.0), currentLon + (deltaLon / 2.0), (currentHeight - deltaHeight -(deltaHeight / 2.0))/1000.0);
+                      //  getValueAt(currentLat + (deltaLat / 2.0),
+                       //         currentLon + (deltaLon / 2.0), currentHeight - deltaHeight - (deltaHeight / 2.0),
+                       //         data, rec, list, useFilters);
+                       getValueAt(buffer, data, rec, list, useFilters);
                     } catch (Exception e) {
                     }
                     // data.red = data.green = data.blue = 1.0;
@@ -263,8 +265,10 @@ public class ProductVolume {
 
                     // This is the data color of (row, col)  This is the last counterclockwise point of the quad, so it's the color        			
                     try {
-                        getValueAt(currentLat + (deltaLat / 2.0), currentLon + (deltaLon / 2.0),
-                                currentHeight - (deltaHeight / 2.0), data, rec, list, useFilters);
+                        buffer.init(currentLat +(deltaLat / 2.0), currentLon + (deltaLon / 2.0), (currentHeight -(deltaHeight / 2.0))/1000.0);
+                       // getValueAt(currentLat + (deltaLat / 2.0), currentLon + (deltaLon / 2.0),
+                       //         currentHeight - (deltaHeight / 2.0), data, rec, list, useFilters);
+                        getValueAt(buffer, data, rec, list, useFilters);
                     } catch (Exception e) {
                     }
                     // data.red = data.green = data.blue = 1.0;
@@ -317,14 +321,16 @@ public class ProductVolume {
         int cpv2d = 0;
         boolean warning = false;
         String message = "";
-
+        Location buffer = new Location(0,0,0);
         for (int row = 0; row < g.rows; row++) {
             currentLat = g.startLat;
             currentLon = g.startLon;
             for (int col = 0; col < g.cols; col++) {
                 // Add color for 2D table....
                 try {
-                    getValueAt(currentLat, currentLon, currentHeight, data, rec, list, useFilters);
+                    buffer.init(currentLat, currentLon, currentHeight/1000.0f);
+                   // getValueAt(currentLat, currentLon, currentHeight, data, rec, list, useFilters);
+                    getValueAt(buffer, data, rec, list, useFilters);
                 } catch (Exception e) {
                     warning = true;
                     message = e.toString();

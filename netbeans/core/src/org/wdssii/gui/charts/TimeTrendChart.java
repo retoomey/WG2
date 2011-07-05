@@ -30,6 +30,7 @@ import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetGroup;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
+import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.LLHAreaManager;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
@@ -364,6 +365,7 @@ public class TimeTrendChart extends ChartViewJFreeChart {
             // Do we trend backwards from the selected?  Forward?? How to do it?
             // Let's go backwards from the selected value...
             double curHeight = bottom;
+            Location buffer = new Location(0,0,0);
             for (int i = 0; i < numberOfTimes; i++) {
 
                 // Check for product and then volume existance...
@@ -383,8 +385,9 @@ public class TimeTrendChart extends ChartViewJFreeChart {
                     curHeight = bottom;
                     for (int j = 0; j < numberHeight; j++) {
 
-
-                        v.getValueAt(startLat, startLon, curHeight, output, null, null, false);
+                        buffer.init(startLat, startLon, curHeight/1000.0f);
+                        //v.getValueAt(startLat, startLon, curHeight, output, null, null, false);
+                        v.getValueAt(buffer, output, null, null, false);
                         colorCounter = (3 * numberOfTimes * (numberHeight - j - 1)) + (3 * i);
                         colors[colorCounter++] = output.redF();
                         colors[colorCounter++] = output.greenF();

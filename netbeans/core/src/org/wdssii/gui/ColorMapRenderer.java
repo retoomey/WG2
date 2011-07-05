@@ -9,33 +9,122 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
-import javax.swing.JComponent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 
 /**
- * Renders a ColorMap to a graphic2D
- * FIXME: merge the 'logic' from opengl renderer and this renderer so that
- * changes to one sync to the other.
+ * ColorMapRenderer.   Base class for rendering a ColorMap.
  * 
  * @author Robert Toomey
  */
-public class ColorMapRenderer extends JComponent {
+public class ColorMapRenderer {
 
-    ColorMap myColorMap;
+    private static Log log = LogFactory.getLog(ColorMapRenderer.class);
+    /** ColorMap used by the renderer */
+    private ColorMap myColorMap;
 
+    /** Get the ColorMap used by the renderer */
+    public ColorMap getColorMap() {
+        return myColorMap;
+    }
+
+    /** Set the ColorMap used by the renderer */
     public void setColorMap(ColorMap c) {
         myColorMap = c;
     }
 
-    @Override
-    public void paintComponent(Graphics g) {
+    public ColorMapRenderer(ColorMap initColorMap) {
+        myColorMap = initColorMap;
+    }
 
-        CommandManager man = CommandManager.getInstance();
-        myColorMap = man.getCurrentColorMap();
+    public ColorMapRenderer() {
+        // Must call setColorMap before this will draw...
+    }
+
+    /** Paint to a file (snapshot for all purposes).  Returns an empty
+    string on success, otherwise a reason for failure.
+     * 
+     * The GUI knows to ask for overwrite confirmation, if you call this directly
+     * realize it will overwrite any given file with new stuff.
+     */
+    public String paintToFile(String fileName, int w, int h) {
+        String success = "";
+        if (myColorMap != null) {
+            try {
+                // Get the extension use it as the file type.  Supported types are
+                // "PNG", "JPEG", "gif", "BMP"
+                // "Mypicture.gif" --> ".gif"
+                int dot = fileName.lastIndexOf(".");
+                String type = fileName.substring(dot + 1);
+
+                // Default is ".png" file
+                // "Mypicture" --> "Mypicture.png"
+                if ((type.equals(fileName)) || (type.isEmpty())) {
+                    type = "png";
+                    fileName += ".png";
+                } else {
+                    type = type.toLowerCase();
+                }
+
+                // Check that we have a writer for the suffix..
+                String writerNames[] = ImageIO.getWriterFormatNames();
+                boolean haveFormat = false;
+                for (String s : writerNames) {
+                    if (s.equals(type)) {
+                        haveFormat = true;
+                        break;
+                    }
+                }
+
+                if (haveFormat) {
+                    // Create a buffered image and render into it.
+                    // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
+                    // into integer pixels
+                    BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D ig2 = bi.createGraphics();
+                    paintToGraphics(ig2, w, h);
+
+                    // ImageIO freaks unless the file already exists...
+                    File output = new File(fileName);
+                    //   if (!output.createNewFile()){
+                    //      return "Writing image failed because '"+fileName+"' already exists";
+                    //  }
+
+                    if (output == null) {
+                        success = "Writing image failed because file is null";
+                    } else {
+                        // Write draw graphics to file....
+
+                        ImageIO.write(bi, type, output);
+
+                        //ImageIO.write(bi, "PNG", new File("c:\\yourImageName.PNG"));
+                        // ImageIO.write(bi, "JPEG", new File("c:\\yourImageName.JPG"));
+                        // ImageIO.write(bi, "gif", new File("c:\\yourImageName.GIF"));
+                        // ImageIO.write(bi, "BMP", new File("c:\\yourImageName.BMP"));
+                        log.info("Drew color key to '" + fileName + "' as type '" + type + "'");
+                    }
+                } else {
+                    success = "Writing image failed because there is no writer for '" + type + "'";
+                }
+            } catch (Exception e) {
+                log.error(e.toString());
+                success = "Writing image failed:" + e.toString();
+            }
+        } else {
+            success = "Writing image failed because ColorMap is null";
+        }
+        return success;
+    }
+
+    /** Paint to a standard java graphics context */
+    public void paintToGraphics(Graphics g, int w, int h) {
 
         if (myColorMap != null) {
-            int w = getWidth();  // Get height and width
-            int h = getHeight();
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON);
@@ -85,7 +174,7 @@ public class ColorMapRenderer extends JComponent {
 
                 Color loC = new Color(lo.redI(), lo.greenI(), lo.blueI());
                 Color hiC = new Color(hi.redI(), hi.greenI(), hi.blueI());
-                int curInt = (int) (currentX);
+                int curInt = currentX;
 
                 GradientPaint p = new GradientPaint(curInt, top, loC,
                         curInt + cellWidth, top, hiC);
@@ -118,7 +207,7 @@ public class ColorMapRenderer extends JComponent {
                             // Shape outline = t2.getOutline(null);
 
                             cheezyOutline(g2, currentX + 2, renderY, t2);
-                            drawnToX = (int) (currentX + wtxt + extraXGap);
+                            drawnToX = currentX + wtxt + extraXGap;
                         }
                     }
 
@@ -132,11 +221,13 @@ public class ColorMapRenderer extends JComponent {
                 TextLayout t2 = new TextLayout(unitName, f, frc);
                 cheezyOutline(g2, start, renderY, t2);
             }
+        } else {
         }
     }
 
     /** A cheezy outline behind the text that doesn't require an outline
-     * font to render.
+     * font to render.  It shadows by shifting the text 1 pixel in every
+     * direction.  Not very fast, but color keys are more about looks.
      */
     public void cheezyOutline(Graphics2D g, int x, int y, TextLayout t) {
 
@@ -155,276 +246,5 @@ public class ColorMapRenderer extends JComponent {
 
         g.setColor(Color.white);
         t.draw(g, x, y);
-    }
-
-    public void render() {
-        CommandManager man = CommandManager.getInstance();
-        ColorMap aColorMap = man.getCurrentColorMap();
-        // Created text renderer once for bin labels
-        // Resize in netbeans causing TextRenderer to get messed up
-        // somehow.  This fixes it for now at least until I can investigate
-        // further..might be gl state.
-        // aText = null;
-        // if (aText == null) {  // Only create once for speed.  We draw a LOT
-        //     aText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
-        //  }
-/*
-        // Colorkey covers entire width of current viewport
-        java.awt.Rectangle viewport = dc.getView().getViewport();
-        this.iconWidth = viewport.width - (2 * this.borderWidth);
-        this.iconHeight = 20; // 20 pixels for icon scale of '1'
-        
-        // percentage the size based on the scale number..not really needed
-        /// for colorkey I think...
-        double width = this.getScaledIconWidth();
-        double height = this.getScaledIconHeight();
-        
-        // Created text renderer once for bin labels
-        // Resize in netbeans causing TextRenderer to get messed up
-        // somehow.  This fixes it for now at least until I can investigate
-        // further..might be gl state.
-        aText = null;
-        if (aText == null) {  // Only create once for speed.  We draw a LOT
-        aText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
-        }
-        
-        // Bounds calculations
-        final int fontYOffset = 5;
-        final Rectangle2D maxText = aText.getBounds("gW"); // a guess of
-        // size
-        // (FIXME:
-        // better
-        // guess?)
-        final int textHeight = (int) (maxText.getHeight());
-        final int bheight = textHeight + fontYOffset + fontYOffset;
-        int top = viewport.y + bheight - 1;
-        int bottom = top - bheight;
-        
-        GL gl = dc.getGL();
-        try {
-        
-        // System.out.println("Drawing color key layer");
-        gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT
-        | GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT
-        | GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
-        | GL.GL_CURRENT_BIT);
-        attribsPushed = true;
-        
-        gl.glEnable(GL.GL_BLEND);
-        gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-        gl.glDisable(GL.GL_DEPTH_TEST);
-        
-        // Load a parallel projection with xy dimensions (viewportWidth,
-        // viewportHeight)
-        // into the GL projection matrix.
-        gl.glMatrixMode(javax.media.opengl.GL.GL_PROJECTION);
-        gl.glPushMatrix();
-        projectionPushed = true;
-        
-        gl.glLoadIdentity();
-        double maxwh = width > height ? width : height;
-        gl.glOrtho(0d, viewport.width, 0d, viewport.height, -0.6 * maxwh,
-        0.6 * maxwh);
-        gl.glMatrixMode(GL.GL_MODELVIEW);
-        gl.glPushMatrix();
-        modelviewPushed = true;
-        
-        gl.glLoadIdentity();
-        // Translate and scale
-        double scale = this.computeScale(viewport);
-        Vec4 locationSW = this.computeLocation(viewport, scale);
-        
-        // Scale to 0..1 space
-        gl.glTranslated(locationSW.x(), locationSW.y(), locationSW.z());
-        gl.glScaled(scale, scale, 1);
-        gl.glScaled(width, height, 1d);
-        
-        if (!dc.isPickingMode()) {
-        
-        if (aColorMap != null) {
-        ColorMapOutput hi = new ColorMapOutput();
-        ColorMapOutput lo = new ColorMapOutput();
-        // Width of unit text
-        int wtxt = 0;
-        String unitName = aColorMap.getUnits();
-        if ((unitName != null) && (unitName.length() > 0)) {
-        Rectangle2D boundsUnits = aText.getBounds(unitName);
-        wtxt = (int) (boundsUnits.getWidth() + 2.0d);
-        } else {
-        wtxt = 0;
-        }
-        
-        // Calculate height
-        int barwidth = Math.max(viewport.width - wtxt, 1);
-        int aSize = aColorMap.getNumberOfBins();
-        int cellWidth = barwidth / aSize;
-        barwidth = cellWidth * aSize;
-        
-        float[] colorRGB = this.color.getRGBColorComponents(null);
-        
-        gl.glDisable(GL.GL_TEXTURE_2D); // no textures
-        
-        // Draw background square color
-        gl.glColor4ub((byte) this.backColor.getRed(),
-        (byte) this.backColor.getGreen(), (byte) this.backColor.getBlue(),
-        (byte) (this.backColor.getAlpha() * this.getOpacity()));
-        gl.glBegin(GL.GL_POLYGON);
-        gl.glVertex3d(0, 0, 0);
-        gl.glVertex3d(1, 0, 0);
-        gl.glVertex3d(1, 1, 0);
-        gl.glVertex3d(0, 1, 0);
-        gl.glVertex3d(0, 0, 0);
-        gl.glEnd();
-        
-        gl.glLoadIdentity();
-        // Interesting, remove this and is goes above the status
-        // line..
-        gl.glTranslated(locationSW.x(), locationSW.y(), locationSW.z());
-        // Scale to width x height space
-        gl.glScaled(scale, scale, 1);
-        gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
-        double currentX = 0.0;
-        
-        gl.glBegin(GL.GL_QUADS);
-        
-        for (int i = 0; i < aSize; i++) {
-        
-        aColorMap.getUpperBoundColor(hi, i);  // FIXME: let bin draw itself for possible future classes?
-        aColorMap.getLowerBoundColor(lo, i);
-        gl.glColor4f(lo.redF(), lo.greenF(), lo.blueF(),
-        (float) this.getOpacity());
-        gl.glVertex2d(currentX, top);
-        gl.glVertex2d(currentX, bottom);
-        gl.glColor4f(hi.redF(), hi.greenF(), hi.blueF(),
-        (float) this.getOpacity());
-        gl.glVertex2d(currentX + cellWidth, bottom);
-        gl.glVertex2d(currentX + cellWidth, top);
-        currentX += cellWidth;
-        }
-        //
-        //gl.glColor4f(1.0f,1.0f,1.0f,1.0f);
-        // gl.glBegin(GL.GL_LINES); for(int i = 0; i<aSize;i++){
-        // gl.glVertex3d(currentX, 0, 0); // Draw a vertical line
-        // (at percentage space) gl.glVertex3d(currentX, 1, 0);
-        // currentX += xoffset; }
-        //
-        
-        gl.glEnd();
-        
-        
-        // Draw the text labels for bins
-        aText.begin3DRendering();
-        boolean drawText = (barwidth >= 100);
-        if (drawText) {
-        currentX = viewport.x;
-        int extraXGap = 7; // Force at least these pixels
-        // between labels
-        int drawnToX = viewport.x;
-        for (int i = 0; i < aSize; i++) {
-        String label = aColorMap.getBinLabel(i);
-        // System.out.println("Label is "+label);
-        // if (aColorMap.myColorBins.get(i) == null){
-        // System.out.println("---NULL");
-        // }
-        Rectangle2D boundsLabel = aText.getBounds(label);
-        wtxt = (int) (boundsLabel.getWidth());
-        // Sparse draw, skipping when text overlaps
-        if (currentX >= drawnToX) {
-        
-        // Don't draw if text sticks outside box
-        if (currentX + wtxt < (viewport.x + barwidth)) {
-        
-        // Ok, render and remember how far it drew
-        aText.draw(label, (int) (currentX + 2),
-        bottom + fontYOffset);
-        drawnToX = (int) (currentX + wtxt + extraXGap);
-        }
-        }
-        
-        currentX += cellWidth;
-        // Color lower =
-        // aColorMap.myColorBins.get(i).getLowerBoundColor();
-        }
-        }
-        //aText.end3DRendering();
-        
-        // Draw 1px border around and inside the map
-        //gl.glColor4d(colorRGB[0], colorRGB[1], colorRGB[2], this.getOpacity());
-        gl.glColor4d(colorRGB[0], colorRGB[1], colorRGB[2], 1.0);
-        gl.glBegin(GL.GL_LINE_STRIP);
-        gl.glVertex3d(viewport.x, top, 0.0);
-        gl.glVertex3d(currentX, top, 0.0);
-        gl.glVertex3d(currentX, bottom, 0.0);
-        gl.glVertex3d(viewport.x, bottom, 0.0);
-        gl.glEnd();
-        
-        // Draw the units
-        if (unitName.length() > 0) {
-        int start = (viewport.x + viewport.width - wtxt);
-        //aText.begin3DRendering();
-        aText.draw(unitName, start, bottom + fontYOffset);
-        
-        }
-        aText.end3DRendering();
-        
-        
-        }
-        
-        
-        } else {
-        /* Pick mode stuff
-        // Hack. CellWidth should be a function, instead we stick it in
-        // a variable for moment FIXME
-        // Point at = dc.getPickPoint();
-        // int cell = (at.x)/cellWidth;
-        // myCellWidth = cell;
-        
-        // World wind has a global pick object list. Add ourselves so we
-        // can capture the click
-        // This is a unique colored rectangle of our 'click' space
-        this.pickSupport.clearPickList();
-        this.pickSupport.beginPicking(dc);
-        // Draw unique color across the map
-        Color color = dc.getUniquePickColor();
-        int colorCode = color.getRGB();
-        // Add our object(s) to the pickable list
-        this.pickSupport
-        .addPickableObject(colorCode, this, null, false);
-        gl.glColor3ub((byte) color.getRed(), (byte) color.getGreen(),
-        (byte) color.getBlue());
-        gl.glBegin(GL.GL_POLYGON);
-        gl.glVertex3d(0, 0, 0);
-        gl.glVertex3d(1, 0, 0);
-        gl.glVertex3d(1, 1, 0);
-        gl.glVertex3d(0, 1, 0);
-        gl.glVertex3d(0, 0, 0);
-        gl.glEnd();
-        // Done picking
-        this.pickSupport.endPicking(dc);
-        this.pickSupport.resolvePick(dc, dc.getPickPoint(), this);
-        
-        }
-        
-        //Draw time simulation window
-        gl.glLoadIdentity();
-        // Interesting, remove this and is goes above the status
-        // line..
-        gl.glTranslated(locationSW.x(), locationSW.y(), locationSW.z());
-        // Scale to width x height space
-        gl.glScaled(scale, scale, 1);
-        //gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
-        String time = CommandManager.getInstance().getProductOrderedSet().getSimulationTimeStamp();
-        if (time == null) {
-        time = "No products yet";
-        }
-        // Hack for moment..simulation time for debugging
-        aText.begin3DRendering();
-        //aText.beginRendering(100,100);
-        aText.draw("Time:" + time, 0, bottom - textHeight
-        - fontYOffset - fontYOffset - 2);
-        //System.out.println("Drawing "+time);
-        //aText.endRendering();
-        aText.end3DRendering();
-         */
     }
 }

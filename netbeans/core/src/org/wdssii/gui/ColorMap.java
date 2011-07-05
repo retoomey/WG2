@@ -8,14 +8,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.wdssii.datatypes.DataType;
-import org.wdssii.geom.Location;
-import org.wdssii.storage.Array1Dfloat;
+import org.wdssii.gui.products.ProductTextFormatter;
 
 /**
  * Color map converts from a float value to a Color, using a set of ColorBins.
  * Colors fall into bins, which may linearly interpolate over a low to high value,
  * or may be a set color per bin.
+ * 
+ * ColorBin uses a ProductTextFormatter to generate the text.
+ * @todo Allow dynamic changing of ProductTextFormatter
  * 
  * @author Robert Toomey
  * 
@@ -23,7 +24,7 @@ import org.wdssii.storage.Array1Dfloat;
 public class ColorMap {
 
     private static Log log = LogFactory.getLog(ColorMap.class);
-
+    
     /** Output object for color map queries.  You can pre-new this outside of loops
      * for speed.  Pass your object into routines
      */
@@ -31,52 +32,15 @@ public class ColorMap {
 
         // We store as 0-255 in short (since java byte is 2's complement signed)
         /** Red stored as 0-255 (unsigned byte) */
-        private short red;
+        protected short red;
         /** Green stored as 0-255 (unsigned byte) */
-        private short green;
+        protected short green;
         /** Blue stored as 0-255 (unsigned byte) */
-        private short blue;
+        protected short blue;
         /** Alpha stored as 0-255 (unsigned byte) */
-        private short alpha;
+        protected short alpha;
         /** Filtered data value, if any */
         public float filteredValue;
-        /** Location of data.  PreNewed for loop speed */
-        public Location location = new Location(0, 0, 0);
-
-        /** Add colors as unsigned bytes to Array1Dfloat.  Java doesn't have unsigned bytes, but open GL does.
-         * Basically we store the colors into one 8 byte float, 1 unsigned byte per color RGBA
-         * then glColorPointer(....unsignedbyte) works
-         */
-        public int putUnsignedBytes(Array1Dfloat in, int counter) {
-
-            // In opengl, we want byte order to be RGBA, but float in java is Big-Endian...so
-            // we create an integer of the form:
-            // 0xAABBGGRR (32 bits of data)
-            // Stuff our 4 colors into one float in java, which is 32 bits.  Each 8 bits needs to be
-            // the unsigned byte version.  We know the alpha, blue, green is positive range 0-255
-            int theInt = 0;
-            theInt = (alpha << 24);
-            theInt |= (blue << 16);
-            theInt |= (green << 8);
-            theInt |= red;
-            in.set(counter, Float.intBitsToFloat(theInt));
-
-            return ++counter;
-        }
-
-        /** Add colors to an Array1Dfloat at counter, return new counter.  This is kinda wasteful in openGL
-         * since we only have 8 bits per color and this requires 126 bits of storage per pixel.
-         * RGBA --> 8+8+8+8 = 32 bits = 1 java float
-         * RGBA --> 32+32+32+32 = 128 bits = 4 java float
-         * @deprecated
-         */
-        public int put(Array1Dfloat in, int counter) {
-            in.set(counter++, red / 255.0f);
-            in.set(counter++, green / 255.0f);
-            in.set(counter++, blue / 255.0f);
-            in.set(counter++, alpha / 255.0f);
-            return counter;
-        }
 
         public float redF() {
             return red / 255.0f;
@@ -249,7 +213,8 @@ public class ColorMap {
             }
         }
 
-        public static ColorBin ColorBinFactory(Element colorbinXML, float previousUpperBound) {
+        public static ColorBin ColorBinFactory(Element colorbinXML, float previousUpperBound,
+                ProductTextFormatter f) {
 
             ColorBin newBin = null;
             // -----------------------------------------------------------------------
@@ -330,10 +295,9 @@ public class ColorMap {
                 // If no name is given for bin, use the bound to make one
                 try {
                     if (sameColor) {
-                        name = String.format("%.1f", ub);
+                        name = f.format(ub);
                     } else {
-                        name = String.format("%.1f-%.1f", lb,
-                                ub);
+                        name = f.format(lb, ub);                
                     }
                 } catch (Exception e) { // FIXME: check format errors?
                     log.error("Exception is" + e.toString());
@@ -458,7 +422,7 @@ public class ColorMap {
      * @param colormapXML
      *            The root node for generating this color map
      */
-    public boolean initFromXML(Element colormapXML) {
+    public boolean initFromXML(Element colormapXML, ProductTextFormatter formatter) {
 
         // colormapXML.getAttribute("canInterpolateBetweenValues");
 
@@ -475,7 +439,7 @@ public class ColorMap {
         for (int i = 0; i < bins.getLength(); ++i) {
             Element aColorBinXML = (Element) bins.item(i);
             //ColorBin aColor = new ColorBin(aColorBinXML, previousUpperBound);
-            ColorBin aColor = ColorBin.ColorBinFactory(aColorBinXML, previousUpperBound);
+            ColorBin aColor = ColorBin.ColorBinFactory(aColorBinXML, previousUpperBound, formatter);
             myColorBins.add(aColor);
             previousUpperBound = aColor.getUpperBound();
             addUpperBound(previousUpperBound);
@@ -512,7 +476,8 @@ public class ColorMap {
      * @param maxValue Maximum value of color key (this to +infinity for final bin)
      * @return true on success
      */
-    public boolean initFromLinear(int numOfBins, float minValue, float maxValue, String units) {
+    public boolean initFromLinear(int numOfBins, float minValue, float maxValue, String units,
+            ProductTextFormatter f) {
 
         float low = Float.NEGATIVE_INFINITY;
         float high = minValue;
@@ -551,7 +516,7 @@ public class ColorMap {
             ColorBin aColor = new ColorBin.Linear(low, high,
                     (short) (upRed * 255.0f), (short) (upGreen * 255.0f), (short) (upBlue * 255.0f), (short) (upAlpha * 255.0f),
                     (short) (lowRed * 255.0f), (short) (lowGreen * 255.0f), (short) (lowBlue * 255.0f), (short) (lowAlpha * 255.0f),
-                    DataType.valueToString((float) (low + step / 2.0)));
+                    f.format((float) (low + step / 2.0)));
             myColorBins.add(aColor);
             addUpperBound(low);
             low = aColor.getUpperBound();
@@ -600,7 +565,6 @@ public class ColorMap {
         return this.myGeneratedMap;
     }
 
-    // Two routines...maybe it should be just one...
     /** Fill in the color/final filtered value for a given value 
      * 
      */
@@ -618,7 +582,7 @@ public class ColorMap {
         } catch (Exception e) {
             out.red = 255;
             out.green = out.blue = out.alpha = 255;
-            out.filteredValue = DataType.MissingData;
+            out.filteredValue = -99000;
         }
     }
 

@@ -1,6 +1,7 @@
 package org.wdssii.gui.volumes;
 
 import gov.nasa.worldwind.WorldWindow;
+import gov.nasa.worldwind.event.InputHandler;
 import gov.nasa.worldwind.pick.PickedObjectList;
 
 import java.awt.Cursor;
@@ -13,48 +14,60 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 import java.util.Map;
-
+import org.wdssii.gui.LLHAreaManager;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 
-/** This handles the mouse/key events for an LLHAreaLayer */
+/** This handles the mouse/key events for an LLHAreaLayer.
+There is only one of these for all of our LLHAreas
+
+@author Robert Toomey
+ */
 public class LLHAreaLayerController implements KeyListener, MouseListener, MouseMotionListener {
 
     private boolean active;
     private String activeAction;
-    private WorldWindow wwd; // Can be null
+    /** The WorldWindow we have a layer in */
+    private final WorldWindow wwd;
+    /** The volume drawing layer we are linked to */
+    private final LLHAreaLayer volumeLayer;
     // Current selection and device state.
     private Point mousePoint;
-    private LLHArea activeAirspace;
+    private LLHArea activeLLHArea;
     private LLHAreaControlPoint activeControlPoint;
     // Action/Cursor pairings.
     private Map<String, Cursor> actionCursorMap = new HashMap<String, Cursor>();
-    private LLHAreaLayer volumeLayer;
-    protected static final String MOVE_AIRSPACE_LATERALLY = "AirspaceEdiorController.MoveAirspaceLaterally";
-    protected static final String MOVE_AIRSPACE_VERTICALLY = "AirspaceEdiorController.MoveAirspaceVertically";
-    protected static final String RESIZE_AIRSPACE = "AirspaceEdiorController.ResizeAirspace";
-    protected static final String ADD_CONTROL_POINT = "AirspaceEdiorController.AddControlPoint";
-    protected static final String REMOVE_CONTROL_POINT = "AirspaceEdiorController.RemoveControlPoint";
-    protected static final String MOVE_CONTROL_POINT = "AirspaceEdiorController.MoveControlPoint";
+    protected static final String MOVE_AIRSPACE_LATERALLY = "MoveAirspaceLaterally";
+    protected static final String MOVE_AIRSPACE_VERTICALLY = "MoveAirspaceVertically";
+    protected static final String RESIZE_AIRSPACE = "ResizeAirspace";
+    protected static final String ADD_CONTROL_POINT = "AddControlPoint";
+    protected static final String REMOVE_CONTROL_POINT = "RemoveControlPoint";
+    protected static final String MOVE_CONTROL_POINT = "MoveControlPoint";
 
-    // TODO
-    // enable/disable individual editor actions
-    // 1. add control point
-    // 2. remove control point
-    // 3. move control point
-    // 4. resize
-    // 5. move airspace
-    // TODO: allow the editor to define the action/behavior associated with a control point, so the correct cursor
-    // will be displayed (or some future UI affordance). Currently the controller assumes that a control point implies
-    // a move action. This really only affects the cursor display, since the editor ultimately decides what to do when
-    // a control point is moved.
-    public LLHAreaLayerController(WorldWindow wwd) {
+    public LLHAreaLayerController(WorldWindow w, LLHAreaLayer volume) {
         this.active = false;
-        this.setWorldWindow(wwd);
+        this.wwd = w;
+        this.volumeLayer = volume;
         this.setupActionCursorMap();
+        InputHandler h = this.wwd.getInputHandler();
+        setupListeners();
     }
 
-    public LLHAreaLayerController() {
-        this(null);
+    public final void setupListeners() {
+        if (this.wwd != null) {
+            InputHandler h = this.wwd.getInputHandler();
+            h.addKeyListener(this);
+            h.addMouseListener(this);
+            h.addMouseMotionListener(this);
+        }
+    }
+
+    public final void removeListeners() {
+        if (this.wwd != null) {
+            InputHandler h = this.wwd.getInputHandler();
+            h.removeKeyListener(this);
+            h.removeMouseListener(this);
+            h.removeMouseMotionListener(this);
+        }
     }
 
     public boolean isActive() {
@@ -73,36 +86,12 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         this.activeAction = action;
     }
 
-    public LLHAreaLayer getEditor() {
+    public LLHAreaLayer getLLHAreaLayer() {
         return this.volumeLayer;
-    }
-
-    public void setEditor(LLHAreaLayer e) {
-        this.volumeLayer = e;
     }
 
     public WorldWindow getWorldWindow() {
         return this.wwd;
-    }
-
-    public void setWorldWindow(WorldWindow wwd) {
-        if (this.wwd == wwd) {
-            return;
-        }
-
-        if (this.wwd != null) {
-            this.wwd.getInputHandler().removeKeyListener(this);
-            this.wwd.getInputHandler().removeMouseListener(this);
-            this.wwd.getInputHandler().removeMouseMotionListener(this);
-        }
-
-        this.wwd = wwd;
-
-        if (this.wwd != null) {
-            this.wwd.getInputHandler().addKeyListener(this);
-            this.wwd.getInputHandler().addMouseListener(this);
-            this.wwd.getInputHandler().addMouseMotionListener(this);
-        }
     }
 
     protected Point getMousePoint() {
@@ -122,49 +111,33 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
     }
 
     protected LLHArea getActiveAirspace() {
-        return activeAirspace;
+        return activeLLHArea;
     }
 
     protected void setActiveAirspace(LLHArea airspace) {
-        this.activeAirspace = airspace;
+        this.activeLLHArea = airspace;
     }
 
-    protected LLHArea getTopOwnedAirspaceAtCurrentPosition() {
-        // Without an editor, we cannot know if the airspace belongs to us.
-        if (this.getEditor() == null) {
+    /** Picked object as an LLHArea */
+    protected LLHArea asLLHArea(Object obj) {
+        if (!(obj instanceof LLHArea)) {
             return null;
         }
-
-        Object obj = this.getTopPickedObject();
-        // Airspace is compared by reference, because we're only concerned about the exact reference
-        // an editor refers to, rather than an equivalent object.
-        if (this.getEditor().getAirspace() != obj) {
-            return null;
-        }
-
         return (LLHArea) obj;
     }
 
-    protected LLHAreaControlPoint getTopOwnedControlPointAtCurrentPosition() {
-        // Without an editor, we cannot know if the airspace belongs to us.
-        if (this.getEditor() == null) {
-            return null;
-        }
-
-        Object obj = this.getTopPickedObject();
+    /** Picked object as a LLHAreaControlPoint */
+    protected LLHAreaControlPoint asLLHAreaControlPoint(Object obj) {
         if (!(obj instanceof LLHAreaControlPoint)) {
             return null;
         }
-
-        // AirspaceEditor is compared by reference, because we're only concerned about the exact reference
-        // a control point refers to, rather than an equivalent object.
-        //  GOOP if (this.getEditor() != (((LLHAreaControlPoint) obj).getEditor()))
-        //      return null;
-
         return (LLHAreaControlPoint) obj;
     }
 
     protected Object getTopPickedObject() {
+        if (this.getLLHAreaLayer() == null) {
+            return null;
+        }
         if (this.getWorldWindow() == null) {
             return null;
         }
@@ -198,7 +171,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         this.updateCursor(e);
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
             //noinspection UnnecessaryReturnStatement
             return;
         }
@@ -213,7 +186,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         this.updateCursor(e);
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
             //noinspection UnnecessaryReturnStatement
             return;
         }
@@ -231,11 +204,11 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         this.updateCursor(e);
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
             return;
         }
-
-        LLHAreaControlPoint topControlPoint = this.getTopOwnedControlPointAtCurrentPosition();
+        Object obj = this.getTopPickedObject();
+        LLHAreaControlPoint topControlPoint = this.asLLHAreaControlPoint(obj);
 
         if (e.getButton() == MouseEvent.BUTTON1) {
             if (e.isControlDown()) {
@@ -263,12 +236,18 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         this.updateCursor(e);
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
             return;
         }
 
-        LLHArea topAirspace = this.getTopOwnedAirspaceAtCurrentPosition();
-        LLHAreaControlPoint topControlPoint = this.getTopOwnedControlPointAtCurrentPosition();
+        // If mouse pressed over a LLHArea, we own them all so select it...
+        Object obj = this.getTopPickedObject();
+        LLHArea topAirspace = this.asLLHArea(obj);
+        if (topAirspace != null) {
+            LLHAreaManager.getInstance().selectLLHArea(topAirspace);
+        }
+
+        LLHAreaControlPoint topControlPoint = this.asLLHAreaControlPoint(obj);
 
         if (e.getButton() == MouseEvent.BUTTON1) {
             if (e.isControlDown()) {
@@ -281,7 +260,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
                 this.setActive(true);
                 this.setActiveAction(ADD_CONTROL_POINT);
                 if (topControlPoint == null) {
-                    LLHAreaControlPoint p = this.handleControlPointAdded(this.getEditor().getAirspace(), e);
+                    LLHAreaControlPoint p = this.handleControlPointAdded(this.getLLHAreaLayer().getAirspace(), e);
                     if (p != null) {
                         this.setActiveControlPoint(p);
                     }
@@ -313,7 +292,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         this.updateCursor(e);
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
             return;
         }
 
@@ -335,9 +314,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         }
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
-            //noinspection UnnecessaryReturnStatement
-            return;
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
         }
     }
 
@@ -348,14 +325,12 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         }
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
-            //noinspection UnnecessaryReturnStatement
-            return;
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
         }
     }
 
     protected LLHAreaControlPoint handleControlPointAdded(LLHArea airspace, MouseEvent mouseEvent) {
-        LLHAreaControlPoint controlPoint = this.getEditor().addControlPoint(this.getWorldWindow(), airspace,
+        LLHAreaControlPoint controlPoint = this.getLLHAreaLayer().addControlPoint(this.getWorldWindow(), airspace,
                 mouseEvent.getPoint());
         this.getWorldWindow().redraw();
 
@@ -363,7 +338,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
     }
 
     protected void handleControlPointRemoved(LLHAreaControlPoint controlPoint, MouseEvent mouseEvent) {
-        this.getEditor().removeControlPoint(this.getWorldWindow(), controlPoint);
+        this.getLLHAreaLayer().removeControlPoint(this.getWorldWindow(), controlPoint);
     }
 
     //**************************************************************//
@@ -380,7 +355,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         this.updateCursor(e);
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
             return;
         }
 
@@ -389,7 +364,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
                 if (this.getActiveControlPoint() != null) {
                     this.handleControlPointDragged(this.getActiveControlPoint(), e, lastMousePoint);
                 } else if (this.getActiveAirspace() != null) {
-                    this.handleAirspaceDragged(this.getActiveAirspace(), e, lastMousePoint);
+                    this.handleLLHAreaDragged(this.getActiveAirspace(), e, lastMousePoint);
                 }
                 e.consume();
             }
@@ -406,7 +381,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         this.updateCursor(e);
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
             //noinspection UnnecessaryReturnStatement
             return;
         }
@@ -415,27 +390,27 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
     protected void handleControlPointDragged(LLHAreaControlPoint controlPoint, MouseEvent e, Point lastMousePoint) {
         if (e.isShiftDown()) {
             this.setActiveAction(RESIZE_AIRSPACE);
-            this.getEditor().resizeAtControlPoint(this.getWorldWindow(), controlPoint, e.getPoint(), lastMousePoint);
+            this.getLLHAreaLayer().resizeAtControlPoint(this.getWorldWindow(), controlPoint, e.getPoint(), lastMousePoint);
         } else {
             this.setActiveAction(MOVE_CONTROL_POINT);
-            this.getEditor().moveControlPoint(this.getWorldWindow(), controlPoint, e.getPoint(), lastMousePoint);
+            this.getLLHAreaLayer().moveControlPoint(this.getWorldWindow(), controlPoint, e.getPoint(), lastMousePoint);
         }
     }
 
-    protected void handleAirspaceDragged(LLHArea airspace, MouseEvent e, Point lastMousePoint) {
+    protected void handleLLHAreaDragged(LLHArea area, MouseEvent e, Point lastMousePoint) {
         if (e.isShiftDown()) {
             this.setActiveAction(MOVE_AIRSPACE_VERTICALLY);
-            this.getEditor().moveAirspaceVertically(this.getWorldWindow(), airspace, e.getPoint(), lastMousePoint);
+            this.getLLHAreaLayer().moveAirspaceVertically(this.getWorldWindow(), area, e.getPoint(), lastMousePoint);
         } else {
             this.setActiveAction(MOVE_AIRSPACE_LATERALLY);
-            this.getEditor().moveAirspaceLaterally(this.getWorldWindow(), airspace, e.getPoint(), lastMousePoint);
+            this.getLLHAreaLayer().moveAirspaceLaterally(this.getWorldWindow(), area, e.getPoint(), lastMousePoint);
         }
     }
 
     //**************************************************************//
     //********************  Action/Cursor Pairing  *****************//
     //**************************************************************//
-    protected void setupActionCursorMap() {
+    private void setupActionCursorMap() {
         // TODO: find more suitable cursors for the remove control point action, and the move vertically action.
         this.getActionCursorMap().put(MOVE_AIRSPACE_LATERALLY, Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
         this.getActionCursorMap().put(MOVE_AIRSPACE_VERTICALLY, Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR));
@@ -466,7 +441,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         }
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getEditor() == null || !this.getEditor().isArmed()) {
+        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
             return null;
         }
 
@@ -475,8 +450,9 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
     }
 
     protected String getPotentialActionFor(InputEvent e) {
-        LLHArea topAirspace = this.getTopOwnedAirspaceAtCurrentPosition();
-        LLHAreaControlPoint topControlPoint = this.getTopOwnedControlPointAtCurrentPosition();
+        Object obj = this.getTopPickedObject();
+        LLHArea area = this.asLLHArea(obj);
+        LLHAreaControlPoint topControlPoint = this.asLLHAreaControlPoint(obj);
 
         if (e.isAltDown()) {
             if (topControlPoint == null) {
@@ -489,13 +465,13 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         } else if (e.isShiftDown()) {
             if (topControlPoint != null) {
                 return RESIZE_AIRSPACE;
-            } else if (topAirspace != null) {
+            } else if (area != null) {
                 return MOVE_AIRSPACE_VERTICALLY;
             }
         } else {
             if (topControlPoint != null) {
                 return MOVE_CONTROL_POINT;
-            } else if (topAirspace != null) {
+            } else if (area != null) {
                 return MOVE_AIRSPACE_LATERALLY;
             }
         }

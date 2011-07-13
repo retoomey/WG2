@@ -1,12 +1,9 @@
 package org.wdssii.gui.volumes;
 
-import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
-import gov.nasa.worldwind.render.airspaces.Airspace;
 import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
-import gov.nasa.worldwind.render.airspaces.ScreenSizeDetailLevel;
 import gov.nasa.worldwind.util.*;
 
 import javax.media.opengl.GL;
@@ -32,22 +29,22 @@ import java.util.*;
  */
 public class LLHAreaSlice extends LLHArea {
 
-    /** The resolution of the vslice */
+    /** The number of rows or altitudes of the VSlice */
     public static final int myNumRows = 100;  //50
+    
+    /** The number of cols or change in Lat/Lon */
     public static final int myNumCols = 100; //100
+    
     private VolumeSliceInput myCurrentGrid = null;
     private List<LatLon> locations = new ArrayList<LatLon>();
     private int subdivisions = 1;  // power of 2 breakdown of side..
-    private VSliceRenderer myRenderer = new VSliceRenderer(this);
+    private VSliceRenderer myRenderer = new VSliceRenderer();
     private ProductVolume myVolumeProduct = null;
     private VolumeSlice3DOutput myGeometry = new VolumeSlice3DOutput();
     private double myAltitude0 = 0;
-    private double myAltitude1 = 100;
+    private double myAltitude1 = 50;
     private String myCacheKey = "";
 
-    // A counter increased whenever vslice data changes.  Used
-    // by charts to determine if data has changed
-    //  private int myIterationCount = 0;
     public int getNumRows() {
         return myNumRows;
     }
@@ -82,50 +79,15 @@ public class LLHAreaSlice extends LLHArea {
 
     public LLHAreaSlice(AirspaceAttributes attributes) {
         super(attributes);
-        this.makeDefaultDetailLevels();
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(myProductFollow, getUseVirtualVolume());
         myVolumeProduct = volume;
     }
 
     public LLHAreaSlice() {
-        this.makeDefaultDetailLevels();
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(myProductFollow, getUseVirtualVolume());
         myVolumeProduct = volume;
     }
-
-    private void makeDefaultDetailLevels() {
-        List<LLHAreaDetailLevel> levels = new ArrayList<LLHAreaDetailLevel>();
-        double[] ramp = ScreenSizeDetailLevel.computeDefaultScreenSizeRamp(5);
-
-        LLHAreaDetailLevel level;
-        level = new LLHAreaScreenSizeDetailLevel(ramp[0], "Detail-Level-0");
-        level.setValue(SUBDIVISIONS, 4);
-        level.setValue(DISABLE_TERRAIN_CONFORMANCE, false);
-        levels.add(level);
-
-        level = new LLHAreaScreenSizeDetailLevel(ramp[1], "Detail-Level-1");
-        level.setValue(SUBDIVISIONS, 3);
-        level.setValue(DISABLE_TERRAIN_CONFORMANCE, false);
-        levels.add(level);
-
-        level = new LLHAreaScreenSizeDetailLevel(ramp[2], "Detail-Level-2");
-        level.setValue(SUBDIVISIONS, 2);
-        level.setValue(DISABLE_TERRAIN_CONFORMANCE, false);
-        levels.add(level);
-
-        level = new LLHAreaScreenSizeDetailLevel(ramp[3], "Detail-Level-3");
-        level.setValue(SUBDIVISIONS, 1);
-        level.setValue(DISABLE_TERRAIN_CONFORMANCE, false);
-        levels.add(level);
-
-        level = new LLHAreaScreenSizeDetailLevel(ramp[4], "Detail-Level-4");
-        level.setValue(SUBDIVISIONS, 0);
-        level.setValue(DISABLE_TERRAIN_CONFORMANCE, true);
-        levels.add(level);
-
-        this.setDetailLevels(levels);
-    }
-
+    
     public List<LatLon> getLocations() {
         return Collections.unmodifiableList(this.locations);
     }
@@ -157,17 +119,6 @@ public class LLHAreaSlice extends LLHArea {
 
     @Override
     protected void doMoveTo(Position oldRef, Position newRef) {
-        if (oldRef == null) {
-            String message = "nullValue.OldRefIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (newRef == null) {
-            String message = "nullValue.NewRefIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         super.doMoveTo(oldRef, newRef);
 
         int count = this.locations.size();
@@ -221,146 +172,44 @@ public class LLHAreaSlice extends LLHArea {
      * @param edgeFlags
      */
     protected void doRenderGeometry(DrawContext dc, String drawStyle, List<LatLon> locations, List<Boolean> edgeFlags) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (locations == null) {
-            String message = "nullValue.LocationsIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        if (locations.size() == 0) {
+        if (locations.isEmpty()) {
             return;
         }
 
+        // Get the altitudes
         double[] altitudes = this.getAltitudes(dc.getVerticalExaggeration());
         myAltitude0 = altitudes[0];  // Hack
         myAltitude1 = altitudes[1];
 
-        boolean[] terrainConformant = this.isTerrainConforming();
         int currentDivisions = this.subdivisions;
 
-        if (this.getAltitudeDatum()[0].equals(AVKey.ABOVE_GROUND_REFERENCE)
-                || this.getAltitudeDatum()[1].equals(AVKey.ABOVE_GROUND_REFERENCE)) {
-            this.adjustForGroundReference(dc, terrainConformant, altitudes);
-        }
-
-        if (this.isEnableLevelOfDetail()) {
-            LLHAreaDetailLevel level = this.computeDetailLevel(dc);
-
-            Object o = level.getValue(SUBDIVISIONS);
-            if (o != null && o instanceof Integer) {
-                currentDivisions = (Integer) o;
-            }
-
-            o = level.getValue(DISABLE_TERRAIN_CONFORMANCE);
-            if (o != null && o instanceof Boolean && (Boolean) o) {
-                terrainConformant[0] = terrainConformant[1] = false;
-            }
-        }
-
         Vec4 referenceCenter = this.computeReferenceCenter(dc);
-        // GOOP this.setExpiryTime(this.nextExpiryTime(dc, terrainConformant));
-        this.clearElevationMap();
 
         GL gl = dc.getGL();
 
-        dc.getView().pushReferenceCenter(dc, referenceCenter);
+        if (drawStyle.equals("fill")) {
 
-        // Ok worldwind gets the geometry twice, which is silly since it's the same each time.
-        // Just get geometry once per draw pass...
-        dc.getView().popReferenceCenter(dc);
+            // Shouldn't this code be in the renderer???
+            gl.glPushAttrib(GL.GL_POLYGON_BIT);
+            gl.glEnable(GL.GL_CULL_FACE);
+            gl.glFrontFace(GL.GL_CCW);
 
-        if (Airspace.DRAW_STYLE_FILL.equals(drawStyle)) {
-            if (!this.isAirspaceCollapsed()) {
-                gl.glPushAttrib(GL.GL_POLYGON_BIT);
-                gl.glEnable(GL.GL_CULL_FACE);
-                gl.glFrontFace(GL.GL_CCW);
-            }
-
-            // The 'old' polygon fill we don't want... it's private we couldn't override it
-
-            //this.drawPolygonFill(dc, locations, edgeFlags, altitudes, terrainConformant, enableCaps, subdivisions,
-            //   referenceCenter);
-            this.drawVSlice(dc, locations, edgeFlags, altitudes, terrainConformant, currentDivisions,
+            this.drawVSlice(dc, locations, edgeFlags, altitudes, currentDivisions,
                     referenceCenter);
 
-            if (!this.isAirspaceCollapsed()) {
-                gl.glPopAttrib();
-            }
-        } else if (Airspace.DRAW_STYLE_OUTLINE.equals(drawStyle)) {
-            //   this.drawPolygonOutline(dc, locations, edgeFlags, altitudes, terrainConformant, enableCaps, subdivisions,
-            //       referenceCenter);
+            gl.glPopAttrib();
+
         }
-
-        //  dc.getView().popReferenceCenter(dc);
-    }
-
-    protected void adjustForGroundReference(DrawContext dc, boolean[] terrainConformant, double[] altitudes) {
-        LatLon groundRef = this.getGroundReference();
-
-        if (groundRef == null && this.getLocationList().size() > 0) {
-            groundRef = this.getLocationList().get(0);
-        }
-
-        this.adjustForGroundReference(dc, terrainConformant, altitudes, groundRef); // no-op if groudRef is null
     }
 
     protected int computeCartesianPolygon(DrawContext dc, List<? extends LatLon> locations, List<Boolean> edgeFlags,
             Vec4[] points, Boolean[] edgeFlagArray, Matrix[] transform) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (locations == null) {
-            String message = "nullValue.LocationsIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (points == null) {
-            String message = "nullValue.LocationsIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (points.length < (1 + locations.size())) {
-            String message = Logging.getMessage("generic.ArrayInvalidLength",
-                    "points.length < " + (1 + locations.size()));
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (transform == null) {
-            String message = "nullValue.TransformIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (transform.length < 1) {
-            String message = Logging.getMessage("generic.ArrayInvalidLength",
-                    "transform.length < 1");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         Globe globe = dc.getGlobe();
 
         // Allocate space to hold the list of locations and location vertices.
         int locationCount = locations.size();
 
         // Compute the cartesian points for each location.
-        // System.out.println ("Location count is "+locationCount);
         for (int i = 0; i < locationCount; i++) {
             LatLon ll = locations.get(i);
             points[i] = globe.computePointFromPosition(ll.getLatitude(), ll.getLongitude(), 0.0);
@@ -459,14 +308,6 @@ public class LLHAreaSlice extends LLHArea {
         // FIXME: this is wrong....should be the filters for the product we are following....this
         // is the top product.....
         FilterList f = CommandManager.getInstance().getFilterList(getProductFollow());
-        /*  FilterList f = null;
-        ProductHandlerList phl = CommandManager.getInstance().getProductOrderedSet();
-        if (phl != null){
-        ProductHandler tph = phl.getTopProductHandler();
-        if (tph != null){
-        f = tph.getFList();
-        }
-        } */
 
         // Add the key of the current filter list...
         String newKey = getKey(myProductFollow, getUseVirtualVolume(), f, true);
@@ -480,7 +321,7 @@ public class LLHAreaSlice extends LLHArea {
      * @return
      */
     private VolumeSlice3DOutput getVSliceGeometry(DrawContext dc, List<LatLon> locations, List<Boolean> edgeFlags,
-            double[] altitudes, boolean[] terrainConformant,
+            double[] altitudes,
             int currentSubdivisions) {
         String newKey = getNewCacheKey();
         if (newKey.compareTo(myCacheKey) == 0) {
@@ -489,7 +330,7 @@ public class LLHAreaSlice extends LLHArea {
 
         // System.out.println("_------------>>> REGENERATE VSLICE!!!");
         myCacheKey = newKey;
-        this.makeVSlice(dc, locations, edgeFlags, altitudes, terrainConformant, currentSubdivisions, myGeometry);
+        this.makeVSlice(dc, locations, edgeFlags, altitudes, currentSubdivisions, myGeometry);
 
         // Fire changed event?  Is this enough?
         CommandManager.getInstance().executeCommand(new LLHAreaCommand(), true);
@@ -498,14 +339,13 @@ public class LLHAreaSlice extends LLHArea {
 
     /** New routine, draw a vslice  */
     private void drawVSlice(DrawContext dc, List<LatLon> locations, List<Boolean> edgeFlags,
-            double[] altitudes, boolean[] terrainConformant, int currentDivisions,
+            double[] altitudes, int currentDivisions,
             Vec4 referenceCenter) {
-        VolumeSlice3DOutput geom = this.getVSliceGeometry(dc, locations, edgeFlags, altitudes, terrainConformant,
+        VolumeSlice3DOutput geom = this.getVSliceGeometry(dc, locations, edgeFlags, altitudes,
                 currentDivisions);
 
         myRenderer.drawVSlice(dc, geom);
 
-        // this.getRenderer().drawGeometry(dc, geom.getFillIndexGeometry(), geom.getVertexGeometry());
     }
 
     public LatLon getLeftLocation() {
@@ -549,19 +389,15 @@ public class LLHAreaSlice extends LLHArea {
     }
 
     private void makeVSlice(DrawContext dc, List<LatLon> locations, List<Boolean> edgeFlags,
-            double[] altitudes, boolean[] terrainConformant,
+            double[] altitudes,
             int currentSubdivisions,
             VolumeSlice3DOutput dest) {
-        if (locations.size() == 0) {
+        if (locations.isEmpty()) {
             return;
         }
 
-        // VolumeProduct volume = ProductManager.getCurrentVolumeProduct(myUseVirtual);
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(getProductFollow(), getUseVirtualVolume());
-
-
         myVolumeProduct = volume;
-        //  dc.setVerticalExaggeration(10.0);
 
         // VSlice only.  Two locations, the points on the bottom. Make sure the east one is right of the west one...
         // FIXME: duplicate code with getLeftLocation/getRightLocation
@@ -588,13 +424,10 @@ public class LLHAreaSlice extends LLHArea {
                 aList = tph.getFList();
             }
         }
-        // Prep each filter for the volume...
-        //  if (list != null){
-        // 	for(DataFilter d:list){
-        // 		d.prepFilterForVolume(volume);
-        // 	}
-        //}
-        if (aList == null){ return; }
+
+        if (aList == null) {
+            return;
+        }
         aList.prepForVolume(volume);
 
         // For dynamic sizing outlines...I might need this code for 'smart' legend over vslice, so
@@ -606,17 +439,6 @@ public class LLHAreaSlice extends LLHArea {
         Matrix[] polyTransform = new Matrix[1];
         int polyCount = this.computeCartesianPolygon(dc, locations, edgeFlags, polyPoints, polyEdgeFlags,
                 polyTransform);
-
-        // System.out.println("polyCount is "+polyCount);
-
-        // Compute the winding order of the planar cartesian points. If the order is not counter-clockwise, then
-        // reverse the locations and points ordering.
-        //      int winding = gb.computePolygonWindingOrder2(0, polyCount, polyPoints);
-        //      if (winding != GeometryBuilder.COUNTER_CLOCKWISE)
-        //      {
-        //          gb.reversePoints(0, polyCount, polyPoints);
-        //          gb.reversePoints(0, polyCount, polyEdgeFlags);
-        //      }
 
         // Copy from polyVertices into polyPoints?  why???
         float[] polyVertices = new float[3 * polyCount];
@@ -639,14 +461,10 @@ public class LLHAreaSlice extends LLHArea {
         int[] fillIndices = new int[fillIndexCount];
         int[] outlineIndices = new int[outlineIndexCount];
         float[] vertices = new float[3 * vertexCount];
-        //  float[] normals = new float[3 * vertexCount];
-
-        // System.out.println("Vertex count is "+vertexCount+", polycount "+polyCount);
 
         int fillIndexPos = 0;
         int outlineIndexPos = 0;
         int vertexPos = 0;
-        // int colorPos = 0;
 
         // make edge
         gb.setOrientation(GeometryBuilder.OUTSIDE);
@@ -695,8 +513,9 @@ public class LLHAreaSlice extends LLHArea {
                 Position pos2 = globe.computePositionFromPoint(vec);
 
                 for (int j = 0; j < 2; j++) {
-                    vec = this.computePointFromPosition(dc, pos2.getLatitude(), pos2.getLongitude(), altitudes[j],
-                            terrainConformant[j]);
+                    // vec = this.computePointFromPosition(dc, pos2.getLatitude(), pos2.getLongitude(), altitudes[j],
+                    //        terrainConformant[j]);
+                    vec = globe.computePointFromPosition(pos2.getLatitude(), pos2.getLongitude(), altitudes[j]);
 
                     pindex = 2 * p + j;
                     pindex = 3 * (vertexPos + pindex);
@@ -758,12 +577,6 @@ public class LLHAreaSlice extends LLHArea {
      */
     protected Vec4 computePoint(Globe globe, Angle latitude, Angle longitude, double elevation,
             boolean terrainConformant) {
-        //   double newElevation = elevation;
-
-        //   if (terrainConformant)
-        //   {
-        //        newElevation += this.computeElevationAt(dc, latitude, longitude);
-        //   }
 
         return globe.computePointFromPosition(latitude, longitude, elevation);
     }
@@ -837,27 +650,4 @@ public class LLHAreaSlice extends LLHArea {
             indices[index] = pos + 1;
         }
     }
-    //**************************************************************//
-    //********************  END Geometry Rendering  ****************//
-    //**************************************************************//
-/*
-    @Override
-    protected void doGetRestorableState(RestorableSupport rs, RestorableSupport.StateObject context)
-    {
-    super.doGetRestorableState(rs, context);
-    
-    if (this.locations != null)
-    rs.addStateValueAsLatLonList(context, "locations", this.locations);
-    }
-    
-    @Override
-    protected void doRestoreState(RestorableSupport rs, RestorableSupport.StateObject context)
-    {
-    super.doRestoreState(rs, context);
-    
-    ArrayList<LatLon> locations = rs.getStateValueAsLatLonList(context, "locations");
-    if (locations != null)
-    this.setLocations(locations);
-    }
-     */
 }

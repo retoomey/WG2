@@ -55,6 +55,7 @@ public class LLHAreaManager implements Singleton {
         public boolean onlyMode;
         public String message;
     };
+    
     /** The list of volumes in the display */
     private ArrayList<VolumeTableData> myHandlerList;
     /** The current selected volume */
@@ -146,12 +147,7 @@ public class LLHAreaManager implements Singleton {
             // Create an editor controller if none exists (only do once)
             // FIXME: probably should be done on startup somewhere
             if (editorController == null) {
-                this.editorController = new LLHAreaLayerController();
-
-                // The ordering is important here; we want first pass at mouse events.
-                this.editorController.setWorldWindow(world);
-
-                this.editorController.setEditor(layer);
+                this.editorController = new LLHAreaLayerController(world, layer);
             }
 
             // Since theData is a NEW volume, select will do the GUI update as well
@@ -170,54 +166,23 @@ public class LLHAreaManager implements Singleton {
 
         // If it's a different volume than selected...
         if (theVolume != mySelectedVolume) {
-            //System.out.println("Select volume called "+theVolume);
-
+            mySelectedVolume = theVolume;
             WorldWindow world = getWorld(); // What if world is different now???
-
-            /*
-             * Old 'different' layer editor...we merged it into one layer...
-            // Remove any current selected volume from the editor layer
-            if (mySelectedVolume != null){
-            mySelectedVolume.editor.setArmed(false);
-            removeEditorFromLayers(world, mySelectedVolume.editor);
-            }
-            
-            // Update the current selected in the editor layer....
-            mySelectedVolume = theVolume;
-            editorController.setEditor(theVolume.editor);
-            theVolume.editor.setArmed(true);
-            addEditorToLayers(world, theVolume.editor);
-             */
-            mySelectedVolume = theVolume;
-            // Show it.
             world.redraw();
 
             // Whenever selection changes, make sure the GUI list is synced
             updateLLHAreaView();
         }
     }
-
-    /** Remove volume editor to the worldwind layers.  This turns off its drawing controls */
-    /*public void removeEditorFromLayers(WorldWindowGLCanvas world, LLHAreaEditor editor)
-    {
-    // Place it before compass layer for the moment
-    LayerList layers = world.getModel().getLayers();
-    layers.remove(editor);
-    }*/
-    /** Add volume editor to the worldwind layers.  This allows it to draw its controls in the window */
-    /*public void addEditorToLayers(WorldWindowGLCanvas world, LLHAreaEditor editor)
-    {
-    // Place it before compass layer for the moment
-    LayerList layers = world.getModel().getLayers();
-    int compassPosition = 0;
-    
-    for (Layer l : layers)
-    {
-    if (l instanceof PlaceNameLayer)
-    compassPosition = layers.indexOf(l);
+    public void selectLLHArea(LLHArea area){
+        for(VolumeTableData v: myHandlerList){
+            if (v.airspace == area){
+                selectVolume(v);
+                break;
+            }
+        }
     }
-    layers.add(compassPosition, editor);
-    }*/
+
     /** Get the volume layer we use.  Currently only one earthball */
     private LLHAreaLayer getVolumeLayer() {
         LLHAreaLayer world = null;

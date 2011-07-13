@@ -22,7 +22,12 @@ public abstract class LLHAreaFactory {
         public String myKeyName;
         public String myToolTip;
     };
+    
+    /** Default LLHArea height in meters */
+    public final double DEFAULT_HEIGHT_METERS = 15000.0;
+    
     public final double DEFAULT_SHAPE_SIZE_METERS = 200000.0;
+    
     /** The internal name of this object.  Displayed in a GUI list */
     private String myName = null;
 

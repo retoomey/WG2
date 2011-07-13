@@ -29,7 +29,6 @@ import gov.nasa.worldwind.layers.AbstractLayer;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.*;
-//import gov.nasa.worldwind.render.airspaces.Airspace;
 import gov.nasa.worldwind.render.airspaces.Geometry;
 import gov.nasa.worldwind.render.airspaces.editor.AirspaceEditorUtil;
 import gov.nasa.worldwind.util.Logging;
@@ -81,14 +80,13 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     // Editor fields...
     private boolean armed = true;
     private boolean useRubberBand;
-    private boolean keepControlPointsAboveTerrain;
     private LLHAreaControlPointRenderer controlPointRenderer;
     private EventListenerList eventListeners = new EventListenerList();
     // List of control points from the last call to draw().
     private ArrayList<LLHAreaControlPoint> currentControlPoints = new ArrayList<LLHAreaControlPoint>();
     // Airspace altitude constants.
-    protected static final int LOWER_ALTITUDE = AirspaceEditorUtil.LOWER_ALTITUDE;
-    protected static final int UPPER_ALTITUDE = AirspaceEditorUtil.UPPER_ALTITUDE;
+    protected static final int LOWER_ALTITUDE = 0;
+    protected static final int UPPER_ALTITUDE = 1;
     private static final double DEFAULT_POLYGON_HEIGHT = 10.0;
 
     @Override
@@ -134,7 +132,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         // Editor stuff
         this.armed = true;
         this.useRubberBand = true;
-        this.keepControlPointsAboveTerrain = true;
         this.controlPointRenderer = new BasicLLHAreaControlPointRenderer();
     }
 
@@ -309,20 +306,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     protected void drawOrdered(DrawContext dc, Iterable<? extends LLHArea> llhAreas, Layer layer) {
-        /* if (dc == null)
-        {
-        String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-        Logging.logger().severe(msg);
-        throw new IllegalArgumentException(msg);
-        }
-        
-        if (airspaces == null)
-        {
-        String msg = Logging.getMessage("nullValue.AirspaceIterableIsNull");
-        Logging.logger().severe(msg);
-        throw new IllegalArgumentException(msg);
-        }
-         */
         for (LLHArea a : llhAreas) {
             double eyeDistance = this.computeDistanceFromEye(dc, a);
             OrderedLLHArea orderedAirspace = new OrderedLLHArea(this, a, layer, eyeDistance);
@@ -363,18 +346,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         protected double eyeDistance;
 
         public OrderedLLHArea(LLHAreaLayer renderer, LLHArea airspace, Layer layer, double eyeDistance) {
-            if (renderer == null) {
-                String msg = Logging.getMessage("nullValue.RendererIsNull");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
-            if (airspace == null) {
-                String msg = Logging.getMessage("nullValue.AirspaceIsNull");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
             this.renderer = renderer;
             this.airspace = airspace;
             this.layer = layer;
@@ -400,30 +371,12 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
         @Override
         public void render(DrawContext dc) {
-            if (dc == null) {
-                String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
             // The render method does not bind any pickable objects.
             this.draw(dc, null);
         }
 
         @Override
         public void pick(DrawContext dc, Point pickPoint) {
-            if (dc == null) {
-                String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
-            if (pickPoint == null) {
-                String msg = Logging.getMessage("nullValue.PickPoint");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
             PickSupport pickSupport = this.getRenderer().getPickSupport();
             pickSupport.beginPicking(dc);
             try {
@@ -444,17 +397,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     protected void drawOrderedAirspace(DrawContext dc, OrderedLLHArea orderedAirspace, PickSupport pickSupport) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (orderedAirspace == null) {
-            String msg = Logging.getMessage("nullValue.OrderedAirspace");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
 
         this.beginRendering(dc);
         try {
@@ -466,12 +408,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     protected void drawOrderedAirspaces(DrawContext dc, PickSupport pickSupport) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         // Batch render as many Airspaces as we can to save OpenGL state switching.
         // OrderedRenderable top = dc.getOrderedRenderables().peek();
         OrderedRenderable top = dc.getOrderedSurfaceRenderables().peek();
@@ -498,18 +434,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //********************  Airspace Rendering  ********************//
     //**************************************************************//
     protected void drawAirspaces(DrawContext dc, Iterable<? extends LLHArea> airspaces, PickSupport pickSupport) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (airspaces == null) {
-            String msg = Logging.getMessage("nullValue.AirspaceIterableIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         for (LLHArea airspace : airspaces) {
             try {
                 if (airspace != null) {
@@ -523,18 +447,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     protected void drawAirspace(DrawContext dc, LLHArea airspace, PickSupport pickSupport) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        if (airspace == null) {
-            String message = Logging.getMessage("nullValue.AirspaceIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         try {
             if (pickSupport != null) {
                 this.bindPickableObject(dc, airspace, pickSupport);
@@ -551,9 +463,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         if (!airspace.isVisible()) {
             return;
         }
-
-        //      if (!airspace.isAirspaceVisible(dc))
-        //          return;
 
         this.drawAirspaceShape(dc, airspace);
 
@@ -636,7 +545,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             airspace.getAttributes().applyInterior(dc, this.isEnableLighting());
         }
 
-        airspace.renderGeometry(dc, DRAW_STYLE_FILL);
+        airspace.renderGeometry(dc, "fill");
     }
 
     protected void drawAirspaceOutline(DrawContext dc, LLHArea airspace) {
@@ -659,20 +568,10 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             airspace.getAttributes().applyOutline(dc, false);
         }
 
-        airspace.renderGeometry(dc, DRAW_STYLE_OUTLINE);
+        airspace.renderGeometry(dc, "outline");
     }
 
     protected void beginRendering(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
 
         GL gl = dc.getGL();
 
@@ -756,26 +655,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //********************  Geometry Rendering  ********************//
     //**************************************************************//
     public void drawGeometry(DrawContext dc, int mode, int count, int type, Buffer elementBuffer, Geometry geom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (elementBuffer == null) {
-            String message = "nullValue.ElementBufferIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom == null) {
-            String message = "nullValue.AirspaceGeometryIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom.getBuffer(VERTEX) == null) {
-            String message = "nullValue.VertexBufferIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
 
         GL gl = dc.getGL();
 
@@ -821,21 +700,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     public void drawGeometry(DrawContext dc, Geometry geom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom == null) {
-            String message = "nullValue.AirspaceGeometryIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom.getBuffer(ELEMENT) == null) {
-            String message = "nullValue.ElementBufferIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
 
         int mode, count, type;
         Buffer elementBuffer;
@@ -849,27 +713,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     public void drawGeometry(DrawContext dc, Geometry elementGeom, Geometry vertexGeom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (elementGeom == null) {
-            String message = "nullValue.ElementGeometryIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (elementGeom.getBuffer(ELEMENT) == null) {
-            String message = "nullValue.ElementBufferIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (vertexGeom == null) {
-            String message = "nullValue.VertexGeometryIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         int mode, count, type;
         Buffer elementBuffer;
 
@@ -885,16 +728,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //********************  Rendering Support  *********************//
     //**************************************************************//
     public void setBlending(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
 
         GL gl = dc.getGL();
 
@@ -923,16 +756,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     public void setLighting(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
 
         GL gl = dc.getGL();
 
@@ -946,12 +769,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     protected static void setLightModel(GL gl) {
-        if (gl == null) {
-            String message = Logging.getMessage("nullValue.GLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         float[] modelAmbient = new float[4];
         modelAmbient[0] = 1.0f;
         modelAmbient[1] = 1.0f;
@@ -964,27 +781,10 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     protected static void setShadeModel(GL gl) {
-        if (gl == null) {
-            String message = Logging.getMessage("nullValue.GLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         gl.glShadeModel(GL.GL_SMOOTH);
     }
 
     protected static void setLightMaterial(GL gl, int light, Material material) {
-        if (gl == null) {
-            String message = Logging.getMessage("nullValue.GLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (material == null) {
-            String message = Logging.getMessage("nullValue.MaterialIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         // The alpha value at a vertex is taken only from the diffuse material's alpha channel, without any
         // lighting computations applied. Therefore we specify alpha=0 for all lighting ambient, specular and
         // emission values. This will have no effect on material alpha.
@@ -1002,16 +802,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     protected static void setLightDirection(GL gl, int light, Vec4 direction) {
-        if (gl == null) {
-            String message = Logging.getMessage("nullValue.GLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (direction == null) {
-            String message = Logging.getMessage("nullValue.DirectionIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
 
         // Setup the light as a directional light coming from the viewpoint. This requires two state changes
         // (a) Set the light position as direction x, y, z, and set the w-component to 0, which tells OpenGL this is
@@ -1036,16 +826,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     protected void logGeometryStatistics(DrawContext dc, Geometry geom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom == null) {
-            String message = Logging.getMessage("nullValue.GeometryIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
 
         int geomCount = 0;
         int vertexCount = 0;
@@ -1086,25 +866,11 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         this.useRubberBand = state;
     }
 
-    public boolean isKeepControlPointsAboveTerrain() {
-        return this.keepControlPointsAboveTerrain;
-    }
-
-    public void setKeepControlPointsAboveTerrain(boolean state) {
-        this.keepControlPointsAboveTerrain = state;
-    }
-
     public LLHAreaControlPointRenderer getControlPointRenderer() {
         return this.controlPointRenderer;
     }
 
     public void setControlPointRenderer(LLHAreaControlPointRenderer renderer) {
-        if (renderer == null) {
-            String message = Logging.getMessage("nullValue.RendererIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         this.controlPointRenderer = renderer;
     }
 
@@ -1123,24 +889,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //**************************************************************//
     //********************  Control Point Rendering  ***************//
     //**************************************************************//
-
-    /* @Override
-    protected void doRender(DrawContext dc)
-    {
-    if (!this.isArmed())
-    return;
-    
-    this.draw(dc, null);
-    }*/
-    /*@Override
-    protected void doPick(DrawContext dc, Point point)
-    {
-    if (!this.isArmed())
-    return;
-    
-    this.draw(dc, point);
-    }
-     */
     protected void drawControlPoints(DrawContext dc, Point pickPoint) {
 
         this.getCurrentControlPoints().clear();
@@ -1212,8 +960,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             return;
         }
 
-        // GOOP
-        //  if (this != controlPoint.getEditor() || this.getAirspace() != controlPoint.getAirspace())
         if (this.getAirspace() != controlPoint.getAirspace()) {
             return;
         }
@@ -1228,8 +974,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             return;
         }
 
-        // GOOP
-        // if (this != controlPoint.getEditor() || this.getAirspace() != controlPoint.getAirspace())
         if (this.getAirspace() != controlPoint.getAirspace()) {
             return;
         }
@@ -1243,9 +987,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         if (this.getAirspace() == null) {
             return;
         }
-
-        // GOOP
-        // if (this != controlPoint.getEditor() || this.getAirspace() != controlPoint.getAirspace())
         if (this.getAirspace() != controlPoint.getAirspace()) {
             return;
         }
@@ -1316,13 +1057,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
         // Convert the reference position into a cartesian point. This assumes that the reference elevation is defined
         // by the airspace's lower altitude.
-        Vec4 refPoint = null;
-        if (airspace.isTerrainConforming()[LOWER_ALTITUDE]) {
-            refPoint = wwd.getSceneController().getTerrain().getSurfacePoint(refPos);
-        }
-        if (refPoint == null) {
-            refPoint = globe.computePointFromPosition(refPos);
-        }
+        Vec4 refPoint = globe.computePointFromPosition(refPos);
 
         // Convert back to a position.
         refPos = globe.computePositionFromPoint(refPoint);
@@ -1372,29 +1107,29 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         double elevationChange = previousPos.getElevation() - pos.getElevation();
 
         double[] altitudes = this.getAirspace().getAltitudes();
-        boolean[] terrainConformance = this.getAirspace().isTerrainConforming();
 
-        if (this.isKeepControlPointsAboveTerrain()) {
-            if (terrainConformance[LOWER_ALTITUDE]) {
-                if (altitudes[LOWER_ALTITUDE] + elevationChange < 0.0) {
-                    elevationChange = 0.0 - altitudes[LOWER_ALTITUDE];
-                }
-            } else {
-                double height = computeLowestHeightAboveSurface(
-                        wwd, this.getCurrentControlPoints(), LOWER_ALTITUDE);
-                if (elevationChange <= -height) {
-                    elevationChange = -height;
-                }
-            }
+        // Always keep control points above terran
+        // Note that this trims entire vertical movement
+       if (altitudes[LOWER_ALTITUDE] + elevationChange < 0.0) {
+            elevationChange = 0.0 - altitudes[LOWER_ALTITUDE];
         }
-
         altitudes[LOWER_ALTITUDE] += elevationChange;
         altitudes[UPPER_ALTITUDE] += elevationChange;
+        pinAltitudes(altitudes);
         this.getAirspace().setAltitudes(altitudes[LOWER_ALTITUDE], altitudes[UPPER_ALTITUDE]);
 
         this.fireAirspaceMoved(new LLHAreaEditEvent(wwd, airspace, this));
     }
 
+    public void pinAltitudes(double[] altitudes){
+         if (altitudes[LOWER_ALTITUDE] < 0.0) {
+            altitudes[LOWER_ALTITUDE] = 0.0;
+        }  
+         if(altitudes[UPPER_ALTITUDE] < 0.001){
+             altitudes[UPPER_ALTITUDE] = 0.001;
+         }
+    }
+    
     public static Vec4 nearestPointOnLine(Line source, Line target) {
         // Compute the points on each ray that are closest to one another.
         // Taken from "Mathematics for 3D Game Programming..." by Eric Lengyel, Section 4.1.2.
@@ -1457,17 +1192,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             s = (LLHAreaSlice) (ap);
         }
         return s;
-        // return this.polygon;
-        // 	VolumeTableData d = LLHAreaManager.getInstance().getSelection();
-        // 	if (d != null){
-        // 		d.airspace;
-        // 	}
     }
 
-    // public void setSlice(LLHAreaSlice polygon)
-    //{
-    //    this.polygon = polygon;
-    //}
     //**************************************************************//
     //********************  Control Point Assembly  ****************//
     //**************************************************************//
@@ -1483,14 +1209,9 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         }
 
         int numLocations = this.getSlice().getLocations().size();
-        boolean isCollapsed = this.getSlice().isAirspaceCollapsed();
 
         for (int locationIndex = 0; locationIndex < numLocations; locationIndex++) {
-            // If the polygon is not collapsed, then add the lower altitude control points.
-            if (!isCollapsed) {
-                this.addPolygonControlPoint(dc, locationIndex, LOWER_ALTITUDE);
-            }
-
+            this.addPolygonControlPoint(dc, locationIndex, LOWER_ALTITUDE);
             // Add the upper altitude control points.
             this.addPolygonControlPoint(dc, locationIndex, UPPER_ALTITUDE);
         }
@@ -1499,11 +1220,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     protected void addPolygonControlPoint(DrawContext dc, int locationIndex, int altitudeIndex) {
         LatLon location = this.getSlice().getLocations().get(locationIndex);
         double altitude = this.getSlice().getAltitudes()[altitudeIndex];
-        boolean terrainConforming = this.getSlice().isTerrainConforming()[altitudeIndex];
 
-        Vec4 point = this.getSlice().computePointFromPosition(dc, location.getLatitude(), location.getLongitude(),
-                altitude, terrainConforming);
-
+        Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude);
         LLHAreaControlPoint controlPoint =
                 new BasicLLHAreaControlPoint(this, this.getSlice(), locationIndex, altitudeIndex, point);
 
@@ -1541,11 +1259,11 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         }
 
         Position newPosition = wwd.getModel().getGlobe().computePositionFromPoint(newPoint);
-
-        boolean[] terrainConformance = this.getSlice().isTerrainConforming();
         double[] altitudes = new double[2];
-        altitudes[LOWER_ALTITUDE] = terrainConformance[LOWER_ALTITUDE] ? 0.0 : newPosition.getElevation();
-        altitudes[UPPER_ALTITUDE] = terrainConformance[UPPER_ALTITUDE] ? 0.0 : newPosition.getElevation() + DEFAULT_POLYGON_HEIGHT;
+        altitudes[LOWER_ALTITUDE] = newPosition.getElevation();
+        altitudes[UPPER_ALTITUDE] = newPosition.getElevation() + DEFAULT_POLYGON_HEIGHT;
+        pinAltitudes(altitudes);
+
         this.getSlice().setAltitudes(altitudes[LOWER_ALTITUDE], altitudes[UPPER_ALTITUDE]);
 
         ArrayList<LatLon> locationList = new ArrayList<LatLon>();
@@ -1655,18 +1373,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
     public static Vec4 intersectAirspaceAltitudeAt(WorldWindow wwd, LLHArea airspace, int altitudeIndex, Line ray) {
         double elevation = airspace.getAltitudes()[altitudeIndex];
-
-        boolean terrainConformant = airspace.isTerrainConforming()[altitudeIndex];
-        if (terrainConformant) {
-            Intersection[] intersections = wwd.getSceneController().getTerrain().intersect(ray);
-            if (intersections != null) {
-                Vec4 point = nearestIntersectionPoint(ray, intersections);
-                if (point != null) {
-                    Position pos = wwd.getModel().getGlobe().computePositionFromPoint(point);
-                    elevation += pos.getElevation();
-                }
-            }
-        }
 
         return intersectGlobeAt(wwd, elevation, ray);
     }
@@ -1834,29 +1540,9 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         Position previousPos = wwd.getModel().getGlobe().computePositionFromPoint(previousPointOnLine);
         double elevationChange = previousPos.getElevation() - pos.getElevation();
 
-        int index;
-        if (this.getSlice().isAirspaceCollapsed()) {
-            index = (elevationChange < 0) ? LOWER_ALTITUDE : UPPER_ALTITUDE;
-        } else {
-            index = controlPoint.getAltitudeIndex();
-        }
+        int index = controlPoint.getAltitudeIndex();
 
         double[] altitudes = controlPoint.getAirspace().getAltitudes();
-        boolean[] terrainConformance = controlPoint.getAirspace().isTerrainConforming();
-
-        if (this.isKeepControlPointsAboveTerrain()) {
-            if (terrainConformance[index]) {
-                if (altitudes[index] + elevationChange < 0.0) {
-                    elevationChange = -altitudes[index];
-                }
-            } else {
-                double height = computeLowestHeightAboveSurface(
-                        wwd, this.getCurrentControlPoints(), index);
-                if (elevationChange <= -height) {
-                    elevationChange = -height;
-                }
-            }
-        }
 
         double d = computeMinimumDistanceBetweenAltitudes(this.getSlice().getLocations().size(),
                 this.getCurrentControlPoints());
@@ -1871,6 +1557,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         }
 
         altitudes[index] += elevationChange;
+        pinAltitudes(altitudes);
+        
         controlPoint.getAirspace().setAltitudes(altitudes[LOWER_ALTITUDE], altitudes[UPPER_ALTITUDE]);
 
         LLHAreaEditEvent editEvent = new LLHAreaEditEvent(wwd, controlPoint.getAirspace(), this, controlPoint);

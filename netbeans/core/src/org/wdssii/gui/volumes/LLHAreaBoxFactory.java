@@ -9,7 +9,6 @@ import gov.nasa.worldwind.geom.Matrix;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
-import org.wdssii.gui.views.EarthBallView;
 import org.wdssii.gui.worldwind.WorldwindUtil;
 
 import java.util.Arrays;
@@ -46,19 +45,8 @@ public class LLHAreaBoxFactory extends LLHAreaFactory {
         poly.setAttributes(getDefaultAttributes());
         poly.setValue(AVKey.DISPLAY_NAME, name);
         poly.setAltitudes(0.0, 0.0);
-        poly.setTerrainConforming(true, false);
         data.airspace = poly;
         initializePolygon(wwd, poly, false);
-
-        // Create the editor for it
-	/*	LLHAreaEditor editor = new LLHAreaEditor();
-        //PolygonEditor editor = new PolygonEditor();
-        editor.setSlice(poly);
-        editor.setUseRubberBand(true);
-        editor.setKeepControlPointsAboveTerrain(true);
-        //  editor.addEditListener(this); not sure I need this
-        data.editor = editor;
-         */
 
         setName(name);
         return success;
@@ -88,7 +76,6 @@ public class LLHAreaBoxFactory extends LLHAreaFactory {
         }
 
         polygon.setAltitudes(0.0, maxElevation + sizeInMeters);
-        polygon.setTerrainConforming(true, false);
         polygon.setLocations(locations);
     }
 

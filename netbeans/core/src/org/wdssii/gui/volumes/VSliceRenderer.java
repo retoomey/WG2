@@ -16,17 +16,14 @@ import org.wdssii.gui.products.VolumeSlice3DOutput;
  * @author Robert Toomey
  *
  */
-public class VSliceRenderer// extends AirspaceRenderer 
+public class VSliceRenderer
 {
-
-    private LLHAreaSlice mySlice;
     protected static final int ELEMENT = 1;
     protected static final int VERTEX = 2;
     protected static final int NORMAL = 3;
 
-    public VSliceRenderer(LLHAreaSlice theSlice) {
+    public VSliceRenderer() {
         super();
-        mySlice = theSlice;
     }
 
     /** Special render our vslice */

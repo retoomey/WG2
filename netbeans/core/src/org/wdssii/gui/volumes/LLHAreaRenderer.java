@@ -8,7 +8,6 @@ import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.render.Material;
 import gov.nasa.worldwind.render.OrderedRenderable;
-import gov.nasa.worldwind.render.airspaces.Airspace;
 import gov.nasa.worldwind.render.airspaces.Geometry;
 import gov.nasa.worldwind.util.Logging;
 import gov.nasa.worldwind.util.PerformanceStatistic;
@@ -184,50 +183,14 @@ public class LLHAreaRenderer {
 
     public void pickOrdered(DrawContext dc, Iterable<? extends LLHArea> airspaces, java.awt.Point pickPoint,
             Layer layer) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (airspaces == null) {
-            String msg = Logging.getMessage("nullValue.AirspaceIterableIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         this.drawOrdered(dc, airspaces, layer);
     }
 
     public void renderOrdered(DrawContext dc, Iterable<? extends LLHArea> airspaces) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (airspaces == null) {
-            String msg = Logging.getMessage("nullValue.AirspaceIterableIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         this.drawOrdered(dc, airspaces, null);
     }
 
     public void pickNow(DrawContext dc, Iterable<? extends LLHArea> airspaces, java.awt.Point pickPoint, Layer layer) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (airspaces == null) {
-            String msg = Logging.getMessage("nullValue.AirspaceIterableIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         PickSupport pickSupport = this.getPickSupport();
         pickSupport.beginPicking(dc);
         try {
@@ -242,35 +205,11 @@ public class LLHAreaRenderer {
     }
 
     public void renderNow(DrawContext dc, Iterable<? extends LLHArea> airspaces) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (airspaces == null) {
-            String msg = Logging.getMessage("nullValue.AirspaceIterableIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         // The render method does not bind any pickable objects.
         this.drawNow(dc, airspaces, null);
     }
 
     protected void drawOrdered(DrawContext dc, Iterable<? extends LLHArea> airspaces, Layer layer) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (airspaces == null) {
-            String msg = Logging.getMessage("nullValue.AirspaceIterableIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         for (LLHArea airspace : airspaces) {
             double eyeDistance = this.computeDistanceFromEye(dc, airspace);
             OrderedAirspace orderedAirspace = new OrderedAirspace(this, airspace, layer, eyeDistance);
@@ -280,18 +219,6 @@ public class LLHAreaRenderer {
     }
 
     protected void drawNow(DrawContext dc, Iterable<? extends LLHArea> airspaces, PickSupport pickSupport) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (airspaces == null) {
-            String msg = Logging.getMessage("nullValue.AirspaceIterableIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         this.beginRendering(dc);
         try {
             this.drawAirspaces(dc, airspaces, pickSupport);
@@ -332,18 +259,6 @@ public class LLHAreaRenderer {
         protected double eyeDistance;
 
         public OrderedAirspace(LLHAreaRenderer renderer, LLHArea airspace, Layer layer, double eyeDistance) {
-            if (renderer == null) {
-                String msg = Logging.getMessage("nullValue.RendererIsNull");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
-            if (airspace == null) {
-                String msg = Logging.getMessage("nullValue.AirspaceIsNull");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
             this.renderer = renderer;
             this.airspace = airspace;
             this.layer = layer;
@@ -369,30 +284,12 @@ public class LLHAreaRenderer {
 
         @Override
         public void render(DrawContext dc) {
-            if (dc == null) {
-                String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
             // The render method does not bind any pickable objects.
             this.draw(dc, null);
         }
 
         @Override
         public void pick(DrawContext dc, Point pickPoint) {
-            if (dc == null) {
-                String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
-            if (pickPoint == null) {
-                String msg = Logging.getMessage("nullValue.PickPoint");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
             PickSupport pickSupport = this.getRenderer().getPickSupport();
             pickSupport.beginPicking(dc);
             try {
@@ -413,18 +310,6 @@ public class LLHAreaRenderer {
     }
 
     protected void drawOrderedAirspace(DrawContext dc, OrderedAirspace orderedAirspace, PickSupport pickSupport) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (orderedAirspace == null) {
-            String msg = Logging.getMessage("nullValue.OrderedAirspace");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         this.beginRendering(dc);
         try {
             this.drawAirspace(dc, orderedAirspace.getAirspace(), pickSupport);
@@ -467,18 +352,6 @@ public class LLHAreaRenderer {
     //********************  Airspace Rendering  ********************//
     //**************************************************************//
     protected void drawAirspaces(DrawContext dc, Iterable<? extends LLHArea> airspaces, PickSupport pickSupport) {
-        if (dc == null) {
-            String msg = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        if (airspaces == null) {
-            String msg = Logging.getMessage("nullValue.AirspaceIterableIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         for (LLHArea airspace : airspaces) {
             try {
                 if (airspace != null) {
@@ -492,18 +365,6 @@ public class LLHAreaRenderer {
     }
 
     protected void drawAirspace(DrawContext dc, LLHArea airspace, PickSupport pickSupport) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        if (airspace == null) {
-            String message = Logging.getMessage("nullValue.AirspaceIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         try {
             if (pickSupport != null) {
                 this.bindPickableObject(dc, airspace, pickSupport);
@@ -606,7 +467,7 @@ public class LLHAreaRenderer {
             airspace.getAttributes().applyInterior(dc, this.isEnableLighting());
         }
 
-        airspace.renderGeometry(dc, Airspace.DRAW_STYLE_FILL);
+        airspace.renderGeometry(dc, "fill");
     }
 
     protected void drawAirspaceOutline(DrawContext dc, LLHArea airspace) {
@@ -629,21 +490,10 @@ public class LLHAreaRenderer {
             airspace.getAttributes().applyOutline(dc, false);
         }
 
-        airspace.renderGeometry(dc, Airspace.DRAW_STYLE_OUTLINE);
+        airspace.renderGeometry(dc, "outline");
     }
 
     protected void beginRendering(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         GL gl = dc.getGL();
 
         gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT);
@@ -693,17 +543,6 @@ public class LLHAreaRenderer {
     }
 
     protected void endRendering(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         GL gl = dc.getGL();
 
         gl.glPopAttrib();
@@ -726,27 +565,6 @@ public class LLHAreaRenderer {
     //********************  Geometry Rendering  ********************//
     //**************************************************************//
     public void drawGeometry(DrawContext dc, int mode, int count, int type, Buffer elementBuffer, Geometry geom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (elementBuffer == null) {
-            String message = "nullValue.ElementBufferIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom == null) {
-            String message = "nullValue.AirspaceGeometryIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom.getBuffer(VERTEX) == null) {
-            String message = "nullValue.VertexBufferIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         GL gl = dc.getGL();
 
         int minElementIndex, maxElementIndex;
@@ -786,27 +604,10 @@ public class LLHAreaRenderer {
                     gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
                 }
             }
-            this.logGeometryStatistics(dc, geom);
         }
     }
 
     public void drawGeometry(DrawContext dc, Geometry geom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom == null) {
-            String message = "nullValue.AirspaceGeometryIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom.getBuffer(ELEMENT) == null) {
-            String message = "nullValue.ElementBufferIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         int mode, count, type;
         Buffer elementBuffer;
 
@@ -819,27 +620,6 @@ public class LLHAreaRenderer {
     }
 
     public void drawGeometry(DrawContext dc, Geometry elementGeom, Geometry vertexGeom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (elementGeom == null) {
-            String message = "nullValue.ElementGeometryIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (elementGeom.getBuffer(ELEMENT) == null) {
-            String message = "nullValue.ElementBufferIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (vertexGeom == null) {
-            String message = "nullValue.VertexGeometryIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         int mode, count, type;
         Buffer elementBuffer;
 
@@ -855,17 +635,6 @@ public class LLHAreaRenderer {
     //********************  Rendering Support  *********************//
     //**************************************************************//
     public void setBlending(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         GL gl = dc.getGL();
 
         if (this.isUseEXTBlendFuncSeparate()) {
@@ -893,17 +662,6 @@ public class LLHAreaRenderer {
     }
 
     public void setLighting(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         GL gl = dc.getGL();
 
         gl.glEnable(GL.GL_LIGHTING);
@@ -916,12 +674,7 @@ public class LLHAreaRenderer {
     }
 
     protected static void setLightModel(GL gl) {
-        if (gl == null) {
-            String message = Logging.getMessage("nullValue.GLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
+        
         float[] modelAmbient = new float[4];
         modelAmbient[0] = 1.0f;
         modelAmbient[1] = 1.0f;
@@ -934,27 +687,10 @@ public class LLHAreaRenderer {
     }
 
     protected static void setShadeModel(GL gl) {
-        if (gl == null) {
-            String message = Logging.getMessage("nullValue.GLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         gl.glShadeModel(GL.GL_SMOOTH);
     }
 
     protected static void setLightMaterial(GL gl, int light, Material material) {
-        if (gl == null) {
-            String message = Logging.getMessage("nullValue.GLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (material == null) {
-            String message = Logging.getMessage("nullValue.MaterialIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         // The alpha value at a vertex is taken only from the diffuse material's alpha channel, without any
         // lighting computations applied. Therefore we specify alpha=0 for all lighting ambient, specular and
         // emission values. This will have no effect on material alpha.
@@ -972,17 +708,6 @@ public class LLHAreaRenderer {
     }
 
     protected static void setLightDirection(GL gl, int light, Vec4 direction) {
-        if (gl == null) {
-            String message = Logging.getMessage("nullValue.GLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (direction == null) {
-            String message = Logging.getMessage("nullValue.DirectionIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         // Setup the light as a directional light coming from the viewpoint. This requires two state changes
         // (a) Set the light position as direction x, y, z, and set the w-component to 0, which tells OpenGL this is
         //     a directional light.
@@ -1003,39 +728,5 @@ public class LLHAreaRenderer {
         gl.glLightfv(light, GL.GL_POSITION, params, 0);
 
         gl.glPopMatrix();
-    }
-
-    protected void logGeometryStatistics(DrawContext dc, Geometry geom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom == null) {
-            String message = Logging.getMessage("nullValue.GeometryIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        int geomCount = 0;
-        int vertexCount = 0;
-
-        Iterator<PerformanceStatistic> iter = dc.getPerFrameStatistics().iterator();
-        while (iter.hasNext()) {
-            PerformanceStatistic stat = iter.next();
-            if (PerformanceStatistic.AIRSPACE_GEOMETRY_COUNT.equals(stat.getKey())) {
-                geomCount += (Integer) stat.getValue();
-                iter.remove();
-            }
-            if (PerformanceStatistic.AIRSPACE_VERTEX_COUNT.equals(stat.getKey())) {
-                vertexCount += (Integer) stat.getValue();
-                iter.remove();
-            }
-        }
-
-        geomCount += 1;
-        vertexCount += geom.getCount(VERTEX);
-        dc.setPerFrameStatistic(PerformanceStatistic.AIRSPACE_GEOMETRY_COUNT, "Airspace Geometry Count", geomCount);
-        dc.setPerFrameStatistic(PerformanceStatistic.AIRSPACE_VERTEX_COUNT, "Airspace Vertex Count", vertexCount);
     }
 }

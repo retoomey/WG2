@@ -2,29 +2,17 @@ package org.wdssii.gui.volumes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-//import java.util.Random;
-import java.util.TreeSet;
 
 import org.wdssii.gui.products.ProductHandlerList;
 
-import gov.nasa.worldwind.Configuration;
 import gov.nasa.worldwind.Movable;
-import gov.nasa.worldwind.WorldWind;
-import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.avlist.AVListImpl;
-import gov.nasa.worldwind.cache.BasicMemoryCache;
-import gov.nasa.worldwind.cache.MemoryCache;
-import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Cylinder;
 import gov.nasa.worldwind.geom.Extent;
 import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.geom.Position;
-import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.geom.Sphere;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
@@ -33,7 +21,6 @@ import gov.nasa.worldwind.render.Renderable;
 import gov.nasa.worldwind.render.airspaces.Airspace;
 import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
 import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
-import gov.nasa.worldwind.render.airspaces.Geometry;
 import gov.nasa.worldwind.util.GeometryBuilder;
 import gov.nasa.worldwind.util.Logging;
 
@@ -45,46 +32,23 @@ public class LLHArea extends AVListImpl implements Movable {
 
     /** Every LLHArea can follow a particular product */
     protected String myProductFollow = ProductHandlerList.TOP_PRODUCT;
+    
     /** Do we use virtual volume or regular one? */
     protected boolean myUseVirtualVolume = false;
-    protected static final String ARC_SLICES = "ArcSlices";
-    protected static final String DISABLE_TERRAIN_CONFORMANCE = "DisableTerrainConformance";
-    protected static final String EXPIRY_TIME = "ExpiryTime";
-    protected static final String GEOMETRY_CACHE_NAME = "Airspace Geometry";
-    protected static final String GEOMETRY_CACHE_KEY = Geometry.class.getName();
-    protected static final String GLOBE_KEY = "GlobeKey";
-    protected static final String LENGTH_SLICES = "LengthSlices";
-    protected static final String LOOPS = "Loops";
-    protected static final String PILLARS = "Pillars";
-    protected static final String SLICES = "Slices";
-    protected static final String SPLIT_THRESHOLD = "SplitThreshold";
-    protected static final String STACKS = "Stacks";
+
     protected static final String SUBDIVISIONS = "Subdivisions";
     protected static final String VERTICAL_EXAGGERATION = "VerticalExaggeration";
-    private static final long DEFAULT_GEOMETRY_CACHE_SIZE = 16777216L; // 16 megabytes
     private boolean visible = true;
     private AirspaceAttributes attributes;
+    
     private double lowerAltitude = 0.0;
     private double upperAltitude = 1.0;
-    private boolean lowerTerrainConforming = false;
-    private boolean upperTerrainConforming = false;
-    private String lowerAltitudeDatum = AVKey.ABOVE_MEAN_SEA_LEVEL;
-    private String upperAltitudeDatum = AVKey.ABOVE_MEAN_SEA_LEVEL;
+    
     private LatLon groundReference;
-    private boolean enableLevelOfDetail = true;
-    private Collection<LLHAreaDetailLevel> detailLevels = new TreeSet<LLHAreaDetailLevel>();
+
     // Geometry computation and rendering support.
     private LLHAreaRenderer renderer = new LLHAreaRenderer();
     private GeometryBuilder geometryBuilder = new GeometryBuilder();
-    // Extent support.
-    // Geometry update support.
-    // private long expiryTime = -1L;
-    // private long minExpiryTime = 2000L;
-    // private long maxExpiryTime = 6000L;
-    // private static Random rand = new Random();
-    // Elevation lookup map.
-    private Map<LatLon, Double> elevationMap = new HashMap<LatLon, Double>();
-//	
 
     public LLHArea() {
         this(new BasicAirspaceAttributes());
@@ -119,13 +83,6 @@ public class LLHArea extends AVListImpl implements Movable {
         }
 
         this.attributes = attributes;
-
-        if (!WorldWind.getMemoryCacheSet().containsCache(GEOMETRY_CACHE_KEY)) {
-            long size = Configuration.getLongValue(AVKey.AIRSPACE_GEOMETRY_CACHE_SIZE, DEFAULT_GEOMETRY_CACHE_SIZE);
-            MemoryCache cache = new BasicMemoryCache((long) (0.85 * size), size);
-            cache.setName(GEOMETRY_CACHE_NAME);
-            WorldWind.getMemoryCacheSet().addCache(GEOMETRY_CACHE_KEY, cache);
-        }
     }
 
     public boolean isVisible() {
@@ -174,55 +131,6 @@ public class LLHArea extends AVListImpl implements Movable {
         this.setAltitudes(altitude, altitude);
     }
 
-    public boolean[] isTerrainConforming() {
-        // This method is here for backwards compatibility. The new scheme uses enumerations (in the form of Strings).
-
-        boolean[] array = new boolean[2];
-        array[0] = this.lowerTerrainConforming;
-        array[1] = this.upperTerrainConforming;
-        return array;
-    }
-
-    public void setTerrainConforming(boolean lowerTerrainConformant, boolean upperTerrainConformant) {
-        // This method is here for backwards compatibility. The new scheme uses enumerations (in the form of Strings).
-
-        this.lowerTerrainConforming = lowerTerrainConformant;
-        this.upperTerrainConforming = upperTerrainConformant;
-
-        this.lowerAltitudeDatum = this.lowerTerrainConforming ? AVKey.ABOVE_GROUND_LEVEL : AVKey.ABOVE_MEAN_SEA_LEVEL;
-        this.upperAltitudeDatum = this.upperTerrainConforming ? AVKey.ABOVE_GROUND_LEVEL : AVKey.ABOVE_MEAN_SEA_LEVEL;
-
-        this.setExtentOutOfDate();
-    }
-
-    public String[] getAltitudeDatum() {
-        return new String[]{this.lowerAltitudeDatum, this.upperAltitudeDatum};
-    }
-
-    // TODO: The altitude datum logic is currently implemented only for Polygon. Implement it for the rest of them.
-    public void setAltitudeDatum(String lowerAltitudeDatum, String upperAltitudeDatum) {
-        if (lowerAltitudeDatum == null || upperAltitudeDatum == null) {
-            String message = Logging.getMessage("nullValue.AltitudeDatumIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        this.lowerAltitudeDatum = lowerAltitudeDatum;
-        this.upperAltitudeDatum = upperAltitudeDatum;
-
-        if (lowerAltitudeDatum.equals(AVKey.ABOVE_GROUND_LEVEL) || lowerAltitudeDatum.equals(
-                AVKey.ABOVE_GROUND_REFERENCE)) {
-            this.lowerTerrainConforming = true;
-        }
-
-        if (upperAltitudeDatum.equals(AVKey.ABOVE_GROUND_LEVEL) || upperAltitudeDatum.equals(
-                AVKey.ABOVE_GROUND_REFERENCE)) {
-            this.upperTerrainConforming = true;
-        }
-
-        this.setExtentOutOfDate();
-    }
-
     public LatLon getGroundReference() {
         return this.groundReference;
     }
@@ -230,83 +138,13 @@ public class LLHArea extends AVListImpl implements Movable {
     public void setGroundReference(LatLon groundReference) {
         this.groundReference = groundReference;
     }
-
-    protected void adjustForGroundReference(DrawContext dc, boolean[] terrainConformant, double[] altitudes,
-            LatLon groundRef) {
-        if (groundRef == null) {
-            return; // Can't apply the datum without a reference point.
-        }
-        for (int i = 0; i < 2; i++) {
-            if (this.getAltitudeDatum()[i].equals(AVKey.ABOVE_GROUND_REFERENCE)) {
-                altitudes[i] += this.computeElevationAt(dc, groundRef.getLatitude(), groundRef.getLongitude());
-                terrainConformant[i] = false;
-            }
-        }
-    }
-
-    public boolean isAirspaceCollapsed() {
-        return this.lowerAltitude == this.upperAltitude && this.lowerTerrainConforming == this.upperTerrainConforming;
-    }
-
-    public void setTerrainConforming(boolean terrainConformant) {
-        this.setTerrainConforming(terrainConformant, terrainConformant);
-    }
-
-    public boolean isEnableLevelOfDetail() {
-        return this.enableLevelOfDetail;
-    }
-
-    public void setEnableLevelOfDetail(boolean enableLevelOfDetail) {
-        this.enableLevelOfDetail = enableLevelOfDetail;
-    }
-
-    public Iterable<LLHAreaDetailLevel> getDetailLevels() {
-        return this.detailLevels;
-    }
-
-    public void setDetailLevels(Collection<LLHAreaDetailLevel> detailLevels) {
-        this.detailLevels.clear();
-        this.addDetailLevels(detailLevels);
-    }
-
-    protected void addDetailLevels(Collection<LLHAreaDetailLevel> newDetailLevels) {
-        if (newDetailLevels != null) {
-            for (LLHAreaDetailLevel level : newDetailLevels) {
-                if (level != null) {
-                    this.detailLevels.add(level);
-                }
-            }
-        }
-    }
-
+    
     public boolean isAirspaceVisible(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getView() == null) {
-            String message = "nullValue.DrawingContextViewIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         Extent extent = this.getExtent(dc);
         return extent != null && extent.intersects(dc.getView().getFrustumInModelCoordinates());
     }
 
     public Extent getExtent(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGlobe() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGlobeIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         ExtentInfo extentInfo = this.extents.get(dc.getGlobe());
         if (extentInfo != null && extentInfo.isValid(dc)) {
             return extentInfo.extent;
@@ -326,22 +164,10 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     protected void setRenderer(LLHAreaRenderer renderer) {
-        if (renderer == null) {
-            String message = "nullValue.AirspaceRendererIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         this.renderer = renderer;
     }
 
     public void render(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         if (!this.isVisible()) {
             return;
         }
@@ -354,12 +180,6 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     public void renderGeometry(DrawContext dc, String drawStyle) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         if (drawStyle == null) {
             String message = Logging.getMessage("nullValue.StringIsNull");
             Logging.logger().severe(message);
@@ -370,69 +190,27 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     public void renderExtent(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
         this.doRenderExtent(dc);
     }
 
     @Override
     public void move(Position position) {
-        if (position == null) {
-            String message = Logging.getMessage("nullValue.PositionIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         this.moveTo(this.getReferencePosition().add(position));
     }
 
     @Override
     public void moveTo(Position position) {
-        if (position == null) {
-            String message = Logging.getMessage("nullValue.PositionIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         Position oldRef = this.getReferencePosition();
-        //noinspection UnnecessaryLocalVariable
-        Position newRef = position;
-        this.doMoveTo(oldRef, newRef);
+        this.doMoveTo(oldRef, position);
     }
 
     protected void doMoveTo(Position oldRef, Position newRef) {
-        if (oldRef == null) {
-            String message = "nullValue.OldRefIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (newRef == null) {
-            String message = "nullValue.NewRefIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         double[] altitudes = this.getAltitudes();
         double elevDelta = newRef.getElevation() - oldRef.getElevation();
         this.setAltitudes(altitudes[0] + elevDelta, altitudes[1] + elevDelta);
     }
 
     protected Position computeReferencePosition(List<? extends LatLon> locations, double[] altitudes) {
-        if (locations == null) {
-            String message = "nullValue.LocationsIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (altitudes == null) {
-            String message = "nullValue.AltitudesIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         int count = locations.size();
         if (count == 0) {
             return null;
@@ -479,76 +257,20 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     protected void doRender(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        LLHAreaRenderer renderer = this.getRenderer();
         renderer.renderNow(dc, Arrays.asList(this));
     }
 
     protected void doRenderExtent(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         Extent extent = this.getExtent(dc);
         if (extent != null && extent instanceof Renderable) {
             ((Renderable) extent).render(dc);
         }
     }
 
-    protected LLHAreaDetailLevel computeDetailLevel(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        Iterable<LLHAreaDetailLevel> detailLevels = this.getDetailLevels();
-        if (detailLevels == null) {
-            return null;
-        }
-
-        Iterator<LLHAreaDetailLevel> iter = detailLevels.iterator();
-        if (!iter.hasNext()) {
-            return null;
-        }
-
-        // Find the first detail level that meets rendering criteria.
-        LLHAreaDetailLevel level = iter.next();
-        while (iter.hasNext() && !level.meetsCriteria(dc, this)) {
-            level = iter.next();
-        }
-
-        return level;
-    }
-
     protected Cylinder computeBoundingCylinder(DrawContext dc, Iterable<? extends LatLon> locations) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGlobe() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGlobeIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (locations == null) {
-            String message = "nullValue.LocationsIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         Globe globe = dc.getGlobe();
         double verticalExaggeration = dc.getVerticalExaggeration();
         double[] altitudes = this.getAltitudes();
-        boolean[] terrainConformant = this.isTerrainConforming();
 
         // Get the points corresponding to the given locations at the lower and upper altitudes.
         ArrayList<Vec4> points = new ArrayList<Vec4>();
@@ -558,7 +280,7 @@ public class LLHArea extends AVListImpl implements Movable {
                         verticalExaggeration * altitudes[a]));
             }
         }
-        if (points.size() == 0) {
+        if (points.isEmpty()) {
             return null;
         }
 
@@ -599,32 +321,7 @@ public class LLHArea extends AVListImpl implements Movable {
                 max_perp = perpendicular_proj;
             }
         }
-
-        // If terrain conformance is enabled, add the minimum or maximum elevations around the locations to the
-        // extrema parallel projections.
-        if (terrainConformant[0] || terrainConformant[1]) {
-            double min_elev, max_elev;
-            if (LatLon.locationsCrossDateLine(locations)) {
-                Sector[] splitSector = Sector.splitBoundingSectors(locations);
-                double[] a = globe.getMinAndMaxElevations(splitSector[0]);
-                double[] b = globe.getMinAndMaxElevations(splitSector[1]);
-                min_elev = Math.min(a[0], b[0]); // Take the smallest min elevation.
-                max_elev = Math.max(a[1], b[1]); // Take the largest max elevation.
-            } else {
-                Sector sector = Sector.boundingSector(locations);
-                double[] a = globe.getMinAndMaxElevations(sector);
-                min_elev = a[0];
-                max_elev = a[1];
-            }
-
-            if (terrainConformant[0] && min_elev < 0.0) {
-                min_parallel += verticalExaggeration * min_elev;
-            }
-            if (terrainConformant[1] && max_elev > 0.0) {
-                max_parallel += verticalExaggeration * max_elev;
-            }
-        }
-
+        
         // The bottom and top of the cylinder are the extrema parallel projections from the center point along the axis.
         Vec4 bottomPoint = axis.multiply3(min_parallel).add3(centerPoint);
         Vec4 topPoint = axis.multiply3(max_parallel).add3(centerPoint);
@@ -635,17 +332,6 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     protected Extent computeBoundingExtent(DrawContext dc, Iterable<? extends Airspace> airspaces) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (airspaces == null) {
-            String message = Logging.getMessage("nullValue.IterableIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         Vec4 center = null;
         double radius = 0;
         int count = 0;
@@ -682,303 +368,6 @@ public class LLHArea extends AVListImpl implements Movable {
         return new Sphere(center, radius);
     }
 
-    protected MemoryCache getGeometryCache() {
-        return WorldWind.getMemoryCache(GEOMETRY_CACHE_KEY);
-    }
-
-    protected boolean isExpired(DrawContext dc, Geometry geom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGlobe() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGlobeIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (geom == null) {
-            String message = "nullValue.AirspaceGeometryIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        Object o = geom.getValue(EXPIRY_TIME);
-        if (o != null && o instanceof Long) {
-            if (dc.getFrameTimeStamp() > (Long) o) {
-                return true;
-            }
-        }
-
-        o = geom.getValue(GLOBE_KEY);
-        if (o != null) {
-            if (!dc.getGlobe().getStateKey(dc).equals(o)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected void updateExpiryCriteria(DrawContext dc, Geometry geom) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGlobe() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGlobeIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        // GOOP  long expiryTime = this.getExpiryTime();
-        // geom.setValue(EXPIRY_TIME, (expiryTime >= 0L) ? expiryTime : null);
-        // geom.setValue(GLOBE_KEY, dc.getGlobe().getStateKey(dc));
-    }
-
-    /*
-    protected long getExpiryTime()
-    {
-    return this.expiryTime;
-    }
-    
-    protected void setExpiryTime(long timeMillis)
-    {
-    this.expiryTime = timeMillis;
-    }
-    
-    protected long[] getExpiryRange()
-    {
-    long[] array = new long[2];
-    array[0] = this.minExpiryTime;
-    array[1] = this.maxExpiryTime;
-    return array;
-    }
-    
-    protected void setExpiryRange(long minTimeMillis, long maxTimeMillis)
-    {
-    this.minExpiryTime = minTimeMillis;
-    this.maxExpiryTime = maxTimeMillis;
-    }
-    
-    protected long nextExpiryTime(DrawContext dc, boolean[] terrainConformance)
-    {
-    if (dc == null)
-    {
-    String message = Logging.getMessage("nullValue.DrawContextIsNull");
-    Logging.logger().severe(message);
-    throw new IllegalArgumentException(message);
-    }
-    
-    long expiryTime;
-    if (terrainConformance[0] || terrainConformance[1])
-    {
-    long time = nextLong(this.minExpiryTime, this.maxExpiryTime);
-    expiryTime = dc.getFrameTimeStamp() + time;
-    }
-    else
-    {
-    expiryTime = -1L;
-    }
-    return expiryTime;
-    }
-    
-    private static long nextLong(long lo, long hi)
-    {
-    long n = hi - lo + 1;
-    long i = rand.nextLong() % n;
-    return lo + ((i < 0) ? -i : i);
-    }
-     */
-    protected void clearElevationMap() {
-        this.elevationMap.clear();
-    }
-
-    public Vec4 computePointFromPosition(DrawContext dc, Angle latitude, Angle longitude, double elevation,
-            boolean terrainConformant) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGlobe() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGlobeIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (latitude == null || longitude == null) {
-            String message = Logging.getMessage("nullValue.LatitudeOrLongitudeIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        double newElevation = elevation;
-
-        if (terrainConformant) {
-            newElevation += this.computeElevationAt(dc, latitude, longitude);
-        }
-
-        return dc.getGlobe().computePointFromPosition(latitude, longitude, newElevation);
-    }
-
-    protected double computeElevationAt(DrawContext dc, Angle latitude, Angle longitude) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGlobe() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGlobeIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-        if (latitude == null || longitude == null) {
-            String message = Logging.getMessage("nullValue.LatitudeOrLongitudeIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        Globe globe;
-        LatLon latlon;
-        Vec4 surfacePoint;
-        Position surfacePos;
-        Double elevation;
-
-        latlon = new LatLon(latitude, longitude);
-        elevation = this.elevationMap.get(latlon);
-
-        if (elevation == null) {
-            globe = dc.getGlobe();
-            elevation = 0.0;
-
-            surfacePoint = dc.getPointOnTerrain(latitude, longitude);
-            // old? surfacePoint = dc.getPointOnGlobe(latitude, longitude);
-            if (surfacePoint != null) {
-                surfacePos = globe.computePositionFromPoint(surfacePoint);
-                elevation += surfacePos.getElevation();
-            } else {
-                elevation += dc.getVerticalExaggeration() * globe.getElevation(latitude, longitude);
-            }
-
-            this.elevationMap.put(latlon, elevation);
-        }
-
-        return elevation;
-    }
-
-    //**************************************************************//
-    //******************** END Geometry Rendering  *****************//
-    //**************************************************************//
-    /*
-    @Override
-    public String getRestorableState()
-    {
-    RestorableSupport rs = RestorableSupport.newRestorableSupport();
-    this.doGetRestorableState(rs, null);
-    
-    return rs.getStateAsXml();
-    }
-    
-    protected void doGetRestorableState(RestorableSupport rs, RestorableSupport.StateObject context)
-    {
-    // Method is invoked by subclasses to have superclass add its state and only its state
-    this.doMyGetRestorableState(rs, context);
-    }
-    
-    private void doMyGetRestorableState(RestorableSupport rs, RestorableSupport.StateObject context)
-    {
-    rs.addStateValueAsBoolean(context, "visible", this.isVisible());
-    rs.addStateValueAsDouble(context, "lowerAltitude", this.getAltitudes()[0]);
-    rs.addStateValueAsDouble(context, "upperAltitude", this.getAltitudes()[1]);
-    rs.addStateValueAsBoolean(context, "lowerTerrainConforming", this.isTerrainConforming()[0]);
-    rs.addStateValueAsBoolean(context, "upperTerrainConforming", this.isTerrainConforming()[1]);
-    rs.addStateValueAsString(context, "lowerAltitudeDatum", this.getAltitudeDatum()[0]);
-    rs.addStateValueAsString(context, "upperAltitudeDatum", this.getAltitudeDatum()[1]);
-    if (this.getGroundReference() != null)
-    rs.addStateValueAsLatLon(context, "groundReference", this.getGroundReference());
-    
-    this.attributes.getRestorableState(rs, rs.addStateObject(context, "attributes"));
-    }
-    
-    
-    @Override
-    public void restoreState(String stateInXml)
-    {
-    if (stateInXml == null)
-    {
-    String message = Logging.getMessage("nullValue.StringIsNull");
-    Logging.logger().severe(message);
-    throw new IllegalArgumentException(message);
-    }
-    
-    RestorableSupport rs;
-    try
-    {
-    rs = RestorableSupport.parse(stateInXml);
-    }
-    catch (Exception e)
-    {
-    // Parsing the document specified by stateInXml failed.
-    String message = Logging.getMessage("generic.ExceptionAttemptingToParseStateXml", stateInXml);
-    Logging.logger().severe(message);
-    throw new IllegalArgumentException(message, e);
-    }
-    
-    this.doRestoreState(rs, null);
-    }
-    
-    protected void doRestoreState(RestorableSupport rs, RestorableSupport.StateObject context)
-    {
-    // Method is invoked by subclasses to have superclass add its state and only its state
-    this.doMyRestoreState(rs, context);
-    }
-    
-    private void doMyRestoreState(RestorableSupport rs, RestorableSupport.StateObject context)
-    {
-    Boolean booleanState = rs.getStateValueAsBoolean(context, "visible");
-    if (booleanState != null)
-    this.setVisible(booleanState);
-    
-    Double lo = rs.getStateValueAsDouble(context, "lowerAltitude");
-    if (lo == null)
-    lo = this.getAltitudes()[0];
-    
-    Double hi = rs.getStateValueAsDouble(context, "upperAltitude");
-    if (hi == null)
-    hi = this.getAltitudes()[1];
-    
-    this.setAltitudes(lo, hi);
-    
-    Boolean loConform = rs.getStateValueAsBoolean(context, "lowerTerrainConforming");
-    if (loConform == null)
-    loConform = this.isTerrainConforming()[0];
-    
-    Boolean hiConform = rs.getStateValueAsBoolean(context, "upperTerrainConforming");
-    if (hiConform == null)
-    hiConform = this.isTerrainConforming()[1];
-    
-    this.setTerrainConforming(loConform, hiConform);
-    
-    String lowerDatum = rs.getStateValueAsString(context, "lowerAltitudeDatum");
-    if (lowerDatum == null)
-    lowerDatum = this.getAltitudeDatum()[0];
-    
-    String upperDatum = rs.getStateValueAsString(context, "upperAltitudeDatum");
-    if (upperDatum == null)
-    upperDatum = this.getAltitudeDatum()[1];
-    
-    this.setAltitudeDatum(lowerDatum, upperDatum);
-    
-    LatLon groundRef = rs.getStateValueAsLatLon(context, "groundReference");
-    if (groundRef != null)
-    this.setGroundReference(groundRef);
-    
-    RestorableSupport.StateObject so = rs.getStateObject(context, "attributes");
-    if (so != null)
-    this.getAttributes().restoreState(rs, so);
-    }
-     */
     @Override
     public Position getReferencePosition() {
         return null;

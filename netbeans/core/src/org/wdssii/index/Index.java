@@ -73,7 +73,9 @@ public abstract class Index {
         if (indexLocation != null) {
             this.indexLocation = indexLocation.toString();
         }
-        this.listeners = listeners;
+        if (listeners != null){
+            this.listeners = listeners;
+        }
     }
 
     /** Register a listener to be notified about new records in this index. */

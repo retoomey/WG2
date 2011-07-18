@@ -72,18 +72,4 @@ public class XMLIndexTest extends TestCase {
         assertEquals(rec.getDataType(), dt);
         assertEquals(rec.getTime().getTime(), new Date(990376689L * 1000 + 499).getTime());
     }
-
-    public void testRelativePath() throws java.io.IOException {
-        String dir = file.getCanonicalFile().getParent();
-        String dt = "Reflectivity";
-        IndexRecord rec = index.getLastRecordByTime(dt);
-        String[] params = rec.getParams();
-        boolean found = false;
-        for (String param : params) {
-            if (param.equals(dir)) {
-                found = true;
-            }
-        }
-        assertTrue(found);
-    }
 }

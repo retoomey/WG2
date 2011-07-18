@@ -1,5 +1,6 @@
 package org.wdssii.gui;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -13,6 +14,7 @@ import org.wdssii.index.IndexWatcher;
 import org.wdssii.index.HistoricalIndex.Direction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wdssii.index.ManualLoadIndex;
 
 /**
  * Maintains a persistent IndexCollection for the GUI.  This is the
@@ -28,6 +30,9 @@ import org.apache.commons.logging.LogFactory;
 public class SourceManager implements Singleton {
 
     private static Log log = LogFactory.getLog(SourceManager.class);
+    
+    /** The manual index for local files */
+    private ManualLoadIndex myManualIndex;
 
     /** Listener linking new records to the GUI */
     public static class SourceManagerCollection extends IndexCollection {
@@ -145,15 +150,25 @@ public class SourceManager implements Singleton {
         //NetworkStatus s = WorldWind.getNetworkStatus();  // FIXME: Gonna need our own network status I think that uses RCP jobs to check..
         //s.setOfflineMode(true);
 
+                
+        // Add the manual index...
+        try{
         CommandManager c = CommandManager.getInstance();
+        String key = getIndexCollection().addManualIndex(HistoricalIndex.MANUAL);
+        HistoricalIndex theIndex = getIndexByName(key);
+        if (theIndex != null){
+            Index i = theIndex.getIndex();
+            myManualIndex = (ManualLoadIndex)(i);
+        }
+              
         boolean connect = true;
         c.executeCommand(new SourceAddCommand("CONUS", "file:/E:/CONUS/code_index.xml?p=xml", false, false, connect), false);
         c.executeCommand(new SourceAddCommand("KTLX", "file:/E:/KTLX-large/radar_data.xml?p=xml", false, false, connect), false);
         c.executeCommand(new SourceAddCommand("Wind", "file:/E:/WindData/code_index.xml", false, false, connect), false);
-
-
         c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml?p=xml", false, false, connect), false);
-
+        }catch(Exception e){
+            // Recover
+        }
         //instance.connect("CONUS", "xml:E:/CONUS/code_index.xml", false);
         //instance.connect("KTLX", "xml:E:/KTLX-large/radar_data.xml", false);
         //instance.connect("Wind", "xml:E:/WindData/code_index.xml", false);	
@@ -388,5 +403,12 @@ public class SourceManager implements Singleton {
 
     public void selectIndexKey(String key) {
         myIndexCollection.selectIndexKey(key);
+    }
+    
+    /** Add a local URL to our ManualLoadIndex */
+    public void addSingleURL(URL location, String product, String choice, Date time){
+        if (myManualIndex != null){
+            myManualIndex.addRecordFromURL(location, product, choice, time);
+        }
     }
 }

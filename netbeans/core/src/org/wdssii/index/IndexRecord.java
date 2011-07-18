@@ -1,5 +1,7 @@
 package org.wdssii.index;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -7,8 +9,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.wdssii.util.StringUtil;
 
 /**
@@ -21,9 +21,10 @@ public class IndexRecord {
     private String[] selections;
     private String[][] paramsArray;
     private String sourceName = null;
-
     private static Format myFormatter = new SimpleDateFormat("yyyyMMdd-HHmmss");
-    
+    private URL myURL = null;
+    private boolean myTryToMakeURL = true;
+
     public void setSourceName(String s) {
         sourceName = s;
     }
@@ -46,12 +47,14 @@ public class IndexRecord {
     public IndexRecord(Date time, String[] selections, String[] params) {
         this(time, selections, new String[][]{params});
     }
-    
-    public String[] getParams(int index) {
+
+    @Deprecated
+    private String[] getParams(int index) {
         return paramsArray[index];
     }
-
-    public String[] getParams() {
+    
+    @Deprecated
+    private String[] getParams() {
         return getParams(0);
     }
 
@@ -67,6 +70,19 @@ public class IndexRecord {
         return (paramsArray.length);
     }
 
+    /** Return a string such as 'netcdf' that tells what builder to use
+     * to make the datatype for this record
+     * @return a builder name for builder factory
+     */
+    public String getBuilderName() {
+        String builderName = getParams()[0];
+        // Legacy support.  We now use URI for data location
+        if (builderName.equals("http")) {
+            builderName = "webindex";
+        }
+        return builderName;
+    }
+
     /** Convert from our xml date format to a real Date */
     public static Date getDateFromString(String timeString, String frac) {
         long tm_long = 1000 * Long.parseLong(timeString.trim());
@@ -77,16 +93,16 @@ public class IndexRecord {
         Date time = new Date(tm_long);
         return time;
     }
-    
+
     /** Convert from date into our xml date format */
     public static String getStringFromDate(Date in) {
-       String s = myFormatter.format(in);
-       return s;
+        String s = myFormatter.format(in);
+        return s;
     }
 
     public static IndexRecord createIndexRecord(Date time, String[] paramsList, String[] paramsChanges, String selectionsString, String indexLocation) {
         // time
-       // Date time = getDateFromString(timeString, timeFrac);
+        // Date time = getDateFromString(timeString, timeFrac);
 
         // selections
         List<String> selectionList = StringUtil.split(selectionsString.trim());
@@ -135,27 +151,49 @@ public class IndexRecord {
         return new IndexRecord(time, selections, aparams);
     }
 
-    public static IndexRecord createIndexRecord(Element e, String indexLocation) {
-        // time
-        Element timeElement = (Element) e.getElementsByTagName("time").item(0);
-        String timeString = timeElement.getFirstChild().getNodeValue();
-        String timeFrac = timeElement.getAttribute("fractional");
+    /** Set the URL for the file/stuff that this record ultimately points to
+     */
+    public void setDataLocationURL(URL aURL) {
+        myURL = aURL;
+    }
 
-        // selections
-        Element selElement = (Element) e.getElementsByTagName("selections").item(0);
-        String selections = selElement.getFirstChild().getNodeValue();
+    /** Get the data location url from the first param of the record.
+     * We're not handling multiple params yet
+     * @return the URL of the data location, or null.
+     */
+    public URL getDataLocationURL() {
 
-        // params
-        NodeList paramsList = e.getElementsByTagName("params");
-        String[] params = new String[paramsList.getLength()];
-        String[] changes = new String[paramsList.getLength()];
-        for (int i = 0; i < params.length; ++i) {
-            Element pe = ((Element) paramsList.item(i));
-            params[i] = pe.getTextContent();
-            changes[i] = pe.getAttribute("changes");
+        if ((myURL == null) && myTryToMakeURL) {
+            myURL = tryCreateURLFromParams();
+            myTryToMakeURL = false;
         }
-        Date time = getDateFromString(timeString, timeFrac);
-        return createIndexRecord(time, params, changes, selections, indexLocation);
+        return myURL;
+    }
+
+    /** Create the data location url from the first param of the record.
+     * We're not handling multiple params yet
+     * @return the URL of the data location, or null.
+     */
+    private URL tryCreateURLFromParams() {
+        String[] params = getParams();
+
+        // Params 0 are of this form for a regular index:
+        // 0 - builder name such as 'netcdf'
+        // 1 - indexLocation such as C:/KTLX/
+        // 2 - Product such as 'Reflectivity'
+        // 3 - Choice such as '05.25'
+        // 4 - short file such as '1999_ktlx.netcdf.gz'
+        StringBuilder path = new StringBuilder(params[1]);
+        for (int i = 2; i < params.length; ++i) {
+            path.append('/').append(params[i]);
+        }
+
+        URL url = null;
+        try {
+            url = new URL(path.toString());
+        } catch (MalformedURLException e) {
+        }
+        return url;
     }
 
     @Override

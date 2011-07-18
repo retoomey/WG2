@@ -120,7 +120,7 @@ public class NBJobHandler implements WdssiiJobRunner {
                   myWdssiiJob.run(myWdssiiJobMonitor);
             }
         };
-        Thread t = new Thread(r, "Hack");
+        Thread t = new Thread(r, "WdssiiBackgroundTask");
         t.start();
     }
 

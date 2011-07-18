@@ -53,7 +53,7 @@ public class W2algsBuilder extends DefaultHandler implements Builder {
     public DataType createObject(IndexRecord rec) {
         DataType dt = null;
 
-        log.info("createObject called");
+        /*log.info("createObject called");
         String[] params = rec.getParams();
         for (String s : params) {
             log.info("Record Param is " + s);
@@ -65,7 +65,7 @@ public class W2algsBuilder extends DefaultHandler implements Builder {
             log.info("Path is " + path);
             String file = params[BuilderParams.FILE_OR_LB_MESSAGE_ID.ordinal()];
             dt = readRemoteFile(path, file);
-        }
+        }*/
         return dt;
     }
 

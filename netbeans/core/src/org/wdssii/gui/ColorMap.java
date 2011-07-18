@@ -96,7 +96,7 @@ public class ColorMap {
     // These should be the same size.  We make access to these locked.
     private ArrayList<Float> myUpperBounds = new ArrayList<Float>();
     private ArrayList<ColorBin> myColorBins = new ArrayList<ColorBin>();
-    private String myUnits;
+    private String myUnits = "";
     /** The maximum bin value that is not infinity.  Used for charts to pin range/domain to color map*/
     protected double myMaxValue = -100000.0;
     /** The minimum bin value that is not -infinity. */

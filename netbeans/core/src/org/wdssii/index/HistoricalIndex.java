@@ -42,6 +42,8 @@ public class HistoricalIndex implements IndexRecordListener {
     private TreeMap<String, IndexDataType> datatypeStringToInt = new TreeMap<String, IndexDataType>();
     /** Set of datatype names to short strings, used to save memory on keys. */
     private ArrayList<String> datatypeIntToString = new ArrayList<String>();
+    /** Name of the manual, or local file index */
+    public static final String MANUAL = "LOCALFILES";
 
     /** Query result to gather a subset of records.  The GUI uses this
     to pass in parameters and get a subset of records from the selections
@@ -60,7 +62,12 @@ public class HistoricalIndex implements IndexRecordListener {
     /** Create a historical index given a path (e.g: /tmp/code_index.xml) and a maximum history in record count. */
     public HistoricalIndex(String path, int aHistorySize) {
         maxHistorySize = aHistorySize;
-        index = IndexFactory.createIndex(path, this);
+        if (path.equals(MANUAL)) {
+            index = new ManualLoadIndex();
+            index.addRecordListener(this);
+        } else {
+            index = IndexFactory.createIndex(path, this);
+        }
         fireEvents = true;
     }
 

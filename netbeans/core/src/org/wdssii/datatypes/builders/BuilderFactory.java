@@ -11,6 +11,10 @@ import org.wdssii.index.IndexRecord;
 /**
  * @author lakshman
  * 
+ * BuilderFactory maps a set of builder names to the objects that know how to
+ * build them.  For example, if an IndexRecord refers to a netcdf file, we
+ * pass the information to the netcdfbuilder to build the datatype.
+ * 
  */
 public abstract class BuilderFactory {
 
@@ -30,8 +34,6 @@ public abstract class BuilderFactory {
         factory.addDefault("test", "org.wdssii.datatypes.builders.TestBuilder");
 
     }
-
-    ;
     
     /** Get the builder for a given builder name */
     public static Builder getBuilder(String builderName) {
@@ -48,13 +50,7 @@ public abstract class BuilderFactory {
     public static DataType createDataType(IndexRecord rec)
             throws DataUnavailableException {
 
-        String builderName = rec.getParams()[0];
-
-        // Hack....in the GUI we're gonna use pure URL format for data
-        if (builderName.equals("http")) {
-            builderName = "webindex";
-        };
-
+        String builderName = rec.getBuilderName();
         Builder builder = factory.getPrototypeMaster(builderName);
         if (builder == null) {
             log.error("ERROR: no such builder: " + builderName);
@@ -67,13 +63,7 @@ public abstract class BuilderFactory {
      * that holds a pointer to a future DataType.  See DataRequest for example 
      */
     public static DataRequest createDataRequest(IndexRecord rec) {
-        String builderName = rec.getParams()[0];
-
-        // Hack....in the GUI we're gonna use pure URL format for data
-        if (builderName.equals("http")) {
-            builderName = "webindex";
-        };
-
+        String builderName = rec.getBuilderName();
         Builder builder = factory.getPrototypeMaster(builderName);
         if (builder == null) {
             log.error("ERROR: no such builder: " + builderName);

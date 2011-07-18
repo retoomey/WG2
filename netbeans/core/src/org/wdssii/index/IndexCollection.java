@@ -100,6 +100,28 @@ public abstract class IndexCollection {
         return success;
     }
 
+    /** Add the manual index that handles holding any single opened file */
+    public String addManualIndex(String shortName) {
+
+        String success = null;
+
+        // Create a new internal name, which is unique for every added index.
+        String keyName = "iManualFiles";
+
+        IndexWatcher current = myIndexSet.get(shortName);
+        if (current == null) {
+
+            current = new IndexWatcher(this, keyName, HistoricalIndex.MANUAL, false);
+            myIndexSet.put(keyName, current);
+            myIndexShortNames.put(keyName, shortName); // Notice, duplicate short names allowed
+            log.warn("ADDED " + keyName + " " + shortName + " " + "none");
+            success = keyName;
+            current.connect();
+        } else {
+        }
+        return success;
+    }
+        
     /** Disconnect source */
     public void disconnect(String keyName) {
         IndexWatcher current = myIndexSet.get(keyName);

@@ -107,6 +107,7 @@ public class IndexWatcher implements HistoryListener {
                     //myPath = anIndex.getIndexLocation();
                 }
                 myIndex.addHistoryListener(this);
+                ManualLoadIndex m = (ManualLoadIndex)(anIndex);
                 success = true;
             }
         } else {
@@ -120,6 +121,11 @@ public class IndexWatcher implements HistoryListener {
         return success;
     }
 
+    /** Directly set the index we use */
+    public void setIndex(HistoricalIndex i){
+        myIndex = i;
+    }
+    
     /** Return current historical index, only valid on proper connection */
     public HistoricalIndex getIndex() {
         // Assume index not ready for use if we're still connecting...

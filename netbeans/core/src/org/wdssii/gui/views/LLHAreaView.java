@@ -7,7 +7,7 @@ public interface LLHAreaView extends WdssiiView {
 
     public static final String ID = "wdssii.LLHAreaView";
 
-    void earthViewSelection(WorldWindowGLCanvas world, SelectEvent event);
+   // void earthViewSelection(WorldWindowGLCanvas world, SelectEvent event);
 
-    void update();
+   // void update();
 }

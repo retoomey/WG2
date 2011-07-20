@@ -343,6 +343,7 @@ public class CommandManager implements Singleton {
     // Called from earth view to send a worldwind select event message to all views interested.
     // For the moment, just the volume view..needs to be generalized for other views
     // such as annotationsd
+   @Deprecated
     public void earthViewSelectionEvent(WorldWindowGLCanvas world, SelectEvent event) {
         // TODO uncouple knowledge of VolumeView (probably need to subclass viewpart to make
         // a special event handling view or object)
@@ -351,8 +352,8 @@ public class CommandManager implements Singleton {
         // Any SWT update code must wrap within async..
         WdssiiView view = getNamedViewed(LLHAreaView.ID);
         if (view != null) {
-            LLHAreaView vv = (LLHAreaView) (view);
-            vv.earthViewSelection(world, event);
+        //    LLHAreaView vv = (LLHAreaView) (view);
+         //   vv.earthViewSelection(world, event);
         }
     }
 

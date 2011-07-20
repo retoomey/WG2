@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.wdssii.gui.views.EarthBallView;
-import org.wdssii.gui.views.LLHAreaView;
 import org.wdssii.gui.views.WdssiiView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaBoxFactory;
@@ -55,7 +54,6 @@ public class LLHAreaManager implements Singleton {
         public boolean onlyMode;
         public String message;
     };
-    
     /** The list of volumes in the display */
     private ArrayList<VolumeTableData> myHandlerList;
     /** The current selected volume */
@@ -125,7 +123,9 @@ public class LLHAreaManager implements Singleton {
         }
     }
 
-    /** Create a new volume in the display */
+    /** Create a new volume in the display.
+    Called from an LLHAreaCreateCommand
+     */
     public void createNewVolume() {
         // FIXME: make a factory for each type of volume object
         LLHAreaLayer layer = getVolumeLayer();
@@ -162,21 +162,29 @@ public class LLHAreaManager implements Singleton {
      * editing controls
      * @param theVolume the volume to turn on
      */
-    public void selectVolume(VolumeTableData theVolume) {
+    private void selectVolume(VolumeTableData theVolume) {
 
         // If it's a different volume than selected...
         if (theVolume != mySelectedVolume) {
             mySelectedVolume = theVolume;
-            WorldWindow world = getWorld(); // What if world is different now???
-            world.redraw();
-
-            // Whenever selection changes, make sure the GUI list is synced
-            updateLLHAreaView();
+            updateEarthBall();
         }
     }
-    public void selectLLHArea(LLHArea area){
-        for(VolumeTableData v: myHandlerList){
-            if (v.airspace == area){
+
+    /** Called by the LLHAreaLayerController to select */
+    public void selectLLHArea(LLHArea area) {
+        for (VolumeTableData v : myHandlerList) {
+            if (v.airspace == area) {
+                selectVolume(v);
+                break;
+            }
+        }
+    }
+
+    /** Select LLHArea given a key */
+    public void selectLLHArea(String myLLHAreaKey) {
+        for (VolumeTableData v : myHandlerList) {
+            if (v.keyName.equals(myLLHAreaKey)) {
                 selectVolume(v);
                 break;
             }
@@ -207,17 +215,9 @@ public class LLHAreaManager implements Singleton {
         return world;
     }
 
-    /** Get the world we use.  Currently only one earthball */
-    private void updateLLHAreaView() {
-        LLHAreaView v = null;
-
-        WdssiiView view = CommandManager.getInstance().getNamedViewed(LLHAreaView.ID);
-        if (view instanceof LLHAreaView) {
-            v = (LLHAreaView) (view);
-        }
-        if (v != null) {
-            v.update();
-        }
+    // Current only one earth ball...
+    public void updateEarthBall() {
+        CommandManager.getInstance().getEarthBall().updateOnMinTime();
     }
 
     /** Get default attributes (How the volume draws) */
@@ -286,7 +286,7 @@ public class LLHAreaManager implements Singleton {
                 }
                 selectVolume(myHandlerList.get(index));
             } else {
-                updateLLHAreaView();
+                updateEarthBall();
             }
 
         }
@@ -311,9 +311,11 @@ public class LLHAreaManager implements Singleton {
     public Iterable<LLHArea> getDrawnVolumes() {
         Collection<LLHArea> theStuff = new ArrayList<LLHArea>();
 
-        // In only mode the selected volume is the only visible one
+        // In only mode the selected volume is the only possible visible one
         if ((mySelectedVolume != null) && (mySelectedVolume.onlyMode)) {
-            theStuff.add(mySelectedVolume.airspace);
+            if (mySelectedVolume.checked){
+                theStuff.add(mySelectedVolume.airspace);
+            }
         } else {
             for (VolumeTableData v : myHandlerList) {
                 if (v.checked) {
@@ -325,30 +327,23 @@ public class LLHAreaManager implements Singleton {
         //   return this.airspaces;
     }
 
-    public void toggleVisibleVolume(String aName) {
-        System.out.println("Looking to toggle " + aName);
-        for (VolumeTableData v : myHandlerList) {
-            if (v.visibleName.equals(aName)) {
-                //System.out.println("Found it, old value is "+v.checked+" now "+v);
-                v.checked = !v.checked;
-                break;
-            }
-        }
-    }
-
+    /** Set if a LLHArea is visible or not */
     public void setVisibleVolume(String aName, boolean flag) {
         for (VolumeTableData v : myHandlerList) {
-            if (v.visibleName.equals(aName)) {
+            if (v.keyName.equals(aName)) {
                 v.checked = flag;
+                CommandManager.getInstance().getEarthBall().updateOnMinTime();
                 break;
             }
         }
     }
 
+    /** Set if a LLHArea is in only mode or not */
     public void setOnlyMode(String aName, boolean flag) {
         for (VolumeTableData v : myHandlerList) {
             if (v.visibleName.equals(aName)) {
                 v.onlyMode = flag;
+                CommandManager.getInstance().getEarthBall().updateOnMinTime();
                 break;
             }
         }

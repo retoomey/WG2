@@ -14,7 +14,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 import java.util.Map;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.LLHAreaManager;
+import org.wdssii.gui.commands.LLHAreaSelectCommand;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 
 /** This handles the mouse/key events for an LLHAreaLayer.
@@ -244,7 +246,8 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         Object obj = this.getTopPickedObject();
         LLHArea topAirspace = this.asLLHArea(obj);
         if (topAirspace != null) {
-            LLHAreaManager.getInstance().selectLLHArea(topAirspace);
+            LLHAreaSelectCommand c = new LLHAreaSelectCommand(topAirspace);
+            CommandManager.getInstance().executeCommand(c, true);
         }
 
         LLHAreaControlPoint topControlPoint = this.asLLHAreaControlPoint(obj);

@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
+import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.util.StringUtil;
 
 /**
@@ -21,14 +22,55 @@ public abstract class DataTypeNetcdf {
 
     private static Log log = LogFactory.getLog(DataTypeNetcdf.class);
 
-     /** Try to create a DataType by reflection.  This is called from NetcdfBuilder by reflection
+    /** Try to create a DataType by reflection.  This is called from NetcdfBuilder by reflection
      * All netcdf builder classes have to implement this or what's the point?
      * 
      * @param ncfile	the netcdf file to read from
      * @param sparse 	did we come from a "SparseRadialSet"?
      */
     public abstract DataType createFromNetcdf(NetcdfFile ncfile, boolean sparse);
+
+    /** Fill basic info for file.  This is used by GUI to get selections
+     * of a manual file.  Typically we need:
+     * TypeName such as 'Reflectivity'
+     * Choice such as "0.50"  This depends on DataType.
+     * Time of the product.
+     * 
+     * @param ncfile 
+     */
+    public void fillNetcdfFileInfo(NetcdfFile ncfile, NetcdfFileInfo info) {
+        try {
+            info.TypeName = ncfile.findGlobalAttribute("TypeName").getStringValue();
+        } catch (Exception e) {
+            info.TypeName = "Missing";
+        }
+        info.Time = getTimeFromNetcdf(ncfile);
+    }
     
+    /** Read the Time and FractionalTime attributes from a netcdf file */
+    public Date getTimeFromNetcdf(NetcdfFile ncfile) {
+        Date dt;
+        long tm = 0;
+        try{
+             tm = ncfile.findGlobalAttribute("Time").getNumericValue().longValue();
+        }catch(Exception e2){
+            // No time attribute or wrong format, use current time
+            log.warn("Missing Time attribute in netcdf file, using current time");
+            dt = new Date();
+            return dt;
+        }
+        long tm_long = 1000 * tm;
+        
+        // Try to get fractional part as well
+        try {
+            double ftm = ncfile.findGlobalAttribute("FractionalTime").getNumericValue().doubleValue();
+            tm_long += (int) Math.round(1000 * ftm);
+        } catch (Exception e) {
+        } // okay if no fractional
+        dt = new Date(tm_long);
+        return dt;
+    }
+
     /** Fill a memento from netcdf data. */
     public void fillFromNetcdf(DataTypeMemento m, NetcdfFile ncfile, boolean sparse) {
         String typeName = "DataType";
@@ -45,17 +87,9 @@ public abstract class DataTypeNetcdf {
             double lat = ncfile.findGlobalAttribute("Latitude").getNumericValue().doubleValue();
             double lon = ncfile.findGlobalAttribute("Longitude").getNumericValue().doubleValue();
             double ht = ncfile.findGlobalAttribute("Height").getNumericValue().doubleValue();
-            long tm = ncfile.findGlobalAttribute("Time").getNumericValue().longValue();
-
             loc = new Location(lat, lon, ht / 1000);
-            long tm_long = 1000 * tm;
 
-            try {
-                double ftm = ncfile.findGlobalAttribute("FractionalTime").getNumericValue().doubleValue();
-                tm_long += (int) Math.round(1000 * ftm);
-            } catch (Exception e) {
-            } // okay if no fractional
-            dt = new Date(tm_long);
+            dt = getTimeFromNetcdf(ncfile);
 
         } catch (Exception e) {
             log.warn("Couldn't read in location/time/type shared attibutes from netcdf file", e);

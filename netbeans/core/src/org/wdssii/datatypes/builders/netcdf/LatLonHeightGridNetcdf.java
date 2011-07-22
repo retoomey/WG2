@@ -8,6 +8,7 @@ import org.wdssii.datatypes.LatLonHeightGrid.LatLonHeightGridMemento;
 import ucar.nc2.NetcdfFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.storage.Array3Dfloat;
 import org.wdssii.storage.Array3DfloatRAM;
 import ucar.ma2.Array;
@@ -38,7 +39,13 @@ public class LatLonHeightGridNetcdf extends DataTypeNetcdf {
         this.fillFromNetcdf(m, ncfile, sparse);
         return new LatLonHeightGrid(m);
     }
-
+    
+    @Override
+    public void fillNetcdfFileInfo(NetcdfFile ncfile, NetcdfFileInfo info) {
+        super.fillNetcdfFileInfo(ncfile, info);
+        info.Choice = "Missing"; // FIXME
+    }
+    
     /** Fill a memento from Netcdf data. */
     @Override
     public void fillFromNetcdf(DataTypeMemento m, NetcdfFile ncfile, boolean sparse) {

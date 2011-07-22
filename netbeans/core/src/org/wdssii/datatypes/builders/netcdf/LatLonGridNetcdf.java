@@ -9,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.datatypes.LatLonGrid.LatLonGridMemento;
+import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 
 /**
  *  Create a LatLonGrid from a Netcdf file
@@ -31,6 +32,12 @@ public class LatLonGridNetcdf extends DataTypeNetcdf {
         m.datametric = LatLonGrid.createDataMetric();
         this.fillFromNetcdf(m, ncfile, sparse);
         return new LatLonGrid(m);
+    }
+
+    @Override
+    public void fillNetcdfFileInfo(NetcdfFile ncfile, NetcdfFileInfo info) {
+        super.fillNetcdfFileInfo(ncfile, info);
+        info.Choice = "Missing"; // FIXME
     }
 
     /** Fill a memento from Netcdf data. */

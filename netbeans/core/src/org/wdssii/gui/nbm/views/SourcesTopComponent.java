@@ -5,7 +5,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -30,6 +29,8 @@ import javax.swing.table.TableRowSorter;
 
 import org.wdssii.core.SourceBookmarks.*;
 import org.wdssii.core.SourceBookmarks;
+import org.wdssii.datatypes.builders.NetcdfBuilder;
+import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.commands.SourceAddCommand;
@@ -81,7 +82,8 @@ public final class SourcesTopComponent extends TopComponent {
 
         @Override
         public boolean accept(File f) {
-            return f.getName().toLowerCase().endsWith(".netcdf");
+            String t = f.getName().toLowerCase();
+            return (t.endsWith(".netcdf") || (t.endsWith(".netcdf.gz")));
         }
 
         @Override
@@ -309,9 +311,9 @@ public final class SourcesTopComponent extends TopComponent {
         jSingleProductTextField = new javax.swing.JTextField();
         jAddLocalButton = new javax.swing.JButton();
         jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         jSingleURLTextField = new javax.swing.JTextField();
+        jSingleTimeTextField = new javax.swing.JTextField();
 
         setToolTipText(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.toolTipText")); // NOI18N
         setLayout(new java.awt.BorderLayout());
@@ -390,7 +392,7 @@ public final class SourcesTopComponent extends TopComponent {
                 .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jBookmarkComboBox, 0, 402, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jIndexPanelLayout.createSequentialGroup()
-                        .addComponent(jGroupComboBox, 0, 323, Short.MAX_VALUE)
+                        .addComponent(jGroupComboBox, 0, 325, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jRefreshButton)))
                 .addContainerGap())
@@ -405,11 +407,11 @@ public final class SourcesTopComponent extends TopComponent {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)))
+                            .addComponent(jNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)))
                     .addGroup(jIndexPanelLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addGap(18, 18, 18)
-                        .addComponent(jURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)))
+                        .addComponent(jURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 266, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jBrowseButton)
@@ -445,7 +447,7 @@ public final class SourcesTopComponent extends TopComponent {
                     .addComponent(jGroupComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jRefreshButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE))
+                .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 146, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jIndexPanel.TabConstraints.tabTitle"), jIndexPanel); // NOI18N
@@ -474,11 +476,12 @@ public final class SourcesTopComponent extends TopComponent {
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel8, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jLabel8.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel9, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jLabel9.text")); // NOI18N
-
         org.openide.awt.Mnemonics.setLocalizedText(jLabel10, org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jLabel10.text")); // NOI18N
 
         jSingleURLTextField.setText(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jSingleURLTextField.text")); // NOI18N
+
+        jSingleTimeTextField.setEditable(false);
+        jSingleTimeTextField.setText(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jSingleTimeTextField.text")); // NOI18N
 
         javax.swing.GroupLayout jSinglePanelLayout = new javax.swing.GroupLayout(jSinglePanel);
         jSinglePanel.setLayout(jSinglePanelLayout);
@@ -487,29 +490,27 @@ public final class SourcesTopComponent extends TopComponent {
             .addGroup(jSinglePanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jSinglePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jSinglePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jSinglePanelLayout.createSequentialGroup()
-                            .addComponent(jLabel10)
-                            .addGap(22, 22, 22)
-                            .addComponent(jSingleURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 293, Short.MAX_VALUE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jSingleLoad)
-                            .addContainerGap())
-                        .addGroup(jSinglePanelLayout.createSequentialGroup()
-                            .addComponent(jLabel7)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jSingleChoiceTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE)
-                            .addContainerGap())
-                        .addGroup(jSinglePanelLayout.createSequentialGroup()
-                            .addComponent(jLabel8)
-                            .addGap(18, 18, 18)
-                            .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, 439, Short.MAX_VALUE)
-                            .addGap(2, 2, 2))
-                        .addGroup(jSinglePanelLayout.createSequentialGroup()
-                            .addComponent(jLabel6)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jSingleProductTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE)
-                            .addContainerGap()))
+                    .addGroup(jSinglePanelLayout.createSequentialGroup()
+                        .addGroup(jSinglePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jSinglePanelLayout.createSequentialGroup()
+                                .addComponent(jLabel10)
+                                .addGap(22, 22, 22)
+                                .addComponent(jSingleURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jSingleLoad))
+                            .addGroup(jSinglePanelLayout.createSequentialGroup()
+                                .addComponent(jLabel7)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jSingleChoiceTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
+                            .addGroup(jSinglePanelLayout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addGap(18, 18, 18)
+                                .addComponent(jSingleTimeTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 431, Short.MAX_VALUE))
+                            .addGroup(jSinglePanelLayout.createSequentialGroup()
+                                .addComponent(jLabel6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jSingleProductTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE)))
+                        .addContainerGap())
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jSinglePanelLayout.createSequentialGroup()
                         .addComponent(jAddLocalButton)
                         .addContainerGap())))
@@ -533,10 +534,10 @@ public final class SourcesTopComponent extends TopComponent {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jSinglePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
-                    .addComponent(jLabel9))
+                    .addComponent(jSingleTimeTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jAddLocalButton)
-                .addContainerGap(178, Short.MAX_VALUE))
+                .addContainerGap(169, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jSinglePanel.TabConstraints.tabTitle"), jSinglePanel); // NOI18N
@@ -582,8 +583,18 @@ public final class SourcesTopComponent extends TopComponent {
 
         URL aURL = doSingleProductOpenDialog();
         if (aURL != null) {
-            String text = aURL.toString(); 
+            String text = aURL.toString();
             jSingleURLTextField.setText(text);
+
+            // Now get the file from the URL
+            File aFile = NetcdfBuilder.getFileFromURL(aURL);
+            String absolutePath = aFile.getAbsolutePath();
+            NetcdfFileInfo info = NetcdfBuilder.getNetcdfFileInfo(absolutePath);
+            if (info.success){
+              jSingleProductTextField.setText(info.TypeName);
+              jSingleChoiceTextField.setText(info.Choice);
+              jSingleTimeTextField.setText(info.Time.toString());              
+            }
         }
     }//GEN-LAST:event_jSingleLoadActionPerformed
 
@@ -627,12 +638,12 @@ public final class SourcesTopComponent extends TopComponent {
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         // Use the current time for product.  FIXME: could we open it up
         // and get the time?  Maybe
         Calendar cal = Calendar.getInstance();
         Date d = cal.getTime();
-        
+
         // Finally try to add it.
         SourceManager.getInstance().addSingleURL(aURL, product, choice, d);
     }//GEN-LAST:event_jAddLocalButtonActionPerformed
@@ -652,7 +663,6 @@ public final class SourcesTopComponent extends TopComponent {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JButton jLoadNewSourceButton;
     private javax.swing.JTextField jNameTextField;
     private javax.swing.JButton jRefreshButton;
@@ -661,6 +671,7 @@ public final class SourcesTopComponent extends TopComponent {
     private javax.swing.JButton jSingleLoad;
     private javax.swing.JPanel jSinglePanel;
     private javax.swing.JTextField jSingleProductTextField;
+    private javax.swing.JTextField jSingleTimeTextField;
     private javax.swing.JTextField jSingleURLTextField;
     private javax.swing.JScrollPane jSourceTableScrollPane;
     private javax.swing.JTabbedPane jTabbedPane1;

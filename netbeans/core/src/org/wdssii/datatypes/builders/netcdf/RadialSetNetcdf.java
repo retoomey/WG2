@@ -16,6 +16,7 @@ import ucar.nc2.Variable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.datatypes.RadialSet;
+import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 
 /**
  * Create a RadialSet from a Netcdf file
@@ -40,6 +41,17 @@ public class RadialSetNetcdf extends DataTypeNetcdf {
         return new RadialSet(m);
     }
 
+    @Override
+    public void fillNetcdfFileInfo(NetcdfFile ncfile, NetcdfFileInfo info){
+        super.fillNetcdfFileInfo(ncfile, info);
+        try{
+            float elev = ncfile.findGlobalAttribute("Elevation").getNumericValue().floatValue();
+            info.Choice = Float.toString(elev);
+        }catch(Exception e){
+            info.Choice="Missing";
+        }
+    }
+    
     /** Fill a memento from Netcdf data. */
     @Override
     public void fillFromNetcdf(DataTypeMemento m, NetcdfFile ncfile, boolean sparse) {

@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
@@ -44,6 +45,28 @@ import ucar.nc2.Variable;
 public class NetcdfBuilder implements Builder {
 
     private static Log log = LogFactory.getLog(NetcdfBuilder.class);
+
+    /** Info snagged from a netcdf file.  Used by GUI to prefetch
+     * Product, Choice and Time (selections) from our format netcdf files
+     */
+    public static class NetcdfFileInfo {
+
+        /** The TypeName such as Reflectivity.  Attribute 'TypName' */
+         public String TypeName;           
+        /** The DataType gotten from the file.   Attribute 'DataType' */
+        public String DataType; 
+        /** Choice from file.  Elevation, height, etc... */
+        public String Choice; 
+        /** Was the DataType 'sparse'? */
+        boolean sparse;
+        /** Any error during netcdf reading. GUI can show a dialog */
+        public String error;
+        /** Field set to true only if everything read correctly */
+        public boolean success = false;  
+        /** The time for this product */
+        public Date Time;
+
+    }
 
     public NetcdfBuilder() {
     }
@@ -124,6 +147,22 @@ public class NetcdfBuilder implements Builder {
         return createObject(url, m);
     }
 
+    /** A util function to correctly get a File from a URL.  This makes
+     * sure to fix spaces, etc. that mess up windows.
+     * Putting this here for the moment until I figure out where to put it.
+     * URL has spaces converted to %20, which won't work as a file name
+     * This is the proper way to convert back
+     */
+    public static File getFileFromURL(URL aURL) {
+        File aFile = null;
+        try {
+            aFile = new File(aURL.toURI());
+        } catch (URISyntaxException e) {
+            aFile = new File(aURL.getPath());
+        }
+        return aFile;
+    }
+
     /** pass in the file name and obtain an object back. */
     private DataType createObject(URL aURL, WdssiiJobMonitor m) {
 
@@ -132,16 +171,9 @@ public class NetcdfBuilder implements Builder {
         }
         if (aURL.toString().startsWith("file:")) {
 
-            // URL has spaces converted to %20, which won't work as a file name
-            // This is the proper way to convert back
-            File aFile = null;
-            try {
-                aFile = new File(aURL.toURI());
-            } catch (URISyntaxException e) {
-                aFile = new File(aURL.getPath());
-            }
+            File aFile = getFileFromURL(aURL);
             String absolutePath = aFile.getAbsolutePath();
-
+            
             return fromNetcdfFile(absolutePath, m);
         }
         return readRemoteNetcdfURL(aURL, m);
@@ -283,6 +315,73 @@ public class NetcdfBuilder implements Builder {
             }
         }
         return obj;
+    }
+
+    /** Use to get the attributes that describe the product, choice
+     * and time of one of our wdssii format files...
+     * 
+     * @param path 
+     */
+    public static NetcdfFileInfo getNetcdfFileInfo(String path) {
+        NetcdfFileInfo info = new NetcdfFileInfo();
+        NetcdfFile ncfile = null;
+
+        try {
+            ncfile = NetcdfFile.open(path);
+
+            // First type to get the 'DataType' field from the netcdf, we use this
+            // to look for a constructor to call
+            try {
+                info.DataType = ncfile.findGlobalAttribute("DataType").getStringValue();
+            } catch (Exception e) {
+                info.DataType = "Missing";
+            }
+
+            // Any DataType with 'Sparse' in it gets sent to the class without the sparse:
+            // "SparseRadialSet" --> "RadialSet"
+            // "SparseWindField" --> "WindField"
+            boolean sparse = false;
+            if (info.DataType.contains("Sparse")) {
+                info.DataType = info.DataType.replaceFirst("Sparse", "");
+                sparse = true;
+            }
+            info.sparse = sparse;
+
+              // Create class from reflection.  Note this will create a 'RadialSetNetcdf',
+            // 'LatLonGridNetcdf', 'WindfieldNetcdf', etc. based on DataType from netcdf file
+            String createByName = "org.wdssii.datatypes.builders.netcdf." + info.DataType + "Netcdf";
+            Class<?> aClass = null;
+            try {
+                aClass = Class.forName(createByName);
+                Class<?>[] argTypes = new Class[]{NetcdfFile.class, NetcdfFileInfo.class};
+                Object[] args = new Object[]{ncfile, info}; // Actual args
+                Object classInstance = aClass.newInstance();
+                Method aMethod = aClass.getMethod("fillNetcdfFileInfo", argTypes);
+                aMethod.invoke(classInstance, args);     
+            } catch (Exception e) {
+                System.out.println("ERROR " + createByName + ", " + e.toString());
+                log.warn("Couldn't create object by name '"
+                        + createByName + "' because " + e.toString());
+            } finally {
+                // FIXME: Probably will create a "NetcdfDataType" object for the display
+                // so it can still display unknown netcdf data for debugging purposes
+            }
+            
+            // Do this last....
+            info.error = "";
+            info.success = true;
+        } catch (Exception e) {
+            // It's ok, returning null lets us know the failure...
+            info.error = e.toString();
+        } finally {
+            try {
+                if (ncfile != null) {
+                    ncfile.close();
+                }
+            } catch (Exception e) {
+            }
+        }
+        return info;
     }
 
     public static Variable getVariable(NetcdfFile ncfile, String name)

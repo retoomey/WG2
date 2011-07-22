@@ -9,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.datatypes.WindField;
 import org.wdssii.datatypes.WindField.WindFieldMemento;
+import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 
 /**
  *  Create a WindField from a Netcdf file
@@ -33,6 +34,12 @@ public class WindFieldNetcdf extends DataTypeNetcdf {
         return new WindField(m);
     }
 
+    @Override
+    public void fillNetcdfFileInfo(NetcdfFile ncfile, NetcdfFileInfo info) {
+        super.fillNetcdfFileInfo(ncfile, info);
+        info.Choice = "Missing"; // FIXME
+    }
+        
     /** Fill a memento from Netcdf data. */
     @Override
     public void fillFromNetcdf(DataTypeMemento m, NetcdfFile ncfile, boolean sparse) {

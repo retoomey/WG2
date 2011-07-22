@@ -1,12 +1,14 @@
 package org.wdssii.gui.nbm.views;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.JCheckBox;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
@@ -23,14 +25,17 @@ import org.openide.awt.ActionReference;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.gui.LLHAreaManager;
-import org.wdssii.gui.commands.LLHAreaChangeCommand.LLHAreaOnlyCommand;
-import org.wdssii.gui.commands.LLHAreaChangeCommand.LLHAreaVisibleCommand;
+import org.wdssii.gui.commands.LLHAreaChangeCommand;
 import org.wdssii.gui.commands.LLHAreaCommand;
+import org.wdssii.gui.commands.LLHAreaDeleteCommand;
 import org.wdssii.gui.commands.LLHAreaSelectCommand;
 import org.wdssii.gui.swing.RowEntryTableModel;
+import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.views.LLHAreaView;
+import org.wdssii.gui.volumes.LLHArea;
+import org.wdssii.gui.volumes.LLHArea.LLHAreaMemento;
 
 /**
  * LLHAreaTopComponent
@@ -62,16 +67,16 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
     public void LLHAreaCommandUpdate(LLHAreaCommand command) {
         updateGUI(command);
     }
-    
+
     @Override
     public void updateInSwingThread(Object command) {
         updateTable();
-    }   
-    
+    }
     /** The object 3D list shows the list of 3d objects in the window
      */
     private Object3DListTableModel myObject3DListTableModel;
     private JTable jObjects3DListTable;
+    private LLHArea myLastSelected = null;
 
     /** Storage for the current product list */
     private static class Objects3DTableData {
@@ -132,7 +137,7 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
                     case Object3DListTableModel.OBJ_VISIBLE:
                         return getJCheckBox(table, e.checked, isSelected, cellHasFocus, row, col);
                     case Object3DListTableModel.OBJ_ONLY:
-                         return getJCheckBoxIcon(table, e.onlyMode, "picture.png", "pictures.png", isSelected, cellHasFocus, row, col);
+                        return getJCheckBoxIcon(table, e.onlyMode, "picture.png", "pictures.png", isSelected, cellHasFocus, row, col);
                     case Object3DListTableModel.OBJ_NAME:
                         info = e.visibleName;
                         break;
@@ -156,16 +161,29 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
     public LLHAreaTopComponent() {
         initComponents();
         initTable();
-        
+
         CommandManager.getInstance().registerView(LLHAreaView.ID, this);
         setName(NbBundle.getMessage(LLHAreaTopComponent.class, "CTL_LLHAreaTopComponent"));
         setToolTipText(NbBundle.getMessage(LLHAreaTopComponent.class, "HINT_LLHAreaTopComponent"));
 
     }
 
+    // Table just to disable cntl-click making zero selection.  We
+    // always have at least one selection..
+    private static class JNoCntrlSelectTable extends JTable {
+
+        @Override
+        public void changeSelection(int rowIndex, int columnIndex, boolean toggle, boolean extend) {
+            // Disable cntl and shift behavior.  We want single row always
+            // selected
+            toggle = extend = false;
+            super.changeSelection(rowIndex, columnIndex, toggle, extend);
+        }
+    }
+
     public void initTable() {
         myObject3DListTableModel = new Object3DListTableModel();
-        jObjects3DListTable = new javax.swing.JTable();
+        jObjects3DListTable = new JNoCntrlSelectTable();
         final JTable myTable = jObjects3DListTable;
         jObjects3DListTable.setModel(myObject3DListTableModel);
         final Object3DListTableModel myModel = myObject3DListTableModel;
@@ -216,55 +234,87 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
             }
         });
 
-        /** Add the mouse listener that handles clicking in any cell of our
-         * custom Layer table
-         */
-        jObjects3DListTable.addMouseListener(new MouseAdapter() {
+        jObjects3DListTable.addMouseListener(new RowEntryTableMouseAdapter(jObjects3DListTable, myModel) {
+
+            class Item extends JMenuItem {
+
+                private final Objects3DTableData d;
+
+                public Item(String s, Objects3DTableData line) {
+                    super(s);
+                    d = line;
+                }
+
+                public Objects3DTableData getData() {
+                    return d;
+                }
+            };
 
             @Override
-            public void mouseClicked(MouseEvent e) {
-                // You actually want the single AND the double clicks so
-                // that you always toggle even if they are clicking fast,
-                // so we don't check click count.
-                if (e.getComponent().isEnabled()
-                        && e.getButton() == MouseEvent.BUTTON2) {
-                    // updateProductList();
-                    return;
-                }
-                if (e.getComponent().isEnabled()
-                        && e.getButton() == MouseEvent.BUTTON1/* && e.getClickCount() == 1*/) {
-                    Point p = e.getPoint();
-                    int row = myTable.rowAtPoint(p);
-                    int column = myTable.columnAtPoint(p);
+            public JPopupMenu getDynamicPopupMenu(Object line, int row, int column) {
 
-                    if ((row > -1) && (column > -1)) {
-                        int orgColumn = myTable.convertColumnIndexToModel(column);
-                        int orgRow = myTable.convertRowIndexToModel(row);
-                        Object stuff = myModel.getValueAt(orgRow, orgColumn);
-                        if (stuff instanceof Objects3DTableData) {
-                            Objects3DTableData entry = (Objects3DTableData) (stuff);
+                // FIXME: Code a bit messy, we're just hacking the text value
+                // for now.  Probably will need a custom JPopupMenu that has
+                // our Objects3DTableData in it.
+                ActionListener al = new ActionListener() {
 
-                            switch (orgColumn) {
-                                case Object3DListTableModel.OBJ_VISIBLE: {
-                                    LLHAreaVisibleCommand c = new LLHAreaVisibleCommand(entry.keyName, !entry.checked);
-                                    CommandManager.getInstance().executeCommand(c, true);
-                                }
-                                break;
-                                case Object3DListTableModel.OBJ_ONLY: {
-                                    LLHAreaOnlyCommand c = new LLHAreaOnlyCommand(entry.keyName, !entry.onlyMode);
-                                    CommandManager.getInstance().executeCommand(c, true);
-                                }
-                                break;
-                                default:
-                                    break;
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        Item i = (Item) (e.getSource());
+                        String text = i.getText();
+                        if (text.startsWith("Delete")) {
+                            LLHAreaDeleteCommand del = new LLHAreaDeleteCommand(i.getData().keyName);
+                            CommandManager.getInstance().executeCommand(del, true);
+                        }
+                    }
+                };
+                JPopupMenu popupmenu = new JPopupMenu();
+                Objects3DTableData entry = (Objects3DTableData) (line);
+                String name = "Delete " + entry.visibleName;
+                Item i = new Item(name, entry);
+                popupmenu.add(i);
+                i.addActionListener(al);
+                return popupmenu;
+            }
+
+            @Override
+            public void handleClick(Object stuff, int orgRow, int orgColumn) {
+
+                if (stuff instanceof Objects3DTableData) {
+                    Objects3DTableData entry = (Objects3DTableData) (stuff);
+
+                    switch (orgColumn) {
+                        case Object3DListTableModel.OBJ_VISIBLE: {
+                            LLHArea a = LLHAreaManager.getInstance().getLLHArea(entry.keyName);
+                            if (a != null) {
+                                LLHAreaMemento m = a.getMemento();
+                                m.useVisible = true;
+                                m.visible = !entry.checked;
+                                LLHAreaChangeCommand c = new LLHAreaChangeCommand(entry.keyName, m);
+                                CommandManager.getInstance().executeCommand(c, true);
                             }
                         }
+                        break;
+                        case Object3DListTableModel.OBJ_ONLY: {
+                            LLHArea a = LLHAreaManager.getInstance().getLLHArea(entry.keyName);
+                            if (a != null) {
+                                LLHAreaMemento m = a.getMemento();
+                                m.useOnly = true;
+                                m.only = !entry.onlyMode;
+                                LLHAreaChangeCommand c = new LLHAreaChangeCommand(entry.keyName, m);
+                                CommandManager.getInstance().executeCommand(c, true);
+                            }
+                        }
+                        break;
+                        default:
+                            break;
                     }
                 }
             }
         });
 
         setUpSortingColumns();
+
         // updateTable();
     }
 
@@ -299,6 +349,7 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
         VolumeTableData s = LLHAreaManager.getInstance().getSelection();
         int currentLine = 0;
         int select = -1;
+        LLHArea selectedArea = null;
         ArrayList<Objects3DTableData> newList = new ArrayList<Objects3DTableData>();
         for (VolumeTableData d : v) {
             Objects3DTableData d2 = new Objects3DTableData();
@@ -310,6 +361,7 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
             newList.add(d2);
             if (s == d) {
                 select = currentLine;
+                selectedArea = d.airspace;
             }
             currentLine++;
         }
@@ -325,8 +377,25 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
             // because it still fires and event when you set it false
             myObject3DListTableModel.setRebuilding(true);
             jObjects3DListTable.setRowSelectionInterval(select, select);
+
+            if (myLastSelected != selectedArea) {
+                jRootControlPanel.removeAll();
+                selectedArea.activateGUI(jRootControlPanel);
+                jControlsToolBar.validate();
+                jControlsToolBar.repaint();
+                myLastSelected = selectedArea;
+            } else {
+                selectedArea.updateGUI();
+            }
+
             myObject3DListTableModel.setRebuilding(false);
 
+        } else {
+            // Remove GUI
+            jRootControlPanel.removeAll();
+            jControlsToolBar.validate();
+            jControlsToolBar.repaint();
+            myLastSelected = null;
         }
         jObjects3DListTable.repaint();
     }
@@ -339,34 +408,50 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jEditToolBar = new javax.swing.JToolBar();
         jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jControlsToolBar = new javax.swing.JToolBar();
+        jRootControlPanel = new javax.swing.JPanel();
+        jTextField1 = new javax.swing.JTextField();
         jObjectScrollPane = new javax.swing.JScrollPane();
 
+        setLayout(new java.awt.BorderLayout());
+
+        jEditToolBar.setRollover(true);
+
         org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(LLHAreaTopComponent.class, "LLHAreaTopComponent.jButton1.text")); // NOI18N
+        jButton1.setFocusable(false);
+        jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
+        jEditToolBar.add(jButton1);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(85, Short.MAX_VALUE))
-            .addComponent(jObjectScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jButton1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jObjectScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE))
-        );
+        org.openide.awt.Mnemonics.setLocalizedText(jButton2, org.openide.util.NbBundle.getMessage(LLHAreaTopComponent.class, "LLHAreaTopComponent.jButton2.text")); // NOI18N
+        jButton2.setFocusable(false);
+        jButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jEditToolBar.add(jButton2);
+
+        add(jEditToolBar, java.awt.BorderLayout.NORTH);
+
+        jControlsToolBar.setRollover(true);
+
+        jRootControlPanel.setBackground(new java.awt.Color(255, 102, 102));
+        jRootControlPanel.setPreferredSize(new java.awt.Dimension(200, 50));
+        jRootControlPanel.setLayout(new java.awt.BorderLayout());
+
+        jTextField1.setText(org.openide.util.NbBundle.getMessage(LLHAreaTopComponent.class, "LLHAreaTopComponent.jTextField1.text")); // NOI18N
+        jRootControlPanel.add(jTextField1, java.awt.BorderLayout.CENTER);
+
+        jControlsToolBar.add(jRootControlPanel);
+
+        add(jControlsToolBar, java.awt.BorderLayout.PAGE_END);
+        add(jObjectScrollPane, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -377,7 +462,12 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
     }//GEN-LAST:event_jButton1ActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JToolBar jControlsToolBar;
+    private javax.swing.JToolBar jEditToolBar;
     private javax.swing.JScrollPane jObjectScrollPane;
+    private javax.swing.JPanel jRootControlPanel;
+    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 
     @Override

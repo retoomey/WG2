@@ -19,6 +19,7 @@ import org.wdssii.gui.products.VolumeSlice3DOutput;
 import org.wdssii.gui.products.VolumeSliceInput;
 
 import java.util.*;
+import javax.swing.JComponent;
 
 /**
  * A copy of worldwind Polygon, with modifications to allow us to render the vslice
@@ -45,6 +46,8 @@ public class LLHAreaSlice extends LLHArea {
     private double myAltitude1 = 50;
     private String myCacheKey = "";
 
+    private LLHAreaSliceGUI myControls = null;
+    
     public int getNumRows() {
         return myNumRows;
     }
@@ -385,7 +388,8 @@ public class LLHAreaSlice extends LLHArea {
     }
 
     public double getTopHeightKms() {
-        return myAltitude1;
+       // return myAltitude1;
+        return upperAltitude;
     }
 
     private void makeVSlice(DrawContext dc, List<LatLon> locations, List<Boolean> edgeFlags,
@@ -648,6 +652,30 @@ public class LLHAreaSlice extends LLHArea {
             pos = vertexPos + 2 * (count - 1);
             indices[index++] = pos;
             indices[index] = pos + 1;
+        }
+    }
+    
+    @Override
+    public void activateGUI(JComponent source){ 
+        // Create the controls only if they don't already exist.
+        // FIXME: maybe some caching among common types?  We probably won't
+        // have more than 5-10 3D volume objects per display, so for now
+        // we have a unique set of controls per vslice.
+        if (myControls == null){
+            myControls = new LLHAreaSliceGUI(this);
+        }
+        
+        // Set the layout and add our controls
+        source.setLayout(new java.awt.BorderLayout());
+        source.add(myControls, java.awt.BorderLayout.CENTER);
+        
+        updateGUI();
+    }
+    
+    @Override
+    public void updateGUI(){
+        if (myControls != null){
+            myControls.updateGUI();
         }
     }
 }

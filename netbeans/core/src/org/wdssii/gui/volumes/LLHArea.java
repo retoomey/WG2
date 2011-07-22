@@ -23,6 +23,7 @@ import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
 import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
 import gov.nasa.worldwind.util.GeometryBuilder;
 import gov.nasa.worldwind.util.Logging;
+import javax.swing.JComponent;
 
 /** A root class for all of our volumes.  Common functionality will go here.
  * 
@@ -30,6 +31,22 @@ import gov.nasa.worldwind.util.Logging;
  * */
 public class LLHArea extends AVListImpl implements Movable {
 
+    /** Change to pass onto the LLHArea.  All fields common to
+     LLHArea are here
+    */
+    public static class LLHAreaMemento {
+        public boolean visible;
+        public boolean useVisible = false;  // Hummm either flags or set on creation
+        public boolean only;
+        public boolean useOnly = false;
+        public double maxHeight;
+        public boolean useMaxHeight = false;
+    }
+    
+    // Hummm
+    private boolean visible = true;
+    private boolean only = false; 
+    
     /** Every LLHArea can follow a particular product */
     protected String myProductFollow = ProductHandlerList.TOP_PRODUCT;
     
@@ -38,11 +55,11 @@ public class LLHArea extends AVListImpl implements Movable {
 
     protected static final String SUBDIVISIONS = "Subdivisions";
     protected static final String VERTICAL_EXAGGERATION = "VerticalExaggeration";
-    private boolean visible = true;
+
     private AirspaceAttributes attributes;
     
-    private double lowerAltitude = 0.0;
-    private double upperAltitude = 1.0;
+    protected double lowerAltitude = 0.0;
+    protected double upperAltitude = 1.0;
     
     private LatLon groundReference;
 
@@ -54,6 +71,21 @@ public class LLHArea extends AVListImpl implements Movable {
         this(new BasicAirspaceAttributes());
     }
 
+    /** Get the memento for this class */
+    public LLHAreaMemento getMemento(){
+        LLHAreaMemento m = new LLHAreaMemento();
+        m.visible = visible;
+        m.only = only;
+        m.maxHeight = upperAltitude;
+        return m;
+    }
+    
+    public void setFromMemento(LLHAreaMemento l){
+        if (l.useVisible){ setVisible(l.visible); }
+        if (l.useOnly) { setOnly(l.only); }
+        if (l.useMaxHeight){ setAltitudes(lowerAltitude, l.maxHeight);}
+    }
+    
     // Airspaces perform about 5% better if their extent is cached, so do that here.
     protected static class ExtentInfo {
         // The extent depends on the state of the globe used to compute it, and the vertical exaggeration.
@@ -91,6 +123,14 @@ public class LLHArea extends AVListImpl implements Movable {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
+    }
+    
+    public boolean isOnly() {
+        return this.only;
+    }
+
+    public void setOnly(boolean only) {
+        this.only = only;
     }
 
     public AirspaceAttributes getAttributes() {
@@ -391,5 +431,20 @@ public class LLHArea extends AVListImpl implements Movable {
     /** Get if we use a virtual or regular volume */
     public boolean getUseVirtualVolume() {
         return myUseVirtualVolume;
+    }
+    
+    /** Activate our GUI within the given JComponent.  The JComponent is
+     * assumed empty.  We should assign the layout we want to it.  The
+     * caller is trusting us to handle this properly. 
+     * 
+     * @param source 
+     */
+    public void activateGUI(JComponent source){
+        
+    }
+    
+    /** Update our current GUI controls */
+    public void updateGUI(){
+        
     }
 }

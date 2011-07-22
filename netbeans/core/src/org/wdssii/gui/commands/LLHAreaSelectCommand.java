@@ -9,7 +9,7 @@ import org.wdssii.gui.volumes.LLHArea;
  * @author Robert Toomey
  */
 public class LLHAreaSelectCommand extends LLHAreaCommand {
-    private String myLLHAreaKey;
+    private String myLLHAreaKey = null;
     private LLHArea myLLHArea = null;
     
     /** Select an LLHArea by known keyname */

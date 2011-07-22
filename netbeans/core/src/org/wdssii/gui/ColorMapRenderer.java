@@ -85,8 +85,20 @@ public class ColorMapRenderer {
                     // Create a buffered image and render into it.
                     // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
                     // into integer pixels
-                    BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+                    // This is annoying, we need a graphics to tell what size
+                    // to draw the image as, but creating an image takes a size,
+                    // lol.  So we do it twice.  FIXME: easier way?
+                    BufferedImage bi = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D ig2 = bi.createGraphics();
+                    int minH = getColorKeyMinHeight(ig2);
+                    if (h < minH) {
+                        h = minH;
+                    }
+                    
+                    // Create it now with wanted size...
+                    bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                    ig2 = bi.createGraphics();
                     paintToGraphics(ig2, w, h);
 
                     // ImageIO freaks unless the file already exists...
@@ -139,7 +151,8 @@ public class ColorMapRenderer {
             int padding = 10;
             int textHeight = metrics.getMaxAscent() + metrics.getMaxDescent();
             int renderY = metrics.getMaxAscent() + (padding / 2);
-            int cellHeight = textHeight + padding;
+
+            int cellHeight = Math.max(textHeight + padding, h);
 
             ColorMapOutput hi = new ColorMapOutput();
             ColorMapOutput lo = new ColorMapOutput();
@@ -246,5 +259,26 @@ public class ColorMapRenderer {
 
         g.setColor(Color.white);
         t.draw(g, x, y);
+    }
+
+    public int getColorKeyMinHeight(Graphics g) {
+        int cellHeight = 5;
+        if (myColorMap != null) {
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                    RenderingHints.VALUE_RENDER_QUALITY);
+
+            FontRenderContext frc = g2.getFontRenderContext();
+            Font f = Font.decode("Arial-PLAIN-12"); // shared with opengl code
+            
+            FontMetrics metrics = g2.getFontMetrics(f);
+            int padding = 10;
+            int textHeight = metrics.getMaxAscent() + metrics.getMaxDescent();
+            cellHeight = textHeight + padding;
+        }
+        return cellHeight;
     }
 }

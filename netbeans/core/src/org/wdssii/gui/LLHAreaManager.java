@@ -9,6 +9,7 @@ import java.util.List;
 import org.wdssii.gui.views.EarthBallView;
 import org.wdssii.gui.views.WdssiiView;
 import org.wdssii.gui.volumes.LLHArea;
+import org.wdssii.gui.volumes.LLHArea.LLHAreaMemento;
 import org.wdssii.gui.volumes.LLHAreaBoxFactory;
 import org.wdssii.gui.volumes.LLHAreaLayerController;
 import org.wdssii.gui.volumes.LLHAreaFactory;
@@ -49,7 +50,6 @@ public class LLHAreaManager implements Singleton {
         public String visibleName; // Name shown in GUI, renamable
         public String keyName; // Key used internally 
         public LLHArea airspace;
-        // public LLHAreaEditor editor;
         public boolean checked;
         public boolean onlyMode;
         public String message;
@@ -140,6 +140,8 @@ public class LLHAreaManager implements Singleton {
                 if (success) {
                     //  editor.addEditListener(this); not sure I need this
                     layer.addLLHArea(theData.airspace);
+                    theData.checked = theData.airspace.isVisible();
+                    theData.onlyMode = theData.airspace.isOnly();
                     myHandlerList.add(theData);
                 }
             }
@@ -158,9 +160,45 @@ public class LLHAreaManager implements Singleton {
 
     }
 
+    private void deleteVolume(VolumeTableData theVolume) {
+
+        // If it's a different volume than selected...
+        if (theVolume != null) {
+
+            int index = myHandlerList.indexOf(theVolume);
+
+            LLHAreaLayer layer = getVolumeLayer();
+            layer.removeLLHArea(theVolume.airspace);
+            myHandlerList.remove(theVolume);       
+            
+            // Select previous in list if any, or null
+            VolumeTableData toSelect = null;
+            if (myHandlerList.size() > 0) {
+                
+                // Select the previous item in list, if any...
+                index = index - 1;
+                if (index < 0) {
+                    index = 0;
+                }
+                toSelect = myHandlerList.get(index);
+            }
+            selectVolume(toSelect); // can be null
+        }
+    }
+
+    public void deleteLLHArea(String myLLHAreaKey) {
+
+        for (VolumeTableData v : myHandlerList) {
+            if (v.keyName.equals(myLLHAreaKey)) {
+                deleteVolume(v);
+                break;
+            }
+        }
+    }
+
     /** Select the given volume in the list and in the gl window.  This means turning on the
      * editing controls
-     * @param theVolume the volume to turn on
+     * @param theVolume the volume to turn on.  This can be NULL
      */
     private void selectVolume(VolumeTableData theVolume) {
 
@@ -189,6 +227,28 @@ public class LLHAreaManager implements Singleton {
                 break;
             }
         }
+    }
+
+    public String getVisibleName(LLHArea area) {
+        String key = "?";
+        for (VolumeTableData v : myHandlerList) {
+            if (area == v.airspace) {
+                key = v.visibleName;
+                break;
+            }
+        }
+        return key;
+    }
+
+    public String getKey(LLHArea area) {
+        String key = "?";
+        for (VolumeTableData v : myHandlerList) {
+            if (area == v.airspace) {
+                key = v.keyName;
+                break;
+            }
+        }
+        return key;
     }
 
     /** Get the volume layer we use.  Currently only one earthball */
@@ -257,41 +317,41 @@ public class LLHAreaManager implements Singleton {
         return Arrays.asList(locations);
     }
 
+    /*
     public void deleteSelectedVolume() {
-        System.out.println("Deleting selected volume");
-        if (mySelectedVolume != null) {
-
-            // Selected volume's editor, etc..will be in the world....
-            //	WorldWindowGLCanvas world = getWorld(); // What if world is different now???
-
-            // Remove the current selected volume editor and layer...
-            //	mySelectedVolume.editor.setArmed(false);
-            //	removeEditorFromLayers(world, mySelectedVolume.editor);
-            //	editorController.setEditor(null);
-
-            int index = myHandlerList.indexOf(mySelectedVolume);
-
-            LLHAreaLayer layer = getVolumeLayer();
-            layer.removeLLHArea(mySelectedVolume.airspace);
-
-            myHandlerList.remove(mySelectedVolume);
-            mySelectedVolume = null;
-
-            if (myHandlerList.size() > 0) {
-
-                // Select the previous item in list, if any...
-                index = index - 1;
-                if (index < 0) {
-                    index = 0;
-                }
-                selectVolume(myHandlerList.get(index));
-            } else {
-                updateEarthBall();
-            }
-
-        }
+    System.out.println("Deleting selected volume");
+    if (mySelectedVolume != null) {
+    
+    // Selected volume's editor, etc..will be in the world....
+    //	WorldWindowGLCanvas world = getWorld(); // What if world is different now???
+    
+    // Remove the current selected volume editor and layer...
+    //	mySelectedVolume.editor.setArmed(false);
+    //	removeEditorFromLayers(world, mySelectedVolume.editor);
+    //	editorController.setEditor(null);
+    
+    int index = myHandlerList.indexOf(mySelectedVolume);
+    
+    LLHAreaLayer layer = getVolumeLayer();
+    layer.removeLLHArea(mySelectedVolume.airspace);
+    
+    myHandlerList.remove(mySelectedVolume);
+    mySelectedVolume = null;
+    
+    if (myHandlerList.size() > 0) {
+    
+    // Select the previous item in list, if any...
+    index = index - 1;
+    if (index < 0) {
+    index = 0;
     }
-
+    selectVolume(myHandlerList.get(index));
+    } else {
+    updateEarthBall();
+    }
+    
+    }
+    }*/
     /** Get the volume that is currently selected (Has the controls) */
     public VolumeTableData getSelection() {
         return mySelectedVolume;
@@ -313,7 +373,7 @@ public class LLHAreaManager implements Singleton {
 
         // In only mode the selected volume is the only possible visible one
         if ((mySelectedVolume != null) && (mySelectedVolume.onlyMode)) {
-            if (mySelectedVolume.checked){
+            if (mySelectedVolume.checked) {
                 theStuff.add(mySelectedVolume.airspace);
             }
         } else {
@@ -328,10 +388,12 @@ public class LLHAreaManager implements Singleton {
     }
 
     /** Set if a LLHArea is visible or not */
+    @Deprecated
     public void setVisibleVolume(String aName, boolean flag) {
         for (VolumeTableData v : myHandlerList) {
             if (v.keyName.equals(aName)) {
                 v.checked = flag;
+                v.airspace.setVisible(flag);
                 CommandManager.getInstance().getEarthBall().updateOnMinTime();
                 break;
             }
@@ -339,13 +401,44 @@ public class LLHAreaManager implements Singleton {
     }
 
     /** Set if a LLHArea is in only mode or not */
+    @Deprecated
     public void setOnlyMode(String aName, boolean flag) {
         for (VolumeTableData v : myHandlerList) {
             if (v.visibleName.equals(aName)) {
                 v.onlyMode = flag;
+                v.airspace.setOnly(flag);
                 CommandManager.getInstance().getEarthBall().updateOnMinTime();
                 break;
             }
         }
+    }
+
+    /** Set a collection of changes to a LLHArea */
+    public void setLLHAreaChange(String aName, LLHAreaMemento myChange) {
+        for (VolumeTableData v : myHandlerList) {
+            if (v.visibleName.equals(aName)) {
+                // hack, really should use state in the LLHArea
+                if (myChange.useVisible) {
+                    v.checked = myChange.visible;
+                }
+                if (myChange.useOnly) {
+                    v.onlyMode = myChange.only;
+                }
+                v.airspace.setFromMemento(myChange);
+                CommandManager.getInstance().getEarthBall().updateOnMinTime();
+                break;
+            }
+        }
+    }
+
+    public LLHArea getLLHArea(String aName) {
+        LLHArea a = null;
+        for (VolumeTableData v : myHandlerList) {
+            if (v.visibleName.equals(aName)) {
+                a = v.airspace;
+                break;
+            }
+        }
+        return a;
     }
 }

@@ -1,5 +1,6 @@
 package org.wdssii.gui.nbm.views;
 
+import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -15,16 +16,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableRowSorter;
 
 import org.wdssii.core.SourceBookmarks.*;
@@ -34,6 +36,8 @@ import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.commands.SourceAddCommand;
+import org.wdssii.gui.swing.RowEntryTableModel;
+import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Sources//EN",
 autostore = false)
@@ -54,7 +58,7 @@ preferredID = "SourcesTopComponent")
 public final class SourcesTopComponent extends TopComponent {
 
     private ArrayList<BookmarkURLSource> mySourceList;
-    private ArrayList<BookmarkURLSource> myVisibleSourceList;
+    //private ArrayList<BookmarkURLSource> myVisibleSourceList;
     private static final String ALLGROUPS = "All";
     private javax.swing.JTable jSourceListTable;
     private final String myDebugList = "Debug List";
@@ -93,13 +97,15 @@ public final class SourcesTopComponent extends TopComponent {
     }
 
     /** A class that uses a BookmarkURLData as its model */
-    private class BookmarkURLDataTableModel extends AbstractTableModel {
+    private class BookmarkURLDataTableModel extends RowEntryTableModel {
 
-        /** The bookmark data structure backing our stuff */
-        private BookmarkURLData bookmarks;
-        /** The column headers */
-        private final String headers[];
-        /** Our filter for groups */
+        // FIXME: should be an enum class probably...
+        public static final int BOOK_NAME = 0;
+        public static final int BOOK_LOCATION = 1;
+        public static final int BOOK_PATH = 2;
+        public static final int BOOK_TIME = 3;
+        public static final int BOOK_GROUP = 4;
+        /** Group filter */
         private BookmarkRowFilter myRowFilter = new BookmarkRowFilter();
 
         // Set up a row filter for the group combo box
@@ -110,12 +116,19 @@ public final class SourcesTopComponent extends TopComponent {
 
             @Override
             public boolean include(Entry entry) {
-                String pop = entry.getStringValue(4);
+
+                // In our model, every column is the same object.  0 is first column.
                 if (myFilterOn) {
-                    return pop.equals(myGroupName);
-                } else {
-                    return true;
+                    Object e = entry.getValue(0);
+                    if (e instanceof BookmarkURLSource) {
+                        BookmarkURLSource s = (BookmarkURLSource) (e);
+                        if (s.group.equals(myGroupName)) {
+                            return true;
+                        }
+                        return false;
+                    }
                 }
+                return true;
             }
 
             public void setGroupToShow(String filter) {
@@ -128,26 +141,77 @@ public final class SourcesTopComponent extends TopComponent {
             }
         }
 
-        public BookmarkURLDataTableModel(BookmarkURLData b) {
-            this.bookmarks = b;
-
-            // Hardcoded to match bookmarks.
-            this.headers = new String[]{
-                "Name", "Location", "Path", "Latest", "Group"
-            };
-
+        public BookmarkURLDataTableModel() {
+            super(BookmarkURLSource.class, new String[]{
+                        "Name", "Location", "Path", "Latest", "Group"});
         }
 
         public TableRowSorter<BookmarkURLDataTableModel> getGroupModelSorter() {
             TableRowSorter<BookmarkURLDataTableModel> sorter =
                     new TableRowSorter<BookmarkURLDataTableModel>(this);
             sorter.setRowFilter(myRowFilter);
-            return sorter;
-        }
 
-        public void setBookmarks(BookmarkURLData b) {
-            this.bookmarks = b;
-            this.fireTableDataChanged();
+            for (int i = 0; i < BookmarkURLDataTableModel.BOOK_GROUP; i++) {
+                Comparator<BookmarkURLSource> c = null;
+                switch (i) {
+
+                    case BookmarkURLDataTableModel.BOOK_NAME: {
+                        c = new Comparator<BookmarkURLSource>() {
+
+                            @Override
+                            public int compare(BookmarkURLSource o1, BookmarkURLSource o2) {
+                                return (o1.name).compareTo(o2.name);
+                            }
+                        };
+                    }
+                    break;
+                    case BookmarkURLDataTableModel.BOOK_LOCATION: {
+                        c = new Comparator<BookmarkURLSource>() {
+
+                            @Override
+                            public int compare(BookmarkURLSource o1, BookmarkURLSource o2) {
+                                return (o1.location).compareTo(o2.location);
+                            }
+                        };
+                    }
+                    break;
+                    case BookmarkURLDataTableModel.BOOK_PATH: {
+                        c = new Comparator<BookmarkURLSource>() {
+
+                            @Override
+                            public int compare(BookmarkURLSource o1, BookmarkURLSource o2) {
+                                return (o1.path).compareTo(o2.path);
+                            }
+                        };
+                    }
+                    break;
+                    case BookmarkURLDataTableModel.BOOK_TIME: {
+                        c = new Comparator<BookmarkURLSource>() {
+
+                            @Override
+                            public int compare(BookmarkURLSource o1, BookmarkURLSource o2) {
+                                if (o1.date.after(o2.date)) {
+                                    return 1;
+                                }
+                                return -1;
+                            }
+                        };
+                    }
+                    break;
+                    case BookmarkURLDataTableModel.BOOK_GROUP: {
+                        c = new Comparator<BookmarkURLSource>() {
+
+                            @Override
+                            public int compare(BookmarkURLSource o1, BookmarkURLSource o2) {
+                                return (o1.group).compareTo(o2.group);
+                            }
+                        };
+                        break;
+                    }
+                }
+                sorter.setComparator(i, c);
+            }
+            return sorter;
         }
 
         public void setGroupToShow(String filter) {
@@ -161,75 +225,66 @@ public final class SourcesTopComponent extends TopComponent {
             // this.fireTableStructureChanged();
             this.fireTableDataChanged();
         }
+    }
+
+    /** Our custom renderer for our product view table */
+    private static class BookmarkTableCellRenderer extends WG2TableCellRenderer {
 
         @Override
-        public int getColumnCount() {
-            return headers.length;
-        }
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean cellHasFocus, int row, int col) {
 
-        @Override
-        public int getRowCount() {
-            int size = 0;
-            if (bookmarks != null) {
-                size = bookmarks.data.size();
-            }
-            return size;
-        }
+            // Let super set all the defaults...
+            super.getTableCellRendererComponent(table, "",
+                    isSelected, cellHasFocus, row, col);
 
-        @Override
-        public String getColumnName(int column) {
-            return headers[column];
-        }
+            String info = "";
+            int trueCol = table.convertColumnIndexToModel(col);
 
-        @Override
-        public Object getValueAt(int row, int column) {
+            if (value instanceof BookmarkURLSource) {
+                BookmarkURLSource e = (BookmarkURLSource) value;
 
-            if (bookmarks != null) {
-                BookmarkURLSource bookmark = bookmarks.data.get(row);
-                switch (column) {
-                    case 0: // name
-                        return bookmark.name;
-                    case 1:
-                        return bookmark.location;
-                    case 2:
-                        return bookmark.path;
-                    case 3:
-                        return bookmark.time;
-                    case 4:
-                        return bookmark.group;
-                    default:
-                        return "";
+                switch (trueCol) {
+
+                    case BookmarkURLDataTableModel.BOOK_NAME:
+                        info = e.name;
+                        break;
+                    case BookmarkURLDataTableModel.BOOK_LOCATION:
+                        info = e.location;
+                        break;
+                    case BookmarkURLDataTableModel.BOOK_PATH:
+                        info = e.path;
+                        break;
+                    case BookmarkURLDataTableModel.BOOK_TIME:
+                        info = e.time;
+                        break;
+                    case BookmarkURLDataTableModel.BOOK_GROUP:
+                        info = e.group;
+                        break;
                 }
+
+                // For text...
+                setText(info);
             } else {
-                return "";
+                setText((String) (value));
             }
-        }
-
-        public BookmarkURLSource getBookmarkURLSourceForRow(int row) {
-            BookmarkURLSource s = null;
-            if (bookmarks != null) {
-                if ((row >= 0) && (row < bookmarks.data.size())) {
-                    s = bookmarks.data.get(row);
-                }
-            }
-            return s;
-        }
-
-        @Override
-        public void setValueAt(Object value, int row, int column) {
+            return this;
         }
     }
 
     public SourcesTopComponent() {
         initComponents();
 
-        // Have to create our virtual table within the GUI
+        myModel = new BookmarkURLDataTableModel();
         jSourceListTable = new javax.swing.JTable();
-        myModel = new BookmarkURLDataTableModel(null);
         jSourceListTable.setModel(myModel);
+
         jSourceListTable.setFillsViewportHeight(true);
         jSourceListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jSourceTableScrollPane.setViewportView(jSourceListTable);
+
+        BookmarkTableCellRenderer p = new BookmarkTableCellRenderer();
+        jSourceListTable.setDefaultRenderer(BookmarkURLSource.class, p);
         jSourceListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
             @Override
@@ -590,10 +645,10 @@ public final class SourcesTopComponent extends TopComponent {
             File aFile = NetcdfBuilder.getFileFromURL(aURL);
             String absolutePath = aFile.getAbsolutePath();
             NetcdfFileInfo info = NetcdfBuilder.getNetcdfFileInfo(absolutePath);
-            if (info.success){
-              jSingleProductTextField.setText(info.TypeName);
-              jSingleChoiceTextField.setText(info.Choice);
-              jSingleTimeTextField.setText(info.Time.toString());              
+            if (info.success) {
+                jSingleProductTextField.setText(info.TypeName);
+                jSingleChoiceTextField.setText(info.Choice);
+                jSingleTimeTextField.setText(info.Time.toString());
             }
         }
     }//GEN-LAST:event_jSingleLoadActionPerformed
@@ -719,14 +774,12 @@ public final class SourcesTopComponent extends TopComponent {
         BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
         if (model != null) {
             int row = jSourceListTable.getSelectedRow();
-            if (row > -1) {
-                int modelRow = jSourceListTable.convertRowIndexToModel(row);
-                if (modelRow > -1) {
-                    BookmarkURLSource s = model.getBookmarkURLSourceForRow(modelRow);
-                    if (s != null) {
-                        jNameTextField.setText(s.name);
-                        jURLTextField.setText(s.path);
-                    }
+
+            if (myModel != null) {
+                BookmarkURLSource s = (BookmarkURLSource) (myModel.getDataForRow(row));
+                if (s != null) {
+                    jNameTextField.setText(s.name);
+                    jURLTextField.setText(s.path);
                 }
             }
         }
@@ -759,8 +812,9 @@ public final class SourcesTopComponent extends TopComponent {
 
         BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
         mySourceList = bookmarks.data;
-        myVisibleSourceList = mySourceList; // Same for moment
-        model.setBookmarks(bookmarks);
+        //myVisibleSourceList = mySourceList; // Same for moment
+        model.setDataTypes(bookmarks.data);
+        model.fireTableDataChanged();
 
         // Add each unique group item to list
         jGroupComboBox.removeAllItems();

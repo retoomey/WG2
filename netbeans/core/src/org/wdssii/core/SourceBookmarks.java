@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,7 +40,8 @@ public class SourceBookmarks {
         public String type;
         public String location;
         public String path;
-        public String time;
+        public String time; // Time date string or 'missing' or anything
+        public Date date; // Actual date object if time parsable
         public String selections;
     }
 
@@ -82,7 +84,18 @@ public class SourceBookmarks {
 
                 data.location = anIndex.getAttribute("location");
                 data.path = anIndex.getAttribute("path");
-                data.time = anIndex.getAttribute("time");
+                String aTime = anIndex.getAttribute("time");
+                try{
+                    long l = Long.parseLong(aTime)*1000;
+                    Date d = new Date(l);
+                    data.date = d;
+                    data.time = d.toString();
+                }catch(Exception e){
+                    // Ok...just use string instead of date...
+                    data.date = new Date(0); // Oldest date
+                    data.time = aTime;
+                }
+                //data.time = anIndex.getAttribute("time");
                 data.selections = anIndex.getAttribute("selections");
 
                 // The no group bug. Hack around it until script is fixed, if
@@ -117,6 +130,7 @@ public class SourceBookmarks {
     public static BookmarkURLData getFakeBookmarks(int markCount, int groupCount) {
 
         BookmarkURLData b = new BookmarkURLData();
+        Date d = new Date();
         for (int i = 0; i < markCount; i++) {
             BookmarkURLSource data = new BookmarkURLSource();
             data.name = "name" + i;
@@ -124,6 +138,7 @@ public class SourceBookmarks {
             data.location = "location" + i;
             data.path = "path" + i;
             data.time = "time" + i;
+            data.date = d;
             data.selections = "selections" + i;
             b.data.add(data);
         }

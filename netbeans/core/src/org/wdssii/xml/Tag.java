@@ -1,0 +1,164 @@
+package org.wdssii.xml;
+
+import java.util.Map;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+/**
+ * Tag is an html Tag object that handles a Stax parsing stream.
+ * Even though we create a tree, it's our tree so we have some perks
+ * like being able to directly stores values as proper field types, etc.
+ * Also I'm hoping to eventually have the rest of display doing stuff like
+ * creating radials or contours AS THEY LOAD...lol.
+ * This basically halves the memory usage vs using a full Sax document instead.
+ * 
+ * @author Robert Toomey
+ */
+public abstract class Tag {
+
+    public abstract String tag();
+
+    /** Utility function to check for a new start tag */
+    protected static String haveStartTag(XMLStreamReader p) {
+        String startTag = null;
+        if (p.getEventType() == XMLStreamConstants.START_ELEMENT) {
+            startTag = p.getLocalName();
+        }
+        return startTag;
+    }
+
+    /** Utility function to check for a new start tag */
+    protected boolean isStartTag(XMLStreamReader p) {
+        boolean haveStart = false;
+        if (p.getEventType() == XMLStreamConstants.START_ELEMENT) {
+            haveStart = true;
+        }
+        return haveStart;
+    }
+
+    protected boolean atStart(XMLStreamReader p) {
+        boolean atStart = false;
+        if (p.getEventType() == XMLStreamConstants.START_ELEMENT) {
+            String startTag = p.getLocalName();
+            if (startTag.equals(tag())) {
+                atStart = true;
+            }
+        }
+        return atStart;
+    }
+    
+    protected static boolean atStart(XMLStreamReader p, String tag) {
+        boolean atStart = false;
+        if (p.getEventType() == XMLStreamConstants.START_ELEMENT) {
+            String startTag = p.getLocalName();
+            if (startTag.equals(tag)) {
+                atStart = true;
+            }
+        }
+        return atStart;
+    }
+    
+    /** Utility function to check for end tag */
+    protected static boolean isEndTag(XMLStreamReader p, String end) {
+        boolean isEndTag = false;
+        if (p.getEventType() == XMLStreamConstants.END_ELEMENT) {
+            String name = p.getLocalName();
+            if (end.equals(name)) {
+                isEndTag = true;
+            }
+        }
+        return isEndTag;
+    }
+
+    protected boolean nextNotEnd(XMLStreamReader p) {
+
+        // Move forward a tag....
+        boolean end = false;
+        try {
+            if (p.hasNext()) {  // If we still more stuff...
+                p.next();   // Move forward
+
+                if (p.getEventType() == XMLStreamConstants.END_ELEMENT) {
+                    String endTag = p.getLocalName();
+                    if (endTag.equals(tag())) {
+                        end = true;
+                    }
+                }
+
+            }
+        } catch (XMLStreamException ex) {
+            // what to do?, just end so we don't loop forever
+            end = true;
+        }
+        return !end;
+
+    }
+
+        /** Holder class for unit/value attributes */
+    public static class UnitValuePair{
+
+        public String unit;
+        public String value;
+    }
+    
+   protected static void readUnitValue(XMLStreamReader p, UnitValuePair buffer) {
+        int count = p.getAttributeCount();
+        buffer.unit = null;
+        buffer.value = null;
+        for (int i = 0; i < count; i++) {
+            QName attribute = p.getAttributeName(i);
+            String name = attribute.toString();
+            String value = p.getAttributeValue(i);
+            if ("units".equals(name)) {
+                buffer.unit = value;
+            } else if ("value".equals(name)) {
+                buffer.value = value;
+            }
+        }
+    }
+   
+    protected static void processAttributes(XMLStreamReader p, Map<String, String> buffer) {
+        int count = p.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            QName attribute = p.getAttributeName(i);
+            String name = attribute.toString();
+            String value = p.getAttributeValue(i);
+            buffer.put(name, value);
+        }
+    }
+     
+    /** Process our root tag returned by tag() */
+    public boolean processTag(XMLStreamReader p) {
+
+        boolean foundIt = false;
+        if (atStart(p)) {  // We have to have our root tag
+            foundIt = true;
+            // Handle attributes of our start tag
+            // <datatype name="Mesonet"
+            int count = p.getAttributeCount();
+            for (int i = 0; i < count; i++) {
+                QName attribute = p.getAttributeName(i);
+                String name = attribute.toString();
+                String value = p.getAttributeValue(i);
+                handleAttribute(name, value);
+            }
+
+            while (nextNotEnd(p)) {
+                processChildren(p);
+            }
+        }
+        return foundIt;
+    }
+
+    /** Process all child tabs within our tag */
+    public void processChildren(XMLStreamReader p) {
+    }
+
+    /** Snag the attributes from a tag we want to use */
+    public void handleAttribute(String name, String value) {
+        // Could just push into map.  Fields for now...nice to auto
+        // have type info.
+    }
+}

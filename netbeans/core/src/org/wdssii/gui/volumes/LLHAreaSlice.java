@@ -625,6 +625,7 @@ public class LLHAreaSlice extends LLHArea {
         return 2 * gb.getSubdivisionPointsVertexCount(subdivisions);
     }
 
+    
     private void makeSectionOutlineIndices(int subdivisions, int vertexPos, int indexPos, int[] indices,
             boolean beginEdgeFlag, boolean endEdgeFlag) {
         GeometryBuilder gb = this.getGeometryBuilder();

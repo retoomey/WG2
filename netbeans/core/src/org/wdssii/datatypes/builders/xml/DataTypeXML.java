@@ -9,10 +9,11 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import org.openide.util.Exceptions;
 
 import org.wdssii.datatypes.DataType;
-import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.geom.Location;
+import org.wdssii.xml.Tag_datatype;
 
 /** Base class for reading/writing a DataType with XML using STAX
  * Shared basic tags are here for subclasses to use.
@@ -42,20 +43,19 @@ public abstract class DataTypeXML {
     protected final String XML_ATTR_DATACOLUMN = "datacolumn";
     protected final String XML_ATTR_ITEM = "item";
 
-    /** Holder class for the XML header (the 'datatype' tag information)  */
-    /*public static class DataTypeXMLHeader {
+    public static class DataTypeXMLHeader {
 
-         datatype name such as 'Mesonet' 
+        /** datatype name such as 'Mesonet' */
         public String datatype = null;
-        * The stref location 
+        /** The stref location */
         public Location location = new Location(0, 0, 0);
-        * The stref time 
+        /** The stref time  */
         public Date time = null;
-        * A map of attr name to value 
+        /** A map of attr name to value */
         public Map<String, String> attriNameToValue = new HashMap<String, String>();
-        * A map of attr name to units 
+        /**A map of attr name to units */
         public Map<String, String> attriNameToUnits = new HashMap<String, String>();
-    }*/
+    }
 
     /** Holder class for unit/value attributes */
     public static class UnitValueXML {
@@ -77,13 +77,11 @@ public abstract class DataTypeXML {
     /** Read the standard datatype header tag.
      * Each datatype has a main one of these, but some products like Contours reuse it
      * for each individual contour */
-    protected DataTypeMemento readXML_datatype(XMLStreamReader p) throws XMLStreamException {
+    protected Tag_datatype readXML_datatype(XMLStreamReader p) throws XMLStreamException {
 
-        DataTypeMemento buffer = null;
+        Tag_datatype buffer = null;
         String tagCheck = p.getLocalName();
-        if (XML_DATATYPE.equals(tagCheck)) {
-            System.out.println("<Datatype> tag reading....");
-
+        if ("datatype".equals(tagCheck)) {
             String dataTypeName = "UNKNOWN";
 
             // <datatype name="Mesonet"
@@ -96,11 +94,10 @@ public abstract class DataTypeXML {
                     dataTypeName = value;
                 }
             }
-            System.out.println("datatype reading: name set to " + dataTypeName);
             // <datatype>
             // (1) <stref>
             // (n)  <attr>
-            buffer = new DataTypeMemento();
+            buffer = new Tag_datatype();
             String startTag = p.getLocalName();
             while (p.hasNext()) {
                 p.next();
@@ -109,15 +106,13 @@ public abstract class DataTypeXML {
                     break;
                 } else if ((tag = haveStartTag(p)) != null) {
                     if (XML_STREF.equals(tag)) {
-                        readXML_stref(p, buffer);
+                        // readXML_stref(p, buffer);
                     } else if (XML_ATTR.equals(tag)) {
-                        readXML_attr(p, buffer);
+                        // readXML_attr(p, buffer);
                     }
                 }
             }
-            buffer.typeName = dataTypeName;
-            System.out.println("<Datatype> tag READ");
-
+            buffer.name = dataTypeName;
         }
         return buffer;
     }
@@ -125,7 +120,7 @@ public abstract class DataTypeXML {
     /** Read the standard datatype header tag.
      * Each datatype has a main one of these, but some products like Contours reuse it
      * for each individual contour */
-    protected boolean readXML_datatype(DataTypeMemento buffer, XMLStreamReader p) throws XMLStreamException {
+    protected boolean readXML_datatype(DataTypeXMLHeader buffer, XMLStreamReader p) throws XMLStreamException {
 
         boolean success = false;
         String datatypeTag = p.getLocalName();
@@ -142,7 +137,7 @@ public abstract class DataTypeXML {
                     dataTypeName = value;
                 }
             }
-            buffer.typeName = dataTypeName;
+            buffer.datatype = dataTypeName;
             System.out.println("datatype reading: name set to " + dataTypeName);
 
             // <datatype>
@@ -171,7 +166,7 @@ public abstract class DataTypeXML {
      *   <location..>
      *   <time..>
      */
-    protected void readXML_stref(XMLStreamReader p, DataTypeMemento header) throws XMLStreamException {
+    protected void readXML_stref(XMLStreamReader p, DataTypeXMLHeader header) throws XMLStreamException {
         String startTag = p.getLocalName();
         while (p.hasNext()) {
             p.next();
@@ -180,9 +175,9 @@ public abstract class DataTypeXML {
                 break;
             } else if ((tag = haveStartTag(p)) != null) {
                 if (XML_LOCATION.equals(tag)) {
-                    readXML_location(p, header.originLocation);
+                    readXML_location(p, header.location);
                 } else if (XML_TIME.equals(tag)) {
-                    header.startTime = readXML_time(p);
+                    header.time = readXML_time(p);
                 }
             }
         }
@@ -196,7 +191,7 @@ public abstract class DataTypeXML {
      *   <datacolumn..>
      *     <item ...>
      */
-    protected void readXML_attr(XMLStreamReader p, DataTypeMemento stref) throws XMLStreamException {
+    protected void readXML_attr(XMLStreamReader p, DataTypeXMLHeader stref) throws XMLStreamException {
         String startTag = p.getLocalName();
         String name = null;
         String value = null;

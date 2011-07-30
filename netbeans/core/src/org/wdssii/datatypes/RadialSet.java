@@ -3,7 +3,6 @@ package org.wdssii.datatypes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -119,26 +118,6 @@ public class RadialSet extends DataType implements Table2DView {
         this.myUz = m.myUz;
         this.rangeToFirstGate = m.rangeToFirstGate;
         this.myMaxGateNumber = m.maxGateNumber;
-        createAzimuthSearch();
-    }
-
-    public RadialSet(float elevation, Location radarLoc, Date scanTime,
-            float rangeToFirstGate,
-            String typeName, Radial[] radials) {
-        super(radarLoc, scanTime, typeName);
-        this.radials = radials;
-        this.elevDegs = elevation;
-        this.elevRads = (float) Math.toRadians(elevDegs);
-        this.tanElevation = (float) Math.tan(elevRads);
-        this.sinElevation = (float) Math.sin(elevRads);
-        this.cosElevation = (float) Math.cos(elevRads);
-        this.rangeToFirstGate = rangeToFirstGate;
-        // set up the co-ordinate system
-        this.radarLocation = originLocation.getCPoint();
-        myUz = radarLocation.minus(new CPoint(0, 0, 0)).unit();
-        myUx = new CVector(0, 0, 1).crossProduct(myUz).unit();
-        myUy = myUz.crossProduct(myUx);
-        myMaxGateNumber = 0; // FIXME?
         createAzimuthSearch();
     }
 

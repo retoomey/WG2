@@ -10,18 +10,25 @@ import org.wdssii.gui.commands.WdssiiCommand.WdssiiMenuList;
 public class LLHAreaCreateCommand extends LLHAreaCommand implements WdssiiMenuList {
 
     private static final String PARM_MSG = "wdssii.LLHAreaCreateParameter";
-    public final static String top = "Goop goop goop";
-
+  //  public final static String top = "Goop goop goop";
+    private String myFactory;
+    
+    public LLHAreaCreateCommand(String factory){
+        myFactory = factory;
+    }
+    
     @Override
     public boolean execute() {
 
+        /*
         if (myParameters != null) {
             String value = myParameters.get(PARM_MSG);
             if (value != null) {
                 System.out.println("SET NAME TO " + value);
                 LLHAreaManager.getInstance().setCurrentFactoryName(value);
             }
-        }
+        }*/
+        LLHAreaManager.getInstance().setCurrentFactoryName(myFactory);
         LLHAreaManager.getInstance().createNewVolume();
         return true;
     }

@@ -435,6 +435,11 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
         jButton2.setFocusable(false);
         jButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
         jEditToolBar.add(jButton2);
 
         add(jEditToolBar, java.awt.BorderLayout.NORTH);
@@ -455,11 +460,15 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        LLHAreaCreateCommand doit = new LLHAreaCreateCommand();
+        LLHAreaCreateCommand doit = new LLHAreaCreateCommand("Slice");
         CommandManager.getInstance().executeCommand(doit, true);
-        // only place for now list can change:
-        updateTable();
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        LLHAreaCreateCommand doit = new LLHAreaCreateCommand("Box");
+        CommandManager.getInstance().executeCommand(doit, true);
+    }//GEN-LAST:event_jButton2ActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;

@@ -48,13 +48,8 @@ public class ManualLoadIndex extends Index {
      * to load the product contained within by clicking on it.
      * 
      */
-    public void addRecordFromURL(URL theURL, String product, String choice, Date d){
-        
-        // FIXME: Ok, how to tell the type...for the moment only
-        // gonna load netcdf files.
-        String builderName = "netcdf";
-        String location = "";
-        String shortFilePath = "";
+    public void addRecordFromURL(URL theURL, String product, String choice, Date d,
+            String[] params){
     
         String timeString = IndexRecord.getStringFromDate(d) + " ";
        
@@ -66,8 +61,8 @@ public class ManualLoadIndex extends Index {
         
         // Create a single params for file...
         String[][] aparams = new String[1][];
-        aparams[0] = new String[]{builderName, location, product, choice, shortFilePath};
-        
+        aparams[0] = params;
+    
         IndexRecord rec = new IndexRecord(d, selections, aparams);
         rec.setDataLocationURL(theURL);
         addRecord(rec);

@@ -47,12 +47,12 @@ public class LatLonGrid extends DataType implements Table2DView {
     }
 
     /** {@inheritDoc} */
-    public LatLonGrid(LatLonGrid master) {
-        super(master);
-        deltaLat = master.deltaLat;
-        deltaLon = master.deltaLon;
-        // FIXME: broken values = copyOf(master.values);
-    }
+   // public LatLonGrid(LatLonGrid master) {
+   //     super(master);
+  //      deltaLat = master.deltaLat;
+   //     deltaLon = master.deltaLon;
+  //      // FIXME: broken values = copyOf(master.values);
+  //  }
 
    // public LatLonGrid(Location nwCorner, Date time, String typeName, float deltaLat, float deltaLon, Array2Dfloat values) {
    //     super(nwCorner, time, typeName);

@@ -56,7 +56,7 @@ public abstract class BuilderFactory {
             log.error("ERROR: no such builder: " + builderName);
             return null;
         }
-        return builder.createObject(rec);
+        return builder.createDataType(rec, null);
     }
 
     /** The background job version.  This doesn't block and returns a DataRequest which is a future
@@ -69,6 +69,6 @@ public abstract class BuilderFactory {
             log.error("ERROR: no such builder: " + builderName);
             return null;
         }
-        return builder.createObjectBackground(rec);
+        return builder.createDataRequest(rec);
     }
 }

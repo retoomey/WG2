@@ -1,6 +1,5 @@
 package org.wdssii.index;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -8,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
+import org.wdssii.datatypes.builders.Builder;
 
 import org.wdssii.util.StringUtil;
 
@@ -158,42 +158,19 @@ public class IndexRecord {
     }
 
     /** Get the data location url from the first param of the record.
-     * We're not handling multiple params yet
+     * We're not handling multiple params yet, if ever.
+     * We pass in the builder because our params are in different order/
+     * meaning depending upon our builder, which is annoying.
+     * 
      * @return the URL of the data location, or null.
      */
-    public URL getDataLocationURL() {
+    public URL getDataLocationURL(Builder builder) {
 
         if ((myURL == null) && myTryToMakeURL) {
-            myURL = tryCreateURLFromParams();
+            myURL = builder.createURLForRecord(this, getParams());
             myTryToMakeURL = false;
         }
         return myURL;
-    }
-
-    /** Create the data location url from the first param of the record.
-     * We're not handling multiple params yet
-     * @return the URL of the data location, or null.
-     */
-    private URL tryCreateURLFromParams() {
-        String[] params = getParams();
-
-        // Params 0 are of this form for a regular index:
-        // 0 - builder name such as 'netcdf'
-        // 1 - indexLocation such as C:/KTLX/
-        // 2 - Product such as 'Reflectivity'
-        // 3 - Choice such as '05.25'
-        // 4 - short file such as '1999_ktlx.netcdf.gz'
-        StringBuilder path = new StringBuilder(params[1]);
-        for (int i = 2; i < params.length; ++i) {
-            path.append('/').append(params[i]);
-        }
-
-        URL url = null;
-        try {
-            url = new URL(path.toString());
-        } catch (MalformedURLException e) {
-        }
-        return url;
     }
 
     @Override

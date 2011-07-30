@@ -31,6 +31,7 @@ import javax.swing.table.TableRowSorter;
 
 import org.wdssii.core.SourceBookmarks.*;
 import org.wdssii.core.SourceBookmarks;
+import org.wdssii.datatypes.builders.Builder;
 import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.gui.CommandManager;
@@ -87,12 +88,16 @@ public final class SourcesTopComponent extends TopComponent {
         @Override
         public boolean accept(File f) {
             String t = f.getName().toLowerCase();
-            return (t.endsWith(".netcdf") || (t.endsWith(".netcdf.gz")));
+            // FIXME: need to get these from the Builders
+            return (
+                    t.endsWith(".netcdf") || (t.endsWith(".netcdf.gz"))
+                    || (t.endsWith(".xml")) || (t.endsWith(".xml.gz"))
+                    );
         }
 
         @Override
         public String getDescription() {
-            return "netcdf files";
+            return "netcdf files or xml files";
         }
     }
 
@@ -642,8 +647,10 @@ public final class SourcesTopComponent extends TopComponent {
             jSingleURLTextField.setText(text);
 
             // Now get the file from the URL
-            File aFile = NetcdfBuilder.getFileFromURL(aURL);
+            File aFile = Builder.getFileFromURL(aURL);
             String absolutePath = aFile.getAbsolutePath();
+            
+            // FIXME: add stuff for xml file
             NetcdfFileInfo info = NetcdfBuilder.getNetcdfFileInfo(absolutePath);
             if (info.success) {
                 jSingleProductTextField.setText(info.TypeName);
@@ -699,8 +706,28 @@ public final class SourcesTopComponent extends TopComponent {
         Calendar cal = Calendar.getInstance();
         Date d = cal.getTime();
 
+        // Ugggh. Params for netcdf differ from params for xml files, so we
+        // fudge it for now...
+        // Ok we'll get it from the builder I think....
+        String[] params = null;
+        String s = aURL.toString().toLowerCase();
+        if (s.endsWith(".netcdf") || s.endsWith(".netcdf.gz")){
+           params = new String[]{"netcdf", "", product, choice, ""};
+        }else if (s.endsWith(".xml") || s.endsWith(".xml.gz")){
+                    // Params 0 are of this form for a regular index:
+        // 0 - builder name 'W2ALGS'
+        // 1 - 'GzippedFile' or some other storage type
+        // 2 - Base path such as "http://www/warnings"
+        // 3 - 'xmldata' formatter_name
+        // 4 - short file such as '1999_ktlx.netcdf.gz'
+            params = new String[]{"W2ALGS", "", "", "", ""};
+        }else{
+           // can't load it...
+        }
         // Finally try to add it.
-        SourceManager.getInstance().addSingleURL(aURL, product, choice, d);
+        if (params != null){
+            SourceManager.getInstance().addSingleURL(aURL, product, choice, d, params);
+        }
     }//GEN-LAST:event_jAddLocalButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jAddLocalButton;

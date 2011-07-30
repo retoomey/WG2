@@ -37,10 +37,12 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
 
         // Create a model for our max height spinner
         double maxHeight = myOwner.getTopHeightKms();
+        double max = 20000;
+        max = Math.max(20000, maxHeight);
         SpinnerModel model =
                 new SpinnerNumberModel(maxHeight, //initial value
                 0, //min  FIXME: get from LLHArea
-                20000, //max FIXME: get from LLHArea
+                max, //max FIXME: get from LLHArea
                 1); // 1 Meter step
         jMaxHeightKMS.setModel(model);
     }

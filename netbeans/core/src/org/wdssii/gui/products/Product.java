@@ -91,9 +91,23 @@ public class Product implements LRUCacheItem {
     protected IndexRecord myRecord; // /< The index record we hold
     private String myIndexKey; 		// /< The key used to query the source manager
 
-    public void superInit(DataRequest dr, String anIndex, IndexRecord init) {
-        myDataRequest = dr;
-        init(anIndex, init, null);
+    /** Called on the product with a DataRequest which is just a Future<DataType>
+     * without using Future since I couldn't get it to work.. :)
+     * @param theRequest the data request that will have our datatype once loaded
+     * @param anIndex the index we're part of
+     * @param init  the record we were created from
+     */
+    public Product(DataRequest theRequest, String anIndex, IndexRecord init) {
+        myDataRequest = theRequest;
+        myRecord = init;
+        if (myRecord != null) {
+            myDataType = myRecord.getDataType();
+            mySubtypeType = IndexSubType.getSubtypeType(myRecord.getSubType());
+        } else {
+            myDataType = "UNKNOWN";
+            mySubtypeType = IndexSubType.SubtypeType.ELEVATION;
+        }
+        myIndexKey = anIndex;
     }
 
     /** Update product if DataType is loaded */
@@ -376,7 +390,7 @@ public class Product implements LRUCacheItem {
     public static String valueToString(float value) {
         String text = null;
         if (DataType.isRealDataValue(value)) {
-            if (value < .05) {
+            if (Math.abs(value) < .05) {
                 text = String.format("%5.5f", value);
             } else {
                 text = String.format("%5.2f", value);
@@ -437,8 +451,12 @@ public class Product implements LRUCacheItem {
             aColorMap = new ColorMap();
             if (myRawDataType != null) {
                 DataTypeMetric m = myRawDataType.getDataTypeMetric();
-                float minValue = m.getMinValue();
-                float maxValue = m.getMaxValue();
+                float minValue = -100;
+                float maxValue = 100;
+                if (m != null){
+                   minValue = m.getMinValue();
+                   maxValue = m.getMaxValue();
+                }
                 aColorMap.initFromLinear(30, minValue, maxValue, units, ProductTextFormatter.DEFAULT_FORMATTER);
             } else {
                 aColorMap.initFromLinear(30, -1000, 1000, "?", ProductTextFormatter.DEFAULT_FORMATTER);
@@ -469,7 +487,7 @@ public class Product implements LRUCacheItem {
                         if ((helper == null) && (useBaseClass == true)) {
                             helper = createClassFromDataType("Product", root, classSuffix);
                         }
-                    }else{
+                    } else {
                         log.error("Datatype doesn't exist..should be here");
                     }
                 }
@@ -513,29 +531,6 @@ public class Product implements LRUCacheItem {
     // FIXME: readout object, not a string
     public String getReadout(double latDegree, double lonDegree, double height) {
         return "?";
-    }
-
-    // called with null
-    public void init(String anIndex, IndexRecord init, DataType incoming) {
-        synchronized (myRawDataSync) {
-            myRawDataType = incoming;
-        }
-        myRecord = init;
-        if (myRecord != null) {
-            myDataType = myRecord.getDataType();
-            mySubtypeType = IndexSubType.getSubtypeType(myRecord.getSubType());
-        } else {
-            myDataType = "UNKNOWN";
-            mySubtypeType = IndexSubType.SubtypeType.ELEVATION;
-        }
-        myIndexKey = anIndex;
-        if (incoming != null) {
-            // FIXME: Strange the unit has done away from the netcdf..
-            String unit = (String) incoming.getAttribute("Unit");
-            if (unit != null) {
-                myDataUnits = unit;
-            }
-        }
     }
 
     /** Get DataType if it is available */
@@ -760,12 +755,17 @@ public class Product implements LRUCacheItem {
 
     public String getProductType() {
         String name = "loading";
-        if (updateDataTypeIfLoaded()) {
-            if (myRawDataType == null) {
-                name = "failed";
-            } else {
-                Class<?> c = myRawDataType.getClass();
-                name = c.getSimpleName();
+
+        if (myDataRequest == null) {
+            name = "failed data";
+        } else {
+            if (updateDataTypeIfLoaded()) {
+                if (myRawDataType == null) {
+                    name = "failed";
+                } else {
+                    Class<?> c = myRawDataType.getClass();
+                    name = c.getSimpleName();
+                }
             }
         }
         return (name);

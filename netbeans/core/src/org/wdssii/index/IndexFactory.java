@@ -42,7 +42,7 @@ public abstract class IndexFactory {
                 "java/Index.xml");
         myFactory.addDefault("xml", "org.wdssii.index.XMLIndex");
         myFactory.addDefault("fam", "org.wdssii.index.FamIndex");
-        myFactory.addDefault("webindex", "org.wdssii.index.webindex");
+        myFactory.addDefault("webindex", "org.wdssii.index.WebIndex");
         myFactory.addDefault("test", "org.wdssii.index.TestIndex");
     }
     private static List<Index> toUpdate = new ArrayList<Index>();

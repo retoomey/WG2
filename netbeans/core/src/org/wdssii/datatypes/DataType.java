@@ -134,13 +134,13 @@ public class DataType {
             minValue = 100000;
             maxValue = -90000;
         }
-        
+
         /** Do any init needed */
         public void beginArray3D() {
             minValue = 100000;
             maxValue = -90000;
         }
-        
+
         /** Update for a data value */
         public void updateArray2D(int x, int y, float value) {
             if (DataType.isRealDataValue(value)) {
@@ -152,7 +152,7 @@ public class DataType {
                 }
             }
         }
-        
+
         /** Update for a data value */
         public void updateArray3D(int x, int y, int z, float value) {
             if (DataType.isRealDataValue(value)) {
@@ -188,7 +188,9 @@ public class DataType {
         this.originLocation = m.originLocation;
         this.startTime = m.startTime;
         this.typeName = m.typeName;
-        this.attributes = m.attriNameToValue;
+       if (m.attriNameToValue != null){
+            this.attributes = m.attriNameToValue;
+       }
         this.myDataTypeMetric = m.datametric;
     }
 
@@ -225,7 +227,7 @@ public class DataType {
      * copies all the attributes, etc. from the master. The master can change
      * without affecting this object
      */
-    public DataType(DataType master) {
+   /* public DataType(DataType master) {
         this.originLocation = master.originLocation;
         this.startTime = master.startTime;
         this.typeName = master.typeName;
@@ -278,8 +280,11 @@ public class DataType {
 
     /** Get the location in the GUI to 'jump' to the data.  Default is the origin location */
     public Location getJumpToLocation() {
-        Location loc = new Location(originLocation.getLatitude(), originLocation.getLongitude(),
-                100);
+        Location loc = null;
+        if (originLocation != null) {
+            loc = new Location(originLocation.getLatitude(), originLocation.getLongitude(),
+                    100);
+        }
         return loc;
     }
 
@@ -309,13 +314,13 @@ public class DataType {
         return "dimensionless";
     }
 
-    public String getUnit() {
+   public String getUnit() {
         String unit = attributes.get("Unit");
         if (unit == null) {
             return "dimensionless";
         }
         return unit;
-    }
+   }
 
     public String getUTC() {
         java.text.DateFormat df = java.text.DateFormat.getDateTimeInstance();

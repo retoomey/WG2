@@ -2,6 +2,7 @@ package org.wdssii.datatypes.builders;
 
 import java.util.ArrayList;
 import java.util.Date;
+import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.RadialSet;
@@ -16,12 +17,12 @@ import org.wdssii.index.TestIndex;
  *
  * @author Robert Toomey
  */
-public class TestBuilder implements Builder {
+public class TestBuilder extends Builder {
 
     private ArrayList<DataTypeTest> myTests = new ArrayList<DataTypeTest>();
     
     public TestBuilder() {
-        
+        super("test");
         // Introduce tests we want in a test index
         // Annoying no easy way to just add the test folder classes.
         //myTests.add(new RadialSetTest());
@@ -29,13 +30,13 @@ public class TestBuilder implements Builder {
     }
 
     @Override
-    public DataType createObject(IndexRecord rec) {
+    public DataType createDataType(IndexRecord rec, WdssiiJobMonitor w) {
         RadialSetMemento m = new RadialSetMemento();
         return new RadialSet(m);
     }
 
     @Override
-    public DataRequest createObjectBackground(IndexRecord rec) {
+    public DataRequest createDataRequest(IndexRecord rec) {
         DataRequest dr = new DataRequest();
         
         // FIXME: need something in record to tell us what test object to use
@@ -53,4 +54,5 @@ public class TestBuilder implements Builder {
             d.createFakeRecords(index);
         }
     }
+
 }

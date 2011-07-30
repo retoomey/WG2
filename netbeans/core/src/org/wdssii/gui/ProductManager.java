@@ -39,14 +39,12 @@ public class ProductManager implements Singleton {
     private static ProductManager instance = null;
     final public static int MIN_CACHE_SIZE = 50;
     final public static int MAX_CACHE_SIZE = 500;
-
     /** A static database of information about products */
     TreeMap<String, ProductDataInfo> myProductInfo = new TreeMap<String, ProductDataInfo>();
     ProductDataInfo myDefaults = new ProductDataInfo();
-
     /** The cache for Product objects */
     LRUCache<Product> myProductCache = new LRUCache<Product>();
-    
+
     {
         myProductCache.setMinCacheSize(MIN_CACHE_SIZE);
         myProductCache.setMaxCacheSize(MAX_CACHE_SIZE);
@@ -91,9 +89,9 @@ public class ProductManager implements Singleton {
 
     /** Trim all products from cache matching a given index key */
     public int trimCacheMatchingIndexKey(String indexKey) {
-        
+
         IndexKeyComparator<Product> c = new IndexKeyComparator<Product>(indexKey);
-        return (myProductCache.trimCacheMatching(c)); 
+        return (myProductCache.trimCacheMatching(c));
     }
 
     /**
@@ -478,9 +476,8 @@ public class ProductManager implements Singleton {
     }
 
     //public static ArrayList<Product> getArrayList() {
-     //   return ProductManager.getInstance().myLRUStack;
+    //   return ProductManager.getInstance().myLRUStack;
     //}
-
     private Product getProduct(String productCacheKey, String anIndex, IndexRecord init) {
 
         Product theProduct = null;
@@ -517,79 +514,15 @@ public class ProductManager implements Singleton {
     // Internal create product method
     private Product makeProduct(String anIndex, IndexRecord init) {
         Product p = null;
-        //DataType dt = null;
         DataRequest dr = null;
-
-        if (init == null) {
-            return null;
+        if (init != null) {
+            try {
+                dr = BuilderFactory.createDataRequest(init);
+                p = new Product(dr, anIndex, init);
+            } catch (Exception e) {
+                log.error("Exception loading data..." + e.toString());
+            }
         }
-        p = new Product();  // Ok now we try creating a  generic product for all data types so they can lazy load
-        try {
-            dr = BuilderFactory.createDataRequest(init);
-            p.superInit(dr, anIndex, init);
-        } catch (Exception e) {
-            log.error("Exception loading data..." + e.toString());
-        }
-        /*
-        if (init == null){ return null; }
-        String type = init.getDataType();
-        try {
-        
-        // This spawns a worker thread to do the initial loading attempt....
-        //dt = BuilderFactory.createDataType(init);
-        dr = BuilderFactory.createDataRequest(init);
-        //boolean check = dr.isReady();
-        //while(!check){
-        //	log.info("Data type not ready yet...");
-        //	Thread.sleep(5000);
-        //	check = dr.isReady(); // Force recheck (avoiding using violatile isReady)
-        //}
-        dt = dr.getDataType();
-        
-        String dataTypeName = dt.getClass().getSimpleName(); // Such as
-        // 'RadialSet'
-        // from
-        // org.wdssii.core.RadialSet
-        // FIXME: Can we use class name of base class to avoid hardcoding
-        // string?
-        // Product.class.getName() --> remove .Product add
-        // dateTypeName+"Product". Less breakable
-        String createIt = "org.wdssii.gui.products." + dataTypeName
-        + "Product";
-        log
-        .info("Datatype/classname is " + type + "/" + dataTypeName
-        + "/");
-        log.info("Looking for class " + createIt);
-        
-        Class<?> c = null;
-        
-        //boolean foundByName = false;
-        try {
-        c = Class.forName(createIt);
-        // p = (Product)((Object) c);
-        p = (Product) c.newInstance();
-        //	foundByName = true;
-        } catch (Exception e) {
-        log.warn("No special class for datatype, using default: '"
-        + createIt + "' " + e.toString());
-        p = new Product();
-        }
-        
-        //if (foundByName) {
-        p.init(anIndex, init, dt);
-        log.info("Generated product object is "+p);
-        return p;
-        //}
-        } catch (Exception e) { // Catching blindly considered bad practice.
-        // Would rather catch and have display keep
-        // functioning
-        log.warn("Couldn't load product for some reason " + e.toString()
-        + ", creating null product");
-        
-        }
-        p = new Product();
-        p.init(anIndex, init, dt);
-         */
         return p;
     }
 
@@ -608,7 +541,7 @@ public class ProductManager implements Singleton {
      */
     public void clearProductCache() {
         myProductCache.clear();
-      //  myLRUStack.clear();
+        //  myLRUStack.clear();
         CommandManager.getInstance().cacheManagerNotify(); // added product it changed
     }
 

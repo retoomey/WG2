@@ -9,9 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -21,9 +20,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.core.DataUnavailableException;
-import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
-import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.index.IndexRecord;
@@ -42,7 +39,7 @@ import ucar.nc2.Variable;
  * 
  * @author Lakshman
  */
-public class NetcdfBuilder implements Builder {
+public class NetcdfBuilder extends Builder {
 
     private static Log log = LogFactory.getLog(NetcdfBuilder.class);
 
@@ -52,157 +49,65 @@ public class NetcdfBuilder implements Builder {
     public static class NetcdfFileInfo {
 
         /** The TypeName such as Reflectivity.  Attribute 'TypName' */
-         public String TypeName;           
+        public String TypeName;
         /** The DataType gotten from the file.   Attribute 'DataType' */
-        public String DataType; 
+        public String DataType;
         /** Choice from file.  Elevation, height, etc... */
-        public String Choice; 
+        public String Choice;
         /** Was the DataType 'sparse'? */
         boolean sparse;
         /** Any error during netcdf reading. GUI can show a dialog */
         public String error;
         /** Field set to true only if everything read correctly */
-        public boolean success = false;  
+        public boolean success = false;
         /** The time for this product */
         public Date Time;
-
     }
 
     public NetcdfBuilder() {
+        super("netcdf");
     }
 
-    /** Experimental background job reading in a DataType.
-     * FIXME: wrap with our own job class */
-    public class backgroundCreate extends WdssiiJob {
-
-        IndexRecord myIndexRecord;
-        DataRequest myDataRequest;
-
-        public backgroundCreate(String name, IndexRecord rec, DataRequest dr) {
-            super(name);
-            myDataRequest = dr;
-            myIndexRecord = rec;
-        }
-
-        @Override
-        public WdssiiJobStatus run(WdssiiJobMonitor monitor) {
-
-            // FIXME: really the 'task' should be higher up...the thing that 'started' us loading...
-            //	monitor.beginTask("DataRequest from "+myIndexRecord.getDataType(), IProgressMonitor.UNKNOWN);
-            DataType dt = createBackgroundObject(myIndexRecord, monitor);
-            if (dt == null) {
-                log.info(">>>>>>>>>>>>>>>>>NULL DATATYPE CREATED?");
-            } else {
-                log.info(">>>>>>>>>>>>>>>DATATYPE CREATED ");
-            }
-            myDataRequest.setReady(dt);
-            monitor.done();
-            return WdssiiJobStatus.OK_STATUS;
-        }
-    }
-
-    /** create object in background thread.
-     * FIXME: how to handle duplicates or does it matter?
-     */
+    /** Here's where we do the work of building a DataType */
     @Override
-    public DataRequest createObjectBackground(IndexRecord rec) {
-        DataRequest dr = new DataRequest();
-        //backgroundCreate b = new backgroundCreate("NetcdfBuilder ("+counter+++")"+rec.getDataType(), rec, dr);
-        backgroundCreate b = new backgroundCreate("NetcdfBuilder " + rec.getDataType(), rec, dr);
-        b.schedule();
-        return dr;
-    }
-
-    /** create object if the record params are netcdf ones. */
-    @Override
-    public DataType createObject(IndexRecord rec) {
-        URL url = rec.getDataLocationURL();
-        if (url == null) {
-            return null;
-        }
-        /*
-        // Open the netcdf stream, where it may be...
-        // We'll stream it through the builder and create our own RAM/file tiles on the fly
-        // which saves I/O
-        InputStream is2;
-        try {
-        is2 = url.openStream();
-        InputStream gzip = new GZIPInputStream(is2); // Assume it is zipped (FIXME: check URL path for ".gz"?)
-        ReadableByteChannel urlC = Channels.newChannel(gzip);
-        //	NetcdfFile.open(url);
-        
-        } catch (IOException e) {
-        log.info("I/O exception reading URL: "+url);
-        }*/
-        //return createObject(path.toString());
-        return createObject(url, null);
-    }
-
-    public DataType createBackgroundObject(IndexRecord rec, WdssiiJobMonitor m) {
-        URL url = rec.getDataLocationURL();
+    public DataType createDataType(IndexRecord rec, WdssiiJobMonitor m) {
+        URL url = rec.getDataLocationURL(this);
         if (url == null) {
             return null;
         }
 
-        return createObject(url, m);
-    }
-
-    /** A util function to correctly get a File from a URL.  This makes
-     * sure to fix spaces, etc. that mess up windows.
-     * Putting this here for the moment until I figure out where to put it.
-     * URL has spaces converted to %20, which won't work as a file name
-     * This is the proper way to convert back
-     */
-    public static File getFileFromURL(URL aURL) {
-        File aFile = null;
-        try {
-            aFile = new File(aURL.toURI());
-        } catch (URISyntaxException e) {
-            aFile = new File(aURL.getPath());
-        }
-        return aFile;
+        return createDataTypeFromURL(url, m);
     }
 
     /** pass in the file name and obtain an object back. */
-    private DataType createObject(URL aURL, WdssiiJobMonitor m) {
+    public DataType createDataTypeFromURL(URL aURL, WdssiiJobMonitor m) {
 
         if (m != null) {
             m.beginTask(aURL.toString(), WdssiiJobMonitor.UNKNOWN);
         }
-        if (aURL.toString().startsWith("file:")) {
 
-            File aFile = getFileFromURL(aURL);
-            String absolutePath = aFile.getAbsolutePath();
-            
-            return fromNetcdfFile(absolutePath, m);
+        File theFile;
+        DataType dt = null;
+        //  boolean isTemp = false;
+        if (!aURL.toString().startsWith("file:")) {
+            // Download to a local temp file
+            theFile = downloadURLToTempFile(aURL, m);
+            // isTemp = true;
+        } else {
+            // Already a local file, read directly...
+            theFile = getFileFromURL(aURL);
         }
-        return readRemoteNetcdfURL(aURL, m);
+        if (theFile != null) {
+            String absolutePath = theFile.getAbsolutePath();
+            dt = fromNetcdfFile(absolutePath, m);
+        }
+        // if (isTemp) ---> cleanup...
+        return dt;
+
     }
 
-    // Read all available bytes from one channel and copy them to the other.
-    public static void copy(ReadableByteChannel in, WritableByteChannel out) throws IOException {
-        // First, we need a buffer to hold blocks of copied bytes.
-        ByteBuffer buffer = ByteBuffer.allocateDirect(32 * 1024);
-
-        // Now loop until no more bytes to read and the buffer is empty
-        while (in.read(buffer) != -1 || buffer.position() > 0) {
-            // The read() call leaves the buffer in "fill mode". To prepare
-            // to write bytes from the bufferwe have to put it in "drain mode"
-            // by flipping it: setting limit to position and position to zero
-            buffer.flip();
-
-            // Now write some or all of the bytes out to the output channel
-            out.write(buffer);
-
-            // Compact the buffer by discarding bytes that were written,
-            // and shifting any remaining bytes. This method also
-            // prepares the buffer for the next call to read() by setting the
-            // position to the limit and the limit to the buffer capacity.
-            buffer.compact();
-        }
-    }
-
-    private DataType readRemoteNetcdfURL(URL aURL, WdssiiJobMonitor m) {
+    /** Download/Copy a URL to a local temp File object */
+    private File downloadURLToTempFile(URL aURL, WdssiiJobMonitor m) {
         File localFile = null;
         String path = "";
         try {
@@ -210,7 +115,9 @@ public class NetcdfBuilder implements Builder {
             // so that netcdf doesn't need to uncompress a copy (saves IO)
             // because we don't copy it.
             path = aURL.toString();
-            m.subTask("Reading " + path);
+            if (m != null) {
+                m.subTask("Downloading " + path);
+            }
 
             File dir = DataManager.getInstance().getTempDir("netcdf");
             InputStream theStream = aURL.openStream();
@@ -224,22 +131,10 @@ public class NetcdfBuilder implements Builder {
             WritableByteChannel fc = fos2.getChannel();
 
             copy(urlC, fc);
-
-            if (localFile.exists()) {
-                log.info("File exists " + localFile.getAbsolutePath());
-            } else {
-                log.info("File doesn't exist");
-            }
-
-            DataType dt = fromNetcdfFile(localFile.getAbsolutePath(), m);
-            return dt;
         } catch (Exception e) {
             throw new FormatException("Can not read remote file: " + path);
-        } finally {
-            //if ( localFile != null ){
-            //	localFile.delete();
-            //}
         }
+        return localFile;
     }
 
     @SuppressWarnings("serial")
@@ -347,7 +242,7 @@ public class NetcdfBuilder implements Builder {
             }
             info.sparse = sparse;
 
-              // Create class from reflection.  Note this will create a 'RadialSetNetcdf',
+            // Create class from reflection.  Note this will create a 'RadialSetNetcdf',
             // 'LatLonGridNetcdf', 'WindfieldNetcdf', etc. based on DataType from netcdf file
             String createByName = "org.wdssii.datatypes.builders.netcdf." + info.DataType + "Netcdf";
             Class<?> aClass = null;
@@ -357,7 +252,7 @@ public class NetcdfBuilder implements Builder {
                 Object[] args = new Object[]{ncfile, info}; // Actual args
                 Object classInstance = aClass.newInstance();
                 Method aMethod = aClass.getMethod("fillNetcdfFileInfo", argTypes);
-                aMethod.invoke(classInstance, args);     
+                aMethod.invoke(classInstance, args);
             } catch (Exception e) {
                 System.out.println("ERROR " + createByName + ", " + e.toString());
                 log.warn("Couldn't create object by name '"
@@ -366,7 +261,7 @@ public class NetcdfBuilder implements Builder {
                 // FIXME: Probably will create a "NetcdfDataType" object for the display
                 // so it can still display unknown netcdf data for debugging purposes
             }
-            
+
             // Do this last....
             info.error = "";
             info.success = true;
@@ -470,5 +365,31 @@ public class NetcdfBuilder implements Builder {
         log.warn("Actual data count was " + actualData);
 
         return values;
+    }
+
+    /** Handle params to URL for a netcdf index record.
+     * @param rec
+     * @param params
+     * @return 
+     */
+    @Override
+    public URL createURLForRecord(IndexRecord rec, String[] params) {
+        // Params 0 are of this form for a regular index:
+        // 0 - builder name such as 'netcdf'
+        // 1 - indexLocation such as C:/KTLX/
+        // 2 - Product such as 'Reflectivity'
+        // 3 - Choice such as '05.25'
+        // 4 - short file such as '1999_ktlx.netcdf.gz'
+        StringBuilder path = new StringBuilder(params[1]);
+        for (int i = 2; i < params.length; ++i) {
+            path.append('/').append(params[i]);
+        }
+
+        URL url = null;
+        try {
+            url = new URL(path.toString());
+        } catch (MalformedURLException e) {
+        }
+        return url;
     }
 }

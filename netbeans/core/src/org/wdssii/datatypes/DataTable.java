@@ -89,8 +89,8 @@ public class DataTable extends DataType {
     public DataTable(DataTypeMemento header, ArrayList<Column> columns) {
         super(header.originLocation, header.startTime, header.typeName);
         this.columns = null;
-        this.setAttributes(header.attriNameToValue);
-        this.setUnitsForAttributes(header.attriNameToUnits);
+      //  this.setAttributes(header.attriNameToValue);
+     //   this.setUnitsForAttributes(header.attriNameToUnits);
         this.myColumns = columns;
     }
 
@@ -100,13 +100,13 @@ public class DataTable extends DataType {
 	 * copies all the attributes, etc. from the master. The master can change
 	 * without affecting this object
 	 */
-	public DataTable(DataTable master) {
-        super(master);
-        this.columns = new Column[master.columns.length];
-        for (int i = 0; i < columns.length; ++i) {
-            this.columns[i] = new Column(master.columns[i]);
-        }
-    }
+	//public DataTable(DataTable master) {
+       // super(master);
+       // this.columns = new Column[master.columns.length];
+      //  for (int i = 0; i < columns.length; ++i) {
+       //     this.columns[i] = new Column(master.columns[i]);
+       // }
+   // }
 
     // Old way, lightning at least uses it..will have to modify it...
     public Column[] getColumns() {

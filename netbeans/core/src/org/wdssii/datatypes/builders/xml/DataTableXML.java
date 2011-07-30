@@ -8,10 +8,9 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
-import org.wdssii.datatypes.DataType.DataTypeMemento;
 
-/** The XML routines for DataTable.  This can read/write XML data for a DataTable
- * Uses Stax to read/write DataTable
+/** This creates a DataTable from XML data
+ * 
  * @author Robert Toomey
  *
  */
@@ -35,7 +34,7 @@ public class DataTableXML extends DataTypeXML {
         //  (1) <data> which is the column values
         // </datatable>
         DataTable table = null;
-        DataTypeMemento header = null;
+        DataTypeXMLHeader header = null;
         try {
             myWorkingColumns = new ArrayList<Column>();
             String tag = null;
@@ -46,7 +45,7 @@ public class DataTableXML extends DataTypeXML {
                     break;
                 } else if ((tag = haveStartTag(p)) != null) {
                     if (XML_DATATYPE.equals(tag)) {
-                        header = readXML_datatype(p);
+                  // GOOP      header = readXML_datatype(p);
                     } else if (XML_DATA.equals(tag)) {
                         readXML_data(p);
                     }
@@ -56,10 +55,11 @@ public class DataTableXML extends DataTypeXML {
             if (myWorkingColumns != null) {
                 System.out.println("Number of columns is " + myWorkingColumns.size());
             }
-            table = new DataTable(header, myWorkingColumns);
+            // FIXME: this will crash probably
+            table = new DataTable(null, myWorkingColumns);
 
-            System.out.println("XML CREATED TABLE LOCATION IS " + header.originLocation);
-            System.out.println("--->TYPENAME " + header.typeName);
+            //System.out.println("XML CREATED TABLE LOCATION IS " + header.originLocation);
+            //System.out.println("--->TYPENAME " + header.typeName);
         } catch (Exception e) {
             // Recover on any exception by returning a null table
             System.out.println("XML PARSING ERROR " + e.toString());

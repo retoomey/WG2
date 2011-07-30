@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
@@ -16,14 +17,11 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wdssii.datatypes.DataRequest;
+import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.builders.xml.ContoursXML;
 import org.wdssii.datatypes.builders.xml.DataTableXML;
 import org.wdssii.index.IndexRecord;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 /** Builder for the W2ALG products.
  * 
@@ -33,43 +31,37 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author Robert Toomey
  *
  */
-public class W2algsBuilder extends DefaultHandler implements Builder {
+public class W2algsBuilder extends Builder {
 
     private static Log log = LogFactory.getLog(W2algsBuilder.class);
 
-    /** Flag if we're using a temp file for data */
-    //private boolean myUsingTempFile = false;
-    /** The params from the IndexRecord */
-    public static enum BuilderParams {
-
-        BUILDER, // W2ALGS
-        STORAGE_TYPE, // GZippedFile
-        PATH_NAME, // http://test.protect.nssl:8080/mesonet
-        FORMATTER_NAME, // xmldata
-        FILE_OR_LB_MESSAGE_ID		// mesonet2010...xml.gz
-    };
-
+    public W2algsBuilder(){
+        super("xml");
+    }
+    
     @Override
-    public DataType createObject(IndexRecord rec) {
-        DataType dt = null;
-
-        /*log.info("createObject called");
-        String[] params = rec.getParams();
-        for (String s : params) {
-            log.info("Record Param is " + s);
+    public DataType createDataType(IndexRecord rec, WdssiiJobMonitor w) {
+       URL url = rec.getDataLocationURL(this);
+        if (url == null) {
+            return null;
         }
 
-        // FIXME: only doing Mesonet at the moment.
-        if (params.length >= 5) {
-            String path = params[BuilderParams.PATH_NAME.ordinal()] + "/" + params[BuilderParams.FILE_OR_LB_MESSAGE_ID.ordinal()];
-            log.info("Path is " + path);
-            String file = params[BuilderParams.FILE_OR_LB_MESSAGE_ID.ordinal()];
-            dt = readRemoteFile(path, file);
-        }*/
-        return dt;
+        return createDataTypeFromURL(url, w);
+    }
+    
+    /** pass in the file name and obtain an object back. */
+    public DataType createDataTypeFromURL(URL aURL, WdssiiJobMonitor m) {
+
+        if (m != null) {
+            m.beginTask(aURL.toString(), WdssiiJobMonitor.UNKNOWN);
+        }
+
+         DataType dt = createFromURLStream(aURL, m);
+         return dt;
+         
     }
 
-    /** Read remote data file */
+    /** Read remote data file 
     private DataType readRemoteFile(String path, String suffix) {
         File localFile = null;
         DataType dt = null;
@@ -99,7 +91,86 @@ public class W2algsBuilder extends DefaultHandler implements Builder {
         }
         return dt;
     }
+     * */
 
+    /** Wdssii XML can create directly from xml stream of URL.
+     */
+    private DataType createFromURLStream(URL aURL, WdssiiJobMonitor w){
+       
+        DataType dt = null;
+      //  File file = new File(path);
+        InputStream is = null;
+        try {
+           // is = new FileInputStream(file);
+          //  if (file.getAbsolutePath().endsWith(".gz")) {
+           //     is = new GZIPInputStream(is);
+          //  }
+            is = aURL.openStream();
+            if (aURL.toString().endsWith(".gz")){
+                is = new GZIPInputStream(is);
+            }
+            // Experimenting:
+            // Using Stax.  Recommended over SAX and DOM. Will see how it
+            // performs. Might be especially useful with CONUS
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            XMLStreamReader parser = factory.createXMLStreamReader(is);
+
+            // get first 'real' tag (this could be a util)
+            while (parser.hasNext()) {
+                // Find the first tag matching the types we know:
+                // 'datatable'
+                // 'contours'
+                // 'radialset' (not used)
+                int event = parser.next();
+                switch (event) {
+                    case XMLStreamConstants.START_ELEMENT: {
+                        // Would be nice to use reflection here for future and avoid switching
+                        // FIXME: ?
+                        String name = parser.getLocalName();
+                        if (name.equals("datatable")) {
+                            log.info("****Creating DataTable from XML ");
+                            DataTableXML xml = new DataTableXML();
+                            dt = xml.createFromXML(parser);
+                            xml = null;
+                        } else if (name.equals("contours")) {
+                            log.info("*****Create Contours from XML ");
+                            ContoursXML xml = new ContoursXML();
+                            dt = xml.createFromXML(parser);
+                            xml = null;
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            parser.close();
+
+            /*
+            SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
+            saxParser.parse(is, this);  // FIXME: probably better to have seperate object
+            
+            // Read the stream as an XML document?
+             */
+        } catch (FileNotFoundException e) {
+            System.out.println("Got file not found in W2algsBuilder" + e.toString());
+        } catch (IOException e) {
+            System.out.println("Got IOException in W2algsBuilder " + e.toString());
+        } catch (XMLStreamException e) {
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (Exception e2) {
+                    // ok
+                }
+            }
+        }
+        return dt; 
+    }
+    
+    
+    
     private DataType readLocalFile(String path) {
 
         DataType dt = null;
@@ -182,17 +253,20 @@ public class W2algsBuilder extends DefaultHandler implements Builder {
         return path;
     }
 
-    // *********************** XML parsing
     @Override
-    public void startElement(String namespaceURI, String localName, String qualifiedName, Attributes atts) throws SAXException {
-        if (qualifiedName != null) {
-            System.out.println("XML PARSE GOT " + qualifiedName);
+    public URL createURLForRecord(IndexRecord rec, String[] params) {
+        // Params 0 are of this form for a regular index:
+        // 0 - builder name 'W2ALGS'
+        // 1 - 'GzippedFile' or some other storage type
+        // 2 - Base path such as "http://www/warnings"
+        // 3 - 'xmldata' formatter_name
+        // 4 - short file such as '1999_ktlx.netcdf.gz'
+        String path = params[2]+"/"+params[4];
+        URL url = null;
+        try {
+            url = new URL(path);
+        } catch (MalformedURLException e) {
         }
-    }
-
-    @Override
-    public DataRequest createObjectBackground(IndexRecord rec) {
-        System.out.println("MAJOR ERROR: W2ALGS BUILDER IS BROKEN AT THE MOMENT");
-        return null;
+        return url;
     }
 }

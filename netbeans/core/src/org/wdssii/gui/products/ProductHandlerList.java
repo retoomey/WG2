@@ -77,6 +77,10 @@ public class ProductHandlerList {
         }
 
         IndexRecord aRecord = anIndex.getRecord(datatype, subtype, time);
+        if (aRecord == null){
+            System.out.println("ProductHandlerList: Record is null, cannot create new product");
+            return;
+        }
         aRecord.setSourceName(manager.getIndexName(anIndex));
         String productCacheKey = Product.createCacheKey(indexName, aRecord);
         Product aProduct = ProductManager.CreateProduct(productCacheKey, indexName, aRecord);

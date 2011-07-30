@@ -10,65 +10,25 @@ import org.wdssii.geom.Location;
  */
 public class Contours extends DataType implements Table2DView {
 
-    /** A single contour of a contours set.
-     * Could put in separate class, but it's pretty tiny.
-     * @author Robert Toomey
-     *
+    private int myMaxLocations = 0;
+    private final int NUM_FIELDS_PER_POINT = 2;
+
+    /** Passed in by builder objects to use to initialize ourselves.
+     * This allows us to have final field access from builders.
      */
-    public static class Contour {
-
-        /** Stock datatype header */
-       // private DataTypeXMLHeader datatypeHeader;
-        /** Points of the contour */
-        private ArrayList<Location> locations;
-
-        /** Get the standard datatype header for this contour */
-      //  public DataTypeXMLHeader getDataTypeHeader() {
-       //     return datatypeHeader;
-      //  }
-
-        /** Set the standard datatype header for this contour */
-      //  public void setDataTypeHeader(DataTypeXMLHeader h) {
-      //      datatypeHeader = h;
-     //   }
-
-        /** Get the number of points in this contour */
-        public int getSize() {
-            if (locations != null) {
-                return locations.size();
-            }
-            return 0;
-        }
-
-        /** Get the location list for the contour */
-        public ArrayList<Location> getLocations() {
-            return locations;
-        }
-
-        /** Set the location list for the contour */
-        public void setLocations(ArrayList<Location> list) {
-            locations = list;
-        }
-    }
+    public static class ContoursMemento extends DataTypeMemento {
+    };
     /** Our set of contours */
     protected ArrayList<Contour> myContours = new ArrayList<Contour>();
 
-    /** Create a new, uninitialized Contours object.  Usually called by one of the XML/netcdf parsers */
-    public Contours() {
-    }
-
-    public Contours(DataTypeMemento header) {
-        super(header.originLocation, header.startTime, header.typeName);
-
-        System.out.println("Contours constructor");
-        System.out.println("Header is " + header);
-        System.out.println("Header location " + header.originLocation);
-        System.out.println("Header time " + header.startTime);
-        // FIXME: do the contours....
+    public Contours(ContoursMemento memento) {
+        super(memento);
     }
 
     public void addContour(Contour c) {
         myContours.add(c);
+        // Keep track of maximum length for table column count....
+        myMaxLocations = Math.max(c.getLocations().size(), myMaxLocations);
     }
 
     /** Get the number of unique contours in this contour */
@@ -84,40 +44,71 @@ public class Contours extends DataType implements Table2DView {
         return myContours;
     }
 
-    //public void setDatatypeHeader(DataTypeXMLHeader header) {
-   //  //   setLocation(header.location);
-   //     setTime(header.time);
-   // }
-
     @Override
     public int getNumCols() {
-        return getNumberOfContours();
+        return myMaxLocations * NUM_FIELDS_PER_POINT;
     }
 
     @Override
     public int getNumRows() {
-        return 1000000;  // test of large size..
+        return getNumberOfContours();
     }
 
     @Override
     public String getRowHeader(int row) {
-        return (String.format("%d", row));
+        return (String.format("Contour %d", row));
     }
 
     @Override
     public String getColHeader(int col) {
-        if (col < myContours.size()) {
-            Contour a = myContours.get(col);
-            return ("C(" + a.getSize() + ")");
+        String h = "";
+        int base = col / NUM_FIELDS_PER_POINT;
+        int subcol = col - (base * NUM_FIELDS_PER_POINT);
+
+        switch (subcol) {
+            case 0:
+                h = "Lat";
+                break;
+            case 1:
+                h = "Lon";
+                break;
+            case 2:
+                h = "H";
+                break;
+            default:
+                h = "?";
+                break;
         }
-        // Default fall through...fill text in with row number
-        return (String.format("%d", col));
+        return h;
     }
 
     @Override
     public float getCellValue(int row, int col) {
-        // TODO Auto-generated method stub
-        return 0;
+        float value = 0;
+        if ((row > -1) && (row < getNumberOfContours())) {
+            Contour c = myContours.get(row);
+            ArrayList<Location> l = c.getLocations();
+            if ((col > -1) && (col < l.size() * NUM_FIELDS_PER_POINT)) {
+                int base = col / NUM_FIELDS_PER_POINT;
+                int subcol = col - (base * NUM_FIELDS_PER_POINT);
+                Location aLoc = l.get(base);
+                switch (subcol) {
+                    case 0:
+                        value = (float) aLoc.getLatitude();
+                        break;
+                    case 1:
+                        value = (float) aLoc.getLongitude();
+                        break;
+                    case 2:
+                        value = (float) aLoc.getHeightKms();
+                        break;
+                    default:
+                        value = 0;
+                        break;
+                }
+            }
+        }
+        return value;
     }
 
     @Override

@@ -406,9 +406,9 @@ public class SourceManager implements Singleton {
     }
     
     /** Add a local URL to our ManualLoadIndex */
-    public void addSingleURL(URL location, String product, String choice, Date time){
+    public void addSingleURL(URL location, String product, String choice, Date time, String[] params){
         if (myManualIndex != null){
-            myManualIndex.addRecordFromURL(location, product, choice, time);
+            myManualIndex.addRecordFromURL(location, product, choice, time, params);
         }
     }
 }

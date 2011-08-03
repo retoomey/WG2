@@ -23,6 +23,10 @@ public class TileRenderer extends ProductRenderer {
     @SuppressWarnings("unused")
     private static Log log = LogFactory.getLog(TileRenderer.class);
 
+    public TileRenderer(boolean asBackgroundJob){
+        super(asBackgroundJob);
+    }
+    
     /** Root class of all tiles we can render */
     public static class Tile {
 
@@ -142,91 +146,4 @@ public class TileRenderer extends ProductRenderer {
     @Override
     public void draw(DrawContext dc) {
     }
-
-    /*
-    private Vec4 computeReferencePoint(DrawContext dc) {
-    if (dc.getViewportCenterPosition() != null)
-    return dc.getGlobe().computePointFromPosition(
-    dc.getViewportCenterPosition());
-    
-    java.awt.geom.Rectangle2D viewport = dc.getView().getViewport();
-    int x = (int) viewport.getWidth() / 2;
-    for (int y = (int) (0.5 * viewport.getHeight()); y >= 0; y--) {
-    Position pos = dc.getView().computePositionFromScreenPoint(x, y);
-    if (pos == null)
-    continue;
-    
-    return dc.getGlobe().computePointFromPosition(pos.getLatitude(),
-    pos.getLongitude(), 0d);
-    }
-    
-    return null;
-    }
-    
-    protected Vec4 getReferencePoint() {
-    return this.referencePoint;
-    }
-     */
-
-    /*
-    private void drawTileIDs(DrawContext dc, ArrayList<WindFieldTile> tiles) {
-    java.awt.Rectangle viewport = dc.getView().getViewport();
-    if (this.textRenderer == null) {
-    this.textRenderer = new TextRenderer(java.awt.Font
-    .decode("Arial-Plain-13"), true, true);
-    this.textRenderer.setUseVertexArrays(false);
-    }
-    
-    // WORLDWINDBUGFIX Need to push pop the attributes for the ids...
-    dc.getGL().glPushAttrib(GL.GL_ENABLE_BIT);
-    // ----------
-    dc.getGL().glDisable(GL.GL_DEPTH_TEST);
-    dc.getGL().glDisable(GL.GL_BLEND);
-    dc.getGL().glDisable(GL.GL_TEXTURE_2D);
-    
-    this.textRenderer.setColor(java.awt.Color.YELLOW);
-    this.textRenderer.beginRendering(viewport.width, viewport.height);
-    //	for (WindFieldTile tile : tiles) {
-    // FIXME: make work for windfield for debugging purposes
-    String tileLabel = tile.getLabel();
-    
-    if (tile.getFallbackTile() != null)
-    tileLabel += "/" + tile.getFallbackTile().getLabel();
-    
-    LatLon ll = tile.getSector().getCentroid();
-    Vec4 pt = dc.getGlobe().computePointFromPosition(
-    ll.getLatitude(),
-    ll.getLongitude(),
-    dc.getGlobe().getElevation(ll.getLatitude(),
-    ll.getLongitude()));
-    pt = dc.getView().project(pt);
-    this.textRenderer.draw(tileLabel, (int) pt.x, (int) pt.y);
-    
-    //	}
-    this.textRenderer.endRendering();
-    // WORLDWINDBUGFIX Need to push pop the attributes for the ids...
-    dc.getGL().glPopAttrib();
-    // ----------
-    }
-     */
-
-    /*
-    private void drawBoundingVolumes(DrawContext dc,
-    ArrayList<TextureTile> tiles) {
-    float[] previousColor = new float[4];
-    dc.getGL().glGetFloatv(GL.GL_CURRENT_COLOR, previousColor, 0);
-    dc.getGL().glColor3d(0, 1, 0);
-    
-    for (TextureTile tile : tiles) {
-    ((Cylinder) tile.getExtent(dc)).render(dc);
-    }
-    
-    Cylinder c = dc.getGlobe().computeBoundingCylinder(
-    dc.getVerticalExaggeration(), this.levels.getSector());
-    dc.getGL().glColor3d(1, 1, 0);
-    c.render(dc);
-    
-    dc.getGL().glColor4fv(previousColor, 0);
-    }
-     */
 }

@@ -41,12 +41,7 @@ public final class DataTableTopComponent extends ThreadedTopComponent implements
    
     @Override
     public void updateInSwingThread(Object command) {
-       Product p =  CommandManager.getInstance().getTopProduct();
-       if (myTableModel != null){
-           myTableModel.setProduct(p);
-           jProductDataTable.revalidate();
-           jProductDataTable.repaint();
-       }
+      updateDataTable();
     }
         
     private ProductTableModel myTableModel;
@@ -64,6 +59,7 @@ public final class DataTableTopComponent extends ThreadedTopComponent implements
     public DataTableTopComponent() {
         initComponents();
         initTable();
+        updateDataTable();
        // setIcon(SwingIconFactory.getImageByName("DownArrowIcon"));
         CommandManager.getInstance().registerView(TableProductView.ID, this);
         setName(NbBundle.getMessage(DataTableTopComponent.class, "CTL_DataTableTopComponent"));
@@ -78,6 +74,15 @@ public final class DataTableTopComponent extends ThreadedTopComponent implements
         jProductDataTable.setModel(myTableModel);
         jDataTableScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         jDataTableScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+    }
+    
+    public void updateDataTable(){
+       Product p =  CommandManager.getInstance().getTopProduct();
+       if (myTableModel != null){
+           myTableModel.setProduct(p);
+           jProductDataTable.revalidate();
+           jProductDataTable.repaint();
+       }
     }
     
     /** This method is called from within the constructor to

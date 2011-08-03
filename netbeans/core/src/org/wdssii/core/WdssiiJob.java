@@ -114,4 +114,34 @@ public class WdssiiJob {
             myJobRunner.WdssiiCancelJob();
         }
     }
+    
+    /** Filler for non-job routines (to save null checking) */
+    public static class WdssiiSameThreadJobMonitor implements WdssiiJobMonitor {
+
+        @Override
+        public void done() {
+            
+        }
+
+        @Override
+        public void beginTask(String taskName, int totalUnits) {
+            
+        }
+
+        @Override
+        public void subTask(String subTaskName) {
+            
+        }
+
+        @Override
+        public void worked(int howMany) {
+           
+        }
+
+        @Override
+        public boolean isCanceled() {
+           return true;
+        }
+        
+    }
 }

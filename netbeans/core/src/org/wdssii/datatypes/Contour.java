@@ -34,6 +34,10 @@ public class Contour {
         return locations;
     }
 
+    public String getAttribute(String name) {
+        return m.attriNameToValue.get(name);
+    }
+    
     /** Set the location list for the contour */
     public void setLocations(ArrayList<Location> list) {
         locations = list;

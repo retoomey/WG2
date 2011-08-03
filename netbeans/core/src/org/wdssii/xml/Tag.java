@@ -1,10 +1,14 @@
 package org.wdssii.xml;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Map;
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import org.openide.util.Exceptions;
 
 /**
  * Tag is an html Tag object that handles a Stax parsing stream.
@@ -48,7 +52,7 @@ public abstract class Tag {
         }
         return atStart;
     }
-    
+
     protected static boolean atStart(XMLStreamReader p, String tag) {
         boolean atStart = false;
         if (p.getEventType() == XMLStreamConstants.START_ELEMENT) {
@@ -59,7 +63,7 @@ public abstract class Tag {
         }
         return atStart;
     }
-    
+
     /** Utility function to check for end tag */
     protected static boolean isEndTag(XMLStreamReader p, String end) {
         boolean isEndTag = false;
@@ -96,14 +100,14 @@ public abstract class Tag {
 
     }
 
-        /** Holder class for unit/value attributes */
-    public static class UnitValuePair{
+    /** Holder class for unit/value attributes */
+    public static class UnitValuePair {
 
         public String unit;
         public String value;
     }
-    
-   protected static void readUnitValue(XMLStreamReader p, UnitValuePair buffer) {
+
+    protected static void readUnitValue(XMLStreamReader p, UnitValuePair buffer) {
         int count = p.getAttributeCount();
         buffer.unit = null;
         buffer.value = null;
@@ -118,7 +122,7 @@ public abstract class Tag {
             }
         }
     }
-   
+
     protected static void processAttributes(XMLStreamReader p, Map<String, String> buffer) {
         int count = p.getAttributeCount();
         for (int i = 0; i < count; i++) {
@@ -128,7 +132,7 @@ public abstract class Tag {
             buffer.put(name, value);
         }
     }
-     
+
     /** Process our root tag returned by tag() */
     public boolean processTag(XMLStreamReader p) {
 
@@ -150,6 +154,43 @@ public abstract class Tag {
             }
         }
         return foundIt;
+    }
+
+    /** Process this tag as a document root.  Basically skip any information
+     * until we get to our tag.  In STAX, the first event is not a start
+     * tag typically.
+     * @param p the stream to read from
+     * @return true if tag was found and processed
+     */
+    public boolean processAsRoot(XMLStreamReader p) {
+        boolean found = false;
+        try {
+            while (p.hasNext()) {
+                int event = p.next();
+                switch (event) {
+                    case XMLStreamConstants.START_ELEMENT: {
+                        found = processTag(p);
+                        break;
+                    }
+                }
+            }
+        } catch (XMLStreamException ex) {
+        }
+        return found;
+    }
+
+    /** Process document root from a given File */
+    public boolean processAsRoot(File f) {
+        boolean success = false;
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        try {
+            FileInputStream is = new FileInputStream(f);
+            XMLStreamReader p = factory.createXMLStreamReader(is);
+            success = processAsRoot(p);
+        } catch (Exception ex) {
+        }
+        return success;
+
     }
 
     /** Process all child tabs within our tag */

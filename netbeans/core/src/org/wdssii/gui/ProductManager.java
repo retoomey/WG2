@@ -1,7 +1,11 @@
 package org.wdssii.gui;
 
 import java.awt.Color;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.TreeMap;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,6 +25,8 @@ import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.index.IndexRecord;
+import org.wdssii.xml.Tag_colorDatabase;
+import org.wdssii.xml.Tag_colorDatabase.Tag_colorDef;
 
 /**
  * --Maintains a set of color maps by product name (color map cache FIXME: Move to generic cache)
@@ -39,6 +45,7 @@ public class ProductManager implements Singleton {
     private static ProductManager instance = null;
     final public static int MIN_CACHE_SIZE = 50;
     final public static int MAX_CACHE_SIZE = 500;
+    private Tag_colorDatabase myColorDefs = new Tag_colorDatabase();
     /** A static database of information about products */
     TreeMap<String, ProductDataInfo> myProductInfo = new TreeMap<String, ProductDataInfo>();
     ProductDataInfo myDefaults = new ProductDataInfo();
@@ -257,6 +264,7 @@ public class ProductManager implements Singleton {
     public void singletonManagerCallback() {
         // load database information needed by application
         loadProductInformation();
+        loadColorDatabase();
 
         // Load cache size from preferences
         PreferencesManager p = PreferencesManager.getInstance();
@@ -466,6 +474,37 @@ public class ProductManager implements Singleton {
                 }
             }
         }
+    }
+
+    public void loadColorDatabase() {
+        File f = null;
+
+        try {
+            f = W2Config.getFile("colorDatabase.xml");
+            myColorDefs.processAsRoot(f);
+        } catch (Exception c) {
+        }
+    }
+
+    /** Return named color from database, fallback to pure white */
+    public Color getNamedColor(String name) {
+        Color c = null;
+        boolean success = false;
+        if (name != null) {
+            Tag_colorDef t = myColorDefs.colorDefs.get(name);
+            if (t != null) {
+                c = new Color(t.r, t.g, t.b, t.a);
+                success = true;
+            }
+        }
+        if (success == false){
+            c = new Color(255, 0, 0, 255);
+        }
+        return c;
+    }
+
+    public boolean hasNamedColor(String name) {
+        return false;
     }
 
     // External create product method (convenience routine)

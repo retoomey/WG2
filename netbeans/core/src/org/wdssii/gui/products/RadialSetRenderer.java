@@ -14,7 +14,6 @@ import gov.nasa.worldwind.render.DrawContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wdssii.core.WdssiiJob;
 
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
@@ -27,6 +26,8 @@ import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.util.RadialUtil;
 
 import com.sun.opengl.util.BufferUtil;
+import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
+import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 
 /** Renders a RadialSet
  * 
@@ -44,359 +45,345 @@ public class RadialSetRenderer extends ProductRenderer {
     protected Array1Dfloat colors;
     /** Colors as readout information */
     protected Array1Dfloat readout;
-    /** Volatile because renderer job creates the data in one thread, but drawn in another.
-     * myCreated set to true by worker thread after the buffers are created (draw allowed)
-     */
-    protected volatile boolean myCreated = false;
-    protected backgroundRadial myWorker;
+
     protected int updateCounter = 0;
 
-    public void dispose() {
+    public RadialSetRenderer(){
+        super(true);
     }
 
-    public class backgroundRadial extends WdssiiJob {
+    @Override
+    public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
+        //long start = System.currentTimeMillis();
+        int counter = 0;
+        int ccounter = 0;
 
-        public DrawContext dc;
-        public Product aProduct;
+        try {
 
-        public backgroundRadial(DrawContext aDc, Product rec) {
-            super("3D RadialSet Generation");
-            dc = aDc;
-            aProduct = rec;
-        }
+            // Make sure and always start monitor
+            RadialSet aRadialSet = (RadialSet) aProduct.getRawDataType();
+            monitor.beginTask("RadialSetRenderer:", aRadialSet.getNumRadials());
 
-        @Override
-        public WdssiiJobStatus run(WdssiiJobMonitor monitor) {
-            //long start = System.currentTimeMillis();
-            int counter = 0;
-            int ccounter = 0;
+            //	long end1 = System.currentTimeMillis() - start;
+            //	float seconds1 = (float) ((end1 * 1.0) / 1000.0);
+            // System.out.println("RADIAL SET BUILDER SECONDS " + seconds1);
+            //myProduct = aProduct;
+            //	ColorMap aColorMap = aProduct.getColorMap();
+            FilterList aList = aProduct.getFilterList();
 
-            try {
+            // if (aColorMap == null){
+            // System.out.println("Missing color map, generating based on values");
+            // }
+            // / Try to create the opengl stuff for a radial set...
+            int numRadials = aRadialSet.getNumRadials();
 
-                // Make sure and always start monitor
-                RadialSet aRadialSet = (RadialSet) aProduct.getRawDataType();
-                monitor.beginTask("RadialSetRenderer:", aRadialSet.getNumRadials());
+            // System.out.println("There are " + numRadials + " Radials");
 
-                //	long end1 = System.currentTimeMillis() - start;
-                //	float seconds1 = (float) ((end1 * 1.0) / 1000.0);
-                // System.out.println("RADIAL SET BUILDER SECONDS " + seconds1);
-                //myProduct = aProduct;
-                //	ColorMap aColorMap = aProduct.getColorMap();
-                FilterList aList = aProduct.getFilterList();
+            // if number_of_radials == 0 error.... FIXME
 
-                // if (aColorMap == null){
-                // System.out.println("Missing color map, generating based on values");
-                // }
-                // / Try to create the opengl stuff for a radial set...
-                int numRadials = aRadialSet.getNumRadials();
+            // Get the location of the radar and the elevation of this
+            // radial
+            // set
+            Location radarLoc = aRadialSet.getRadarLocation();
+            // Precompute the sin/cos of the elevation angle of the radar.
+            final float RAD = 0.017453293f;
+            double sinElevAngle = aRadialSet.getElevationSin();
+            double cosElevAngle = aRadialSet.getElevationCos();
 
-                // System.out.println("There are " + numRadials + " Radials");
+            float firstGateKms = aRadialSet.getRangeToFirstGateKms();
 
-                // if number_of_radials == 0 error.... FIXME
+            // "Counter" loop. Faster to calculate than reallocate memory,
+            // Radial sets have missing parts no way to quick count it that
+            // I can see. We also find the maximum number of gates and
+            // create
+            // a attenuation height cache
 
-                // Get the location of the radar and the elevation of this
-                // radial
-                // set
-                Location radarLoc = aRadialSet.getRadarLocation();
-                // Precompute the sin/cos of the elevation angle of the radar.
-                final float RAD = 0.017453293f;
-                double sinElevAngle = aRadialSet.getElevationSin();
-                double cosElevAngle = aRadialSet.getElevationCos();
+            int maxGateCount = 0;
+            for (int i = 0; i < numRadials; i++) {
 
-                float firstGateKms = aRadialSet.getRangeToFirstGateKms();
+                // Get each radial from center out to end
+                Radial aRadial = aRadialSet.getRadial(i);
 
-                // "Counter" loop. Faster to calculate than reallocate memory,
-                // Radial sets have missing parts no way to quick count it that
-                // I can see. We also find the maximum number of gates and
-                // create
-                // a attenuation height cache
+                // If missing, just continue on
+                int numGates = aRadial.getNumGates();
 
-                int maxGateCount = 0;
-                for (int i = 0; i < numRadials; i++) {
+                if (numGates == 0) {
+                    continue;
+                }
 
-                    // Get each radial from center out to end
-                    Radial aRadial = aRadialSet.getRadial(i);
+                boolean needNewStrip = true;
 
-                    // If missing, just continue on
-                    int numGates = aRadial.getNumGates();
+                //float[] values = aRadial.getValues();
+                Array1Dfloat values = aRadial.getValues();
 
-                    if (numGates == 0) {
-                        continue;
-                    }
+                if (maxGateCount < numGates) {
+                    maxGateCount = numGates;
+                }
 
-                    boolean needNewStrip = true;
-
-                    //float[] values = aRadial.getValues();
-                    Array1Dfloat values = aRadial.getValues();
-
-                    if (maxGateCount < numGates) {
-                        maxGateCount = numGates;
-                    }
-
-                    for (int j = 0; j < numGates; j++) {
-                        //double value = values[j];
-                        float value = values.get(j);
-                        // value = -10+( ((float)(j)/(float)(numGates))
-                        // *(99+10));
-                        // if (value < -90000) { // needs to be missing value
-                        // FIXME
+                for (int j = 0; j < numGates; j++) {
+                    //double value = values[j];
+                    float value = values.get(j);
+                    // value = -10+( ((float)(j)/(float)(numGates))
+                    // *(99+10));
+                    // if (value < -90000) { // needs to be missing value
+                    // FIXME
 						/*
-                         * if (value == DataType.MissingData){ value = 20; }
-                         */
-                        if (value == DataType.MissingData) {
-                            needNewStrip = true;
-                        } else {
-                            if (needNewStrip) {
-                                counter += 6; // 2 * 3
-                                ccounter += 8; // 2*4
-                            }
-                            counter += 6;
-                            ccounter += 8;
-                            needNewStrip = false;
+                     * if (value == DataType.MissingData){ value = 20; }
+                     */
+                    if (value == DataType.MissingData) {
+                        needNewStrip = true;
+                    } else {
+                        if (needNewStrip) {
+                            counter += 6; // 2 * 3
+                            ccounter += 8; // 2*4
                         }
+                        counter += 6;
+                        ccounter += 8;
+                        needNewStrip = false;
                     }
                 }
-                // --------------End counter loop
-
-                // System.out.println("Counted gates, total of " + counter);
-                Globe myGlobe = dc.getGlobe(); // FIXME: says may be null???
-
-                // The opengl thread can draw anytime..
-                verts = new Array1DfloatAsNodes(counter, 0.0f);   // FIXME: could 'combine' both into one array I think...
-                colors = new Array1DfloatAsNodes(ccounter / 4, 0.0f); // use one 'float' per color...
-
-                // READOUT
-                readout = new Array1DfloatAsNodes(ccounter / 4, 0.0f);  // use one 'float' per color...
-
-                myOffsets = new Vector<Integer>();
-                // colors.rewind(); // do I need this?
-
-                // Once buffers exist and myOffsets exists, we 'turn on' the drawing thread:
-                myCreated = true;
-                int idx = 0;
-                int idy = 0;
-                int idREAD = 0;
-
-                // The four locations of the 'box' of a gate, do the expensive
-                // 'new' call
-                // outside the loop
-                Location gate = new Location(0, 0, 0);
-                Location gate1 = new Location(0, 0, 0);
-                Location gate2 = new Location(0, 0, 0);
-                Location gate3 = new Location(0, 0, 0);
-                //double[] c = new double[4];
-                ColorMapFloatOutput out = new ColorMapFloatOutput();
-
-                // --------------------------------------------------------
-                // On first radial, create the attenuation cache...
-                // FIXME: volume/etc just use straight vector calculation, so
-                // why bother to attenuate anyway?
-                // This is a hideous thing created because otherwise superres
-                // brings us to a crawl
-                double[] heights;
-                double[] gcdSinCache;
-                double[] gcdCosCache;
-                // System.out.println("Begin height cache....");
-                if (numRadials > 0) {
-                    heights = new double[maxGateCount + 1];
-                    // gcdCache = new double[maxGateCount+1];
-                    gcdSinCache = new double[maxGateCount + 1];
-                    gcdCosCache = new double[maxGateCount + 1];
-                    Radial aRadial = aRadialSet.getRadial(0);
-                    double rangeMeters = firstGateKms * 1000.0;
-                    double gateWidthMeters = aRadial.getGateWidthKms() * 1000.0;
-                    //	System.out.println("Gate width meters is "+gateWidthMeters);
-                    for (int i = 0; i <= maxGateCount; i++) {
-                        heights[i] = RadialUtil.getAzRanElHeight(rangeMeters,
-                                sinElevAngle);
-                        double gcd = RadialUtil.getGCD(rangeMeters,
-                                cosElevAngle, heights[i]);
-                        gcdSinCache[i] = RadialUtil.getGCDSin(gcd);
-                        gcdCosCache[i] = RadialUtil.getGCDCos(gcd);
-                        rangeMeters += gateWidthMeters;
-                    }
-                } else {
-                    heights = null; // avoid error
-                    gcdSinCache = null;
-                    gcdCosCache = null;
-                }
-                RadialSetQuery rq = new RadialSetQuery();
-
-                // System.out.println("end height cache....");
-                for (int i = 0; i < numRadials; i++) {
-
-                    monitor.subTask("Radial " + i + "/" + numRadials);
-                    monitor.worked(1);   // Do it first to ensure it's called
-
-                    //log.info("counter "+i+"/"+numRadials);
-                    // Get each radial from center out to end
-                    Radial aRadial = aRadialSet.getRadial(i);
-
-                    // If missing, just continue on
-                    int numGates = aRadial.getNumGates();
-                    if (numGates == 0) {
-                        continue;
-                    }
-
-                    // Reset range to starting gate
-                    float startRAD = aRadial.getStartAzimuthDegs() * RAD;
-                    float endRAD = aRadial.getEndAzimuthDegs() * RAD;
-                    double sinStartRAD = Math.sin(startRAD);
-                    double cosStartRAD = Math.cos(startRAD);
-                    double sinEndRAD = Math.sin(endRAD);
-                    double cosEndRAD = Math.cos(endRAD);
-
-                    float rangeKms = firstGateKms;
-                    float gateWidthKms = aRadial.getGateWidthKms();
-                    RadialUtil.getAzRan1(gate, radarLoc, sinStartRAD,
-                            cosStartRAD, rangeKms, sinElevAngle, cosElevAngle,
-                            heights[0], gcdSinCache[0], gcdCosCache[0]);
-                    RadialUtil.getAzRan1(gate1, radarLoc, sinEndRAD, cosEndRAD,
-                            rangeKms, sinElevAngle, cosElevAngle, heights[0],
-                            gcdSinCache[0], gcdCosCache[0]);
-                    boolean needNewStrip = true;
-
-                    // We could create each 'radial' in a thread...drawing could
-                    // draw 'up to' current count...
-                    //float[] values = aRadial.getValues();
-                    Array1Dfloat values = aRadial.getValues();
-                    for (int j = 0; j < numGates; j++) {
-
-                        rangeKms += gateWidthKms;
-                        // rangeKms += gateWidthKms;
-                        RadialUtil.getAzRan1(gate2, radarLoc, sinEndRAD,
-                                cosEndRAD, rangeKms, sinElevAngle,
-                                cosElevAngle, heights[j + 1],
-                                gcdSinCache[j + 1], gcdCosCache[j + 1]);
-                        RadialUtil.getAzRan1(gate3, radarLoc, sinStartRAD,
-                                cosStartRAD, rangeKms, sinElevAngle,
-                                cosElevAngle, heights[j + 1],
-                                gcdSinCache[j + 1], gcdCosCache[j + 1]);
-
-                        // Do the stuff creating the gate in opengl
-                        //double value = values[j];
-                        float value = values.get(j);
-
-                        /*
-                         * if (value == DataType.MissingData){ value = 20; }
-                         */
-                        //aColorMap.fillColor(out, value);
-
-                        // FIXME: need more data.  Also a way to make sure all data is THERE...
-
-                        rq.inDataValue = value;
-                        rq.outDataValue = value;
-                        aList.fillColor(out, rq, false);
-                        boolean updateOffsets = false;
-                        int updateIndex = 0;
-
-                        if (value == DataType.MissingData) {
-                            needNewStrip = true;
-                        } else {
-                            if (needNewStrip) {
-
-                                // Don't add to offsets yet, data isn't there
-                                // and the opengl thread will be
-                                // using offsets for this.
-                                updateIndex = idx;
-                                updateOffsets = true;
-
-                                Vec4 point = myGlobe.computePointFromPosition(
-                                        Angle.fromDegrees(gate.getLatitude()),
-                                        Angle.fromDegrees(gate.getLongitude()),
-                                        gate.getHeightKms() * 1000);
-// READOUT EXPERIMENT
-//out.putUnsignedBytes(readout, idREAD++);
-                                readout.set(idREAD++, value);
-                                idy = out.putUnsignedBytes(colors, idy);
-
-                                verts.set(idx++, (float) point.x);
-                                verts.set(idx++, (float) point.y);
-                                verts.set(idx++, (float) point.z);
-
-                                Vec4 point1 = myGlobe.computePointFromPosition(Angle.fromDegrees(gate1.getLatitude()), Angle.fromDegrees(gate1.getLongitude()), gate1.getHeightKms() * 1000);
-
-// READOUT EXPERIMENT
-//out.putUnsignedBytes(readout, idREAD++);
-                                readout.set(idREAD++, value);
-
-                                idy = out.putUnsignedBytes(colors, idy);
-
-                                verts.set(idx++, (float) point1.x);
-                                verts.set(idx++, (float) point1.y);
-                                verts.set(idx++, (float) point1.z);
-
-                            }
-
-                            // Push back last two vertices of quad
-                            Vec4 point3 = myGlobe.computePointFromPosition(
-                                    Angle.fromDegrees(gate3.getLatitude()),
-                                    Angle.fromDegrees(gate3.getLongitude()),
-                                    gate2.getHeightKms() * 1000);
-
-// READOUT EXPERIMENT
-//out.putUnsignedBytes(readout, idREAD++);
-                            readout.set(idREAD++, value);
-
-                            idy = out.putUnsignedBytes(colors, idy);
-
-                            verts.set(idx++, (float) point3.x);
-                            verts.set(idx++, (float) point3.y);
-                            verts.set(idx++, (float) point3.z);
-
-                            Vec4 point2 = myGlobe.computePointFromPosition(
-                                    Angle.fromDegrees(gate2.getLatitude()),
-                                    Angle.fromDegrees(gate2.getLongitude()),
-                                    gate3.getHeightKms() * 1000);
-
-// READOUT EXPERIMENT
-//out.putUnsignedBytes(readout, idREAD++);
-                            readout.set(idREAD++, value);
-
-                            idy = out.putUnsignedBytes(colors, idy);
-
-                            verts.set(idx++, (float) point2.x);
-                            verts.set(idx++, (float) point2.y);
-                            verts.set(idx++, (float) point2.z);
-                            needNewStrip = false;
-                        }
-
-                        if (updateOffsets) {
-                            // We add LAST so the other thread uses the vert/color data <= current offsets.
-                            myOffsets.add(updateIndex);
-                            updateOffsets = false;
-                        }
-                        gate = gate3;
-                        gate1 = gate2;
-                    }
-
-                    updateCounter++;
-                    if (updateCounter > 1) {
-                        CommandManager.getInstance().updateDuringRender();  // These queue up anyway 
-                        //Thread.sleep(50);
-                        updateCounter = 0;
-                    }
-
-                }
-                
-                monitor.done();
-            } catch (Exception e) {
-                log.error("3D gen error" + e.toString());
-                if (monitor != null) {
-                    monitor.done();
-                }
-                return WdssiiJobStatus.CANCEL_STATUS; // We should make this a 'cleaner' exception/catch FIXME
             }
-            //long end = System.currentTimeMillis() - start;
-            //	float seconds = (float) ((end * 1.0) / 1000.0);
-            // System.out.println("RADIAL SET SECONDS " + seconds + " for "
-            // + counter);
+            // --------------End counter loop
 
-            // System.out.println("********Ending radial set creation");
-            CommandManager.getInstance().updateDuringRender();  // Humm..different thread...
+            // System.out.println("Counted gates, total of " + counter);
+            Globe myGlobe = dc.getGlobe(); // FIXME: says may be null???
+
+            // The opengl thread can draw anytime..
+            verts = new Array1DfloatAsNodes(counter, 0.0f);   // FIXME: could 'combine' both into one array I think...
+            colors = new Array1DfloatAsNodes(ccounter / 4, 0.0f); // use one 'float' per color...
+
+            // READOUT
+            readout = new Array1DfloatAsNodes(ccounter / 4, 0.0f);  // use one 'float' per color...
+
+            myOffsets = new Vector<Integer>();
+            // colors.rewind(); // do I need this?
+
+            // Once buffers exist and myOffsets exists, we 'turn on' the drawing thread:
+            setIsCreated();
+            int idx = 0;
+            int idy = 0;
+            int idREAD = 0;
+
+            // The four locations of the 'box' of a gate, do the expensive
+            // 'new' call
+            // outside the loop
+            Location gate = new Location(0, 0, 0);
+            Location gate1 = new Location(0, 0, 0);
+            Location gate2 = new Location(0, 0, 0);
+            Location gate3 = new Location(0, 0, 0);
+            //double[] c = new double[4];
+            ColorMapFloatOutput out = new ColorMapFloatOutput();
+
+            // --------------------------------------------------------
+            // On first radial, create the attenuation cache...
+            // FIXME: volume/etc just use straight vector calculation, so
+            // why bother to attenuate anyway?
+            // This is a hideous thing created because otherwise superres
+            // brings us to a crawl
+            double[] heights;
+            double[] gcdSinCache;
+            double[] gcdCosCache;
+            // System.out.println("Begin height cache....");
+            if (numRadials > 0) {
+                heights = new double[maxGateCount + 1];
+                // gcdCache = new double[maxGateCount+1];
+                gcdSinCache = new double[maxGateCount + 1];
+                gcdCosCache = new double[maxGateCount + 1];
+                Radial aRadial = aRadialSet.getRadial(0);
+                double rangeMeters = firstGateKms * 1000.0;
+                double gateWidthMeters = aRadial.getGateWidthKms() * 1000.0;
+                //	System.out.println("Gate width meters is "+gateWidthMeters);
+                for (int i = 0; i <= maxGateCount; i++) {
+                    heights[i] = RadialUtil.getAzRanElHeight(rangeMeters,
+                            sinElevAngle);
+                    double gcd = RadialUtil.getGCD(rangeMeters,
+                            cosElevAngle, heights[i]);
+                    gcdSinCache[i] = RadialUtil.getGCDSin(gcd);
+                    gcdCosCache[i] = RadialUtil.getGCDCos(gcd);
+                    rangeMeters += gateWidthMeters;
+                }
+            } else {
+                heights = null; // avoid error
+                gcdSinCache = null;
+                gcdCosCache = null;
+            }
+            RadialSetQuery rq = new RadialSetQuery();
+
+            // System.out.println("end height cache....");
+            for (int i = 0; i < numRadials; i++) {
+
+                monitor.subTask("Radial " + i + "/" + numRadials);
+                monitor.worked(1);   // Do it first to ensure it's called
+
+                //log.info("counter "+i+"/"+numRadials);
+                // Get each radial from center out to end
+                Radial aRadial = aRadialSet.getRadial(i);
+
+                // If missing, just continue on
+                int numGates = aRadial.getNumGates();
+                if (numGates == 0) {
+                    continue;
+                }
+
+                // Reset range to starting gate
+                float startRAD = aRadial.getStartAzimuthDegs() * RAD;
+                float endRAD = aRadial.getEndAzimuthDegs() * RAD;
+                double sinStartRAD = Math.sin(startRAD);
+                double cosStartRAD = Math.cos(startRAD);
+                double sinEndRAD = Math.sin(endRAD);
+                double cosEndRAD = Math.cos(endRAD);
+
+                float rangeKms = firstGateKms;
+                float gateWidthKms = aRadial.getGateWidthKms();
+                RadialUtil.getAzRan1(gate, radarLoc, sinStartRAD,
+                        cosStartRAD, rangeKms, sinElevAngle, cosElevAngle,
+                        heights[0], gcdSinCache[0], gcdCosCache[0]);
+                RadialUtil.getAzRan1(gate1, radarLoc, sinEndRAD, cosEndRAD,
+                        rangeKms, sinElevAngle, cosElevAngle, heights[0],
+                        gcdSinCache[0], gcdCosCache[0]);
+                boolean needNewStrip = true;
+
+                // We could create each 'radial' in a thread...drawing could
+                // draw 'up to' current count...
+                //float[] values = aRadial.getValues();
+                Array1Dfloat values = aRadial.getValues();
+                for (int j = 0; j < numGates; j++) {
+
+                    rangeKms += gateWidthKms;
+                    // rangeKms += gateWidthKms;
+                    RadialUtil.getAzRan1(gate2, radarLoc, sinEndRAD,
+                            cosEndRAD, rangeKms, sinElevAngle,
+                            cosElevAngle, heights[j + 1],
+                            gcdSinCache[j + 1], gcdCosCache[j + 1]);
+                    RadialUtil.getAzRan1(gate3, radarLoc, sinStartRAD,
+                            cosStartRAD, rangeKms, sinElevAngle,
+                            cosElevAngle, heights[j + 1],
+                            gcdSinCache[j + 1], gcdCosCache[j + 1]);
+
+                    // Do the stuff creating the gate in opengl
+                    //double value = values[j];
+                    float value = values.get(j);
+
+                    /*
+                     * if (value == DataType.MissingData){ value = 20; }
+                     */
+                    //aColorMap.fillColor(out, value);
+
+                    // FIXME: need more data.  Also a way to make sure all data is THERE...
+
+                    rq.inDataValue = value;
+                    rq.outDataValue = value;
+                    aList.fillColor(out, rq, false);
+                    boolean updateOffsets = false;
+                    int updateIndex = 0;
+
+                    if (value == DataType.MissingData) {
+                        needNewStrip = true;
+                    } else {
+                        if (needNewStrip) {
+
+                            // Don't add to offsets yet, data isn't there
+                            // and the opengl thread will be
+                            // using offsets for this.
+                            updateIndex = idx;
+                            updateOffsets = true;
+
+                            Vec4 point = myGlobe.computePointFromPosition(
+                                    Angle.fromDegrees(gate.getLatitude()),
+                                    Angle.fromDegrees(gate.getLongitude()),
+                                    gate.getHeightKms() * 1000);
+// READOUT EXPERIMENT
+//out.putUnsignedBytes(readout, idREAD++);
+                            readout.set(idREAD++, value);
+                            idy = out.putUnsignedBytes(colors, idy);
+
+                            verts.set(idx++, (float) point.x);
+                            verts.set(idx++, (float) point.y);
+                            verts.set(idx++, (float) point.z);
+
+                            Vec4 point1 = myGlobe.computePointFromPosition(Angle.fromDegrees(gate1.getLatitude()), Angle.fromDegrees(gate1.getLongitude()), gate1.getHeightKms() * 1000);
+
+// READOUT EXPERIMENT
+//out.putUnsignedBytes(readout, idREAD++);
+                            readout.set(idREAD++, value);
+
+                            idy = out.putUnsignedBytes(colors, idy);
+
+                            verts.set(idx++, (float) point1.x);
+                            verts.set(idx++, (float) point1.y);
+                            verts.set(idx++, (float) point1.z);
+
+                        }
+
+                        // Push back last two vertices of quad
+                        Vec4 point3 = myGlobe.computePointFromPosition(
+                                Angle.fromDegrees(gate3.getLatitude()),
+                                Angle.fromDegrees(gate3.getLongitude()),
+                                gate2.getHeightKms() * 1000);
+
+// READOUT EXPERIMENT
+//out.putUnsignedBytes(readout, idREAD++);
+                        readout.set(idREAD++, value);
+
+                        idy = out.putUnsignedBytes(colors, idy);
+
+                        verts.set(idx++, (float) point3.x);
+                        verts.set(idx++, (float) point3.y);
+                        verts.set(idx++, (float) point3.z);
+
+                        Vec4 point2 = myGlobe.computePointFromPosition(
+                                Angle.fromDegrees(gate2.getLatitude()),
+                                Angle.fromDegrees(gate2.getLongitude()),
+                                gate3.getHeightKms() * 1000);
+
+// READOUT EXPERIMENT
+//out.putUnsignedBytes(readout, idREAD++);
+                        readout.set(idREAD++, value);
+
+                        idy = out.putUnsignedBytes(colors, idy);
+
+                        verts.set(idx++, (float) point2.x);
+                        verts.set(idx++, (float) point2.y);
+                        verts.set(idx++, (float) point2.z);
+                        needNewStrip = false;
+                    }
+
+                    if (updateOffsets) {
+                        // We add LAST so the other thread uses the vert/color data <= current offsets.
+                        myOffsets.add(updateIndex);
+                        updateOffsets = false;
+                    }
+                    gate = gate3;
+                    gate1 = gate2;
+                }
+
+                updateCounter++;
+                if (updateCounter > 1) {
+                    CommandManager.getInstance().updateDuringRender();  // These queue up anyway 
+                    //Thread.sleep(50);
+                    updateCounter = 0;
+                }
+
+            }
+
             monitor.done();
-            return WdssiiJobStatus.OK_STATUS;
+        } catch (Exception e) {
+            log.error("3D gen error" + e.toString());
+            if (monitor != null) {
+                monitor.done();
+            }
+            return WdssiiJobStatus.CANCEL_STATUS; // We should make this a 'cleaner' exception/catch FIXME
         }
+        //long end = System.currentTimeMillis() - start;
+        //	float seconds = (float) ((end * 1.0) / 1000.0);
+        // System.out.println("RADIAL SET SECONDS " + seconds + " for "
+        // + counter);
+
+        // System.out.println("********Ending radial set creation");
+        CommandManager.getInstance().updateDuringRender();  // Humm..different thread...
+        monitor.done();
+        setIsCreated();
+        return WdssiiJobStatus.OK_STATUS;
     }
 
     /** Experimental readout using drawing to get it..lol 
@@ -476,7 +463,7 @@ public class RadialSetRenderer extends ProductRenderer {
      *            Draw context in opengl for drawing our radial set
      */
     public void drawData(DrawContext dc, boolean readoutMode) {
-        if (myCreated && (verts != null) && (colors != null)) {
+        if (isCreated() && (verts != null) && (colors != null)) {
             GL gl = dc.getGL();
 
             boolean attribsPushed = false;
@@ -558,31 +545,5 @@ public class RadialSetRenderer extends ProductRenderer {
     @Override
     public void draw(DrawContext dc) {
         drawData(dc, false);
-    }
-
-    /**
-     * 
-     * @param aRecord
-     *            Record used to display this radial set
-     */
-    @Override
-    public void initToProduct(DrawContext dc, Product aProduct) {
-        super.initToProduct(dc, aProduct);
-
-        // FIXME: Need to ensure only ONE filler thread is running at a time,
-        // right now if you click a lot you'll have several running at once...
-        // FIXME: create a product job queue like the tiling engine....
-
-        log.info("Initialize to product called for RadialSet");
-        if (myWorker != null) {
-            // FIXME: ok supposedly you shouldn't call stop on a thread
-            // anymore...what to do then?
-            // We need this thread to die...
-            // Gee then tell it to return from it's task then
-        }
-        log.info("Creating worker thread for radial set generation...");
-
-        myWorker = new backgroundRadial(dc, aProduct);
-        myWorker.schedule();
     }
 }

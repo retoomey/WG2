@@ -10,6 +10,8 @@ import org.wdssii.geom.Location;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.render.DrawContext;
+import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
+import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 
 /** Render wind field tiles.  
  * 
@@ -18,30 +20,34 @@ import gov.nasa.worldwind.render.DrawContext;
  */
 public class WindFieldRenderer extends TileRenderer {
 
-    @Override
-    public void initToProduct(DrawContext dc, Product aProduct) {
-        super.initToProduct(dc, aProduct);
+   // @Override
+  //  public void initToProduct(DrawContext dc, Product aProduct) {
+  //      super.initToProduct(dc, aProduct);
 
         //if (aProduct instanceof WindFieldProduct) {
         //	myWindFieldProduct = (WindFieldProduct)aProduct;
         //}
-    }
+  //  }
+    
     // The density of the lowest level tile.
     public final static int DENSITY_X = 16;
     public final static int DENSITY_Y = 16;
     private boolean mySetUpLevels = false;
 
-    public void lazyInit() {
-        this.createTopLevelTiles();
-    }
+   // public void lazyInit() {
+   //     this.createTopLevelTiles();
+   // }
 
     public WindFieldRenderer() {
+        super(true);
     }
 
     /** Create the largest area covering tile.  We sync this to the full lat lon grid of the data product, instead of
      * to the entire planet (as in google earth, worldwind).  This prevents data 'jitter' on tile changes.
      */
-    private void createTopLevelTiles() {
+    @Override
+    public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
+   // private void createTopLevelTiles() {
 
         /** Get the full lat/lon grid of the windfield.  Currently the 'top' tile covers the full lat/lon */
         WindField wf = getWindField();
@@ -61,6 +67,8 @@ public class WindFieldRenderer extends TileRenderer {
             list.add(aWFTile);
             setTopLevelTiles(list);
         }
+        setIsCreated();
+        return WdssiiJobStatus.OK_STATUS;
     }
 
     private WindField getWindField() {
@@ -81,10 +89,13 @@ public class WindFieldRenderer extends TileRenderer {
             return;
         }
 
-        if (mySetUpLevels == false) {
-            lazyInit();
-            mySetUpLevels = true;
+        if (!isCreated()){
+            return;
         }
+      //  if (mySetUpLevels == false) {
+      //      lazyInit();
+      //      mySetUpLevels = true;
+      //  }
 
         // assemble tiles.  This gets/creates tile OBJECTS only..that would
         // draw at this time.   

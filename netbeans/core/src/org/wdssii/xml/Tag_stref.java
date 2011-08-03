@@ -55,7 +55,7 @@ public class Tag_stref extends Tag {
     /** The location we have if any */
     public Location location = new Location(0, 0, 0);
     /** The date time, if any  */
-    public Date time = null;
+    public Date time;
     /** <stref name=> */
     public String name;
 
@@ -69,14 +69,16 @@ public class Tag_stref extends Tag {
     /** Called within a parsing loop */
     @Override
     public void processChildren(XMLStreamReader p) {
-        processTime(p, time);
+        Date d = processTime(p);
+        if (d!= null){ time = d; }
         processLocation(p, location);
     }
 
     /** Return a date in Meters, or NaN on failure..
      * <time units="Meters" value="34.123123"/> */
-    public static boolean processTime(XMLStreamReader p, Date theDate) {
+    public static Date processTime(XMLStreamReader p) {
         boolean success = false;
+        Date theDate = null;
         if (atStart(p, "time")) {
 
             try {
@@ -96,7 +98,7 @@ public class Tag_stref extends Tag {
                 // warn?
             }
         }
-        return success;
+        return theDate;
     }
 
     /** Pull a Location from XML into a buffer

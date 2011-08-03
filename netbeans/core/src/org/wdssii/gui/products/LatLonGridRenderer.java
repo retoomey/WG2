@@ -49,6 +49,7 @@ public class LatLonGridRenderer extends TileRenderer {
     }
 
     public LatLonGridRenderer() {
+        super(true);
     }
     // Experimental.... create a single tile generator job for any tiles needing to be generated...
     // Use a stack so that newest requested tiles get generated first...

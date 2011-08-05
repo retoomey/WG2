@@ -1,11 +1,15 @@
 package org.wdssii.gui.nbm.views;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -19,8 +23,12 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
@@ -28,6 +36,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableRowSorter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 import org.wdssii.core.SourceBookmarks.*;
 import org.wdssii.core.SourceBookmarks;
@@ -39,6 +51,7 @@ import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
+import org.wdssii.xml.Tag;
 
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Sources//EN",
 autostore = false)
@@ -64,6 +77,7 @@ public final class SourcesTopComponent extends TopComponent {
     private javax.swing.JTable jSourceListTable;
     private final String myDebugList = "Debug List";
     private BookmarkURLDataTableModel myModel;
+    private ArrayList<DivInfo> myDivs;
 
     /** Filter to looks for local data files.  We can make this more 
      * advanced
@@ -89,10 +103,8 @@ public final class SourcesTopComponent extends TopComponent {
         public boolean accept(File f) {
             String t = f.getName().toLowerCase();
             // FIXME: need to get these from the Builders
-            return (
-                    t.endsWith(".netcdf") || (t.endsWith(".netcdf.gz"))
-                    || (t.endsWith(".xml")) || (t.endsWith(".xml.gz"))
-                    );
+            return (t.endsWith(".netcdf") || (t.endsWith(".netcdf.gz"))
+                    || (t.endsWith(".xml")) || (t.endsWith(".xml.gz")));
         }
 
         @Override
@@ -277,6 +289,150 @@ public final class SourcesTopComponent extends TopComponent {
         }
     }
 
+    public static class ImagePanel extends JPanel {
+
+        private BufferedImage image;
+        private ArrayList<DivInfo> divs;
+
+        public void setImage(BufferedImage aImage) {
+            image = aImage;
+        }
+
+        public void setDivs(ArrayList<DivInfo> d) {
+            divs = d;
+        }
+
+        @Override
+        public void paintComponent(Graphics g) {
+            if (image != null) {
+                g.drawImage(image, 0, 0, null);
+            }
+            if (divs != null) {
+                for (DivInfo d : divs) {
+                    //Gonna have to draw em...
+                    int left = d.getLeft();
+                    int top = d.getTop();
+                    g.setColor(Color.YELLOW);
+                    g.fillRect(left, top, 18, 18);
+                }
+            }
+        }
+    }
+
+    public static class DivInfo {
+
+        String id; // Such as "Albuquerque, NM";
+        private String style; // Such as "position:absolute; width:18px;..."
+        int left;
+        int top;
+
+        public void setStyle(String text) {
+            style = text;
+
+            // Format of style something like:
+            // position:absolute; width:18px; height:18px; z-index:2; left: 385px; top: 143px;         
+            String noSpace = text.replaceAll(" ", "");
+            String[] list = noSpace.split(";");
+            // --> "position:absolute", "width:18px", ....
+            for (String s : list) {
+                String[] nameValue = s.split(":");
+                // "position:absolute" --> "position" "absolute"
+                if (nameValue.length == 2) {
+
+                    // Could stick each name/value into a map here:
+                    // myMap.put(nameValue[0], nameValue[1]);
+                    // But we just want the left/top...
+                    String v = nameValue[1];
+                    try {
+                        if (nameValue[0].equalsIgnoreCase("left")) {
+                            v = v.replaceAll("px", "");
+                            left = Integer.parseInt(v);
+                        } else if (nameValue[0].equalsIgnoreCase("top")) {
+                            v = v.replaceAll("px", "");
+                            top = Integer.parseInt(v);
+                        }
+                    } catch (NumberFormatException e) {
+                        // flag location as bad?
+                    }
+                }
+            }
+        }
+
+        public int getLeft() {
+            return left;
+        }
+
+        public int getTop() {
+            return top;
+        }
+    }
+
+    // Can read the page at :
+    // http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/w2vcp.shtml
+    // Assumes:
+    // <html> as start...
+    //  (n) <div id=, 
+    // Not sure this should be a 'Tag' subclass, since it's a hack
+    // (forcing it to read HTML instead of XHTML)
+    private static class Tag_html extends Tag {
+
+        public ArrayList<DivInfo> divs = new ArrayList<DivInfo>();
+
+        @Override
+        public String tag() {
+            return "html";
+        }
+
+        /** Process this tag as a document root.  Basically skip any information
+         * until we get to our tag.  In STAX, the first event is not a start
+         * tag typically.
+         * @param p the stream to read from
+         * @return true if tag was found and processed
+         */
+        @Override
+        public boolean processAsRoot(XMLStreamReader p) {
+            boolean found = false;
+            boolean keepGoing = true;
+            while (keepGoing) {
+                try {
+                    while (p.hasNext()) {
+                        int event = p.next();
+                        switch (event) {
+                            case XMLStreamConstants.START_ELEMENT: {
+                                String tag = p.getLocalName();
+                                // Found a div tag....
+                                if ("div".equals(tag)) {
+
+                                    DivInfo div = new DivInfo();
+                                    // Get the div attributes...
+                                    Map<String, String> m = new TreeMap<String, String>();
+                                    processAttributes(p, m);
+                                    div.id = (String) m.get("id");
+                                    div.setStyle(m.get("style"));
+                                    divs.add(div);
+                                    found = true;
+                                }
+                            }
+                        }
+                    }
+                } catch (XMLStreamException ex) {
+                    // Ok, this can happen because HTML doesn't always have END TAGS.
+                    // and isn't properly XHTML formated.  Fine, we only care about
+                    // the <div> tags and the attributes anyway, so keep going...
+                    try {
+                        if (!p.hasNext()) {
+                            keepGoing = false;
+                        }
+                    } catch (XMLStreamException z) {
+                        // We're out of luck, end it..
+                        keepGoing = false;
+                    }
+                }
+            }
+            return found;
+        }
+    }
+
     public SourcesTopComponent() {
         initComponents();
 
@@ -332,6 +488,34 @@ public final class SourcesTopComponent extends TopComponent {
                     "http://tensor.protect.nssl/rindexv2.xml", "file:/Q:/testing.xml", myDebugList}));
         jSourceListTable.setRowSorter(myModel.getGroupModelSorter());
         updateListToCurrent();
+
+        // Try to fill in table with web image?
+        // experimental
+        ImagePanel ipanel = new ImagePanel();
+        jTabbedPane1.addTab("From Web", null, ipanel, "stuff");
+
+        // Needs to be done in background...
+        Tag_html html = new Tag_html();
+        try {
+            URL aURL = new URL("http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/conus.png");
+            BufferedImage img = ImageIO.read(aURL);
+            ipanel.setImage(img);
+
+            // Try to parse the page...get the div tags with the radar info
+            URL bURL = new URL("http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/w2vcp.shtml");
+            // bURL.openStream();
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            XMLStreamReader parser = factory.createXMLStreamReader(bURL.openStream());
+
+            html.processAsRoot(parser);
+        } catch (Exception e) {
+        }
+
+        // How many did we manage to get successfully?  Note because HTML sucks and isn't XHTML we might
+        // have gotta exceptions the entire way...this is ok, we only add DivInfo on success, so worst case
+        // we don't have them all.
+        myDivs = html.divs;
+        ipanel.setDivs(html.divs);
 
         setName(NbBundle.getMessage(SourcesTopComponent.class, "CTL_SourcesTopComponent"));
         setToolTipText(NbBundle.getMessage(SourcesTopComponent.class, "HINT_SourcesTopComponent"));
@@ -452,7 +636,7 @@ public final class SourcesTopComponent extends TopComponent {
                 .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jBookmarkComboBox, 0, 402, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jIndexPanelLayout.createSequentialGroup()
-                        .addComponent(jGroupComboBox, 0, 325, Short.MAX_VALUE)
+                        .addComponent(jGroupComboBox, 0, 323, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jRefreshButton)))
                 .addContainerGap())
@@ -467,11 +651,11 @@ public final class SourcesTopComponent extends TopComponent {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)))
+                            .addComponent(jNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)))
                     .addGroup(jIndexPanelLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addGap(18, 18, 18)
-                        .addComponent(jURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 266, Short.MAX_VALUE)))
+                        .addComponent(jURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jBrowseButton)
@@ -507,7 +691,7 @@ public final class SourcesTopComponent extends TopComponent {
                     .addComponent(jGroupComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jRefreshButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 146, Short.MAX_VALUE))
+                .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jIndexPanel.TabConstraints.tabTitle"), jIndexPanel); // NOI18N
@@ -551,29 +735,25 @@ public final class SourcesTopComponent extends TopComponent {
                 .addContainerGap()
                 .addGroup(jSinglePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jSinglePanelLayout.createSequentialGroup()
-                        .addGroup(jSinglePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jSinglePanelLayout.createSequentialGroup()
-                                .addComponent(jLabel10)
-                                .addGap(22, 22, 22)
-                                .addComponent(jSingleURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jSingleLoad))
-                            .addGroup(jSinglePanelLayout.createSequentialGroup()
-                                .addComponent(jLabel7)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jSingleChoiceTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
-                            .addGroup(jSinglePanelLayout.createSequentialGroup()
-                                .addComponent(jLabel8)
-                                .addGap(18, 18, 18)
-                                .addComponent(jSingleTimeTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 431, Short.MAX_VALUE))
-                            .addGroup(jSinglePanelLayout.createSequentialGroup()
-                                .addComponent(jLabel6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jSingleProductTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE)))
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jSinglePanelLayout.createSequentialGroup()
-                        .addComponent(jAddLocalButton)
-                        .addContainerGap())))
+                        .addComponent(jLabel10)
+                        .addGap(22, 22, 22)
+                        .addComponent(jSingleURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 293, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSingleLoad))
+                    .addGroup(jSinglePanelLayout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jSingleChoiceTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
+                    .addGroup(jSinglePanelLayout.createSequentialGroup()
+                        .addComponent(jLabel8)
+                        .addGap(18, 18, 18)
+                        .addComponent(jSingleTimeTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 431, Short.MAX_VALUE))
+                    .addGroup(jSinglePanelLayout.createSequentialGroup()
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSingleProductTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE))
+                    .addComponent(jAddLocalButton, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addContainerGap())
         );
         jSinglePanelLayout.setVerticalGroup(
             jSinglePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -597,7 +777,7 @@ public final class SourcesTopComponent extends TopComponent {
                     .addComponent(jSingleTimeTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jAddLocalButton)
-                .addContainerGap(169, Short.MAX_VALUE))
+                .addContainerGap(172, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jSinglePanel.TabConstraints.tabTitle"), jSinglePanel); // NOI18N
@@ -649,7 +829,7 @@ public final class SourcesTopComponent extends TopComponent {
             // Now get the file from the URL
             File aFile = Builder.getFileFromURL(aURL);
             String absolutePath = aFile.getAbsolutePath();
-            
+
             // FIXME: add stuff for xml file
             NetcdfFileInfo info = NetcdfBuilder.getNetcdfFileInfo(absolutePath);
             if (info.success) {
@@ -711,21 +891,21 @@ public final class SourcesTopComponent extends TopComponent {
         // Ok we'll get it from the builder I think....
         String[] params = null;
         String s = aURL.toString().toLowerCase();
-        if (s.endsWith(".netcdf") || s.endsWith(".netcdf.gz")){
-           params = new String[]{"netcdf", "", product, choice, ""};
-        }else if (s.endsWith(".xml") || s.endsWith(".xml.gz")){
-                    // Params 0 are of this form for a regular index:
-        // 0 - builder name 'W2ALGS'
-        // 1 - 'GzippedFile' or some other storage type
-        // 2 - Base path such as "http://www/warnings"
-        // 3 - 'xmldata' formatter_name
-        // 4 - short file such as '1999_ktlx.netcdf.gz'
+        if (s.endsWith(".netcdf") || s.endsWith(".netcdf.gz")) {
+            params = new String[]{"netcdf", "", product, choice, ""};
+        } else if (s.endsWith(".xml") || s.endsWith(".xml.gz")) {
+            // Params 0 are of this form for a regular index:
+            // 0 - builder name 'W2ALGS'
+            // 1 - 'GzippedFile' or some other storage type
+            // 2 - Base path such as "http://www/warnings"
+            // 3 - 'xmldata' formatter_name
+            // 4 - short file such as '1999_ktlx.netcdf.gz'
             params = new String[]{"W2ALGS", "", "", "", ""};
-        }else{
-           // can't load it...
+        } else {
+            // can't load it...
         }
         // Finally try to add it.
-        if (params != null){
+        if (params != null) {
             SourceManager.getInstance().addSingleURL(aURL, product, choice, d, params);
         }
     }//GEN-LAST:event_jAddLocalButtonActionPerformed

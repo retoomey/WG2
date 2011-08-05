@@ -125,20 +125,12 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
         public static final int NAV_TYPE = 5;
         public static final int NAV_SUBTYPE = 4;
         public static final int NAV_MESSAGE = 6;
-        private boolean isRebuilding = false;
 
         public ProductsListTableModel() {
             super(ProductsTableData.class, new String[]{
                         "Visible", "Only", "Time", "Type", "Subtype", "Name", "Message"});
         }
 
-        public boolean rebuilding() {
-            return isRebuilding;
-        }
-
-        public void setRebuilding(boolean value) {
-            isRebuilding = value;
-        }
     }
 
     /** Our custom renderer for our product view table */

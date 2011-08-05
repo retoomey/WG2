@@ -2,14 +2,20 @@ package org.wdssii.gui.nbm.views;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -24,7 +30,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -36,10 +41,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableRowSorter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import org.wdssii.core.RadarInfo;
+import org.wdssii.core.RadarInfo.ARadarInfo;
 
 import org.wdssii.core.SourceBookmarks.*;
 import org.wdssii.core.SourceBookmarks;
@@ -51,7 +54,6 @@ import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
-import org.wdssii.xml.Tag;
 
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Sources//EN",
 autostore = false)
@@ -77,7 +79,8 @@ public final class SourcesTopComponent extends TopComponent {
     private javax.swing.JTable jSourceListTable;
     private final String myDebugList = "Debug List";
     private BookmarkURLDataTableModel myModel;
-    private ArrayList<DivInfo> myDivs;
+    private ArrayList<ARadarInfo> myRadarInfo;
+    private final ImagePanel myCONUSPanel;
 
     /** Filter to looks for local data files.  We can make this more 
      * advanced
@@ -124,6 +127,10 @@ public final class SourcesTopComponent extends TopComponent {
         public static final int BOOK_GROUP = 4;
         /** Group filter */
         private BookmarkRowFilter myRowFilter = new BookmarkRowFilter();
+
+        private void selectLineOf(BookmarkURLSource s) {
+            throw new UnsupportedOperationException("Not yet implemented");
+        }
 
         // Set up a row filter for the group combo box
         private class BookmarkRowFilter extends RowFilter<Object, Object> {
@@ -242,6 +249,13 @@ public final class SourcesTopComponent extends TopComponent {
             // this.fireTableStructureChanged();
             this.fireTableDataChanged();
         }
+
+        @Override
+        public String getKeyField(Object data) {
+            // From generic, so it better match
+            BookmarkURLSource s = (BookmarkURLSource) (data);
+            return s.name;
+        }
     }
 
     /** Our custom renderer for our product view table */
@@ -292,144 +306,171 @@ public final class SourcesTopComponent extends TopComponent {
     public static class ImagePanel extends JPanel {
 
         private BufferedImage image;
-        private ArrayList<DivInfo> divs;
+        private RadarInfo myRadarInfo;
+        // private Map<String, ARadarInfo> divs;
+        String hitName;
+        private ArrayList<BookmarkURLSource> mySourceList;
+        // Table for bookmarks...
+        private javax.swing.JTable myTable;
+        private BookmarkURLDataTableModel myBookmarkModel;
+
+        private void setBookmarkTable(JTable t, BookmarkURLDataTableModel m) {
+            myTable = t;
+            myBookmarkModel = m;
+        }
+
+        public void setBookmarkList(ArrayList<BookmarkURLSource> list) {
+            mySourceList = list;
+        }
+
+        public ImagePanel() {
+            mouser m = new mouser();
+            addMouseListener(m);
+            addMouseMotionListener(m);
+        }
 
         public void setImage(BufferedImage aImage) {
             image = aImage;
         }
 
-        public void setDivs(ArrayList<DivInfo> d) {
-            divs = d;
+        public void setRadarInfo(RadarInfo r) {
+            myRadarInfo = r;
         }
 
         @Override
         public void paintComponent(Graphics g) {
             if (image != null) {
                 g.drawImage(image, 0, 0, null);
-            }
-            if (divs != null) {
-                for (DivInfo d : divs) {
-                    //Gonna have to draw em...
-                    int left = d.getLeft();
-                    int top = d.getTop();
-                    g.setColor(Color.YELLOW);
-                    g.fillRect(left, top, 18, 18);
-                }
-            }
-        }
-    }
 
-    public static class DivInfo {
+                if (myRadarInfo != null) {
+                    Map<String, ARadarInfo> divs = myRadarInfo.getRadarInfos();
+                    for (Map.Entry<String, ARadarInfo> entry : divs.entrySet()) {
+                        //Gonna have to draw em...
+                        ARadarInfo d = entry.getValue();
+                        String key = entry.getKey();
+                        int left = d.getLeft();
+                        int top = d.getTop();
+                        int width = d.getWidth();
+                        int height = d.getHeight();
+                        if (key.equals(hitName)) {
+                            g.setColor(Color.YELLOW);
+                            g.fillRect(left, top, width, height);
+                            // Draw the radar name...
+                            Graphics2D g2 = (Graphics2D) g;
+                            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                    RenderingHints.VALUE_ANTIALIAS_ON);
 
-        String id; // Such as "Albuquerque, NM";
-        private String style; // Such as "position:absolute; width:18px;..."
-        int left;
-        int top;
+                            g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                                    RenderingHints.VALUE_RENDER_QUALITY);
 
-        public void setStyle(String text) {
-            style = text;
+                            FontRenderContext frc = g2.getFontRenderContext();
+                            Font f = Font.decode("Arial-PLAIN-12"); // shared with opengl code
 
-            // Format of style something like:
-            // position:absolute; width:18px; height:18px; z-index:2; left: 385px; top: 143px;         
-            String noSpace = text.replaceAll(" ", "");
-            String[] list = noSpace.split(";");
-            // --> "position:absolute", "width:18px", ....
-            for (String s : list) {
-                String[] nameValue = s.split(":");
-                // "position:absolute" --> "position" "absolute"
-                if (nameValue.length == 2) {
+                            // Cross reference to the current source list...
+                            if (mySourceList != null) {
+                                for (BookmarkURLSource s : mySourceList) {
+                                    if (s.name.equals(key)) {
+                                        key += " ";
+                                        key += s.path;
+                                    }
+                                }
+                            }
 
-                    // Could stick each name/value into a map here:
-                    // myMap.put(nameValue[0], nameValue[1]);
-                    // But we just want the left/top...
-                    String v = nameValue[1];
-                    try {
-                        if (nameValue[0].equalsIgnoreCase("left")) {
-                            v = v.replaceAll("px", "");
-                            left = Integer.parseInt(v);
-                        } else if (nameValue[0].equalsIgnoreCase("top")) {
-                            v = v.replaceAll("px", "");
-                            top = Integer.parseInt(v);
+                            TextLayout t2 = new TextLayout(key, f, frc);
+                            FontMetrics metrics = g2.getFontMetrics(f);
+                            // g.setColor(Color.WHITE);
+                            g2.setClip(0, 0, image.getWidth(), image.getHeight());
+                            cheezyOutline(g2, left, top, t2);
+                            // t2.draw(g2, left, top);
+                        } else {
+                            g.setColor(Color.BLUE);
+                            g.fillRect(left, top, width, height);
                         }
-                    } catch (NumberFormatException e) {
-                        // flag location as bad?
                     }
                 }
             }
         }
 
-        public int getLeft() {
-            return left;
-        }
-
-        public int getTop() {
-            return top;
-        }
-    }
-
-    // Can read the page at :
-    // http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/w2vcp.shtml
-    // Assumes:
-    // <html> as start...
-    //  (n) <div id=, 
-    // Not sure this should be a 'Tag' subclass, since it's a hack
-    // (forcing it to read HTML instead of XHTML)
-    private static class Tag_html extends Tag {
-
-        public ArrayList<DivInfo> divs = new ArrayList<DivInfo>();
-
-        @Override
-        public String tag() {
-            return "html";
-        }
-
-        /** Process this tag as a document root.  Basically skip any information
-         * until we get to our tag.  In STAX, the first event is not a start
-         * tag typically.
-         * @param p the stream to read from
-         * @return true if tag was found and processed
+        /** A cheezy outline behind the text that doesn't require an outline
+         * font to render.  It shadows by shifting the text 1 pixel in every
+         * direction.  Not very fast, but color keys are more about looks.
          */
-        @Override
-        public boolean processAsRoot(XMLStreamReader p) {
-            boolean found = false;
-            boolean keepGoing = true;
-            while (keepGoing) {
-                try {
-                    while (p.hasNext()) {
-                        int event = p.next();
-                        switch (event) {
-                            case XMLStreamConstants.START_ELEMENT: {
-                                String tag = p.getLocalName();
-                                // Found a div tag....
-                                if ("div".equals(tag)) {
+        public void cheezyOutline(Graphics2D g, int x, int y, TextLayout t) {
 
-                                    DivInfo div = new DivInfo();
-                                    // Get the div attributes...
-                                    Map<String, String> m = new TreeMap<String, String>();
-                                    processAttributes(p, m);
-                                    div.id = (String) m.get("id");
-                                    div.setStyle(m.get("style"));
-                                    divs.add(div);
-                                    found = true;
+            // Draw a 'grid' of background to shadow the character....
+            // We can get away with this because there aren't that many labels
+            // in a color key really. Draw 8 labels shifted to get outline.
+            g.setColor(Color.black);
+            t.draw(g, x + 1, y + 1);
+            t.draw(g, x, y + 1);
+            t.draw(g, x - 1, y + 1);
+            t.draw(g, x - 1, y);
+            t.draw(g, x - 1, y - 1);
+            t.draw(g, x, y - 1);
+            t.draw(g, x + 1, y - 1);
+            t.draw(g, x + 1, y);
+
+            g.setColor(Color.white);
+            t.draw(g, x, y);
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            if (image != null) {
+                return new Dimension(image.getWidth(), image.getHeight());
+            }
+            return new Dimension(100, 100);
+        }
+
+        private class mouser extends MouseAdapter {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // On release..find it in the current source list and 
+                // select the line in the bookmark table....
+                if (myRadarInfo != null) {
+                    int x = e.getX();
+                    int y = e.getY();
+                    String newHit = "";
+                    newHit = myRadarInfo.findRadarAt(x, y);
+                    if (newHit != null) {
+                        if (myTable != null) {
+                            if (myBookmarkModel != null) {
+                                Object a = myBookmarkModel.getDataForKeyField(newHit);
+                                if (a != null) {
+                                    BookmarkURLSource s = (BookmarkURLSource) (a);
+                                    int index = myBookmarkModel.getRowIndexOf(s);
+                                    if (index >= 0) {
+                                        // We want the event to fire
+                                        // myBookmarkModel.setRebuilding(true);
+                                        myTable.setRowSelectionInterval(index, index);
+                                        //myBookmarkModel.setRebuilding(false);
+                                    }
                                 }
                             }
                         }
                     }
-                } catch (XMLStreamException ex) {
-                    // Ok, this can happen because HTML doesn't always have END TAGS.
-                    // and isn't properly XHTML formated.  Fine, we only care about
-                    // the <div> tags and the attributes anyway, so keep going...
-                    try {
-                        if (!p.hasNext()) {
-                            keepGoing = false;
-                        }
-                    } catch (XMLStreamException z) {
-                        // We're out of luck, end it..
-                        keepGoing = false;
+                }
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                // throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                if (myRadarInfo != null) {
+                    int x = e.getX();
+                    int y = e.getY();
+                    String newHit = "";
+                    newHit = myRadarInfo.findRadarAt(x, y);
+                    if (!newHit.equals(hitName)) {
+                        hitName = newHit;
+                        repaint();
                     }
                 }
             }
-            return found;
         }
     }
 
@@ -485,38 +526,36 @@ public final class SourcesTopComponent extends TopComponent {
         });
 
         jBookmarkComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[]{
-                    "http://tensor.protect.nssl/rindexv2.xml", "file:/Q:/testing.xml", myDebugList}));
+                    "http://tensor.protect.nssl/rindexv2.xml", "file:/D:/testing2.xml", myDebugList}));
         jSourceListTable.setRowSorter(myModel.getGroupModelSorter());
-        updateListToCurrent();
 
         // Try to fill in table with web image?
         // experimental
         ImagePanel ipanel = new ImagePanel();
-        jTabbedPane1.addTab("From Web", null, ipanel, "stuff");
+        myCONUSPanel = ipanel;
+        javax.swing.JScrollPane holder = new javax.swing.JScrollPane();
+        holder.setViewportView(ipanel);
+        jBookTabPane.addTab("CONUS", null, holder, "stuff");
+        myCONUSPanel.setBookmarkTable(jSourceListTable, myModel);
 
+        RadarInfo info = new RadarInfo();
         // Needs to be done in background...
-        Tag_html html = new Tag_html();
+        //   Tag_html html = new Tag_html();
         try {
             URL aURL = new URL("http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/conus.png");
             BufferedImage img = ImageIO.read(aURL);
             ipanel.setImage(img);
-
-            // Try to parse the page...get the div tags with the radar info
-            URL bURL = new URL("http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/w2vcp.shtml");
-            // bURL.openStream();
-            XMLInputFactory factory = XMLInputFactory.newInstance();
-            XMLStreamReader parser = factory.createXMLStreamReader(bURL.openStream());
-
-            html.processAsRoot(parser);
+            info.gatherRadarInfo();
         } catch (Exception e) {
         }
 
         // How many did we manage to get successfully?  Note because HTML sucks and isn't XHTML we might
         // have gotta exceptions the entire way...this is ok, we only add DivInfo on success, so worst case
         // we don't have them all.
-        myDivs = html.divs;
-        ipanel.setDivs(html.divs);
+        //  myDivs = html.divs;
+        ipanel.setRadarInfo(info);
 
+        updateListToCurrent();
         setName(NbBundle.getMessage(SourcesTopComponent.class, "CTL_SourcesTopComponent"));
         setToolTipText(NbBundle.getMessage(SourcesTopComponent.class, "HINT_SourcesTopComponent"));
 
@@ -545,6 +584,7 @@ public final class SourcesTopComponent extends TopComponent {
         jComboBox2 = new javax.swing.JComboBox();
         jLoadNewSourceButton = new javax.swing.JButton();
         jBookmarkComboBox = new javax.swing.JComboBox();
+        jBookTabPane = new javax.swing.JTabbedPane();
         jSourceTableScrollPane = new javax.swing.JScrollPane();
         jSeparator1 = new javax.swing.JSeparator();
         jSinglePanel = new javax.swing.JPanel();
@@ -622,11 +662,13 @@ public final class SourcesTopComponent extends TopComponent {
             }
         });
 
+        jBookTabPane.addTab(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jSourceTableScrollPane.TabConstraints.tabTitle_1"), jSourceTableScrollPane); // NOI18N
+
         javax.swing.GroupLayout jIndexPanelLayout = new javax.swing.GroupLayout(jIndexPanel);
         jIndexPanel.setLayout(jIndexPanelLayout);
         jIndexPanelLayout.setHorizontalGroup(
             jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 495, Short.MAX_VALUE)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 503, Short.MAX_VALUE)
             .addGroup(jIndexPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -634,13 +676,12 @@ public final class SourcesTopComponent extends TopComponent {
                     .addComponent(jLabel5))
                 .addGap(18, 18, 18)
                 .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jBookmarkComboBox, 0, 402, Short.MAX_VALUE)
+                    .addComponent(jBookmarkComboBox, 0, 410, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jIndexPanelLayout.createSequentialGroup()
-                        .addComponent(jGroupComboBox, 0, 323, Short.MAX_VALUE)
+                        .addComponent(jGroupComboBox, 0, 333, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jRefreshButton)))
                 .addContainerGap())
-            .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 495, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jIndexPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -651,16 +692,17 @@ public final class SourcesTopComponent extends TopComponent {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)))
+                            .addComponent(jNameTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)))
                     .addGroup(jIndexPanelLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addGap(18, 18, 18)
-                        .addComponent(jURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)))
+                        .addComponent(jURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jBrowseButton)
                     .addComponent(jLoadNewSourceButton))
                 .addContainerGap())
+            .addComponent(jBookTabPane, javax.swing.GroupLayout.DEFAULT_SIZE, 503, Short.MAX_VALUE)
         );
         jIndexPanelLayout.setVerticalGroup(
             jIndexPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -691,7 +733,7 @@ public final class SourcesTopComponent extends TopComponent {
                     .addComponent(jGroupComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jRefreshButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSourceTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE))
+                .addComponent(jBookTabPane, javax.swing.GroupLayout.DEFAULT_SIZE, 146, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jIndexPanel.TabConstraints.tabTitle"), jIndexPanel); // NOI18N
@@ -737,21 +779,21 @@ public final class SourcesTopComponent extends TopComponent {
                     .addGroup(jSinglePanelLayout.createSequentialGroup()
                         .addComponent(jLabel10)
                         .addGap(22, 22, 22)
-                        .addComponent(jSingleURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 293, Short.MAX_VALUE)
+                        .addComponent(jSingleURLTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 303, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jSingleLoad))
                     .addGroup(jSinglePanelLayout.createSequentialGroup()
                         .addComponent(jLabel7)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jSingleChoiceTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
+                        .addComponent(jSingleChoiceTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 437, Short.MAX_VALUE))
                     .addGroup(jSinglePanelLayout.createSequentialGroup()
                         .addComponent(jLabel8)
                         .addGap(18, 18, 18)
-                        .addComponent(jSingleTimeTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 431, Short.MAX_VALUE))
+                        .addComponent(jSingleTimeTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 439, Short.MAX_VALUE))
                     .addGroup(jSinglePanelLayout.createSequentialGroup()
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSingleProductTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE))
+                        .addComponent(jSingleProductTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 438, Short.MAX_VALUE))
                     .addComponent(jAddLocalButton, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
@@ -777,7 +819,7 @@ public final class SourcesTopComponent extends TopComponent {
                     .addComponent(jSingleTimeTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jAddLocalButton)
-                .addContainerGap(172, Short.MAX_VALUE))
+                .addContainerGap(169, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.jSinglePanel.TabConstraints.tabTitle"), jSinglePanel); // NOI18N
@@ -911,6 +953,7 @@ public final class SourcesTopComponent extends TopComponent {
     }//GEN-LAST:event_jAddLocalButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jAddLocalButton;
+    private javax.swing.JTabbedPane jBookTabPane;
     private javax.swing.JComboBox jBookmarkComboBox;
     private javax.swing.JButton jBrowseButton;
     private javax.swing.JComboBox jComboBox2;
@@ -1023,6 +1066,9 @@ public final class SourcesTopComponent extends TopComponent {
         model.setDataTypes(bookmarks.data);
         model.fireTableDataChanged();
 
+        if (myCONUSPanel != null) {
+            myCONUSPanel.setBookmarkList(bookmarks.data);
+        }
         // Add each unique group item to list
         jGroupComboBox.removeAllItems();
         jGroupComboBox.addItem(ALLGROUPS);

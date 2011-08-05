@@ -21,6 +21,9 @@ public class RowEntryTableModel<T> extends AbstractTableModel {
     /** The class type, we need this for getColumnClass routine */
     private Class<?> myType;
 
+    /** We have a flag to allow manual selection */
+    private boolean isRebuilding = false;
+
     public RowEntryTableModel(Class<T> c, String[] h) {
         this.myType = c;
 
@@ -83,5 +86,57 @@ public class RowEntryTableModel<T> extends AbstractTableModel {
             }
         }
         return s;
+    }
+
+    // Get the key field used to 'find' an item in our data set by name
+    // This has to be non-null for ALL T data types for getDataForKeyField
+    // to work.
+    public String getKeyField(T data) {
+        return null;
+    }
+
+    public T getDataForKeyField(String key) {
+        T found = null;
+        if (myData != null) {
+            for (T d : myData) {
+                String aKey = getKeyField(d);
+                if (aKey == null) {  // Have to be non-null for all keys
+                    break;
+                }
+                if (aKey.equals(key)) {
+                    found = d;
+                    break;
+                }
+            }
+        }
+        return found;
+    }
+
+    public int getRowIndexOf(T data){
+        int index = -1;
+        T found = null;
+        String itemKey = getKeyField(data);
+        if (myData != null) {
+            for (T d : myData) {
+                index++;
+                String aKey = getKeyField(d);
+                if (aKey == null) {  // Have to be non-null for all keys
+                    break;
+                }
+                if (itemKey.equals(aKey)) {
+                    found = d;
+                    break;
+                }
+            }
+        }
+        if (found == null){ index = -1; }
+        return index;
+    }
+    public boolean rebuilding() {
+        return isRebuilding;
+    }
+
+    public void setRebuilding(boolean value) {
+        isRebuilding = value;
     }
 }

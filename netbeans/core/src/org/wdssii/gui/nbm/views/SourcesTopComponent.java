@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -14,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import org.openide.util.NbBundle;
@@ -81,7 +81,7 @@ public final class SourcesTopComponent extends TopComponent {
     private BookmarkURLDataTableModel myModel;
     private ArrayList<ARadarInfo> myRadarInfo;
     private final ImagePanel myCONUSPanel;
-
+    
     /** Filter to looks for local data files.  We can make this more 
      * advanced
      */
@@ -307,6 +307,8 @@ public final class SourcesTopComponent extends TopComponent {
 
         private BufferedImage image;
         private RadarInfo myRadarInfo;
+        private String myDragging;
+        
         // private Map<String, ARadarInfo> divs;
         String hitName;
         private ArrayList<BookmarkURLSource> mySourceList;
@@ -343,50 +345,107 @@ public final class SourcesTopComponent extends TopComponent {
                 g.drawImage(image, 0, 0, null);
 
                 if (myRadarInfo != null) {
+
+                    // Gather font information
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                            RenderingHints.VALUE_ANTIALIAS_ON);
+
+                    g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                            RenderingHints.VALUE_RENDER_QUALITY);
+                    FontRenderContext frc = g2.getFontRenderContext();
+                    Font f = Font.decode("Arial-PLAIN-12");
+
+                    // Draw all the boxes first before mouse hilite..
                     Map<String, ARadarInfo> divs = myRadarInfo.getRadarInfos();
+                    
+                    // Update the rectangles for the curent text size
+                    int m = 5;
+                    for (Map.Entry<String, ARadarInfo> entry : divs.entrySet()) {
+                        ARadarInfo d = entry.getValue();
+                        // Use the current VCP rectangle as the new center
+                        TextLayout t1 = new TextLayout(d.getVCPString(), f, frc);
+                        Rectangle2D r = t1.getBounds();
+                        d.width = (int) r.getWidth()+m+m; 
+                        d.height = (int) r.getHeight()+m+m;
+                    }
+                    
+                    // Draw the non-hit radar entries in 'background'
+                    for (Map.Entry<String, ARadarInfo> entry : divs.entrySet()) {
+                        ARadarInfo d = entry.getValue();
+                        Color c = d.getColor();
+                        String key = entry.getKey();
+                        Rectangle2D r = d.getRect();
+                        TextLayout t1 = new TextLayout(d.getVCPString(), f, frc);
+                        if (!key.equals(hitName)) {
+                            g.setColor(c);
+                            g.fillRect((int) r.getX(), (int) r.getY(), (int) r.getWidth(), (int) r.getHeight());
+                            g.setColor(Color.BLACK);
+                            t1.draw(g2, (float)r.getX()+m, (float)(r.getY()+r.getHeight()-m));
+                        }
+                    }
+
+                    // Mouse hit pass....
                     for (Map.Entry<String, ARadarInfo> entry : divs.entrySet()) {
                         //Gonna have to draw em...
                         ARadarInfo d = entry.getValue();
+                        Color c = d.getColor();
                         String key = entry.getKey();
                         int left = d.getLeft();
                         int top = d.getTop();
-                        int width = d.getWidth();
-                        int height = d.getHeight();
+
                         if (key.equals(hitName)) {
-                            g.setColor(Color.YELLOW);
-                            g.fillRect(left, top, width, height);
-                            // Draw the radar name...
-                            Graphics2D g2 = (Graphics2D) g;
-                            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                                    RenderingHints.VALUE_ANTIALIAS_ON);
-
-                            g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-                                    RenderingHints.VALUE_RENDER_QUALITY);
-
-                            FontRenderContext frc = g2.getFontRenderContext();
-                            Font f = Font.decode("Arial-PLAIN-12"); // shared with opengl code
 
                             // Cross reference to the current source list...
                             if (mySourceList != null) {
                                 for (BookmarkURLSource s : mySourceList) {
                                     if (s.name.equals(key)) {
-                                        key += " ";
-                                        key += s.path;
+                                        key += ": ";
+                                        key += d.id;
                                     }
                                 }
                             }
 
+                            // Hilight the actual radar color rectangle..
+                            TextLayout t1 = new TextLayout(d.getVCPString(), f, frc);
+                            Rectangle2D r = d.getRect();
+
+                            // Fill     
+                            g.setColor(c.brighter());
+                            g.fillRect((int) r.getX(), (int) r.getY(), (int) r.getWidth(), (int) r.getHeight());
+                           
+                            // Outline
+                            g.setColor(Color.WHITE);
+                            g.drawRect((int) r.getX(), (int) r.getY(), (int) r.getWidth(), (int) r.getHeight());
+                            
+                            // Text
+                            g.setColor(Color.BLACK);
+                            t1.draw(g2, (float) r.getX()+m, (float) (r.getY() + r.getHeight()-m));
+                         
+                            // Draw the floating text for hovering ----------------------------------
                             TextLayout t2 = new TextLayout(key, f, frc);
-                            FontMetrics metrics = g2.getFontMetrics(f);
-                            // g.setColor(Color.WHITE);
+                            Rectangle2D b = t2.getBounds();
+                            int hLeft = left;
+                            int hTop = (int) (top+r.getHeight()+m+b.getHeight());
+                            b.setRect(b.getX() + hLeft - 2, b.getY() + hTop - 2, b.getWidth() + 4, b.getHeight() + 4);
+
+                            // Try to move text to left if past right edge....
+                            int over = (int) ((b.getX() + b.getWidth()) - image.getWidth());
+                            if (over > 0) {
+                                b.setRect(b.getX() - over - 5, b.getY(), b.getWidth(), b.getHeight());
+                                hLeft -= over + 5;
+                            }
+
                             g2.setClip(0, 0, image.getWidth(), image.getHeight());
-                            cheezyOutline(g2, left, top, t2);
-                            // t2.draw(g2, left, top);
-                        } else {
-                            g.setColor(Color.BLUE);
-                            g.fillRect(left, top, width, height);
+                            g2.setColor(Color.WHITE);
+                            g2.fillRect((int) b.getX(), (int) b.getY(), (int) b.getWidth(), (int) b.getHeight());
+                            g2.setColor(Color.black);
+                            t2.draw(g2, hLeft, hTop);
+                            g2.drawRect((int) b.getX(), (int) b.getY(), (int) b.getWidth(), (int) b.getHeight());
+                            // End draw hover text -------------------------------------
                         }
                     }
+
                 }
             }
         }
@@ -424,6 +483,24 @@ public final class SourcesTopComponent extends TopComponent {
 
         private class mouser extends MouseAdapter {
 
+            @Override
+            public void mousePressed(MouseEvent e){
+                if (myRadarInfo != null) {
+                    int x = e.getX();
+                    int y = e.getY();
+                    String newHit = "";
+                    newHit = myRadarInfo.findRadarAt(x, y);
+                    if (newHit != null) {
+                        myDragging = newHit;
+                    }
+                }
+            }
+            
+            @Override
+            public void mouseReleased(MouseEvent e){
+                myDragging = "";
+            }
+                
             @Override
             public void mouseClicked(MouseEvent e) {
                 // On release..find it in the current source list and 
@@ -538,24 +615,9 @@ public final class SourcesTopComponent extends TopComponent {
         jBookTabPane.addTab("CONUS", null, holder, "stuff");
         myCONUSPanel.setBookmarkTable(jSourceListTable, myModel);
 
-        RadarInfo info = new RadarInfo();
-        // Needs to be done in background...
-        //   Tag_html html = new Tag_html();
-        try {
-            URL aURL = new URL("http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/conus.png");
-            BufferedImage img = ImageIO.read(aURL);
-            ipanel.setImage(img);
-            info.gatherRadarInfo();
-        } catch (Exception e) {
-        }
-
-        // How many did we manage to get successfully?  Note because HTML sucks and isn't XHTML we might
-        // have gotta exceptions the entire way...this is ok, we only add DivInfo on success, so worst case
-        // we don't have them all.
-        //  myDivs = html.divs;
-        ipanel.setRadarInfo(info);
-
         updateListToCurrent();
+        updateCurrentRadarInfo();
+
         setName(NbBundle.getMessage(SourcesTopComponent.class, "CTL_SourcesTopComponent"));
         setToolTipText(NbBundle.getMessage(SourcesTopComponent.class, "HINT_SourcesTopComponent"));
 
@@ -841,6 +903,8 @@ public final class SourcesTopComponent extends TopComponent {
 
     private void jRefreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRefreshButtonActionPerformed
         updateListToCurrent();
+        updateCurrentRadarInfo();
+        myCONUSPanel.repaint();
     }//GEN-LAST:event_jRefreshButtonActionPerformed
 
     private void jLoadNewSourceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jLoadNewSourceButtonActionPerformed
@@ -999,6 +1063,25 @@ public final class SourcesTopComponent extends TopComponent {
         } catch (MalformedURLException e) {
             JOptionPane.showMessageDialog(null, "Bookmark must be a valid URL");
         }
+    }
+
+    /** Try to update the image/radar info vcp latencies for the CONUS */
+    public void updateCurrentRadarInfo() {
+
+        RadarInfo info = new RadarInfo();
+        try {
+            URL aURL = new URL("http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/conus.png");
+            BufferedImage img = ImageIO.read(aURL);
+            myCONUSPanel.setImage(img);
+            info.gatherRadarInfo();
+        } catch (Exception e) {
+        }
+
+        // How many did we manage to get successfully?  Note because HTML sucks and isn't XHTML we might
+        // have gotta exceptions the entire way...this is ok, we only add DivInfo on success, so worst case
+        // we don't have them all.
+        myCONUSPanel.setRadarInfo(info);
+
     }
 
     public void setShownGroup(String theItem) {

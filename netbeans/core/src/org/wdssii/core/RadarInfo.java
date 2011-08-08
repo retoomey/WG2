@@ -1,5 +1,12 @@
 package org.wdssii.core;
 
+import java.awt.Color;
+import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Map;
 import java.util.TreeMap;
@@ -21,10 +28,9 @@ public class RadarInfo {
 
     /** The public conus page with the div tags containing the little rectangles */
     public final String CONUS_SHTML = "http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/w2vcp.shtml";
-    
     /** The public csv file containing vcp info, latency info */
     public final String RADAR_CSV = "http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/vcp/radartable.csv";
-    
+
     /** Information for a single radar */
     public static class ARadarInfo {
 
@@ -34,6 +40,11 @@ public class RadarInfo {
         public int top;
         public int width = 18;
         public int height = 18;
+        
+        // Information gathered from radarcsv.txt
+        public float latencySecs;
+        public int unknown;
+        public int vcp = -1;
 
         public void setStyle(String text) {
             style = text;
@@ -93,14 +104,51 @@ public class RadarInfo {
             return height;
         }
 
+        // Our legend.  FIXME: need text I think too
+        public Color getColor(){
+            // Color based on latency...
+            if (latencySecs <= 5*60){
+                return Color.GREEN;
+            }
+            if (latencySecs <= 10*60){
+                return Color.YELLOW;
+            }
+            if (latencySecs <= 30*60){
+                return Color.RED;
+            }
+            if (latencySecs <= 60*60){
+                return new Color(139, 0, 204); // Deep purple
+            }
+            if (latencySecs <= 8*60*60){
+                return new Color(223, 0, 255); // Psychedelic purple 
+            }
+            return Color.WHITE;
+        }
+        
+        public int getVCP(){
+            return vcp;
+        }
+        
+        public String getVCPString(){
+            return String.valueOf(vcp);
+        }
+        
         public boolean hitTest(int x, int y) {
             boolean hit = false;
-            if ((x >= left) && (x <= left + width)) {
-                if ((y >= top) && (y <= top + height)) {
+            Rectangle2D r = getRect();
+            if ((x >= r.getX()) && (x <= r.getX() + r.getWidth())) {
+                if ((y >= r.getY()) && (y <= r.getY() + r.getHeight())) {
                     hit = true;
                 }
             }
             return hit;
+        }
+        
+        public Rectangle2D getRect(){
+            int halfWidth = width/2;
+            int halfHeight = height/2;
+            Rectangle2D r = new Rectangle(left-halfWidth, top-halfHeight, width, height);
+            return r;
         }
     }
     private Map<String, ARadarInfo> myRadarInfos = new TreeMap<String, ARadarInfo>();
@@ -118,10 +166,39 @@ public class RadarInfo {
             XMLInputFactory factory = XMLInputFactory.newInstance();
             XMLStreamReader parser = factory.createXMLStreamReader(bURL.openStream());
             processConusPage(parser);
+
+            bURL = new URL(RADAR_CSV);
+            InputStream a = bURL.openStream();
+            processRadarCSV(a);
         } catch (Exception e) {
+           // Lots of exception catching and no action.  This is usually
+           // considered bad code, but the point of the GUI is to not freak
+           // out when things go bad.  We know that the radar info may be
+           // partial or incomplete based on web access, etc.
         }
     }
 
+    private void processRadarCSV(InputStream i) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(i));
+        String inputLine;
+
+        while ((inputLine = in.readLine()) != null) {
+            // input line of form:
+            // 73.415 18000 36.25 -86.56 KOHX 21 
+            // latency, unknown, lat, lon, name, vcp
+            String[] fields = inputLine.split(" ");
+            if (fields.length > 5){
+                String name = fields[4];
+                ARadarInfo info =  myRadarInfos.get(name);
+                if (info != null){
+                    info.latencySecs = Float.parseFloat(fields[0]);
+                    info.vcp = Integer.parseInt(fields[5]);
+                }
+            }
+        }
+        in.close();
+    }
+    
     // Can read the page at :
     // CONUS_SHTML
     // Assumes:
@@ -135,6 +212,7 @@ public class RadarInfo {
     //  http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/vcp/radartable.csv
     // It would be nice if the radartable.csv file contained the left/top
     // or if we knew the exact lat/lon dimensions of the image...
+
     /** Process this tag as a document root.  Basically skip any information
      * until we get to our tag.  In STAX, the first event is not a start
      * tag typically.
@@ -143,6 +221,8 @@ public class RadarInfo {
      */
     private boolean processConusPage(XMLStreamReader p) {
         boolean found = false;
+        
+        try{
         boolean keepGoing = true;
         while (keepGoing) {
             try {
@@ -186,11 +266,14 @@ public class RadarInfo {
                     if (!p.hasNext()) {
                         keepGoing = false;
                     }
-                } catch (XMLStreamException z) {
+                } catch (Exception z) {
                     // We're out of luck, end it..
                     keepGoing = false;
                 }
             }
+        }
+        }catch(Exception e){
+            // any exception just finish...keep what we got.
         }
         return found;
     }

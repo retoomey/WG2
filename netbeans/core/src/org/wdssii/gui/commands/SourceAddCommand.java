@@ -80,8 +80,7 @@ public class SourceAddCommand extends SourceClearCommand {
 
                     if (myConnect) {
                         // Spawns worker thread....
-                        SourceConnectCommand c = new SourceConnectCommand();
-                        c.setIndexName(newKey);
+                        SourceConnectCommand c = new SourceConnectCommand(newKey);
                         CommandManager.getInstance().executeCommand(c, false);
                     }
                 }

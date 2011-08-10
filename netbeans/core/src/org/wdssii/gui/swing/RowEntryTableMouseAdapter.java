@@ -5,7 +5,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
 /**
@@ -21,11 +20,11 @@ import javax.swing.ListSelectionModel;
 public class RowEntryTableMouseAdapter extends MouseAdapter {
 
     /** The table we're handling clicks for */
-    private final JTable myTable;
+    private final RowEntryTable myTable;
     /** The model. */
     private final RowEntryTableModel myModel;
 
-    public RowEntryTableMouseAdapter(JTable table, RowEntryTableModel model) {
+    public RowEntryTableMouseAdapter(RowEntryTable table, RowEntryTableModel model) {
         myTable = table;
         myModel = model;  // Guess we 'could' pull model from table
     }

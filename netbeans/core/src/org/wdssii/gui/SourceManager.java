@@ -98,8 +98,8 @@ public class SourceManager implements Singleton {
         }
 
         /** Called before a connect, so that we can update GUI to show connecting statuses */
-        protected boolean aboutToConnect(String keyName) {
-            boolean success = SourceManager.getInstance().getIndexCollection().aboutToConnect(keyName);
+        protected boolean aboutToConnect(String keyName, boolean start) {
+            boolean success = SourceManager.getInstance().getIndexCollection().aboutToConnect(keyName, start);
             return success;
         }
 

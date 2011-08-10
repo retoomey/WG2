@@ -16,6 +16,11 @@ public class SourceConnectCommand extends SourceCommand {
     // @todo this could be a preference
     public final static int NUMBER_OF_TRIES = 5;
 
+    /** Called by other code */
+    public SourceConnectCommand(String key) {
+        setIndexName(key);
+    }
+
     @Override
     public boolean execute() {
 
@@ -27,18 +32,24 @@ public class SourceConnectCommand extends SourceCommand {
             //PlatformUI.getWorkbench().getProgressService().showInDialog(shell, job);
 
             // This will make it so that our GUI will show 'connecting' icons, etc.
-            aboutToConnect(key);
-
+           // aboutToConnect(key, true);
+            
             WdssiiJob job = new WdssiiJob("Connecting to '" + nice + "'") {
 
                 @Override
                 public WdssiiJobStatus run(WdssiiJobMonitor monitor) {
-
+                                      
                     // We'll try connecting a few times.
                     final int steps = NUMBER_OF_TRIES;
                     boolean success = false;
                     monitor.beginTask("Connecting...", steps); // IProgressMonitor.UNKNOWN
                     for (int i = 1; i <= steps; i++) {
+                        
+                         // Have to do it here, the connect routine turns off
+                        // the connect flag....
+                        aboutToConnect(key, true);
+                        CommandManager.getInstance().fireUpdate(update);
+                        
                         monitor.subTask("Connecting to " + nice + " Attempt " + i);
                         try {
                             if (connect(key)) {
@@ -61,16 +72,12 @@ public class SourceConnectCommand extends SourceCommand {
                         }
                     }
                     monitor.done();
-
+                    aboutToConnect(key, false);
+                    
                     // Update GUI (manually do the fire event thing of command manager)
                     // Changes connecting icon to connected (for example)
-                    if (success) {
-                        try {
-                            CommandManager.getInstance().fireUpdate(update);
-                        } catch (Exception e) {
-                            log.error("Exception during connection.  Hope it's the concurrent one");
-                        }
-                    }
+                    CommandManager.getInstance().fireUpdate(update);
+
                     // Write to a tab on the output view......
                     OutputWriter io = IOProvider.getDefault().getIO(nice, true).getOut();
                     io.print("Success was " + success);

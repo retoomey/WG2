@@ -193,5 +193,17 @@ public class TableUtil {
             setIcon(i);
             return this;
         }
+        
+        /** Render this cell as an icon */
+        public Component getIcon(JTable table, String iconName,   
+                boolean isSelected, boolean cellHasFocus, int row, int col) {
+
+            // Superclass is a JLabel, set the defaults, no text though
+            super.getTableCellRendererComponent(table, "",
+                    isSelected, cellHasFocus, row, col);
+            Icon i = SwingIconFactory.getIconByName(iconName);
+            setIcon(i);
+            return this;
+        }
     }
 }

@@ -121,7 +121,7 @@ public abstract class IndexCollection {
         }
         return success;
     }
-        
+
     /** Disconnect source */
     public void disconnect(String keyName) {
         IndexWatcher current = myIndexSet.get(keyName);
@@ -131,11 +131,11 @@ public abstract class IndexCollection {
     }
 
     /** Called before background job */
-    public boolean aboutToConnect(String keyName) {
+    public boolean aboutToConnect(String keyName, boolean start) {
         boolean success = false;
         IndexWatcher current = myIndexSet.get(keyName);
         if (current != null) {
-            success = current.aboutToConnect();
+            success = current.aboutToConnect(start);
         }
         return success;
     }
@@ -223,14 +223,16 @@ public abstract class IndexCollection {
 
     /** Remove a given index key if there */
     public void removeIndexKey(String indexKey) {
-        IndexWatcher current = myIndexSet.get(indexKey);
-        if (current != null) {
-            myIndexSet.remove(indexKey);
-        }
+        if (!indexKey.equals("iManualFiles")) {
+            IndexWatcher current = myIndexSet.get(indexKey);
+            if (current != null) {
+                myIndexSet.remove(indexKey);
+            }
 
-        // If we have a selection, and it's the one being deleted, clear it.
-        if ((mySelectIndex != null) && (mySelectIndex.equals(indexKey))) {
-            mySelectIndex = null;
+            // If we have a selection, and it's the one being deleted, clear it.
+            if ((mySelectIndex != null) && (mySelectIndex.equals(indexKey))) {
+                mySelectIndex = null;
+            }
         }
     }
 
@@ -353,12 +355,12 @@ public abstract class IndexCollection {
             // InetAddress ina;
             try {
                 // See if the host in the webindex is found...
-				/* ina = */                InetAddress.getByName(host);
+				/* ina = */ InetAddress.getByName(host);
             } catch (UnknownHostException e) {
                 // If not found, try adding protect.nssl to the name
                 try {
                     host = host + domain;
-                    /* ina = */                    InetAddress.getByName(host);
+                    /* ina = */ InetAddress.getByName(host);
                     // Success. Replace the host in the path with the full path
                     //outPath = "webindex:http://" + host;
                     outPath = "http://" + host;

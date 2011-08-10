@@ -1,6 +1,5 @@
 package org.wdssii.gui.nbm.views;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -29,6 +28,7 @@ import org.wdssii.gui.commands.LLHAreaChangeCommand;
 import org.wdssii.gui.commands.LLHAreaCommand;
 import org.wdssii.gui.commands.LLHAreaDeleteCommand;
 import org.wdssii.gui.commands.LLHAreaSelectCommand;
+import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
@@ -75,7 +75,7 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
     /** The object 3D list shows the list of 3d objects in the window
      */
     private Object3DListTableModel myObject3DListTableModel;
-    private JTable jObjects3DListTable;
+    private RowEntryTable jObjects3DListTable;
     private LLHArea myLastSelected = null;
 
     /** Storage for the current product list */
@@ -105,10 +105,12 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
                     });
         }
 
+        @Override
         public boolean rebuilding() {
             return isRebuilding;
         }
 
+        @Override
         public void setRebuilding(boolean value) {
             isRebuilding = value;
         }
@@ -168,22 +170,9 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
 
     }
 
-    // Table just to disable cntl-click making zero selection.  We
-    // always have at least one selection..
-    private static class JNoCntrlSelectTable extends JTable {
-
-        @Override
-        public void changeSelection(int rowIndex, int columnIndex, boolean toggle, boolean extend) {
-            // Disable cntl and shift behavior.  We want single row always
-            // selected
-            toggle = extend = false;
-            super.changeSelection(rowIndex, columnIndex, toggle, extend);
-        }
-    }
-
     public void initTable() {
         myObject3DListTableModel = new Object3DListTableModel();
-        jObjects3DListTable = new JNoCntrlSelectTable();
+        jObjects3DListTable = new RowEntryTable();
         final JTable myTable = jObjects3DListTable;
         jObjects3DListTable.setModel(myObject3DListTableModel);
         final Object3DListTableModel myModel = myObject3DListTableModel;

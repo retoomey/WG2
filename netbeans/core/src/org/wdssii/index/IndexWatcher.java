@@ -34,15 +34,15 @@ public class IndexWatcher implements HistoryListener {
         myRealtime = realtime;
     }
 
-    public boolean isConnecting() {
+    public synchronized boolean isConnecting() {
         return myConnecting;
     }
 
-    public void setConnecting(boolean flag) {
+    public synchronized void setConnecting(boolean flag) {
         myConnecting = flag;
     }
 
-    public boolean isConnected() {
+    public synchronized boolean isConnected() {
         return myConnected;
     }
 
@@ -74,8 +74,8 @@ public class IndexWatcher implements HistoryListener {
     }
 
     /** Used by GUI to set status to 'connecting' and update GUI before starting connection */
-    public synchronized boolean aboutToConnect() {
-        setConnecting(true);
+    public synchronized boolean aboutToConnect(boolean start) {
+        setConnecting(start);
         return true;
     }
 
@@ -115,7 +115,7 @@ public class IndexWatcher implements HistoryListener {
             success = true;
         }
         // DataUnavailableException e)
-        setConnecting(false);
+      //  setConnecting(false);  GUI will set..hummm
         myConnected = success;
 
         return success;

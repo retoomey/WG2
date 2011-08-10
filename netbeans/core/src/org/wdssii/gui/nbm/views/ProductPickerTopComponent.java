@@ -1,16 +1,27 @@
 package org.wdssii.gui.nbm.views;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
+import javax.swing.JCheckBox;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -23,6 +34,16 @@ import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.SourceManager.SourceCommand;
 import org.wdssii.gui.commands.ProductLoadCommand;
 import org.wdssii.gui.commands.ProductLoadCommand.ProductLoadCaller;
+import org.wdssii.gui.commands.SourceConnectCommand;
+import org.wdssii.gui.commands.SourceDeleteCommand;
+import org.wdssii.gui.commands.SourceDeleteCommand.SourceDeleteAllCommand;
+import org.wdssii.gui.commands.SourceDisconnectCommand;
+import org.wdssii.gui.swing.RowEntryTable;
+import org.wdssii.gui.swing.RowEntryTableModel;
+import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
+import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
+import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
+import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.gui.views.ProductPickerView;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.HistoricalIndex.RecordQuery;
@@ -59,14 +80,12 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
     public void SourceCommandUpdate(SourceCommand command) {
 
         // FIXME: we're not getting these yet, are we?
-       // InputOutput io = IOProvider.getDefault().getIO("WDSSII", true);
-       // io.getOut().println("-->Update from Source manager...bleh");
+        // InputOutput io = IOProvider.getDefault().getIO("WDSSII", true);
+        // io.getOut().println("-->Update from Source manager...bleh");
         updateParts();
     }
-   
-    
     private String[] mySelection = new String[3];
-    private javax.swing.JTable jSourceListTable;
+    private RowEntryTable jSourceListTable;
     private javax.swing.JTable jProductsListTable;
     private javax.swing.JTable jChoicesListTable;
     private javax.swing.JTable jResultsListTable;
@@ -135,73 +154,64 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
     }
 
     /** Table model to handle the Sources list */
-    private class SourceListTableModel extends AbstractTableModel {
+    private class SourceListTableModel extends RowEntryTableModel {
 
-        /** The column headers */
-        private final String headers[];
-        private ArrayList<SourceTableData> sourcelist = null;
+        public static final int SOURCE_STATUS = 0;
+        public static final int SOURCE_NAME = 1;
+        public static final int SOURCE_PATH = 2;
 
         public SourceListTableModel() {
-
-            // Hardcoded to match bookmarks.
-            this.headers = new String[]{
-                "Source", "Path"
-            };
+            super(SourceTableData.class, new String[]{
+                        "?", "Source", "Path"
+                    });
         }
+    }
+
+    /** Our custom renderer for our product view table */
+    private static class SourceListTableCellRenderer extends WG2TableCellRenderer {
 
         @Override
-        public int getColumnCount() {
-            return headers.length;
-        }
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean cellHasFocus, int row, int col) {
 
-        @Override
-        public int getRowCount() {
-            int size = 0;
-            if (sourcelist != null) {
-                size = sourcelist.size();
-            }
-            return size;
-        }
+            // Let super set all the defaults...
+            super.getTableCellRendererComponent(table, "",
+                    isSelected, cellHasFocus, row, col);
 
-        @Override
-        public String getColumnName(int column) {
-            return headers[column];
-        }
+            String info = "";
+            int trueCol = table.convertColumnIndexToModel(col);
 
-        @Override
-        public Object getValueAt(int row, int column) {
-            if (sourcelist != null) {
-                SourceTableData d = sourcelist.get(row);
-                switch (column) {
-                    case 0: // name
-                        return d.visibleName;
-                    case 1:
-                        return d.indexLocation;
+            // Each row uses a single LayerTableEntry...
+            if (value instanceof SourceTableData) {
+                SourceTableData e = (SourceTableData) value;
+
+                switch (trueCol) {
+                    case SourceListTableModel.SOURCE_STATUS:
+                        String icon = "link_break.png"; // Not connected
+                        if (e.connecting) {
+                            icon = "link_go.png";
+                        }
+                        if (e.connected) {
+                            icon = "link.png";
+                        }
+                        return getIcon(table, icon, isSelected, cellHasFocus, row, col);
+                    case SourceListTableModel.SOURCE_NAME:
+                        info = e.visibleName;
+                        break;
+                    case SourceListTableModel.SOURCE_PATH:
+                        info = e.indexLocation;
+                        break;
                     default:
-                        return "";
+                        info = Integer.toString(trueCol) + "," + col;
+                        break;
                 }
+
+                // For text...
+                setText(info);
             } else {
-                return "";
+                setText((String) (value));
             }
-        }
-
-        @Override
-        public void setValueAt(Object value, int row, int column) {
-        }
-
-        private void setSourceTableData(ArrayList<SourceTableData> newSourceList) {
-            this.sourcelist = newSourceList;
-            this.fireTableDataChanged();
-        }
-
-        private SourceTableData getSourceTableDataForRow(int row) {
-            SourceTableData s = null;
-            if (sourcelist != null) {
-                if ((row >= 0) && (row < sourcelist.size())) {
-                    s = sourcelist.get(row);
-                }
-            }
-            return s;
+            return this;
         }
     }
 
@@ -446,11 +456,14 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         myChoicesListTableModel = new ChoicesListTableModel();
         myResultsListTableModel = new ResultsListTableModel();
 
-        jSourceListTable = new javax.swing.JTable();
+        jSourceListTable = new RowEntryTable();
         jSourceListTable.setModel(mySourceListTableModel);
         jSourceListTable.setFillsViewportHeight(true);
         jSourceListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jSourcesScrollPane.setViewportView(jSourceListTable);
+
+        SourceListTableCellRenderer p = new SourceListTableCellRenderer();
+        jSourceListTable.setDefaultRenderer(SourceTableData.class, p);
 
         jProductsListTable = new javax.swing.JTable();
         jProductsListTable.setModel(myProductListTableModel);
@@ -477,6 +490,131 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
                 jSourceListTableValueChanged(e);
             }
         });
+
+        jSourceListTable.addMouseListener(new RowEntryTableMouseAdapter(jSourceListTable, mySourceListTableModel) {
+
+            class Item extends JMenuItem {
+
+                private final SourceTableData d;
+
+                public Item(String s, SourceTableData line) {
+                    super(s);
+                    d = line;
+                }
+
+                public SourceTableData getData() {
+                    return d;
+                }
+            };
+
+            @Override
+            public JPopupMenu getDynamicPopupMenu(Object line, int row, int column) {
+
+                // FIXME: Code a bit messy, we're just hacking the text value
+                // for now.  Probably will need a custom JPopupMenu that has
+                // our Objects3DTableData in it.
+                // FIXME: Really need a cleaner way to do this...
+                ActionListener al = new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        Object z = e.getSource();
+                        if (z instanceof Item) {
+                            Item i = (Item) (e.getSource());
+                            String text = i.getText();
+                            String vis = i.getData().visibleName;
+                            if (!vis.equals(HistoricalIndex.MANUAL)) {
+                                if (text.startsWith("Delete")) {
+                                    SourceDeleteCommand del = new SourceDeleteCommand(i.getData().indexKey);
+                                    CommandManager.getInstance().executeCommand(del, true);
+                                } else if (text.startsWith("Connect")) {
+                                    SourceConnectCommand r = new SourceConnectCommand(i.getData().indexKey);
+                                    CommandManager.getInstance().executeCommand(r, true);
+                                } else if (text.startsWith("Disconnect")) {
+                                    SourceDisconnectCommand r = new SourceDisconnectCommand(i.getData().indexKey);
+                                    CommandManager.getInstance().executeCommand(r, true);
+                                }
+                            }
+                        } else {
+                            JMenuItem i = (JMenuItem) (z);
+                            String text = i.getText();
+                            if (text.startsWith("Delete All Sources")) {
+                                SourceDeleteAllCommand del = new SourceDeleteAllCommand();
+                                CommandManager.getInstance().executeCommand(del, true);
+                            }
+                        }
+                    }
+                };
+                JPopupMenu popupmenu = new JPopupMenu();
+                SourceTableData entry = (SourceTableData) (line);
+
+                String vis = entry.visibleName;
+                if (!vis.equals(HistoricalIndex.MANUAL)) {
+                    // Disconnect/Reconnect command...
+                    if (entry.connected) {
+                        String name = "Disconnect " + entry.visibleName;
+                        Item i = new Item(name, entry);
+                        popupmenu.add(i);
+                        i.addActionListener(al);
+                    } else {
+                        if (!entry.connecting) {
+                            String name = "Connect " + entry.visibleName;
+                            Item i = new Item(name, entry);
+                            popupmenu.add(i);
+                            i.addActionListener(al);
+                        }
+                    }
+
+                    // Delete 'ktlx'
+                    String name = "Delete " + entry.visibleName;
+                    Item i = new Item(name, entry);
+                    popupmenu.add(i);
+                    i.addActionListener(al);
+
+                    popupmenu.add(new JSeparator());
+                }
+
+                // Delete all
+                String name = "Delete All Sources";
+                JMenuItem z = new JMenuItem(name, null);
+                popupmenu.add(z);
+                z.addActionListener(al);
+                return popupmenu;
+            }
+
+            @Override
+            public void handleClick(Object stuff, int orgRow, int orgColumn) {
+
+                if (stuff instanceof SourceTableData) {
+                    SourceTableData entry = (SourceTableData) (stuff);
+
+                    //switch (orgColumn) {
+
+                    // }
+                }
+            }
+        });
+
+        JCheckBox aBox = new JCheckBox();
+        Dimension d = aBox.getMinimumSize();
+        int count = jSourceListTable.getColumnCount();
+        TableColumnModel cm = jSourceListTable.getColumnModel();
+        for (int i = 0; i < count; i++) {
+            TableColumn col = cm.getColumn(i);
+            // Make all headers draw the same to be consistent.
+            col.setHeaderRenderer(new IconHeaderRenderer());
+            switch (i) {
+                case SourceListTableModel.SOURCE_STATUS: {
+                    IconHeaderInfo info = new IconHeaderInfo("link.png");
+                    col.setHeaderValue(info);
+                    // FIXME: this isn't right, how to do it with look + feel
+                    col.setWidth(2 * d.width);
+                    col.setMaxWidth(2 * d.width);
+                    col.setResizable(false);
+                }
+                break;
+            }
+        }
 
         jProductsListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
@@ -511,8 +649,11 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         }
         int row = jSourceListTable.getSelectedRow();
         if (mySourceListTableModel != null) {
-            SourceTableData d = mySourceListTableModel.getSourceTableDataForRow(row);
-            setSourceIndexSelection(d.indexKey);
+            //   SourceTableData d = mySourceListTableModel.getSourceTableDataForRow(row);
+            SourceTableData d = (SourceTableData) (mySourceListTableModel.getDataForRow(row));
+            if (d != null) {
+                setSourceIndexSelection(d.indexKey);
+            }
         }
     }
 
@@ -822,9 +963,12 @@ public final class ProductPickerTopComponent extends TopComponent implements Pro
         }
 
         // Finally update the table....
-        mySourceListTableModel.setSourceTableData(newList);
+        mySourceListTableModel.setDataTypes(newList);
+        mySourceListTableModel.fireTableDataChanged();
         myProductListTableModel.setDataTypes(null);
+        myProductListTableModel.fireTableDataChanged();
         myChoicesListTableModel.setChoices(null);
+        myChoicesListTableModel.fireTableDataChanged();
 
     }
 

@@ -81,7 +81,7 @@ public final class SourcesTopComponent extends TopComponent {
     private BookmarkURLDataTableModel myModel;
     private ArrayList<ARadarInfo> myRadarInfo;
     private final ImagePanel myCONUSPanel;
-    
+
     /** Filter to looks for local data files.  We can make this more 
      * advanced
      */
@@ -358,7 +358,7 @@ public final class SourcesTopComponent extends TopComponent {
 
                     // Draw all the boxes first before mouse hilite..
                     Map<String, ARadarInfo> divs = myRadarInfo.getRadarInfos();
-                    
+
                     // Update the rectangles for the curent text size
                     int m = 5;
                     for (Map.Entry<String, ARadarInfo> entry : divs.entrySet()) {
@@ -369,7 +369,7 @@ public final class SourcesTopComponent extends TopComponent {
                         d.width = (int) r.getWidth()+m+m; 
                         d.height = (int) r.getHeight()+m+m;
                     }
-                    
+
                     // Draw the non-hit radar entries in 'background'
                     for (Map.Entry<String, ARadarInfo> entry : divs.entrySet()) {
                         ARadarInfo d = entry.getValue();
@@ -413,15 +413,15 @@ public final class SourcesTopComponent extends TopComponent {
                             // Fill     
                             g.setColor(c.brighter());
                             g.fillRect((int) r.getX(), (int) r.getY(), (int) r.getWidth(), (int) r.getHeight());
-                           
+
                             // Outline
                             g.setColor(Color.WHITE);
                             g.drawRect((int) r.getX(), (int) r.getY(), (int) r.getWidth(), (int) r.getHeight());
-                            
+
                             // Text
                             g.setColor(Color.BLACK);
-                            t1.draw(g2, (float) r.getX()+m, (float) (r.getY() + r.getHeight()-m));
-                         
+                            t1.draw(g2, (float) r.getX() + m, (float) (r.getY() + r.getHeight() - m));
+
                             // Draw the floating text for hovering ----------------------------------
                             TextLayout t2 = new TextLayout(key, f, frc);
                             Rectangle2D b = t2.getBounds();
@@ -484,7 +484,7 @@ public final class SourcesTopComponent extends TopComponent {
         private class mouser extends MouseAdapter {
 
             @Override
-            public void mousePressed(MouseEvent e){
+            public void mousePressed(MouseEvent e) {
                 if (myRadarInfo != null) {
                     int x = e.getX();
                     int y = e.getY();
@@ -495,12 +495,12 @@ public final class SourcesTopComponent extends TopComponent {
                     }
                 }
             }
-            
+
             @Override
-            public void mouseReleased(MouseEvent e){
+            public void mouseReleased(MouseEvent e) {
                 myDragging = "";
             }
-                
+
             @Override
             public void mouseClicked(MouseEvent e) {
                 // On release..find it in the current source list and 
@@ -579,7 +579,7 @@ public final class SourcesTopComponent extends TopComponent {
 
                 /** On double click, try to add the source */
                 if (e.getClickCount() == 2) {
-                    addNewSourceFromFields();
+                    addNewSourceFromFields(true, true);
                 }
             }
         });
@@ -593,7 +593,7 @@ public final class SourcesTopComponent extends TopComponent {
             public void keyPressed(KeyEvent e) {
                 /** Have to do enter pressed to snag before the table scroll */
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    addNewSourceFromFields();
+                    addNewSourceFromFields(true, true);
                 }
             }
 
@@ -908,7 +908,7 @@ public final class SourcesTopComponent extends TopComponent {
     }//GEN-LAST:event_jRefreshButtonActionPerformed
 
     private void jLoadNewSourceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jLoadNewSourceButtonActionPerformed
-        addNewSourceFromFields();
+        addNewSourceFromFields(false, true);
     }//GEN-LAST:event_jLoadNewSourceButtonActionPerformed
 
     private void jBookmarkComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBookmarkComboBoxActionPerformed
@@ -1013,6 +1013,8 @@ public final class SourcesTopComponent extends TopComponent {
         // Finally try to add it.
         if (params != null) {
             SourceManager.getInstance().addSingleURL(aURL, product, choice, d, params);
+            JOptionPane.showMessageDialog(null, "Added file to local file index",
+                                "Add success", JOptionPane.INFORMATION_MESSAGE);
         }
     }//GEN-LAST:event_jAddLocalButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1175,14 +1177,15 @@ public final class SourcesTopComponent extends TopComponent {
     /** Try to add a source to the display from the currently showing
      * fields
      */
-    public void addNewSourceFromFields() {
+    public void addNewSourceFromFields(boolean confirm, boolean report) {
         String path = jURLTextField.getText();
         String name = jNameTextField.getText();
 
         // Assuming realtime?  FIXME
         boolean realtime = true;
         boolean connect = true;
-        CommandManager.getInstance().executeCommand(new SourceAddCommand(name, path, true, realtime, connect), false);
+        CommandManager.getInstance().executeCommand(
+                new SourceAddCommand(name, path, confirm, report, realtime, connect), false);
     }
 
     public String doSourceOpenDialog() {

@@ -21,7 +21,7 @@ import org.wdssii.index.ManualLoadIndex;
  * list of sources
  * 
  * Note: Made the design decision to not make SourceManager a subclass of
- * IndexCollection.  This allows restricting access to the global IndexCollection
+ * IndexCollection.  This alows restricting access to the global IndexCollection
  * (We force coders to user the SourceCommand objects, thus enforcing jobs/threads/gui updates)
  * 
  * @author Robert Toomey
@@ -30,7 +30,6 @@ import org.wdssii.index.ManualLoadIndex;
 public class SourceManager implements Singleton {
 
     private static Log log = LogFactory.getLog(SourceManager.class);
-    
     /** The manual index for local files */
     private ManualLoadIndex myManualIndex;
 
@@ -93,8 +92,7 @@ public class SourceManager implements Singleton {
 
         /** Add an index */
         protected String add(String shortName, String path, boolean realtime) {
-            String success = SourceManager.getInstance().getIndexCollection().add(shortName, path, realtime);
-            return success;
+            return SourceManager.getInstance().add(shortName, path, realtime);
         }
 
         /** Called before a connect, so that we can update GUI to show connecting statuses */
@@ -139,34 +137,48 @@ public class SourceManager implements Singleton {
         return instance;
     }
 
+    public String add(String shortName, String path, boolean realtime) { 
+        String success = "";    
+        IndexCollection iCollection = getIndexCollection();
+        
+        // Add the manual index...
+        if (path.equals(HistoricalIndex.MANUAL)) {
+            try {
+                //CommandManager c = CommandManager.getInstance();
+                String key = iCollection.addManualIndex(HistoricalIndex.MANUAL);
+                HistoricalIndex theIndex = getIndexByName(key);
+                if (theIndex != null) {
+                    Index i = theIndex.getIndex();
+                    myManualIndex = (ManualLoadIndex) (i);
+                    success = key;
+                }
+            } catch (Exception e) {
+            }
+           
+        }else{
+             success = iCollection.add(shortName, path, realtime);
+        }
+        return success;
+    }
+
     /**
      * Do the init work of the singleton here
      */
     @Override
     public void singletonManagerCallback() {
-        // FIXME: This is just for testing, shouldn't do this really....
-
         // Offline mode for worldwind...need to be able to toggle it...when off network, we 'hang'
         //NetworkStatus s = WorldWind.getNetworkStatus();  // FIXME: Gonna need our own network status I think that uses RCP jobs to check..
         //s.setOfflineMode(true);
-
-                
-        // Add the manual index...
-        try{
-        CommandManager c = CommandManager.getInstance();
-        String key = getIndexCollection().addManualIndex(HistoricalIndex.MANUAL);
-        HistoricalIndex theIndex = getIndexByName(key);
-        if (theIndex != null){
-            Index i = theIndex.getIndex();
-            myManualIndex = (ManualLoadIndex)(i);
-        }
-              
-        boolean connect = true;
-        c.executeCommand(new SourceAddCommand("CONUS", "file:/E:/CONUS/code_index.xml?p=xml", false, false, connect), false);
-        c.executeCommand(new SourceAddCommand("KTLX", "file:/E:/KTLX-large/radar_data.xml?p=xml", false, false, connect), false);
-        c.executeCommand(new SourceAddCommand("Wind", "file:/E:/WindData/code_index.xml", false, false, connect), false);
-        c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml?p=xml", false, false, connect), false);
-        }catch(Exception e){
+        try {
+            CommandManager c = CommandManager.getInstance();
+            boolean connect = true;
+            // Add the manual index...
+            c.executeCommand(new SourceAddCommand("Localfiles", HistoricalIndex.MANUAL, false, false, false, true), false);
+            c.executeCommand(new SourceAddCommand("CONUS", "file:/E:/CONUS/code_index.xml?p=xml", false, false, false, connect), false);
+            c.executeCommand(new SourceAddCommand("KTLX", "file:/E:/KTLX-large/radar_data.xml?p=xml", false, false, false, connect), false);
+            c.executeCommand(new SourceAddCommand("Wind", "file:/E:/WindData/code_index.xml", false, false, false, connect), false);
+            c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml?p=xml", false, false, false, connect), false);
+        } catch (Exception e) {
             // Recover
         }
         //instance.connect("CONUS", "xml:E:/CONUS/code_index.xml", false);
@@ -404,10 +416,10 @@ public class SourceManager implements Singleton {
     public void selectIndexKey(String key) {
         myIndexCollection.selectIndexKey(key);
     }
-    
+
     /** Add a local URL to our ManualLoadIndex */
-    public void addSingleURL(URL location, String product, String choice, Date time, String[] params){
-        if (myManualIndex != null){
+    public void addSingleURL(URL location, String product, String choice, Date time, String[] params) {
+        if (myManualIndex != null) {
             myManualIndex.addRecordFromURL(location, product, choice, time, params);
         }
     }

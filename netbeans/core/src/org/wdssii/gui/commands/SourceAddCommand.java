@@ -3,6 +3,8 @@ package org.wdssii.gui.commands;
 //import org.eclipse.jface.dialogs.IDialogConstants;
 //import org.eclipse.jface.dialogs.MessageDialog;
 //import org.eclipse.jface.dialogs.MessageDialogWithToggle;
+import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
@@ -18,6 +20,7 @@ public class SourceAddCommand extends SourceClearCommand {
     private boolean myConnect = false;
     /** By default if user clicks a button, require a confirm dialog */
     private boolean myUserConfirm = true;
+    private boolean myUserReport = true;
 
     /** Called directly if linked to button */
     public SourceAddCommand() {
@@ -30,10 +33,12 @@ public class SourceAddCommand extends SourceClearCommand {
      * @param needUserConfirm	Do we use user dialogs? (scripting turns this off)
      * @param realtime	Is this a realtime index?  (requires a socket connection)
      */
-    public SourceAddCommand(String niceName, String path, boolean needUserConfirm, boolean realtime, boolean connect) {
+    public SourceAddCommand(String niceName, String path, boolean needUserConfirm,
+            boolean needUserReport, boolean realtime, boolean connect) {
         //setIndexName(key);
         myNiceName = niceName;
         myUserConfirm = needUserConfirm;
+        myUserReport = needUserReport;
         myPath = path;
         myRealtime = realtime;
         myConnect = connect;
@@ -41,7 +46,6 @@ public class SourceAddCommand extends SourceClearCommand {
 
     @Override
     public boolean execute() {
-
 
         boolean updateGUI = false;
         boolean doJob = true;
@@ -51,27 +55,30 @@ public class SourceAddCommand extends SourceClearCommand {
             PreferencesManager p = PreferencesManager.getInstance();
             boolean showDialog = p.getBoolean(PrefConstants.PREF_showAddCommandDialog);
             if (myUserConfirm && showDialog) {
-                /*  // getWindowConfigurator? FIXME
-                MessageDialogWithToggle dlg = MessageDialogWithToggle.openOkCancelConfirm(
-                null, "Confirm source addition", 
-                "Add and connect to source '"+myNiceName+"'?", 
-                "Don't show this message next time", false, null, null);
-                if (dlg.getReturnCode() != IDialogConstants.OK_ID){
-                doJob = false;
-                }else{
-                p.setValue(PrefConstants.PREF_showAddCommandDialog, !dlg.getToggleState());
-                }*/
+                JCheckBox checkbox = new JCheckBox("Do not show this message again.");
+                String message = "Add and connect to source '" + myNiceName + "'?";
+                Object[] params = {message, checkbox};
+                int n = JOptionPane.showConfirmDialog(null, params, "Confirm source addition", JOptionPane.YES_NO_OPTION);
+                boolean dontShow = checkbox.isSelected();
+                if (n == 0) { // Yes
+                    doJob = true;
+                } else {
+                    doJob = false;
+                }
+                p.setValue(PrefConstants.PREF_showAddCommandDialog, !dontShow);
+
             }
             if (doJob) {
 
-                // FIXME: flag true or false or what?
                 String newKey = add(myNiceName, myPath, myRealtime);  // Don't lag here.
                 updateGUI = true;  // Add needs a 'unconnected' icon and name in list.
-                if (myUserConfirm) {
+                if (myUserReport) {
                     if (newKey != null) {
-                        //	MessageDialog.openInformation(null, "Add success", "Add was successful");
+                        JOptionPane.showMessageDialog(null, "Add was successful",
+                                "Add success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                       // MessageDialog.openInformation(null, "Add failure", "Add failed");
+                        JOptionPane.showMessageDialog(null, "Add not successful",
+                                "Add failure", JOptionPane.ERROR_MESSAGE);
                     }
                 }
 

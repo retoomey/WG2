@@ -108,7 +108,7 @@ public abstract class IndexCollection {
         // Create a new internal name, which is unique for every added index.
         String keyName = "iManualFiles";
 
-        IndexWatcher current = myIndexSet.get(shortName);
+        IndexWatcher current = myIndexSet.get(keyName);
         if (current == null) {
 
             current = new IndexWatcher(this, keyName, HistoricalIndex.MANUAL, false);
@@ -117,6 +117,7 @@ public abstract class IndexCollection {
             log.warn("ADDED " + keyName + " " + shortName + " " + "none");
             success = keyName;
             current.connect();
+            current.aboutToConnect(false);
         } else {
         }
         return success;

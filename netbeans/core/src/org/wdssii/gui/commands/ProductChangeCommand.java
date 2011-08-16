@@ -1,6 +1,7 @@
 package org.wdssii.gui.commands;
 
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.ProductHandlerList;
 
 /**
@@ -31,7 +32,7 @@ public class ProductChangeCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager m = CommandManager.getInstance();
+            ProductManager m = ProductManager.getInstance();
             ProductHandlerList list = m.getProductOrderedSet();
             list.setOnlyMode(myProductKey, myFlag);
             return true;
@@ -50,7 +51,7 @@ public class ProductChangeCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager m = CommandManager.getInstance();
+            ProductManager m = ProductManager.getInstance();
             ProductHandlerList list = m.getProductOrderedSet();
             list.setVisibleHandler(myProductKey, myFlag);
             return true;

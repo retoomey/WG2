@@ -41,8 +41,7 @@ public class CommandManager implements Singleton {
     private static Log log = LogFactory.getLog(CommandManager.class);
     private VisualCollection myVisualCollection = new VisualCollection();
     public static String CommandPath = "org.wdssii.gui.commands.";
-    // FIXME: Eventually add the ability for a collection of these
-    ProductHandlerList myProductOrderedSet = new ProductHandlerList();
+
     private TreeMap<String, WdssiiView> myNamedViews = new TreeMap<String, WdssiiView>();
 
     // You should not create NavigationAction
@@ -215,40 +214,6 @@ public class CommandManager implements Singleton {
         getEarthBall().updateOnMinTime();
     }
 
-    // called by ColorKeyLayer to get the current color map...
-    public ColorMap getCurrentColorMap() {
-        return (myProductOrderedSet.getCurrentColorMap());
-    }
-
-    // Called by NavView to get the current ordered set
-    public ProductHandlerList getProductOrderedSet() {
-        return myProductOrderedSet;
-    }
-
-    public FilterList getFilterList(String product) {
-        FilterList aList = null;
-        if (myProductOrderedSet != null) {
-            ProductHandler tph = myProductOrderedSet.getProductHandler(product);
-            if (tph != null) {
-                aList = tph.getFList();
-            }
-        }
-        return aList;
-    }
-
-    // Called to get the top product in the display
-    public Product getTopProduct() {
-        Product aProduct = null;
-        ProductHandlerList list = CommandManager.getInstance().getProductOrderedSet();
-        if (list != null) {
-            ProductHandler h = list.getTopProductHandler();
-            if (h != null) {
-                aProduct = h.getProduct();
-            }
-        }
-        return aProduct;
-    }
-
     public void cacheManagerNotify() {
         WdssiiView view = getNamedViewed(CacheView.ID);
         if (view instanceof CacheView) {
@@ -257,16 +222,12 @@ public class CommandManager implements Singleton {
         }
     }
 
-    /** Currently called by ReadoutStatusBar to get the text for readout */
-    public String getReadout(PositionEvent event) {
-        return (myProductOrderedSet.getReadout(event));
-    }
-
     // All the 'move' commands and the 'load' record
     public void navigationMessage(NavigationMessage message) {
         NavigationAction nav = new NavigationAction(message);
 
-        myProductOrderedSet.navigationAction(nav);
+        ProductManager.getInstance().navigationAction(nav);
+       // myProductOrderedSet.navigationAction(nav);
         if (nav.redraw()) {
             getEarthBall().updateOnMinTime();
         }

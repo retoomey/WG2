@@ -1,11 +1,10 @@
 package org.wdssii.gui;
 
+import gov.nasa.worldwind.event.PositionEvent;
 import java.awt.Color;
 import java.io.File;
-import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.TreeMap;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,7 +17,9 @@ import org.wdssii.core.W2Config;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.builders.BuilderFactory;
 import org.wdssii.core.LRUCache.LRUTrimComparator;
+import org.wdssii.gui.CommandManager.NavigationAction;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
+import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
@@ -51,10 +52,83 @@ public class ProductManager implements Singleton {
     ProductDataInfo myDefaults = new ProductDataInfo();
     /** The cache for Product objects */
     LRUCache<Product> myProductCache = new LRUCache<Product>();
+    
+    /** A map of names to ProductHandlerLists */
+    private ArrayList<ProductHandlerList> myProductGroups = new ArrayList<ProductHandlerList>();
+    
+    /** Current selected group */
+    ProductHandlerList myProductOrderedSet;
 
     {
+        myProductGroups.add(new ProductHandlerList("data1", "Data1"));
+        myProductGroups.add(new ProductHandlerList("data2", "Data2"));
+        selectKey("data1");
         myProductCache.setMinCacheSize(MIN_CACHE_SIZE);
         myProductCache.setMaxCacheSize(MAX_CACHE_SIZE);
+    }
+
+    public void selectKey(String key){
+        ProductHandlerList found = getGroupForKey(key);
+        myProductOrderedSet = found;
+    }
+    
+    private ProductHandlerList getGroupForKey(String key){
+        ProductHandlerList found = null;
+        for(ProductHandlerList l:myProductGroups){
+            if (l.getKey().equals(key)){
+                found = l;
+                break;
+            }
+        }
+        return found;
+    }
+    
+    // called by ColorKeyLayer to get the current color map...
+    public ColorMap getCurrentColorMap() {
+        return (myProductOrderedSet.getCurrentColorMap());
+    }
+
+   /** Get the current selected product handler list */
+    public ProductHandlerList getProductOrderedSet() {
+        return myProductOrderedSet;
+    }
+    
+    /** Used by group view to show the stuff */
+    public ArrayList<ProductHandlerList> getGroupList(){
+        return myProductGroups;
+    }
+
+    public FilterList getFilterList(String product) {
+        FilterList aList = null;
+        if (myProductOrderedSet != null) {
+            ProductHandler tph = myProductOrderedSet.getProductHandler(product);
+            if (tph != null) {
+                aList = tph.getFList();
+            }
+        }
+        return aList;
+    }
+
+    // Called to get the top product in the display
+    public Product getTopProduct() {
+        Product aProduct = null;
+        ProductHandlerList list = getProductOrderedSet();
+        if (list != null) {
+            ProductHandler h = list.getTopProductHandler();
+            if (h != null) {
+                aProduct = h.getProduct();
+            }
+        }
+        return aProduct;
+    }
+
+    /** Currently called by ReadoutStatusBar to get the text for readout */
+    public String getReadout(PositionEvent event) {
+        return (myProductOrderedSet.getReadout(event));
+    }
+
+    public void navigationAction(NavigationAction nav) {
+        myProductOrderedSet.navigationAction(nav);
     }
 
     /** Compare a product to a given indexKey, if it matchs, remove from cache */
@@ -497,7 +571,7 @@ public class ProductManager implements Singleton {
                 success = true;
             }
         }
-        if (success == false){
+        if (success == false) {
             c = new Color(255, 0, 0, 255);
         }
         return c;
@@ -587,7 +661,7 @@ public class ProductManager implements Singleton {
     /** Get the current volume of the top selected product in the product selector
      */
     public static ProductVolume getCurrentVolumeProduct(boolean virtual) {
-        ProductHandlerList phl = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
         ProductVolume volume = null;
         if (phl != null) {
             ProductHandler tph = phl.getTopProductHandler();
@@ -608,7 +682,7 @@ public class ProductManager implements Singleton {
     /** Get the current volume of the top selected product in the product selector
      */
     public static ProductVolume getCurrentVolumeProduct(String key, boolean virtual) {
-        ProductHandlerList phl = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
         ProductVolume volume = null;
         if (phl != null) {
             ProductHandler tph = phl.getProductHandler(key);
@@ -630,7 +704,7 @@ public class ProductManager implements Singleton {
      * this is for testing only, might go away....
      */
     public static ProductVolume getCurrentVolumeProduct(int i, boolean virtual) {
-        ProductHandlerList phl = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
         ProductVolume volume = null;
         if (phl != null) {
             ProductHandler tph = phl.getProductHandlerNumber(i);
@@ -651,7 +725,7 @@ public class ProductManager implements Singleton {
     /** Get the latest N records */
     public Product getCurrentTopProduct() {
 
-        ProductHandlerList p = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList p = getProductOrderedSet();
         ProductHandler ph = p.getTopProductHandler();
         Product prod = null;
         if (ph != null) {

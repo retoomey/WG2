@@ -32,6 +32,7 @@ import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.LLHAreaManager;
 import org.wdssii.gui.LLHAreaManager.VolumeTableData;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
@@ -171,7 +172,7 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
 
         // Get the products
         Product p = null;
-        ProductHandlerList current = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList current = ProductManager.getInstance().getProductOrderedSet();
 
         // If we found a product, we can do the slice range.....
         LLHAreaSlice slice = getVSliceToPlot();

@@ -1,7 +1,7 @@
 package org.wdssii.gui.commands;
 
 import org.wdssii.datatypes.DataType;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
@@ -20,7 +20,7 @@ public abstract class ProductCommand extends DataCommand {
         Product p = null;
 
         // Snag top product in the display
-        ProductHandlerList pos = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList pos = ProductManager.getInstance().getProductOrderedSet();
         if (pos != null) {
             ProductHandler tph = pos.getTopProductHandler();
             if (tph != null) {

@@ -310,7 +310,7 @@ public class LLHAreaSlice extends LLHArea {
 
         // FIXME: this is wrong....should be the filters for the product we are following....this
         // is the top product.....
-        FilterList f = CommandManager.getInstance().getFilterList(getProductFollow());
+        FilterList f = ProductManager.getInstance().getFilterList(getProductFollow());
 
         // Add the key of the current filter list...
         String newKey = getKey(myProductFollow, getUseVirtualVolume(), f, true);
@@ -420,7 +420,7 @@ public class LLHAreaSlice extends LLHArea {
         // Get the filter list and the record object
         // ArrayList<DataFilter> list = null;
         FilterList aList = null;
-        ProductHandlerList phl = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
         if (phl != null) {
             ProductHandler tph = phl.getTopProductHandler();
             if (tph != null) {

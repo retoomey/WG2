@@ -1,44 +1,37 @@
 package org.wdssii.gui.nbm.views;
 
-import net.miginfocom.layout.PlatformDefaults;
 import net.miginfocom.swing.MigLayout;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
+import org.openide.windows.WindowManager;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.wdssii.gui.views.ProductGroupView;
 
-import org.wdssii.core.SourceBookmarks.*;
-import org.wdssii.gui.views.SourcesView;
-
-@ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Sources//EN",
+@ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//ProductGroup//EN",
 autostore = false)
-@TopComponent.Description(preferredID = "SourcesTopComponent",
-iconBase = "org/wdssii/gui/nbm/views/cart_add.png",
+@TopComponent.Description(preferredID = "ProductGroupTopComponent",
+//iconBase="SET/PATH/TO/ICON/HERE", 
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
-@TopComponent.Registration(mode = "explorer", openAtStartup = true)
-@ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.SourcesTopComponent")
-@ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
-@TopComponent.OpenActionRegistration(displayName = "#CTL_SourcesAction",
-preferredID = "SourcesTopComponent")
-/** The source view is what allows us to browse to various data sources, 
- * by URL, disk location (url too), etc...
- * 
- * @author Robert Toomey
- * 
- */
-public final class SourcesTopComponent extends TopComponent {
+@TopComponent.Registration(mode = "editor", openAtStartup = true)
+@ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.ProductGroupTopComponent")
+@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@TopComponent.OpenActionRegistration(displayName = "#CTL_ProductGroupAction",
+preferredID = "ProductGroupTopComponent")
+public final class ProductGroupTopComponent extends TopComponent {
 
-    private SourcesView myPanel;
-    
-    public SourcesTopComponent() { 
+    private ProductGroupView myPanel;
+        
+    public ProductGroupTopComponent() {
         initComponents();
+        
         setLayout(new MigLayout("fill, inset 0", "", ""));
-        myPanel = new SourcesView();
+        myPanel = new ProductGroupView();
         add(myPanel, "grow");
         
-        setName(NbBundle.getMessage(SourcesTopComponent.class, "CTL_SourcesTopComponent"));
-        setToolTipText(NbBundle.getMessage(SourcesTopComponent.class, "HINT_SourcesTopComponent"));
+        setName(NbBundle.getMessage(ProductGroupTopComponent.class, "CTL_ProductGroupTopComponent"));
+        setToolTipText(NbBundle.getMessage(ProductGroupTopComponent.class, "HINT_ProductGroupTopComponent"));
 
     }
 
@@ -50,12 +43,20 @@ public final class SourcesTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setToolTipText(org.openide.util.NbBundle.getMessage(SourcesTopComponent.class, "SourcesTopComponent.toolTipText")); // NOI18N
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 300, Short.MAX_VALUE)
+        );
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
-
     @Override
     public void componentOpened() {
         // TODO add custom code on component opening

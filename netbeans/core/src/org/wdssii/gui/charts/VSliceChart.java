@@ -311,7 +311,7 @@ public class VSliceChart extends ChartViewJFreeChart {
         //	myCurrentKey = key;
 
         /** Get the filter list of the product we are following */
-        ProductHandlerList phl = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
         if (phl != null) {
             ProductHandler tph = phl.getProductHandler(getUseProductKey());
             if (tph != null) {

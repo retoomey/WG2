@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.CommandManager.NavigationMessage;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductButtonStatus;
 import org.wdssii.gui.products.volumes.ProductVolume;
@@ -47,7 +48,7 @@ public class ProductMoveCommand extends ProductCommand {
         public boolean execute() {
 
             // Navigation to the top product
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.PreviousLowestSubType);
             return true;
         }
@@ -69,7 +70,7 @@ public class ProductMoveCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.LatestBase);
             return true;
         }
@@ -90,7 +91,7 @@ public class ProductMoveCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.LatestUp);
             return true;
         }
@@ -111,7 +112,7 @@ public class ProductMoveCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.LatestDown);
             return true;
         }
@@ -132,7 +133,7 @@ public class ProductMoveCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.NextSubType);
             return true;
         }
@@ -153,7 +154,7 @@ public class ProductMoveCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.PreviousSubType);
             return true;
         }
@@ -174,7 +175,7 @@ public class ProductMoveCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.PreviousTime);
             return true;
         }
@@ -232,7 +233,7 @@ public class ProductMoveCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.SyncCurrent);
             return true;
         }
@@ -259,7 +260,7 @@ public class ProductMoveCommand extends ProductCommand {
                 tip = tipFormat.format(aDate) + " " + p.getSubType()
                         + " " + p.getTimeStamp();
 
-                Date simTime = CommandManager.getInstance().getProductOrderedSet().getSimulationTime();
+                Date simTime = ProductManager.getInstance().getProductOrderedSet().getSimulationTime();
                 if (simTime.compareTo(aDate) == 0) {
                     label = "Synced";
                     useColor = true;
@@ -291,7 +292,7 @@ public class ProductMoveCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.NextTime);
             return true;
         }
@@ -352,7 +353,7 @@ public class ProductMoveCommand extends ProductCommand {
 
         @Override
         public boolean execute() {
-            CommandManager.getInstance().getProductOrderedSet().navigate(
+            ProductManager.getInstance().getProductOrderedSet().navigate(
                     NavigationMessage.LatestTime);
             return true;
         }

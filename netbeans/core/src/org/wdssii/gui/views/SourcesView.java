@@ -386,7 +386,7 @@ public class SourcesView extends JPanel implements CONUSJPanelListener {
         jRootTab.addTab("From index.xml", p1);
         jRootTab.addTab("From single file", p2);
     }
-
+    
     private JPanel createIndexLoadPanel() {
 
         // The load from index panel ------------------------------------------

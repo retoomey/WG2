@@ -107,7 +107,7 @@ public final class ColorKeyTopComponent extends ThreadedTopComponent implements 
     }
 
     public void updateColorKey() {
-        CommandManager man = CommandManager.getInstance();
+        ProductManager man = ProductManager.getInstance();
         myRenderer.setColorMap(man.getCurrentColorMap());
     }
 

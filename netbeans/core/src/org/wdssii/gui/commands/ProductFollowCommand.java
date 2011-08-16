@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.WdssiiCommand.WdssiiMenuList;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
@@ -39,7 +39,7 @@ public class ProductFollowCommand extends ProductCommand implements WdssiiMenuLi
     public ArrayList<MenuListItem> getSuboptions() {
 
         // Go through products, get a sorted string list...
-        CommandManager m = CommandManager.getInstance();
+        ProductManager m = ProductManager.getInstance();
         ProductHandlerList p = m.getProductOrderedSet();
         Iterator<ProductHandler> iter = p.getIterator();
         ArrayList<MenuListItem> theList = new ArrayList<MenuListItem>();

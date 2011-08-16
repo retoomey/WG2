@@ -58,7 +58,30 @@ public class ProductHandlerList {
     protected String mySimulationTimeStamp;
     // We keep the date from the product
     protected Date mySimulationTime;
-
+    
+    /** The internal keyname, unique for this */
+    private String myKeyName;
+    
+    /** The current visible name of this in the GUI */
+    private String myVisibleName;
+    
+    public ProductHandlerList(String key, String visible){
+        myKeyName = key;
+        myVisibleName = visible;
+    }
+    
+    public String getKey(){
+        return myKeyName;
+    }
+    
+    public String getVisibleName(){
+        return myVisibleName;
+    }
+    
+    public void setVisibleName(String visible){
+        myVisibleName = visible;
+    }
+    
     // User direct navigation routines --------------------------------------
     /**
      * Called by the ProductLoadCommand from the record picker

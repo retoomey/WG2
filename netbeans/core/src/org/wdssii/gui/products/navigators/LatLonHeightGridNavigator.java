@@ -2,7 +2,7 @@ package org.wdssii.gui.products.navigators;
 
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonHeightGrid;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.commands.ProductMoveCommand;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveNextTime;
@@ -65,7 +65,7 @@ public class LatLonHeightGridNavigator extends ProductNavigator {
                     if (myCurrentH >= total) {
                         myCurrentH = 0;
                         // flip to next product time
-                        CommandManager.getInstance().getProductOrderedSet().navigate(
+                        ProductManager.getInstance().getProductOrderedSet().navigate(
                                 NavigationMessage.NextTime);
                     }
                 }
@@ -114,7 +114,7 @@ public class LatLonHeightGridNavigator extends ProductNavigator {
                     if (myCurrentH < 0) {
                         myCurrentH = total - 1;
                         // flip to next product time
-                        CommandManager.getInstance().getProductOrderedSet().navigate(
+                        ProductManager.getInstance().getProductOrderedSet().navigate(
                                 NavigationMessage.PreviousTime);
                     }
                 }

@@ -13,6 +13,7 @@ import org.wdssii.gui.CommandManager;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import com.sun.opengl.util.j2d.TextRenderer;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.views.EarthBallView;
 
 public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
@@ -145,7 +146,7 @@ public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
         // ProductLayer-->ProductCollection-->CurrentProductInfo-->ColorMap?
         // How to get the productlayer from this layer...
         // Currently we have one view..so use the world manager
-        CommandManager man = CommandManager.getInstance();
+        ProductManager man = ProductManager.getInstance();
         ColorMap aColorMap = man.getCurrentColorMap();
 
         boolean attribsPushed = false;
@@ -396,7 +397,7 @@ public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
             // Scale to width x height space
             gl.glScaled(scale, scale, 1);
             //gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
-            String time = CommandManager.getInstance().getProductOrderedSet().getSimulationTimeStamp();
+            String time = ProductManager.getInstance().getProductOrderedSet().getSimulationTimeStamp();
             if (time == null) {
                 time = "No products yet";
             }

@@ -31,6 +31,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
@@ -283,7 +284,7 @@ public final class EarthTopComponent extends TopComponent implements EarthBallVi
 
     @Override
     public void DrawProductOutline(DrawContext dc) {
-        Product aProduct = CommandManager.getInstance().getTopProduct();
+        Product aProduct = ProductManager.getInstance().getTopProduct();
         if (aProduct == null) {
             return;
         }

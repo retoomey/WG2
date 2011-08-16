@@ -1,6 +1,6 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.ProductHandlerList;
 
 /** Any command that modifies/changes the data or data viewing within the display
@@ -18,7 +18,7 @@ public abstract class DataCommand extends WdssiiCommand {
     protected void clearFromHandlerList(String indexKey) {
 
         System.out.println("---Clear products from current handler list....");
-        ProductHandlerList theList = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList theList = ProductManager.getInstance().getProductOrderedSet();
         if (theList != null) {
             if (indexKey == null) {
                 theList.deleteSelectedProduct();

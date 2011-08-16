@@ -8,6 +8,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.ProductCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.swing.ProductTableModel;
@@ -77,7 +78,7 @@ public final class DataTableTopComponent extends ThreadedTopComponent implements
     }
     
     public void updateDataTable(){
-       Product p =  CommandManager.getInstance().getTopProduct();
+       Product p =  ProductManager.getInstance().getTopProduct();
        if (myTableModel != null){
            myTableModel.setProduct(p);
            jProductDataTable.revalidate();

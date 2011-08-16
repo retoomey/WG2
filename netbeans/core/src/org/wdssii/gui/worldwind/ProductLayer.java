@@ -3,7 +3,7 @@ package org.wdssii.gui.worldwind;
 import gov.nasa.worldwind.layers.AbstractLayer;
 import gov.nasa.worldwind.render.*;
 
-import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandlerList;
 
@@ -39,7 +39,7 @@ public class ProductLayer extends AbstractLayer implements WWCategoryLayer {
     @Override
     public void doRender(DrawContext dc) {
         // Get the current product list
-        ProductHandlerList list = CommandManager.getInstance().getProductOrderedSet();
+        ProductHandlerList list = ProductManager.getInstance().getProductOrderedSet();
         list.draw(dc);
     }
 

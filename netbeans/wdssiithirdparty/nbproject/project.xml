@@ -31,6 +31,11 @@
                 <package>net.contentobjects.jnotify.linux</package>
                 <package>net.contentobjects.jnotify.win32</package>
                 <package>net.jcip.annotations</package>
+                <package>net.miginfocom.demo</package>
+                <package>net.miginfocom.examples</package>
+                <package>net.miginfocom.layout</package>
+                <package>net.miginfocom.swing</package>
+                <package>net.miginfocom.swt</package>
                 <package>nom.tam.fits</package>
                 <package>nom.tam.test</package>
                 <package>nom.tam.util</package>
@@ -382,6 +387,10 @@
             <class-path-extension>
                 <runtime-relative-path>ext/jnotify-0.91.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/jnotify-0.91.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/miglayout-3.7.4.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/miglayout-3.7.4.jar</binary-origin>
             </class-path-extension>
         </data>
     </configuration>

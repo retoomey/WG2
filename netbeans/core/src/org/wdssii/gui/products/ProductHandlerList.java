@@ -58,30 +58,28 @@ public class ProductHandlerList {
     protected String mySimulationTimeStamp;
     // We keep the date from the product
     protected Date mySimulationTime;
-    
     /** The internal keyname, unique for this */
     private String myKeyName;
-    
     /** The current visible name of this in the GUI */
     private String myVisibleName;
-    
-    public ProductHandlerList(String key, String visible){
+
+    public ProductHandlerList(String key, String visible) {
         myKeyName = key;
         myVisibleName = visible;
     }
-    
-    public String getKey(){
+
+    public String getKey() {
         return myKeyName;
     }
-    
-    public String getVisibleName(){
+
+    public String getVisibleName() {
         return myVisibleName;
     }
-    
-    public void setVisibleName(String visible){
+
+    public void setVisibleName(String visible) {
         myVisibleName = visible;
     }
-    
+
     // User direct navigation routines --------------------------------------
     /**
      * Called by the ProductLoadCommand from the record picker
@@ -100,7 +98,7 @@ public class ProductHandlerList {
         }
 
         IndexRecord aRecord = anIndex.getRecord(datatype, subtype, time);
-        if (aRecord == null){
+        if (aRecord == null) {
             System.out.println("ProductHandlerList: Record is null, cannot create new product");
             return;
         }
@@ -326,9 +324,11 @@ public class ProductHandlerList {
             // Put this selected handler at the BOTTOM of the draw list...so it
             // draws last
             // and on top of everything else
-            myDrawHandlers.remove(myTopProductHandler);
-            myDrawHandlers.add(myTopProductHandler); // Now at end of list (last
-            // drawn)
+            if (myTopProductHandler != null) {
+                myDrawHandlers.remove(myTopProductHandler);
+                myDrawHandlers.add(myTopProductHandler); // Now at end of list (last
+                // drawn)
+            }
         }
         // Don't fire a select command Every method calling this will update GUI at end.
     }
@@ -412,20 +412,55 @@ public class ProductHandlerList {
         //CommandManager.getInstance().productChangeNotify();
     }
 
-    // Called from ProductDeleteCommand
-    public ProductHandler deleteSelectedProduct() {
-        // The selected product should be the top handler...
-        if (myTopProductHandler != null) {
-            myDrawHandlers.remove(myTopProductHandler);
-            myProductHandlers.remove(myTopProductHandler);
-            if (myDrawHandlers.size() != 0) {
-                // Make the new top the last drawn (the top);
-                myTopProductHandler = myDrawHandlers.get(myDrawHandlers.size() - 1);
-            } else {
-                myTopProductHandler = null; // FIXME: is this ok? 'should' be
+    public void deleteProduct(String key) {
+        ProductHandler h = getProductHandler(key);
+        if (h != null) {
+            deleteProductHandler(h);
+        }
+    }
+
+    private void deleteProductHandler(ProductHandler toDelete) {
+
+        if (toDelete != null) {
+
+            // Remove the product handler from lists
+            myDrawHandlers.remove(toDelete);
+            myProductHandlers.remove(toDelete);
+
+            // Top handler is currently the selected one....
+            // Then we have to select another or null if none available...
+            ProductHandler newSelection = myTopProductHandler;
+            if (toDelete.equals(myTopProductHandler)) {
+                if (!myDrawHandlers.isEmpty()) {
+                    // Make the new top the last drawn (the top);
+                    newSelection = myDrawHandlers.get(myDrawHandlers.size() - 1);
+                } else {
+                    newSelection = null;
+                }
+            }
+            if (newSelection != myTopProductHandler) {
+                selectProductHandler(newSelection);
             }
         }
+    }
+
+    // Called from ProductDeleteCommand
+    public ProductHandler deleteSelectedProduct() {
+        deleteProductHandler(myTopProductHandler);
+        /*  // The selected product should be the top handler...
+        if (myTopProductHandler != null) {
+        myDrawHandlers.remove(myTopProductHandler);
+        myProductHandlers.remove(myTopProductHandler);
+        if (!myDrawHandlers.isEmpty()) {
+        // Make the new top the last drawn (the top);
+        myTopProductHandler = myDrawHandlers.get(myDrawHandlers.size() - 1);
+        } else {
+        myTopProductHandler = null; // FIXME: is this ok? 'should' be
+        }
+        }
         selectProductHandler(myTopProductHandler);
+         * 
+         */
         return myTopProductHandler;
     }
 
@@ -446,7 +481,7 @@ public class ProductHandlerList {
         }
 
         // duplicate code with delete selected
-        if (myDrawHandlers.size() != 0) {
+        if (!myDrawHandlers.isEmpty()) {
             // Make the new top the last drawn (the top);
             myTopProductHandler = myDrawHandlers.get(myDrawHandlers.size() - 1);
         } else {

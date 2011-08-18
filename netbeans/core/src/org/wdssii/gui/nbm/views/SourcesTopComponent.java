@@ -1,6 +1,5 @@
 package org.wdssii.gui.nbm.views;
 
-import net.miginfocom.layout.PlatformDefaults;
 import net.miginfocom.swing.MigLayout;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;

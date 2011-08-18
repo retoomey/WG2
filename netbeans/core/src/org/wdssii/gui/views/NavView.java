@@ -3,7 +3,6 @@ package org.wdssii.gui.views;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,7 +13,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -28,6 +29,7 @@ import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.ProductChangeCommand.ProductOnlyCommand;
 import org.wdssii.gui.commands.ProductChangeCommand.ProductVisibleCommand;
+import org.wdssii.gui.commands.ProductDeleteCommand;
 import org.wdssii.gui.commands.ProductSelectCommand;
 import org.wdssii.gui.commands.WdssiiCommand;
 import org.wdssii.gui.products.Product;
@@ -35,7 +37,9 @@ import org.wdssii.gui.products.ProductButtonStatus;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.navigators.ProductNavigator;
+import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
+import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
 import org.wdssii.gui.swing.SimplerJButton;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
@@ -48,7 +52,7 @@ public class NavView extends JPanel {
     private static final int myGridCols = 4;
     private static final int myGridCount = myGridRows * myGridCols;
     private ArrayList<NavButton> myNavControls = new ArrayList<NavButton>();
-    private javax.swing.JTable jProductsListTable;
+    private RowEntryTable jProductsListTable;
     /** The product list shows the list of products in the window
      */
     private ProductsListTableModel myProductsListTableModel;
@@ -56,7 +60,7 @@ public class NavView extends JPanel {
     private JPanel jNavPanel;
     private JPanel jLoopPanel;
     private JScrollPane jProductsScrollPane;
-    
+
     /** Storage for the current product list */
     private static class ProductsTableData {
 
@@ -85,7 +89,6 @@ public class NavView extends JPanel {
             super(ProductsTableData.class, new String[]{
                         "Visible", "Only", "Time", "Type", "Subtype", "Name", "Message"});
         }
-
     }
 
     /** Our custom renderer for our product view table */
@@ -216,20 +219,20 @@ public class NavView extends JPanel {
         setLayout(new MigLayout("fill", "", ""));
         JPanel jRootTab = new JPanel();
         add(jRootTab, "grow");
-        
+
         jProductInfoLabel = new javax.swing.JLabel();
         jNavPanel = new javax.swing.JPanel();
         jNavPanel.setBackground(Color.BLACK);
         jLoopPanel = new javax.swing.JPanel();
         jProductsScrollPane = new javax.swing.JScrollPane();
-        
+
         jRootTab.setLayout(new MigLayout("fill", "", ""));
         jRootTab.add(jProductInfoLabel, "wrap");  // to THIS panel...
         jRootTab.add(jNavPanel, "growx, wrap");
         jRootTab.add(jLoopPanel, "wrap");
         jRootTab.add(jProductsScrollPane, "dock south");
-        
-      //  initComponents();
+
+        //  initComponents();
         initButtonGrid();
         initProductTable();
 
@@ -239,12 +242,12 @@ public class NavView extends JPanel {
         updateProductList(null);
     }
 
-    public void update(WdssiiCommand w){
-       updateContentDescription();
-       updateNavButtons();
-       updateProductList(w);   
+    public void update(WdssiiCommand w) {
+        updateContentDescription();
+        updateNavButtons();
+        updateProductList(w);
     }
-    
+
     private void initButtonGrid() {
         jNavPanel.setLayout(new MigLayout("fill, wrap 4", "", ""));
         for (int i = 0; i < myGridCount; i++) {
@@ -260,7 +263,7 @@ public class NavView extends JPanel {
 
     private void initProductTable() {
         myProductsListTableModel = new ProductsListTableModel();
-        jProductsListTable = new javax.swing.JTable();
+        jProductsListTable = new RowEntryTable();
         final JTable myTable = jProductsListTable;
         jProductsListTable.setModel(myProductsListTableModel);
         final ProductsListTableModel myModel = myProductsListTableModel;
@@ -313,46 +316,112 @@ public class NavView extends JPanel {
         /** Add the mouse listener that handles clicking in any cell of our
          * custom Layer table
          */
+        /*
         jProductsListTable.addMouseListener(new MouseAdapter() {
+        
+        @Override
+        public void mouseClicked(MouseEvent e) {
+        // You actually want the single AND the double clicks so
+        // that you always toggle even if they are clicking fast,
+        // so we don't check click count.
+        if (e.getComponent().isEnabled()
+        && e.getButton() == MouseEvent.BUTTON2) {
+        // updateProductList();
+        return;
+        }
+        if (e.getComponent().isEnabled()
+        && e.getButton() == MouseEvent.BUTTON1// && e.getClickCount() == 1//) {
+        Point p = e.getPoint();
+        int row = myTable.rowAtPoint(p);
+        int column = myTable.columnAtPoint(p);
+        
+        if ((row > -1) && (column > -1)) {
+        int orgColumn = myTable.convertColumnIndexToModel(column);
+        int orgRow = myTable.convertRowIndexToModel(row);
+        Object stuff = myModel.getValueAt(orgRow, orgColumn);
+        if (stuff instanceof ProductsTableData) {
+        ProductsTableData entry = (ProductsTableData) (stuff);
+        
+        switch (orgColumn) {
+        case ProductsListTableModel.NAV_VISIBLE: {
+        ProductVisibleCommand c = new ProductVisibleCommand(entry.keyName, !entry.checked);
+        CommandManager.getInstance().executeCommand(c, true);
+        }
+        break;
+        case ProductsListTableModel.NAV_ONLY: {
+        ProductOnlyCommand c = new ProductOnlyCommand(entry.keyName, !entry.onlyMode);
+        CommandManager.getInstance().executeCommand(c, true);
+        }
+        break;
+        default:
+        break;
+        }
+        }
+        }
+        }
+        }
+        });
+         */
+        jProductsListTable.addMouseListener(new RowEntryTableMouseAdapter(jProductsListTable, myModel) {
+
+            class Item extends JMenuItem {
+
+                private final ProductsTableData d;
+
+                public Item(String s, ProductsTableData line) {
+                    super(s);
+                    d = line;
+                }
+
+                public ProductsTableData getData() {
+                    return d;
+                }
+            };
 
             @Override
-            public void mouseClicked(MouseEvent e) {
-                // You actually want the single AND the double clicks so
-                // that you always toggle even if they are clicking fast,
-                // so we don't check click count.
-                if (e.getComponent().isEnabled()
-                        && e.getButton() == MouseEvent.BUTTON2) {
-                    // updateProductList();
-                    return;
-                }
-                if (e.getComponent().isEnabled()
-                        && e.getButton() == MouseEvent.BUTTON1/* && e.getClickCount() == 1*/) {
-                    Point p = e.getPoint();
-                    int row = myTable.rowAtPoint(p);
-                    int column = myTable.columnAtPoint(p);
+            public JPopupMenu getDynamicPopupMenu(Object line, int row, int column) {
 
-                    if ((row > -1) && (column > -1)) {
-                        int orgColumn = myTable.convertColumnIndexToModel(column);
-                        int orgRow = myTable.convertRowIndexToModel(row);
-                        Object stuff = myModel.getValueAt(orgRow, orgColumn);
-                        if (stuff instanceof ProductsTableData) {
-                            ProductsTableData entry = (ProductsTableData) (stuff);
+                ActionListener al = new ActionListener() {
 
-                            switch (orgColumn) {
-                                case ProductsListTableModel.NAV_VISIBLE: {
-                                    ProductVisibleCommand c = new ProductVisibleCommand(entry.keyName, !entry.checked);
-                                    CommandManager.getInstance().executeCommand(c, true);
-                                }
-                                break;
-                                case ProductsListTableModel.NAV_ONLY: {
-                                    ProductOnlyCommand c = new ProductOnlyCommand(entry.keyName, !entry.onlyMode);
-                                    CommandManager.getInstance().executeCommand(c, true);
-                                }
-                                break;
-                                default:
-                                    break;
-                            }
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        Item i = (Item) (e.getSource());
+                        String text = i.getText();
+                          if (text.startsWith("Delete")) {
+                              ProductDeleteCommand del = new ProductDeleteCommand();
+                              del.ProductDeleteByKey(i.getData().keyName);
+                              CommandManager.getInstance().executeCommand(del, true);
+                          }
+                    }
+                };
+                JPopupMenu popupmenu = new JPopupMenu();
+                ProductsTableData entry = (ProductsTableData) (line);
+                String name = "Delete " + entry.visibleName;
+                Item i = new Item(name, entry);
+                popupmenu.add(i);
+                i.addActionListener(al);
+                return popupmenu;
+            }
+
+            @Override
+            public void handleClick(Object stuff, int orgRow, int orgColumn) {
+
+                if (stuff instanceof ProductsTableData) {
+                    ProductsTableData entry = (ProductsTableData) (stuff);
+
+                    switch (orgColumn) {
+                        case ProductsListTableModel.NAV_VISIBLE: {
+                            ProductVisibleCommand c = new ProductVisibleCommand(entry.keyName, !entry.checked);
+                            CommandManager.getInstance().executeCommand(c, true);
                         }
+                        break;
+                        case ProductsListTableModel.NAV_ONLY: {
+                            ProductOnlyCommand c = new ProductOnlyCommand(entry.keyName, !entry.onlyMode);
+                            CommandManager.getInstance().executeCommand(c, true);
+                        }
+                        break;
+                        default:
+                            break;
                     }
                 }
             }
@@ -545,8 +614,8 @@ public class NavView extends JPanel {
                 b.setCommand(w);
 
             }
-        }else{
-            for(NavButton b:myNavControls){
+        } else {
+            for (NavButton b : myNavControls) {
                 b.setVisible(false);
             }
         }
@@ -591,5 +660,4 @@ public class NavView extends JPanel {
             }
         }
     }
-
 }

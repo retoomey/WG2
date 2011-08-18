@@ -1,5 +1,8 @@
 package org.wdssii.gui.commands;
 
+import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.products.ProductHandlerList;
+
 /** Called by name from WdssiiDynamic
  * @author Robert Toomey
  * This command can delete 1 product, or all products matching an index key
@@ -7,33 +10,30 @@ package org.wdssii.gui.commands;
 public class ProductDeleteCommand extends ProductCommand {
 
     private String myFilterName = null;
-
-    /** Delete products with a given source name */
-    public ProductDeleteCommand(String indexName) {
+    private String myHandlerKey = null;
+   
+    public void ProductDeleteIndex(String indexName){
         myFilterName = indexName;
     }
-
-    /** Delete the current selected product when executed, 
-     * this is required to have no parameters for RCP button linking */
-    public ProductDeleteCommand() {
+    
+    public void ProductDeleteByKey(String keyname){
+        myHandlerKey = keyname;
     }
 
     @Override
     public boolean execute() {
-
-        String t = Thread.currentThread().getName();
-        // If you wanted a warning dialog, would be here...
-        System.out.println("DELETE PRODUCT COMMAND CALLED ! " + t);
-        clearFromHandlerList(myFilterName);
-
-        /*ProductHandlerList theList = CommandManager.getInstance().getProductOrderedSet();
-        if (theList != null){
-        if (myFilterName == null){
-        theList.deleteSelectedProduct();
-        }else{
-        theList.deleteProductsMatchingSource(myFilterName);
+        
+        ProductHandlerList theList = ProductManager.getInstance().getProductOrderedSet();
+        if (theList != null) {
+            
+            if (myFilterName != null) {
+               //clearFromHandlerList(myFilterName);
+               theList.deleteProductsMatchingSource(myFilterName);
+            } else if (myHandlerKey != null){
+               theList.deleteProduct(myHandlerKey);
+            }
+             // theList.deleteSelectedProduct();
         }
-        }*/
         return true;
     }
 }

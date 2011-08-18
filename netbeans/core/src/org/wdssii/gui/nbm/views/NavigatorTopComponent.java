@@ -67,15 +67,6 @@ public final class NavigatorTopComponent extends ThreadedTopComponent implements
         setLayout(new MigLayout("fill, inset 0", "", ""));
         myPanel = new NavView();
         add(myPanel, "grow");
-              
-     //   initComponents();
-       // initButtonGrid();
-      //  initProductTable();
-
-        // For box layout, have to align label center...
-      //  jProductInfoLabel.setAlignmentX(LEFT_ALIGNMENT);
-     //   updateNavButtons();
-     //   updateProductList(null);
 
         CommandManager.getInstance().registerView("navview", this);
         setName(NbBundle.getMessage(NavigatorTopComponent.class, "CTL_NavigatorTopComponent"));

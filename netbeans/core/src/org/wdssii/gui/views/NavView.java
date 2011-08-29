@@ -3,11 +3,8 @@ package org.wdssii.gui.views;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -27,8 +24,11 @@ import javax.swing.table.TableRowSorter;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.SourceManager.SourceCommand;
+import org.wdssii.gui.commands.AnimateCommand;
 import org.wdssii.gui.commands.ProductChangeCommand.ProductOnlyCommand;
 import org.wdssii.gui.commands.ProductChangeCommand.ProductVisibleCommand;
+import org.wdssii.gui.commands.ProductCommand;
 import org.wdssii.gui.commands.ProductDeleteCommand;
 import org.wdssii.gui.commands.ProductSelectCommand;
 import org.wdssii.gui.commands.WdssiiCommand;
@@ -37,6 +37,7 @@ import org.wdssii.gui.products.ProductButtonStatus;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.navigators.ProductNavigator;
+import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
@@ -46,8 +47,27 @@ import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 
-public class NavView extends JPanel {
+public class NavView extends JThreadPanel implements WdssiiView {
 
+    // ----------------------------------------------------------------
+    // Reflection called updates from CommandManager.
+    // See CommandManager execute and gui updating for how this works
+    // When sources or products change, update the navigation controls
+    public void ProductCommandUpdate(ProductCommand command) {
+        updateGUI(command);
+    }
+
+    //public void ProductSelectCommandUpdate(ProductSelectCommand command) {
+    //    updateGUI(command);
+    //}
+    public void SourceCommandUpdate(SourceCommand command) {
+        updateGUI(command);
+    }
+
+    public void AnimateCommandUpdate(AnimateCommand command) {
+        updateGUI(command);
+    }
+    
     private static final int myGridRows = 4;
     private static final int myGridCols = 4;
     private static final int myGridCount = myGridRows * myGridCols;
@@ -60,6 +80,14 @@ public class NavView extends JPanel {
     private JPanel jNavPanel;
     private JPanel jLoopPanel;
     private JScrollPane jProductsScrollPane;
+
+    @Override
+    public void updateInSwingThread(Object command) {
+        WdssiiCommand w = null;
+        updateContentDescription();
+        updateNavButtons();
+        updateProductList(w);
+    }
 
     /** Storage for the current product list */
     private static class ProductsTableData {
@@ -238,14 +266,10 @@ public class NavView extends JPanel {
 
         // For box layout, have to align label center...
         jProductInfoLabel.setAlignmentX(LEFT_ALIGNMENT);
+        
+        CommandManager.getInstance().registerView("Navigation", this);
         updateNavButtons();
         updateProductList(null);
-    }
-
-    public void update(WdssiiCommand w) {
-        updateContentDescription();
-        updateNavButtons();
-        updateProductList(w);
     }
 
     private void initButtonGrid() {
@@ -387,11 +411,11 @@ public class NavView extends JPanel {
                     public void actionPerformed(ActionEvent e) {
                         Item i = (Item) (e.getSource());
                         String text = i.getText();
-                          if (text.startsWith("Delete")) {
-                              ProductDeleteCommand del = new ProductDeleteCommand();
-                              del.ProductDeleteByKey(i.getData().keyName);
-                              CommandManager.getInstance().executeCommand(del, true);
-                          }
+                        if (text.startsWith("Delete")) {
+                            ProductDeleteCommand del = new ProductDeleteCommand();
+                            del.ProductDeleteByKey(i.getData().keyName);
+                            CommandManager.getInstance().executeCommand(del, true);
+                        }
                     }
                 };
                 JPopupMenu popupmenu = new JPopupMenu();

@@ -31,11 +31,11 @@ import org.wdssii.index.IndexRecord;
  * @author Robert Toomey
  *
  */
-public class W2algsBuilder extends Builder {
+public class XMLBuilder extends Builder {
 
-    private static Log log = LogFactory.getLog(W2algsBuilder.class);
+    private static Log log = LogFactory.getLog(XMLBuilder.class);
 
-    public W2algsBuilder(){
+    public XMLBuilder(){
         super("xml");
     }
     

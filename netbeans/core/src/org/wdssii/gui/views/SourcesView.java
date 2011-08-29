@@ -44,6 +44,7 @@ import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.swing.CONUSJPanel;
 import org.wdssii.gui.swing.CONUSJPanel.CONUSJPanelListener;
+import org.wdssii.gui.swing.JThreadPanel;
 
 /**
  *
@@ -55,7 +56,7 @@ import org.wdssii.gui.swing.CONUSJPanel.CONUSJPanelListener;
  * @author Robert Toomey
  * 
  */
-public class SourcesView extends JPanel implements CONUSJPanelListener {
+public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanelListener {
 
     private ArrayList<BookmarkURLSource> mySourceList;
     private static final String ALLGROUPS = "All";
@@ -82,6 +83,12 @@ public class SourcesView extends JPanel implements CONUSJPanelListener {
             }
         }
 
+    }
+
+    @Override
+    public void updateInSwingThread(Object info) {
+       // We don't update externally..only from clicked buttons, etc..
+       // which are of course already in the swing thread.
     }
 
     /** Filter to looks for local data files.  We can make this more 
@@ -370,6 +377,7 @@ public class SourcesView extends JPanel implements CONUSJPanelListener {
         jBookTabPane.addTab("CONUS", null, holder, "stuff");
         myCONUSPanel.addCONUSJPanelListener(this);
 
+        CommandManager.getInstance().registerView("Sources", this);
         updateListToCurrent();
         updateCurrentRadarInfo();
     }

@@ -6,15 +6,9 @@ import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.SourceManager.SourceCommand;
-import org.wdssii.gui.commands.AnimateCommand;
-import org.wdssii.gui.commands.ProductCommand;
-import org.wdssii.gui.commands.WdssiiCommand;
 import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.views.NavView;
-import org.wdssii.gui.views.WdssiiView;
 
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Navigator//EN",
 autostore = false)
@@ -31,47 +25,18 @@ preferredID = "NavigatorTopComponent")
  * 
  * @author Robert Toomey
  */
-public final class NavigatorTopComponent extends ThreadedTopComponent implements WdssiiView {
+public final class NavigatorTopComponent extends TopComponent  {
 
     private NavView myPanel;
-
-    // ----------------------------------------------------------------
-    // Reflection called updates from CommandManager.
-    // See CommandManager execute and gui updating for how this works
-    // When sources or products change, update the navigation controls
-    public void ProductCommandUpdate(ProductCommand command) {
-        updateGUI(command);
-    }
-
-    //public void ProductSelectCommandUpdate(ProductSelectCommand command) {
-    //    updateGUI(command);
-    //}
-    public void SourceCommandUpdate(SourceCommand command) {
-        updateGUI(command);
-    }
-
-    public void AnimateCommandUpdate(AnimateCommand command) {
-        updateGUI(command);
-    }
-
-    @Override
-    public void updateInSwingThread(Object command) {
-        WdssiiCommand w = null;
-        if (myPanel != null){
-          myPanel.update(w);
-        }
-    }
 
     public NavigatorTopComponent() {
 
         setLayout(new MigLayout("fill, inset 0", "", ""));
         myPanel = new NavView();
         add(myPanel, "grow");
-
-        CommandManager.getInstance().registerView("navview", this);
+        
         setName(NbBundle.getMessage(NavigatorTopComponent.class, "CTL_NavigatorTopComponent"));
         setToolTipText(NbBundle.getMessage(NavigatorTopComponent.class, "HINT_NavigatorTopComponent"));
-
     }
 
     /** Get our product handler list.  For now at least,  this is global */

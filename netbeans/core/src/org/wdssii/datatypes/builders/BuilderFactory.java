@@ -30,7 +30,7 @@ public abstract class BuilderFactory {
         factory = new PrototypeFactory<Builder>(
                 "java/Builder.xml");
         factory.addDefault("netcdf", "org.wdssii.datatypes.builders.NetcdfBuilder");
-        factory.addDefault("W2ALGS", "org.wdssii.datatypes.builders.W2algsBuilder");
+        factory.addDefault("W2ALGS", "org.wdssii.datatypes.builders.XMLBuilder");
         factory.addDefault("test", "org.wdssii.datatypes.builders.TestBuilder");
 
     }

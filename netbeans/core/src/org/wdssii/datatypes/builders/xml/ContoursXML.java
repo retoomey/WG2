@@ -74,12 +74,5 @@ public class ContoursXML extends DataTypeXML {
         }
         return contours;
     }
-    
-    public void TagToMemento(Tag_datatype t, DataTypeMemento d){
-        d.typeName = t.name;
-        d.startTime = t.stref.time;
-        d.originLocation = t.stref.location;
-        d.attriNameToValue = t.attrValues;
-        d.attriNameToUnits = t.attrUnits;
-    }
+
 }

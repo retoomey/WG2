@@ -32,6 +32,15 @@ public interface Table2DView {
         public boolean exactHit;
     }
 
+    /** Returned by getCellValue.  Different DataTypes have
+     * different stuff.  You can create a subclass to hold
+     * more information for a particular data type.
+     */
+    public static class CellQuery {
+        public float value;
+        public String text;
+    }
+    
     /** Get the number of columns in the table */
     int getNumCols();
 
@@ -45,7 +54,7 @@ public interface Table2DView {
     String getColHeader(int col);
 
     /** Get the cell value as a float */
-    float getCellValue(int row, int col);
+    boolean getCellValue(int row, int col, CellQuery output);
 
     /** Get the 3D location of the given cell part, if capable.  Return false if unable.
      * The GUI can use this to display a 3D outline in space of a visible table

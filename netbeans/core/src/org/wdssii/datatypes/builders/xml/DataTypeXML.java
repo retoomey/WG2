@@ -12,6 +12,7 @@ import javax.xml.stream.XMLStreamReader;
 import org.openide.util.Exceptions;
 
 import org.wdssii.datatypes.DataType;
+import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.geom.Location;
 import org.wdssii.xml.Tag_datatype;
 
@@ -483,5 +484,13 @@ public abstract class DataTypeXML {
                 buffer.value = value;
             }
         }
+    }
+         
+    public void TagToMemento(Tag_datatype t, DataTypeMemento d){
+        d.typeName = t.name;
+        d.startTime = t.stref.time;
+        d.originLocation = t.stref.location;
+        d.attriNameToValue = t.attrValues;
+        d.attriNameToUnits = t.attrUnits;
     }
 }

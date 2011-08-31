@@ -8,6 +8,9 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
+import org.wdssii.datatypes.DataTable.DataTableMemento;
+import org.wdssii.xml.Tag_datacolumn;
+import org.wdssii.xml.Tag_datatable;
 
 /** This creates a DataTable from XML data
  * 
@@ -28,45 +31,30 @@ public class DataTableXML extends DataTypeXML {
      * Overrides with covariance */
     @Override
     public DataTable createFromXML(XMLStreamReader p) throws XMLStreamException {
-        // Two top tags:
-        // <datatable>
-        //  (1) <datatype>  which is metadata on the table
-        //  (1) <data> which is the column values
-        // </datatable>
         DataTable table = null;
-        DataTypeXMLHeader header = null;
-        try {
-            myWorkingColumns = new ArrayList<Column>();
-            String tag = null;
-            String startTag = p.getLocalName();
-            while (p.hasNext()) {
-                p.next();
-                if (isEndTag(p, startTag)) {
-                    break;
-                } else if ((tag = haveStartTag(p)) != null) {
-                    if (XML_DATATYPE.equals(tag)) {
-                  // GOOP      header = readXML_datatype(p);
-                    } else if (XML_DATA.equals(tag)) {
-                        readXML_data(p);
-                    }
-                }
-            }
-            System.out.println("Working columns " + myWorkingColumns);
-            if (myWorkingColumns != null) {
-                System.out.println("Number of columns is " + myWorkingColumns.size());
-            }
-            // FIXME: this will crash probably
-            table = new DataTable(null, myWorkingColumns);
-
-            //System.out.println("XML CREATED TABLE LOCATION IS " + header.originLocation);
-            //System.out.println("--->TYPENAME " + header.typeName);
-        } catch (Exception e) {
-            // Recover on any exception by returning a null table
-            System.out.println("XML PARSING ERROR " + e.toString());
+        
+         // Read in the document basically.
+        Tag_datatable t = new Tag_datatable();
+        t.processTag(p);
+        
+        // Create a memento and get data out of the tag we want...
+        DataTableMemento c = new DataTableMemento();
+        
+        // Read top level datatype info into memento...
+        TagToMemento(t.datatype, c);
+        
+        // This is SO wasteful of memory...need to compact this puppy
+        ArrayList<Tag_datacolumn> cols = t.data.columns;
+        myWorkingColumns = new ArrayList<Column>();
+        for(Tag_datacolumn d:cols){ 
+           Column aCol = new Column(d.name, d.units, d.values);
+           myWorkingColumns.add(aCol);
         }
-        // Clear work (in case we get reused)
-        myWorkingColumns = null;
-
+        
+        // Extra fields....
+        c.columns = myWorkingColumns;
+        
+        table = new DataTable(c);
         return table;
     }
 

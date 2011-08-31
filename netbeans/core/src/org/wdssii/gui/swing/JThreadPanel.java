@@ -19,10 +19,15 @@ import javax.swing.SwingUtilities;
  */
 public abstract class JThreadPanel extends JPanel {
    /** The thread name of the swing thread, whatever it is */
-    private static String SWING_THREAD;
+    private String SWING_THREAD;
 
+    public JThreadPanel(){
+        // Assume we are created within the swing thread.
+        getSwingThreadName();
+    }
+    
     /** Get the swing thread name */
-    public static String getSwingThreadName() {
+    public final String getSwingThreadName() {
         if (SWING_THREAD == null) {
             Thread t = Thread.currentThread();
             SWING_THREAD = t.getName();

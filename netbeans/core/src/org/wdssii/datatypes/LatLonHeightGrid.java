@@ -52,11 +52,12 @@ public class LatLonHeightGrid extends DataType implements Table2DView {
     }
 
     @Override
-    public float getCellValue(int row, int col) {
+    public boolean getCellValue(int row, int col, CellQuery output) {
         //x = getX, numHeights
         // x height, y lat, z lon
         //(height, lat, lon)
-        return data.get(heightsMeters.size() / 2, col, row);
+        output.value = data.get(heightsMeters.size() / 2, col, row);
+        return true;
     }
 
     @Override

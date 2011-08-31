@@ -5,6 +5,8 @@ import java.awt.event.AdjustmentEvent;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeQuery;
 import org.wdssii.datatypes.Table2DView;
+import org.wdssii.datatypes.Table2DView.CellQuery;
+import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.FilterList;
@@ -105,33 +107,28 @@ public class ProductTableModel extends SimpleTableModel {
 
                 // All this should encapsulate somehow...
                 DataTypeQuery dq = new DataTypeQuery();
-                float value = myView.getCellValue(row, col);
-                FilterList list = myProduct.getFilterList();
-                ColorMapOutput out = new ColorMapOutput();
+                CellQuery cq = new CellQuery();
+                // float value = myView.getCellValue(row, col);
 
-                dq.inDataValue = dq.outDataValue = value;
-                list.fillColor(out, dq, true);
-                Color aColor = new Color(out.redI(), out.greenI(), out.blueI());
-                Color fore = java.awt.Color.white;
-
-                // W3c contrast algorithm:
-                // Fixme: Put this somewhere, maybe ColorMap.
-                int bright1 = ((aColor.getRed() * 299) + (aColor.getGreen() * 587) + (aColor.getBlue() * 114)) / 1000;
-                int bright2 = ((fore.getRed() * 299) + (fore.getGreen() * 587) + (fore.getBlue() * 114)) / 1000;
-                int diff = bright1 - bright2;
-                if (diff < 0) {
-                    if (diff > -125) {
-                        fore = Color.black;
-                    }
-                } else {
-                    if (diff < 125) {
-                        fore = Color.black;
-                    }
+                myView.getCellValue(row, col, cq);
+                Color fore, back;
+                if (cq.text == null) {
+                    FilterList list = myProduct.getFilterList();
+                    ColorMapOutput out = new ColorMapOutput();
+                    dq.inDataValue = dq.outDataValue = cq.value;
+                    list.fillColor(out, dq, true);
+                    back = new Color(out.redI(), out.greenI(), out.blueI());
+                    fore = java.awt.Color.white;
+                    fore = ColorMap.getW3cContrast(back, fore);
+                    info.text = Product.valueToString(cq.value);
+                }else{
+                    fore = java.awt.Color.BLACK;
+                    back = java.awt.Color.WHITE;
+                    info.text = cq.text;
                 }
-
-                info.background = aColor;
+                info.background = back;
                 info.foreground = fore;
-                info.text = Product.valueToString(value);
+                
             } else {
                 info.text = "?";
             }

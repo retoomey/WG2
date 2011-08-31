@@ -83,7 +83,7 @@ public class Contours extends DataType implements Table2DView {
     }
 
     @Override
-    public float getCellValue(int row, int col) {
+    public boolean getCellValue(int row, int col, CellQuery output) {
         float value = 0;
         if ((row > -1) && (row < getNumberOfContours())) {
             Contour c = myContours.get(row);
@@ -108,7 +108,8 @@ public class Contours extends DataType implements Table2DView {
                 }
             }
         }
-        return value;
+        output.value = value;
+        return true;
     }
 
     @Override

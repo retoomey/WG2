@@ -628,7 +628,7 @@ public class RadialSet extends DataType implements Table2DView {
     }
 
     @Override
-    public float getCellValue(int row, int col) {
+    public boolean getCellValue(int row, int col, CellQuery output){
         float value = 0;
         Radial r = getRadial((col));
         if (r != null) {
@@ -637,7 +637,8 @@ public class RadialSet extends DataType implements Table2DView {
                 value = r.getValue((count - row - 1));
             }
         }
-        return value;
+        output.value = value; 
+        return true;
     }
 
     @Override

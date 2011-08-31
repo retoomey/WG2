@@ -172,14 +172,16 @@ public class WindField extends DataType implements Table2DView {
     }
 
     @Override
-    public float getCellValue(int row, int col) {
+    public boolean getCellValue(int row, int col, CellQuery output)
+    {
         float value = 0;
         float u = uArray.get(row, col);
         float v = vArray.get(row, col);
         //float u = uArray[row][col];
         //float v = vArray[row][col];
         value = (float) Math.sqrt(((u * u) + (v * v)));  // As velocity
-        return value;
+        output.value = value;
+        return true;
     }
 
     @Override

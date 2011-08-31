@@ -1,5 +1,6 @@
 package org.wdssii.gui;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -24,7 +25,7 @@ import org.wdssii.gui.products.ProductTextFormatter;
 public class ColorMap {
 
     private static Log log = LogFactory.getLog(ColorMap.class);
-    
+
     /** Output object for color map queries.  You can pre-new this outside of loops
      * for speed.  Pass your object into routines
      */
@@ -297,7 +298,7 @@ public class ColorMap {
                     if (sameColor) {
                         name = f.format(ub);
                     } else {
-                        name = f.format(lb, ub);                
+                        name = f.format(lb, ub);
                     }
                 } catch (Exception e) { // FIXME: check format errors?
                     log.error("Exception is" + e.toString());
@@ -591,5 +592,22 @@ public class ColorMap {
      */
     public String getUnits() {
         return myUnits;
+    }
+
+    public static Color getW3cContrast(Color back, Color fore) {
+        // W3c contrast algorithm:
+        int bright1 = ((back.getRed() * 299) + (back.getGreen() * 587) + (back.getBlue() * 114)) / 1000;
+        int bright2 = ((fore.getRed() * 299) + (fore.getGreen() * 587) + (fore.getBlue() * 114)) / 1000;
+        int diff = bright1 - bright2;
+        if (diff < 0) {
+            if (diff > -125) {
+                fore = Color.black;
+            }
+        } else {
+            if (diff < 125) {
+                fore = Color.black;
+            }
+        }
+        return fore;
     }
 }

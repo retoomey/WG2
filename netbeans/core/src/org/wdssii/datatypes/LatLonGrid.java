@@ -126,8 +126,9 @@ public class LatLonGrid extends DataType implements Table2DView {
     }
 
     @Override
-    public float getCellValue(int row, int col) {
-        return (values.get(row, col));
+    public boolean getCellValue(int row, int col, CellQuery output) {
+        output.value = values.get(row, col);
+        return true;
     }
 
     @Override

@@ -274,13 +274,21 @@ public class NavView extends JThreadPanel implements WdssiiView {
 
     private void initButtonGrid() {
         jNavPanel.setLayout(new MigLayout("fill, wrap 4", "", ""));
+        
+        // We want a fixed size for buttons so they don't jitter as 
+        NavButton sizer = new NavButton("00:00:00  ", 0);
+        Dimension pref = sizer.getPreferredSize();
+        sizer = null;
+        
         for (int i = 0; i < myGridCount; i++) {
             NavButton b = new NavButton("Test" + i, i);
+            b.setPreferredSize(pref);
+            b.setMinimumSize(pref); 
             //  b.setBackground(Color.red);
             if (i == 0) {
                 b.setVisible(false);
             }
-            jNavPanel.add(b, "growx");
+            jNavPanel.add(b, "w min:pref:, growx");
             myNavControls.add(b);
         }
     }

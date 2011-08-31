@@ -10,20 +10,16 @@ import java.util.TreeMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.gui.commands.WdssiiCommand;
-import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
-import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.views.CacheView;
 import org.wdssii.gui.views.EarthBallView;
 import org.wdssii.gui.views.LLHAreaView;
-import org.wdssii.gui.views.NavView;
 import org.wdssii.gui.views.SourceManagerView;
 import org.wdssii.gui.views.TableProductView;
 import org.wdssii.gui.views.WdssiiView;
 import org.wdssii.index.IndexRecord;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
-import gov.nasa.worldwind.event.PositionEvent;
 import gov.nasa.worldwind.event.SelectEvent;
 import gov.nasa.worldwind.layers.LayerList;
 
@@ -41,7 +37,7 @@ public class CommandManager implements Singleton {
     private static Log log = LogFactory.getLog(CommandManager.class);
     private VisualCollection myVisualCollection = new VisualCollection();
     public static String CommandPath = "org.wdssii.gui.commands.";
-
+    private final Object myViewLock = new Object();
     private TreeMap<String, WdssiiView> myNamedViews = new TreeMap<String, WdssiiView>();
 
     // You should not create NavigationAction
@@ -147,16 +143,22 @@ public class CommandManager implements Singleton {
     }
 
     public void registerView(String name, WdssiiView aView) {
-        myNamedViews.put(name, aView);
+        synchronized (myViewLock) {
+            myNamedViews.put(name, aView);
+        }
     }
 
     public void deregisterView(String name) {
-        myNamedViews.put(name, null);
-        myNamedViews.remove(name);
+        synchronized (myViewLock) {
+            myNamedViews.put(name, null);
+            myNamedViews.remove(name);
+        }
     }
 
     public WdssiiView getNamedViewed(String name) {
-        return (myNamedViews.get(name));
+        synchronized (myViewLock) {
+            return (myNamedViews.get(name));
+        }
     }
 
     /*
@@ -178,12 +180,12 @@ public class CommandManager implements Singleton {
     public LayerList getLayerList() {
         LayerList list;
         EarthBallView v = getEarthBall();
-        if (v != null){
+        if (v != null) {
             list = v.getLayerList();
-        }else{
+        } else {
             list = null;
         }
-       return list;
+        return list;
     }
 
     public void setLayerEnabled(String name, boolean flag) {
@@ -206,9 +208,9 @@ public class CommandManager implements Singleton {
 
         // This should be a command actually...
         //WdssiiView view = getNamedViewed(NavView.ID);
-       // if (view instanceof NavView) {
+        // if (view instanceof NavView) {
         //    NavView nav = (NavView) (view);
-       //     nav.updateGUI(null);
+        //     nav.updateGUI(null);
         //}
 
         getEarthBall().updateOnMinTime();
@@ -227,7 +229,7 @@ public class CommandManager implements Singleton {
         NavigationAction nav = new NavigationAction(message);
 
         ProductManager.getInstance().navigationAction(nav);
-       // myProductOrderedSet.navigationAction(nav);
+        // myProductOrderedSet.navigationAction(nav);
         if (nav.redraw()) {
             getEarthBall().updateOnMinTime();
         }
@@ -237,7 +239,7 @@ public class CommandManager implements Singleton {
         //if (view instanceof NavView) {
         //    NavView navView = (NavView) (view);
         //    navView.update();
-       // }
+        // }
     }
 
     @Override
@@ -304,7 +306,7 @@ public class CommandManager implements Singleton {
     // Called from earth view to send a worldwind select event message to all views interested.
     // For the moment, just the volume view..needs to be generalized for other views
     // such as annotationsd
-   @Deprecated
+    @Deprecated
     public void earthViewSelectionEvent(WorldWindowGLCanvas world, SelectEvent event) {
         // TODO uncouple knowledge of VolumeView (probably need to subclass viewpart to make
         // a special event handling view or object)
@@ -313,8 +315,8 @@ public class CommandManager implements Singleton {
         // Any SWT update code must wrap within async..
         WdssiiView view = getNamedViewed(LLHAreaView.ID);
         if (view != null) {
-        //    LLHAreaView vv = (LLHAreaView) (view);
-         //   vv.earthViewSelection(world, event);
+            //    LLHAreaView vv = (LLHAreaView) (view);
+            //   vv.earthViewSelection(world, event);
         }
     }
 
@@ -381,46 +383,48 @@ public class CommandManager implements Singleton {
         // here.
 
         // All views are considered to be command listeners for now...
-        Collection<WdssiiView> c = myNamedViews.values();
-        for (WdssiiView v : c) {
-            Class<?> theClass = v.getClass();
-            Class<?> commandClass = command.getClass();
-            String rootClass = WdssiiCommand.class.getSimpleName();
-            boolean keepLooking = true;
+        synchronized (myViewLock) {
+            Collection<WdssiiView> c = myNamedViews.values();
+            for (WdssiiView v : c) {
+                Class<?> theClass = v.getClass();
+                Class<?> commandClass = command.getClass();
+                String rootClass = WdssiiCommand.class.getSimpleName();
+                boolean keepLooking = true;
 
-            // Keep looking up the subclass tree until we get to WdssiiCommand
-            while (keepLooking) {
-                keepLooking = false;
+                // Keep looking up the subclass tree until we get to WdssiiCommand
+                while (keepLooking) {
+                    keepLooking = false;
 
-                // If current parameter is not WdssiiCommand, keep looking for methods...
-                String currentName = commandClass.getSimpleName();
-                if (!currentName.equalsIgnoreCase(rootClass)) {
-                    keepLooking = true;
-                }
-
-                try {
-                    // We will only accept a method with the command as a parameter, reducing the risk
-                    // of any 'accidents' of name coincidence
-                    String methodName = currentName + "Update";
-                    Method test = theClass.getMethod(methodName, commandClass);
-                    keepLooking = false;  // We found a method, so don't look anymore
-                    try {
-                        test.invoke(v, command);
-                    } catch (IllegalArgumentException e) {  // We keep looking if arguments are wrong
-                        // Maybe tell programmer the arguments are wrong?
-                        log.warn("Warning.  Found method " + methodName + " in " + currentName + ", but expected same class name.");
-                    } catch (IllegalAccessException e) {	// We keep looking if we don't have access
-                        // Maybe tell programmer the access is wrong?
-                        log.warn("Warning.  Found method " + methodName + " in " + currentName + ", but access is not public.");
-                    } catch (InvocationTargetException e) {  // This is caused by something in your code
-                        log.warn("Warning.  Unhandled exception in method '" + methodName + "' in " + theClass.getSimpleName());
-                        log.warn("Exception is " + e.toString());
-                        log.warn("This is a bug and needs to be fixed.  GUI will likely act strangely");
+                    // If current parameter is not WdssiiCommand, keep looking for methods...
+                    String currentName = commandClass.getSimpleName();
+                    if (!currentName.equalsIgnoreCase(rootClass)) {
+                        keepLooking = true;
                     }
-                } catch (SecurityException e) {
-                } catch (NoSuchMethodException e) {
-                    // Move up until we find the WdssiiCommand superclass.
-                    commandClass = commandClass.getSuperclass();
+
+                    try {
+                        // We will only accept a method with the command as a parameter, reducing the risk
+                        // of any 'accidents' of name coincidence
+                        String methodName = currentName + "Update";
+                        Method test = theClass.getMethod(methodName, commandClass);
+                        keepLooking = false;  // We found a method, so don't look anymore
+                        try {
+                            test.invoke(v, command);
+                        } catch (IllegalArgumentException e) {  // We keep looking if arguments are wrong
+                            // Maybe tell programmer the arguments are wrong?
+                            log.warn("Warning.  Found method " + methodName + " in " + currentName + ", but expected same class name.");
+                        } catch (IllegalAccessException e) {	// We keep looking if we don't have access
+                            // Maybe tell programmer the access is wrong?
+                            log.warn("Warning.  Found method " + methodName + " in " + currentName + ", but access is not public.");
+                        } catch (InvocationTargetException e) {  // This is caused by something in your code
+                            log.warn("Warning.  Unhandled exception in method '" + methodName + "' in " + theClass.getSimpleName());
+                            log.warn("Exception is " + e.toString());
+                            log.warn("This is a bug and needs to be fixed.  GUI will likely act strangely");
+                        }
+                    } catch (SecurityException e) {
+                    } catch (NoSuchMethodException e) {
+                        // Move up until we find the WdssiiCommand superclass.
+                        commandClass = commandClass.getSuperclass();
+                    }
                 }
             }
         }

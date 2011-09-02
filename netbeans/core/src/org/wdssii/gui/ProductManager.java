@@ -27,7 +27,7 @@ import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.xml.Tag_colorDatabase;
-import org.wdssii.xml.Tag_colorDatabase.Tag_colorDef;
+import org.wdssii.xml.Tag_colorDef;
 
 /**
  * --Maintains a set of color maps by product name (color map cache FIXME: Move to generic cache)

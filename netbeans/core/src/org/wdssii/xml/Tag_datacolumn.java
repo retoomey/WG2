@@ -59,6 +59,7 @@ public class Tag_datacolumn extends Tag {
         return "datacolumn";
     }
 
+    /*
     @Override
     public void handleAttribute(String n, String value) {
         if ("name".equals(n)) {
@@ -67,7 +68,7 @@ public class Tag_datacolumn extends Tag {
             units = value;
         }
     }
-
+*/
     @Override
     public void processChildren(XMLStreamReader p) {
          // If we have a colorDef tag, process it and add to list...

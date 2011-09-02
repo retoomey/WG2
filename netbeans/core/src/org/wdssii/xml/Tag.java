@@ -2,6 +2,7 @@ package org.wdssii.xml;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.reflect.Field;
 import java.util.Map;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
@@ -197,9 +198,48 @@ public abstract class Tag {
     public void processChildren(XMLStreamReader p) {
     }
 
-    /** Snag the attributes from a tag we want to use */
+    /** Handle attributes by reflection.
+     *  It looks for a matching field name exactly matching the xml attribute
+     *  tag.  The type of the field is used to parse the xml string.
+     * 
+     * @param n
+     * @param value 
+     */
     public void handleAttribute(String name, String value) {
-        // Could just push into map.  Fields for now...nice to auto
-        // have type info.
+
+        try {
+            Class<?> c = this.getClass();
+            Field f = c.getDeclaredField(name);
+            String theType = f.getType().getName();
+
+            // Handle 'boolean' field type
+            if (theType.equals("boolean")) {
+                boolean flag = false;
+                if (value.equals("yes")) { // todo other types of text
+                    flag = true;
+                }
+                f.setBoolean(this, flag);
+                
+            // Handle 'int' field type
+            } else if (theType.equals("int")) {
+                try {
+                    f.setInt(this, Integer.parseInt(value));
+                } catch (NumberFormatException e) {
+                    // Could warn....
+                }
+            } else {
+                // Handle 'string' type by default (or exception)
+                f.set(this, value);
+            }
+        } catch (NoSuchFieldException x) {
+            // Store generically in a map<String, String> if no field exists?
+            // Not sure I like this since it could let developer avoid using
+            // types.  We end up with code like:
+            // String stuff = getStuff("tagname");
+            // int i = Integer.parse(stuff);
+            // error, error, etc...
+        } catch (IllegalAccessException x) {
+            // warn...
+        }
     }
 }

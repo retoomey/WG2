@@ -33,13 +33,14 @@ public class Tag_datatype extends Tag {
     /** a map from name to units, usually the same size as the name map */
     public Map<String, String> attrUnits = new TreeMap<String, String>();
 
+    /*
     @Override
     public void handleAttribute(String n, String value) {
         if ("name".equals(n)) {
             name = value;
         }
     }
-
+*/
     /** Process all child tabs within our tag */
     @Override
     public void processChildren(XMLStreamReader p) {

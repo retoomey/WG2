@@ -13,7 +13,6 @@ import org.wdssii.gui.commands.WdssiiCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.views.CacheView;
-import org.wdssii.gui.views.EarthBallView;
 import org.wdssii.gui.views.LLHAreaView;
 import org.wdssii.gui.views.SourceManagerView;
 import org.wdssii.gui.views.TableProductView;
@@ -22,6 +21,7 @@ import org.wdssii.index.IndexRecord;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.event.SelectEvent;
 import gov.nasa.worldwind.layers.LayerList;
+import org.wdssii.gui.views.WorldWindView;
 
 /**
  * ActionListeners are similar to a peer-to-peer network, this is a central
@@ -171,15 +171,15 @@ public class CommandManager implements Singleton {
         return myVisualCollection;
     }
 
-    public EarthBallView getEarthBall() {
-        return ((EarthBallView) getNamedViewed(EarthBallView.ID));
+    public WorldWindView getEarthBall() {
+        return ((WorldWindView) getNamedViewed(WorldWindView.ID));
     }
 
     // / Used by the Layers view to get the list of global worldwind layers from
     // the primary window
     public LayerList getLayerList() {
         LayerList list;
-        EarthBallView v = getEarthBall();
+        WorldWindView v = getEarthBall();
         if (v != null) {
             list = v.getLayerList();
         } else {

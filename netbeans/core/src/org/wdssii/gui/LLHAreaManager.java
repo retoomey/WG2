@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.wdssii.gui.views.EarthBallView;
-import org.wdssii.gui.views.WdssiiView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHArea.LLHAreaMemento;
 import org.wdssii.gui.volumes.LLHAreaBoxFactory;
@@ -27,6 +25,7 @@ import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.Material;
 import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
 import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
+import org.wdssii.gui.views.WorldWindView;
 
 /** This manager holds onto a collection of LLHArea objects in the display.  These are the physical slices, boxes, sticks
  * that are used by the volumeViewer and the chartViewer to draw their stuff.  The objects by themselves are just
@@ -255,11 +254,11 @@ public class LLHAreaManager implements Singleton {
     private LLHAreaLayer getVolumeLayer() {
         LLHAreaLayer world = null;
 
-        WdssiiView view = CommandManager.getInstance().getNamedViewed(EarthBallView.ID);
-        if (view instanceof EarthBallView) {
-            EarthBallView earth = (EarthBallView) (view);
-            world = earth.getVolumeLayer();
+        WorldWindView v = CommandManager.getInstance().getEarthBall();
+        if (v != null){
+            world = v.getVolumeLayer();
         }
+  
         return world;
     }
 
@@ -267,11 +266,11 @@ public class LLHAreaManager implements Singleton {
     private WorldWindow getWorld() {
         WorldWindow world = null;
 
-        WdssiiView view = CommandManager.getInstance().getNamedViewed(EarthBallView.ID);
-        if (view instanceof EarthBallView) {
-            EarthBallView earth = (EarthBallView) (view);
-            world = earth.getWwd();
+        WorldWindView v = CommandManager.getInstance().getEarthBall();
+        if (v != null){
+            world = v.getWwd();
         }
+ 
         return world;
     }
 

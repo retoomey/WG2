@@ -14,7 +14,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import com.sun.opengl.util.j2d.TextRenderer;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.views.EarthBallView;
+import org.wdssii.gui.views.WorldWindView;
 
 public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
     // private double toViewportScale = 0.2;
@@ -428,7 +428,7 @@ public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
 
         // Ok NOW REnder the hack in 3d space
         if (!dc.isPickingMode()) {
-            EarthBallView v = CommandManager.getInstance().getEarthBall();
+            WorldWindView v = CommandManager.getInstance().getEarthBall();
             if (v != null) {
                 //System.out.println("Drawing product outline "+counter++);
                 v.DrawProductOutline(dc);

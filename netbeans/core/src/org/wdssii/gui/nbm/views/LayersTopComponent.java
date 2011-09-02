@@ -12,9 +12,6 @@ import java.util.Comparator;
 import javax.swing.JCheckBox;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.UIManager;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
@@ -109,7 +106,7 @@ public final class LayersTopComponent extends TopComponent {
     /** We have a custom model that stores a single LayerTableEntry
      * for each row of the table
      */
-    private static class LayerTableModel extends RowEntryTableModel {
+    private static class LayerTableModel extends RowEntryTableModel<LayerTableEntry> {
 
         private static final int COL_VISIBLE = 0;
         private static final int COL_LAYER_NAME = 1;

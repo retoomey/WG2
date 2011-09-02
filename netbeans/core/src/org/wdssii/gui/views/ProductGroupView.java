@@ -46,7 +46,7 @@ public class ProductGroupView extends JPanel {
         public String keyName;
     }
 
-    private class DataGroupTableModel extends RowEntryTableModel {
+    private class DataGroupTableModel extends RowEntryTableModel<DataGroupTableData> {
 
         public static final int GROUP_NAME = 0;
         private boolean isRebuilding = false;

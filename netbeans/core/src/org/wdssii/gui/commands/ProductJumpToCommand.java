@@ -1,10 +1,9 @@
 package org.wdssii.gui.commands;
 
 import org.wdssii.geom.Location;
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductButtonStatus;
-import org.wdssii.gui.views.EarthBallView;
+import org.wdssii.gui.views.WorldWindView;
 
 /** Command called by the 'jump' button in the navigator 
  * 
@@ -12,17 +11,17 @@ import org.wdssii.gui.views.EarthBallView;
  *
  */
 public class ProductJumpToCommand extends ProductCommand {
-       
+
     @Override
     public boolean execute() {
         Product p = getOurProduct();
         if (p != null) {
             Location loc = p.getBaseLocation();
-            // bleh bleh bleh jump to location
-            System.out.println("Jumping to location " + loc);
-            EarthBallView e = CommandManager.getInstance().getEarthBall();
-            if (e != null) {
-                e.gotoLocation(loc);
+            if (myWdssiiView != null) {
+                if (myWdssiiView instanceof WorldWindView) {
+                    WorldWindView e = (WorldWindView) (myWdssiiView);
+                    e.gotoLocation(loc);
+                }
             }
         }
         return false;

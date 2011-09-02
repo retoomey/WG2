@@ -59,13 +59,14 @@ public class Tag_stref extends Tag {
     /** <stref name=> */
     public String name;
 
+    /*
     @Override
     public void handleAttribute(String n, String value) {
         if ("name".equals(n)) {
             name = value;
         }
     }
-
+*/
     /** Called within a parsing loop */
     @Override
     public void processChildren(XMLStreamReader p) {

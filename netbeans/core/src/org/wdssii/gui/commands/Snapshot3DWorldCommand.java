@@ -2,7 +2,7 @@ package org.wdssii.gui.commands;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wdssii.gui.views.EarthBallView;
+import org.wdssii.gui.views.WorldWindView;
 
 /** Called by name from WdssiiDynamic */
 public class Snapshot3DWorldCommand extends WdssiiCommand {
@@ -14,8 +14,8 @@ public class Snapshot3DWorldCommand extends WdssiiCommand {
     public boolean execute() {
 
         if (myWdssiiView != null) {
-            if (myWdssiiView instanceof EarthBallView) {
-                EarthBallView e = (EarthBallView) (myWdssiiView);
+            if (myWdssiiView instanceof WorldWindView) {
+                WorldWindView e = (WorldWindView) (myWdssiiView);
                 e.takeDialogSnapshot();
             }
         }

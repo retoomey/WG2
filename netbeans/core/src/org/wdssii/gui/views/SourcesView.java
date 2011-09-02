@@ -126,7 +126,7 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
     }
 
     /** A class that uses a BookmarkURLData as its model */
-    private class BookmarkURLDataTableModel extends RowEntryTableModel {
+    private class BookmarkURLDataTableModel extends RowEntryTableModel<BookmarkURLSource> {
 
         // FIXME: should be an enum class probably...
         public static final int BOOK_NAME = 0;
@@ -260,10 +260,8 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
         }
 
         @Override
-        public String getKeyField(Object data) {
-            // From generic, so it better match
-            BookmarkURLSource s = (BookmarkURLSource) (data);
-            return s.name;
+        public String getKeyField(BookmarkURLSource data) {
+            return data.name;
         }
     }
 
@@ -736,7 +734,7 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
             int row = jSourceListTable.getSelectedRow();
 
             if (myModel != null) {
-                BookmarkURLSource s = (BookmarkURLSource) (myModel.getDataForRow(row));
+                BookmarkURLSource s = myModel.getDataForRow(row);
                 if (s != null) {
                     jNameTextField.setText(s.name);
                     jURLTextField.setText(s.path);

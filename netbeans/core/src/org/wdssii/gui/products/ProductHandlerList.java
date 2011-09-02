@@ -19,7 +19,7 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.CommandManager.NavigationAction;
 import org.wdssii.gui.CommandManager.NavigationMessage;
-import org.wdssii.gui.views.EarthBallView;
+import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
 
@@ -371,7 +371,7 @@ public class ProductHandlerList {
                 //Position p = event.getPosition();
                 Point point = event.getScreenPoint();
                 readout = String.format("(%d, %d)", point.x, point.y);
-                EarthBallView earth = CommandManager.getInstance().getEarthBall();
+                WorldWindView earth = CommandManager.getInstance().getEarthBall();
                 if (earth != null) {
                     earth.getColor(point.x, point.y);
                 }

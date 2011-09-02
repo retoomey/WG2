@@ -102,7 +102,7 @@ public class NavView extends JThreadPanel implements WdssiiView {
         public String message;
     }
 
-    private class ProductsListTableModel extends RowEntryTableModel {
+    private class ProductsListTableModel extends RowEntryTableModel<ProductsTableData> {
 
         // FIXME: should be an enum class probably...
         public static final int NAV_VISIBLE = 0;
@@ -684,7 +684,7 @@ public class NavView extends JThreadPanel implements WdssiiView {
         if (row > -1) {
             int dataRow = jProductsListTable.convertRowIndexToModel(row);
             if (myProductsListTableModel != null) {
-                ProductsTableData d = (ProductsTableData) (myProductsListTableModel.getDataForRow(dataRow));
+                ProductsTableData d = myProductsListTableModel.getDataForRow(dataRow);
                 if (d != null) {
                     ProductSelectCommand c = new ProductSelectCommand(d.keyName);
                     CommandManager.getInstance().executeCommand(c, true);

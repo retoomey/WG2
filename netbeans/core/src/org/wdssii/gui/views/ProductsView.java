@@ -154,7 +154,7 @@ public class ProductsView extends JThreadPanel implements WdssiiView {
     }
 
     /** Table model to handle the Sources list */
-    private class SourceListTableModel extends RowEntryTableModel {
+    private class SourceListTableModel extends RowEntryTableModel<SourceTableData> {
 
         public static final int SOURCE_STATUS = 0;
         public static final int SOURCE_NAME = 1;
@@ -642,7 +642,7 @@ public class ProductsView extends JThreadPanel implements WdssiiView {
         int row = jSourceListTable.getSelectedRow();
         if (mySourceListTableModel != null) {
             //   SourceTableData d = mySourceListTableModel.getSourceTableDataForRow(row);
-            SourceTableData d = (SourceTableData) (mySourceListTableModel.getDataForRow(row));
+            SourceTableData d = mySourceListTableModel.getDataForRow(row);
             if (d != null) {
                 setSourceIndexSelection(d.indexKey);
             }

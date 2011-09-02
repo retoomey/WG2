@@ -12,7 +12,7 @@ import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.swing.SimpleTable.SimpleTableModel;
-import org.wdssii.gui.views.EarthBallView;
+import org.wdssii.gui.views.WorldWindView;
 
 /**
  * Links a Table2DView product to a SimpleTableModel
@@ -148,7 +148,9 @@ public class ProductTableModel extends SimpleTableModel {
 
     @Override
     public void handleScrollAdjust(AdjustmentEvent e) {
-        EarthBallView v = CommandManager.getInstance().getEarthBall();
-        v.updateOnMinTime();
+        WorldWindView v = CommandManager.getInstance().getEarthBall();
+        if (v != null){
+            v.updateOnMinTime();
+        }
     }
 }

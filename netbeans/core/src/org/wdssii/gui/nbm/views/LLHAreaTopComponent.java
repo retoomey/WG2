@@ -91,7 +91,7 @@ public final class LLHAreaTopComponent extends ThreadedTopComponent implements L
         public String message;
     }
 
-    private class Object3DListTableModel extends RowEntryTableModel {
+    private class Object3DListTableModel extends RowEntryTableModel<Objects3DTableData> {
 
         public static final int OBJ_VISIBLE = 0;
         public static final int OBJ_ONLY = 1;

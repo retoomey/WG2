@@ -1,18 +1,11 @@
 package org.wdssii.gui.nbm.views;
 
-import javax.swing.JScrollPane;
+import net.miginfocom.swing.MigLayout;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
-import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.GridVisibleArea;
-import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.commands.ProductCommand;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.swing.ProductTableModel;
-import org.wdssii.gui.swing.SimpleTable;
 import org.wdssii.gui.views.TableProductView;
 
 /**
@@ -30,62 +23,21 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_DataTableAction",
 preferredID = "DataTableTopComponent")
-public final class DataTableTopComponent extends ThreadedTopComponent implements TableProductView {
+public final class DataTableTopComponent extends TopComponent {
 
-    // ----------------------------------------------------------------
-    // Reflection called updates from CommandManager.
-    // See CommandManager execute and gui updating for how this works
-    // When sources or products change, update the navigation controls
-    public void ProductCommandUpdate(ProductCommand command) {
-        updateGUI(command);
-    }
-   
-    @Override
-    public void updateInSwingThread(Object command) {
-      updateDataTable();
-    }
-        
-    private ProductTableModel myTableModel;
-    private SimpleTable jProductDataTable;
-
-    @Override
-    public GridVisibleArea getVisibleGrid() {
-       GridVisibleArea a = null;
-       if (myTableModel != null){
-           return myTableModel.getCurrentVisibleGrid();
-       }
-       return null;
-    }
-
+    private TableProductView myPanel;
+      
     public DataTableTopComponent() {
-        initComponents();
-        initTable();
-        updateDataTable();
-       // setIcon(SwingIconFactory.getImageByName("DownArrowIcon"));
-        CommandManager.getInstance().registerView(TableProductView.ID, this);
+      //  initComponents();
+        
+        setLayout(new MigLayout("fill, inset 0", "", ""));
+        myPanel = new TableProductView();
+        add(myPanel, "grow");
+        
         setName(NbBundle.getMessage(DataTableTopComponent.class, "CTL_DataTableTopComponent"));
         setToolTipText(NbBundle.getMessage(DataTableTopComponent.class, "HINT_DataTableTopComponent"));
-
     }
 
-    public void initTable(){
-        myTableModel = new ProductTableModel();
-        jProductDataTable = new SimpleTable(jDataTableScrollPane, 100,100);
-        jProductDataTable.setupScrollPane(jDataTableScrollPane);
-        jProductDataTable.setModel(myTableModel);
-        jDataTableScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        jDataTableScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-    }
-    
-    public void updateDataTable(){
-       Product p =  ProductManager.getInstance().getTopProduct();
-       if (myTableModel != null){
-           myTableModel.setProduct(p);
-           jProductDataTable.revalidate();
-           jProductDataTable.repaint();
-       }
-    }
-    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -93,15 +45,9 @@ public final class DataTableTopComponent extends ThreadedTopComponent implements
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
-        jDataTableScrollPane = new javax.swing.JScrollPane();
-
-        setLayout(new java.awt.BorderLayout());
-        add(jDataTableScrollPane, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane jDataTableScrollPane;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {

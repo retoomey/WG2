@@ -39,12 +39,12 @@ import org.wdssii.gui.worldwind.ReadoutStatusBar;
  * @author Robert Toomey
  */
 public class WorldWindView extends JThreadPanel implements WdssiiView {
+
     public static final String ID = "worldwind";
-    
+
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
-
     // Typically ANY command dealing with data will require us to refresh
     // our world view. (Data commands consist of Product movement,
     // Source add/delete, etc...)
@@ -343,3 +343,4 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
         return myVolumeLayer;
     }
 }
+

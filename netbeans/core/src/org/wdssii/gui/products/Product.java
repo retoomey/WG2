@@ -329,11 +329,7 @@ public class Product implements LRUCacheItem {
 
     /** Convenience method to get the 2D Table for this Product, if any */
     public Product2DTable get2DTable() {
-        Product2DTable t = (Product2DTable) getHelperObject("2DTable", false, TABLE_CLASSPATH, "");
-        if (t == null) {  // Do a default...for the moment at least....
-            t = new Product2DTable();
-            setHelperClass("2DTable:", t);
-        }
+        Product2DTable t = (Product2DTable) getHelperObject("2DTable", true, TABLE_CLASSPATH, "");
         return t;
     }
 

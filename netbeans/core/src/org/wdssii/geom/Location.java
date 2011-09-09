@@ -24,9 +24,9 @@ public class Location {
 
         // Contours has location objects with height 0
         //if (lat < -90 || lat > 90 || lon < -180 || lon > 180 || ht < -0.01)
-        if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-            throw new IndexOutOfBoundsException("Invalid earth location" + this);
-        }
+       // if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+       //     throw new IndexOutOfBoundsException("Invalid earth location" + this);
+       // }
 
     }
 

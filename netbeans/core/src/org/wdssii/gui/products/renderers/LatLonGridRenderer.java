@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.renderers;
 
 import java.util.ArrayList;
 import java.util.Stack;
@@ -13,6 +13,7 @@ import org.wdssii.geom.Location;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.render.DrawContext;
+import org.wdssii.gui.products.Product;
 
 /** The lat lon grid renderer creates tiles on demand for rendering large scale lat lon grids
  * 

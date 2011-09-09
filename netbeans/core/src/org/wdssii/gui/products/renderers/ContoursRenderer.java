@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.renderers;
 
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Vec4;
@@ -16,6 +16,8 @@ import org.wdssii.datatypes.Contours;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.products.ColorMapFloatOutput;
+import org.wdssii.gui.products.Product;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array1DfloatAsNodes;
 

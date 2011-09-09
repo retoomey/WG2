@@ -27,7 +27,7 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
-import org.wdssii.gui.products.ProductRenderer;
+import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.worldwind.ColorKeyLayer;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.gui.worldwind.ProductLayer;

@@ -23,6 +23,7 @@ import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.core.LRUCache.LRUCacheItem;
 import org.wdssii.gui.products.navigators.ProductNavigator;
+import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.products.volumes.IndexRecordVolume;
 import org.wdssii.gui.products.volumes.ProductVolume;
 
@@ -63,7 +64,7 @@ public class Product implements LRUCacheItem {
     protected ProductHandler myProductHandler = null;
     // Helper class paths.  These are created by name from the DataType, thus
     // a RadialSetNavigator will be created (if there) for a RadialSet, etc.
-    private final String RENDERER_CLASSPATH = "org.wdssii.gui.products";
+    private final String RENDERER_CLASSPATH = "org.wdssii.gui.products.renderers";
     private final String TABLE_CLASSPATH = "org.wdssii.gui.products";
     private final String VOLUME_CLASSPATH = "org.wdssii.gui.products.volumes";
     private final String NAVIGATOR_CLASSPATH = "org.wdssii.gui.products.navigators";

@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.renderers;
 
 import java.awt.Point;
 import javax.media.opengl.GL;
@@ -17,6 +17,8 @@ import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductReadout;
 
 /** ProductRenderer is a helper class of Product.  It draws the DataType in the 3D world
  * 

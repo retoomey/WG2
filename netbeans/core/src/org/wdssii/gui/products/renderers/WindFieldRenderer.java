@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.renderers;
 
 import java.util.ArrayList;
 
@@ -12,6 +12,7 @@ import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.render.DrawContext;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
+import org.wdssii.gui.products.Product;
 
 /** Render wind field tiles.  
  * 

@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.renderers;
 
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.Angle;
@@ -29,6 +29,9 @@ import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataTable;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.RadialSetReadout;
 import org.wdssii.xml.Tag_iconSetConfig;
 
 /** Renders a DataTable in a worldwind window

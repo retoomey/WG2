@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.renderers;
 
 import java.util.ArrayList;
 
@@ -10,6 +10,7 @@ import gov.nasa.worldwind.render.DrawContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
+import org.wdssii.gui.products.Product;
 
 /** A general tile renderer that handles tiling off one of our
  * dynamic 'Product' classes.  Based off the WorldWind classes but simplified

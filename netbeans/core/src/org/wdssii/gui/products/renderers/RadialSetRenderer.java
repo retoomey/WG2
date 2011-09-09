@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.renderers;
 
 import java.awt.Point;
 import java.nio.ByteBuffer;
@@ -28,6 +28,11 @@ import org.wdssii.util.RadialUtil;
 import com.sun.opengl.util.BufferUtil;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
+import org.wdssii.gui.products.ColorMapFloatOutput;
+import org.wdssii.gui.products.FilterList;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.RadialSetReadout;
 
 /** Renders a RadialSet
  * 

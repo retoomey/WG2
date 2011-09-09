@@ -1,4 +1,4 @@
-package org.wdssii.gui.products;
+package org.wdssii.gui.products.renderers;
 
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Extent;
@@ -21,7 +21,9 @@ import org.wdssii.datatypes.WindField;
 import org.wdssii.datatypes.WindField.WindFieldDataPoint;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.products.TileRenderer.Tile;
+import org.wdssii.gui.products.ColorMapFloatOutput;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.renderers.TileRenderer.Tile;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array1DfloatAsNodes;
 

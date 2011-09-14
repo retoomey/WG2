@@ -14,8 +14,11 @@ import gov.nasa.worldwind.render.GlobeAnnotation;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import javax.media.opengl.GL;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,11 +27,11 @@ import org.openide.util.Exceptions;
 import org.wdssii.core.W2Config;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.storage.Array1Dfloat;
 
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataTable;
+import org.wdssii.datatypes.DataTable.Column;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.RadialSetReadout;
@@ -41,7 +44,7 @@ import org.wdssii.xml.Tag_iconSetConfig;
  */
 public class DataTableRenderer extends ProductRenderer {
 
-    private ArrayList<IconAnnotation> myIcons = new ArrayList<IconAnnotation>();
+    private ArrayList<GlobeAnnotation> myIcons = new ArrayList<GlobeAnnotation>();
     
     private static Log log = LogFactory.getLog(DataTableRenderer.class);
 
@@ -56,18 +59,38 @@ public class DataTableRenderer extends ProductRenderer {
         DataTable aDataTable = (DataTable) aProduct.getRawDataType();
         monitor.beginTask("DataTableRenderer:", aDataTable.getNumRows());
         
-        // Ok for the moment get the icon configuration file here.
-        // We might actually read this into the DataType before this point.
-        // Probably should NOT do the xml here..
-        File test = W2Config.getFile("/icons/MergerInputRadarsTable");
         Tag_iconSetConfig tag = new Tag_iconSetConfig();
-        tag.processAsRoot(test);
-        
+        try {
+            // Ok for the moment get the icon configuration file here.
+            // We might actually read this into the DataType before this point.
+            // Probably should NOT do the xml here..
+            URL u = new URL("http://tensor.protect.nssl/cgi-bin/viewcvs.cgi/cvs/w2/w2config/icons/MergerInputRadarsTable?view=co");
+             tag.processAsRoot(u);
+        } catch (MalformedURLException ex) {
+           // Exceptions.printStackTrace(ex);
+        }
+       // File test = W2Config.getFile("/icons/MergerInputRadarsTable");
+              
+        // Do we have a column with name.  Nulls are ok here
+        String m = tag.polyText.text.textField;
+        Column aColumn = aDataTable.getColumnByName(m);
+        Iterator<String> iter = null;
+        if (aColumn != null){
+            iter = aColumn.getIterator();
+        }
         // Create an icon per row in table..using the icon configuration
         ArrayList<Location> loc = aDataTable.getLocations();
         int i = 1;
         for(Location l:loc){
-            addIcon(l);
+            if (aColumn != null){
+                // FIXME: concurrent modification.  Strange thought I called
+                // createFromDatatype only after DataType fully read...
+                // what's up here?
+               String s = iter.next();
+               addIcon(l, s);
+            }else{
+               addIcon(l, m);
+            }
             monitor.subTask("Icon "+i++);
         }
         /*
@@ -103,33 +126,35 @@ public class DataTableRenderer extends ProductRenderer {
      *            Draw context in opengl for drawing our radial set
      */
     public void drawData(DrawContext dc, boolean readoutMode) {
-        for(IconAnnotation a:myIcons){
+        for(GlobeAnnotation a:myIcons){
             a.render(dc);
         }
     }
     
-    public void addIcon(Location loc){
+    public void addIcon(Location loc, String text){
         
         // try to add something....
         AnnotationAttributes eqAttributes;
 
         // Init default attributes for all eq
         eqAttributes = new AnnotationAttributes();
-        eqAttributes.setLeader(AVKey.SHAPE_NONE);
-        eqAttributes.setDrawOffset(new Point(0, -16));
-        eqAttributes.setSize(new Dimension(32, 32));
-        eqAttributes.setBorderWidth(5);
-        eqAttributes.setCornerRadius(0);
-        eqAttributes.setBackgroundColor(new Color(0, 0, 0, 0));
+        eqAttributes.setLeader(AVKey.SHAPE_CIRCLE);
+       // eqAttributes.setDrawOffset(new Point(0, -16));
+      //  eqAttributes.setSize(new Dimension(32, 32));
+     //   eqAttributes.setBorderWidth(5);
+     //   eqAttributes.setCornerRadius(0);
+        eqAttributes.setTextColor(Color.BLUE);
+      //  eqAttributes.setBackgroundColor(new Color(0, 0, 0, 0));
         // ea.getAttributes().setImageSource(eqIcons[Math.min(days, eqIcons.length - 1)]);
         //    ea.getAttributes().setTextColor(eqColors[Math.min(days, eqColors.length - 1)]);
         //    ea.getAttributes().setScale(earthquake.magnitude / 10);
        // eqAttributes.setScale(5);
-        eqAttributes.setTextColor(new Color(255, 0, 0, 0));
+     //   eqAttributes.setTextColor(new Color(255, 0, 0, 0));
         Position p = new Position(new LatLon(
                 Angle.fromDegrees(loc.getLatitude()),
-               Angle.fromDegrees(loc.getLongitude())), loc.getHeightKms());
-        IconAnnotation ea = new IconAnnotation(p, eqAttributes);
+               Angle.fromDegrees(loc.getLongitude())), 0);
+               // loc.getHeightKms());
+       IconAnnotation ea = new IconAnnotation(text, p, eqAttributes);
        myIcons.add(ea);
       //  myProducts.addRenderable(ea);
     }
@@ -152,32 +177,34 @@ public class DataTableRenderer extends ProductRenderer {
     private class IconAnnotation extends GlobeAnnotation {
         // public Earthquake earthquake;
 
-        public Position position;
+   //     public Position position;
 
-        public IconAnnotation(Position p, AnnotationAttributes defaults) {
-            super("", p, defaults);
-            this.position = p;
+        public IconAnnotation(String text, Position p, AnnotationAttributes defaults) {
+            super(text, p, defaults);
+   //         this.position = p;
         }
 
-        protected void applyScreenTransform(DrawContext dc, int x, int y, int width, int height, double scale) {
-            double finalScale = scale * this.computeScale(dc);
+    //    protected void applyScreenTransform(DrawContext dc, int x, int y, int width, int height, double scale) {
+     //       double finalScale = scale * this.computeScale(dc);
 
-            GL gl = dc.getGL();
-            gl.glTranslated(x, y, 0);
-            gl.glScaled(finalScale, finalScale, 1);
-        }
+    //        GL gl = dc.getGL();
+    //        gl.glTranslated(x, y, 0);
+    //        gl.glScaled(finalScale, finalScale, 1);
+    //    }
+        
         // Override annotation drawing for a simple circle
-        private DoubleBuffer shapeBuffer;
+    //    private DoubleBuffer shapeBuffer;
 
-        protected void doDraw(DrawContext dc, int width, int height, double opacity, Position pickPosition) {
+   //     protected void doDraw(DrawContext dc, int width, int height, double opacity, Position pickPosition) {
             // Draw colored circle around screen point - use annotation's text color
-            if (dc.isPickingMode()) {
+    //       super.doDraw(dc, width, width, opacity, position);
+          /*  if (dc.isPickingMode()) {
                 this.bindPickableObject(dc, pickPosition);
             }
 
           //  this.applyColor(dc, this.getAttributes().getTextColor(), 0.6 * opacity, true);
             this.applyColor(dc, new Color(255, 0, 0, 255), 1.0, true);
-            
+         
             // Draw 32x32 shape from its bottom left corner
             int size = 32;
             if (this.shapeBuffer == null) {
@@ -185,7 +212,11 @@ public class DataTableRenderer extends ProductRenderer {
             }
             dc.getGL().glTranslated(-size / 2, -size / 2, 0);
             FrameFactory.drawBuffer(dc, GL.GL_TRIANGLE_FAN, this.shapeBuffer);
-        }
+           * 
+           */
+    //    }
+        
+        
     }
 }
 

@@ -3,6 +3,7 @@ package org.wdssii.gui;
 import gov.nasa.worldwind.event.PositionEvent;
 import java.awt.Color;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
@@ -401,14 +402,10 @@ public class ProductManager implements Singleton {
 
         // Try twice, the file.xml (preferred), and without .xml
         try {
-            colormapXML = W2Config.getFileElement("colormaps/" + name + ".xml");
+            colormapXML = W2Config.getElement("colormaps/" + name);
         } catch (ConfigurationException c) {
-            try {
-                colormapXML = W2Config.getFileElement("colormaps/" + name);
-            } catch (ConfigurationException e) {
-                System.out.println("Unable to load colormap for " + name
+             System.out.println("Unable to load colormap for " + name
                         + ", will generate based on values");
-            }
         }
 
         // Store color map into cache
@@ -486,7 +483,7 @@ public class ProductManager implements Singleton {
         // </products>
         Element productInfoXML = null;
         try {
-            productInfoXML = W2Config.getFileElement("misc/productinfo.xml");
+            productInfoXML = W2Config.getElement("misc/productinfo");
             //	System.out
             //			.println(">>>>>>>>>>>>LOADED THE PRODUCT INFO DATABASE>>>>YAY!!!");
         } catch (ConfigurationException c) {
@@ -551,11 +548,10 @@ public class ProductManager implements Singleton {
     }
 
     public void loadColorDatabase() {
-        File f = null;
-
+        URL aURL = null;
         try {
-            f = W2Config.getFile("colorDatabase.xml");
-            myColorDefs.processAsRoot(f);
+            aURL = W2Config.getURL("colorDatabase.xml");
+            myColorDefs.processAsRoot(aURL);
         } catch (Exception c) {
         }
     }

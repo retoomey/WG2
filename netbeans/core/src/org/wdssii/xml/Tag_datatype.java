@@ -20,12 +20,14 @@ import javax.xml.stream.XMLStreamReader;
  */
 public class Tag_datatype extends Tag {
 
+    // Reflection attributes
+    public String name;
+    
     @Override
     public String tag() {
         return "datatype";
     }
-    /** <datatype name= */
-    public String name;
+
     /** A <stref> tag */
     public Tag_stref stref = new Tag_stref();
     /** A map from name to values */

@@ -1,8 +1,11 @@
 package org.wdssii.xml;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.Map;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
@@ -187,6 +190,22 @@ public abstract class Tag {
         try {
             FileInputStream is = new FileInputStream(f);
             XMLStreamReader p = factory.createXMLStreamReader(is);
+            success = processAsRoot(p);
+        } catch (Exception ex) {
+        }
+        return success;
+
+    }
+    
+    /** Process document root from a given URL */
+    public boolean processAsRoot(URL aURL) {
+        boolean success = false;
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        try {
+            BufferedReader in = new BufferedReader(
+                new InputStreamReader(
+                aURL.openStream()));
+            XMLStreamReader p = factory.createXMLStreamReader(in);
             success = processAsRoot(p);
         } catch (Exception ex) {
         }

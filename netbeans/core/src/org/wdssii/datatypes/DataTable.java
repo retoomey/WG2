@@ -1,6 +1,7 @@
 package org.wdssii.datatypes;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.wdssii.geom.Location;
@@ -10,7 +11,7 @@ import org.wdssii.geom.Location;
  *
  */
 public class DataTable extends DataType implements Table2DView {
-
+   
     /** List of locations gathers from the rows of data */
     private ArrayList<Location> myLocations;
         
@@ -109,6 +110,14 @@ public class DataTable extends DataType implements Table2DView {
 
         public List<String> getValues() {
             return values;
+        }
+        
+        public Iterator getIterator(){
+            return values.iterator();
+        }
+        
+        public String getValue(int row){
+            return values.get(row);
         }
 
         public int getNumRows() {

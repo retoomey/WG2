@@ -57,7 +57,7 @@ public class PrototypeFactory<X extends Object> {
     @SuppressWarnings("unchecked")
     public PrototypeFactory(String configpath) {
         try {
-            Element e = W2Config.getFileElement(configpath);
+            Element e = W2Config.getElement(configpath);
             NodeList nodes = e.getElementsByTagName("class");
             for (int i = 0; i < nodes.getLength(); ++i) {
                 Element c = (Element) nodes.item(i);

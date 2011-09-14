@@ -17,6 +17,7 @@ import javax.xml.stream.XMLStreamReader;
  */
 public class Tag_iconSetConfig extends Tag {
 
+    // Reflection attributes
     public boolean track = false;
     public boolean trend = false;
     
@@ -28,22 +29,6 @@ public class Tag_iconSetConfig extends Tag {
         return "iconSetConfig";
     }
     
-    /*
-    @Override
-    public void handleAttribute(String n, String value) {
-        if ("track".equals(n)) { 
-            // FIXME: better error handling here
-            if (value.equalsIgnoreCase("yes")){
-                 track = true;
-            }
-        }else if ("trend".equals(n)){
-            // FIXME: better error handling here
-            if (value.equalsIgnoreCase("yes")){
-                 trend = true;
-            } 
-        }
-    }
-*/
     /** Process all child tabs within our tag */
     @Override
     public void processChildren(XMLStreamReader p) {

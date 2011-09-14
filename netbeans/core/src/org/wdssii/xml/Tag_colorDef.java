@@ -32,26 +32,6 @@ public class Tag_colorDef extends Tag {
         return "colorDef";
     }
 
-    /*
-    @Override
-    public void handleAttribute(String n, String value) {
-    try {
-    if ("name".equals(n)) {
-    name = value;
-    } else if ("r".equals(n)) {
-    r = Integer.parseInt(value);
-    } else if ("g".equals(n)) {
-    g = Integer.parseInt(value);
-    } else if ("b".equals(n)) {
-    b = Integer.parseInt(value);
-    } else if ("a".equals(n)) {
-    a = Integer.parseInt(value);
-    }
-    } catch (NumberFormatException e) {
-    // Could warn....
-    }
-    }
-     */
     // Just pull the "color" info out directly...
     @Override
     public void processChildren(XMLStreamReader p) {

@@ -20,7 +20,7 @@ public class Tag_textConfig extends Tag {
     // Reflection attributes
     public String textField;
     public String dcColumn;
-    public int dcUnit;
+    public String dcUnit;
 
     @Override
     public String tag() {

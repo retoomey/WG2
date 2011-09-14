@@ -54,13 +54,12 @@ public class LLHAreaManager implements Singleton {
         public String message;
     };
     /** The list of volumes in the display */
-    private ArrayList<VolumeTableData> myHandlerList;
+    private ArrayList<VolumeTableData> myHandlerList = new ArrayList<VolumeTableData>();;
     /** The current selected volume */
     private VolumeTableData mySelectedVolume;
 
     @Override
     public void singletonManagerCallback() {
-        myHandlerList = new ArrayList<VolumeTableData>();
     }
 
     /**

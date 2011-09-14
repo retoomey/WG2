@@ -1,7 +1,11 @@
 package org.wdssii.core;
 
 import java.io.File;
-import java.io.InputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,98 +21,173 @@ import org.w3c.dom.Element;
  * This configuration class finds and uses the pertinent configuration
  * information from the WDSS2/w2config directory.
  * 
- * FIXME: gonna have to merge this with my RCP package stuff for it to work
- * correctly -- Robert
+ * Updated to handle URLS and patterns
+ * Configuration format is of the form of URL strings with a replacement
+ * of the string "{1}", etc. with passed in fields.
+ * "http://www.google.com/{1}.xml" with "icons/iconfile1" gives us
+ * "http://www.google.com/icons/iconfile1.xml" as a possible location.
+ * 
+ * We can pull from a cvs repository directly on the fly with a pattern such
+ * as:
+ * "http://tensor.protect.nssl/cgi-bin/viewcvs.cgi/cvs/w2/w2config/{1}?view=co"
  * 
  * @author Lakshman
  */
 public class W2Config {
 
-    private static Log log = LogFactory.getLog(W2Config.class);
-    private static List<String> configDirectories = loadConfigDirectories();
-
-    /** Load an input stream from a path relative to root of the project
-     * For example, passing in "icons/test.png" will
-     * 1.  Find it in the top directory of project: (well find it in classpath)
-     * 	C:/mysourcecode/WJ, C:/mysourcecode/WJ/icons
-     * --> "icons/test.png"
-     * 2.  Find it inside the jar of the plugin.
-     * C:/WJEXPORT/launch.exe, C:/WJEXPORT/plugins/ourplug.jar (icons at top level of jar)
-     * --> "icons/test.png"
-     * 
+    private static final Log log = LogFactory.getLog(W2Config.class);
+    /** List of configuration strings.  These get converted to URLS
+    after macro substitution of characters.
      */
-    public static InputStream streamFromFile(String relativePath) {
-        // We want the 'root' of the plugin or project directory, without a '/'
-        // java appends the package path "org/test/etc/relativePath"
-        InputStream s = W2Config.class.getResourceAsStream("/" + relativePath);
+    private static List<String> configPatterns;
 
-        return s;
+    static {
+        // For testing pulling over web w2config only....
+        boolean useLocal = false;
+        boolean useWeb = true;
+        /*
+         * An environment variable W2_CONFIG_LOCATION $HOME $HOME/w2config,
+         * $HOME/WDSS2/w2/w2config, $HOME/WDSS2/w2config, etc. /etc/w2config
+         */
+        configPatterns = new ArrayList<String>();
+        log.debug("Looking for your w2config locations.");
+        if (useLocal) {
+            String s = System.getenv("W2_CONFIG_LOCATION");
+            if (s != null) {
+                String[] locations = s.split(":");
+                for (String location : locations) {
+                    addDir(location);
+                }
+            }
+            s = System.getProperty("user.home");
+            if (addDir(s)) {
+                addDir(s + "/w2config");
+                addDir(s + "/WDSS2/w2config");
+                addDir(s + "/WDSS2/src/w2/w2config");
+            }
+            addDir("/etc/w2config");
+        }
+        if (useWeb) {
+            // Attempt to get data from web located w2config locations.  We have
+            // a cvs repository, also added stuff to the google project page.
+            addPattern("http://tensor.protect.nssl/cgi-bin/viewcvs.cgi/cvs/w2/w2config/{1}?view=co");
+            addPattern("http://wg2.googlecode.com/hg/netbeans/core/w2config/{1}");
+        }
     }
 
-    private static boolean addDir(String dir, List<String> configDirectories) {
+    /** Add directory as a local directory, iff that directory exists
+     * on the local disk.  The final pattern is of the form "dir+"/{1}"
+     * @param dir
+     * @return 
+     */
+    private static boolean addDir(String dir) {
         if (dir != null) {
-            if (new File(dir).exists()) {
-                configDirectories.add(dir);
-                log.debug("Will search w2config directory: " + dir);
-                return true;
+            File aFile = new File(dir);
+            if (aFile.exists()) {
+                try {
+                    // We need the URL for the file...
+                    URL u = aFile.toURI().toURL();
+                    String path = u.toExternalForm();
+                    if (path.endsWith("/")) {
+                        path = path + "{1}";
+                    } else {
+                        path = path + "/{1}";
+                    }
+                    addPattern(path);
+                    log.debug("Added w2config pattern: " + path);
+                    return true;
+                } catch (MalformedURLException ex) {
+                    // This shouldn't happen if the file exists....
+                }
             }
             log.info("Ignoring " + dir + " -- not there");
         }
         return false;
     }
 
-    private static List<String> loadConfigDirectories() {
-        /*
-         * An environment variable W2_CONFIG_LOCATION $HOME $HOME/w2config,
-         * $HOME/WDSS2/w2/w2config, $HOME/WDSS2/w2config, etc. /etc/w2config
-         */
-        List<String> configDirectories = new ArrayList<String>();
-        log.debug("Looking for your w2config directories.");
-        String s = System.getenv("W2_CONFIG_LOCATION");
-        if (s != null) {
-            String[] locations = s.split(":");
-            for (String location : locations) {
-                addDir(location, configDirectories);
-            }
-        }
-        s = System.getProperty("user.home");
-        if (addDir(s, configDirectories)) {
-            addDir(s + "/w2config", configDirectories);
-            addDir(s + "/WDSS2/w2config", configDirectories);
-            addDir(s + "/WDSS2/src/w2/w2config", configDirectories);
-        }
-        addDir("/etc/w2config", configDirectories);
-        return configDirectories;
+    private static void addPattern(String pattern) {
+        configPatterns.add(pattern);
     }
 
     /**
-     * will search the config directories for the first file that matches the
-     * given filename. can return null.
+     * will search the config directories for the first URL that matches the
+     * given substitution. can return null.
      * 
      * For example, passing colormaps/Reflectivity, you will get a File
      * corresponding to /etc/w2config/colormaps/Reflectivity
      */
-    public static File getFile(String filename) throws ConfigurationException {
-        for (String configDir : configDirectories) {
-            String s = configDir + "/" + filename;
-            File f = new File(s);
-            if (f.exists()) {
-                if (log.isInfoEnabled()) {
-                    log.info("Using config file " + s);
-                }
-                return f;
+    public static URL getURL(String s) {
+        URL aURL = null;
+        for (String p : configPatterns) {
+            String current = p;
+            current = current.replaceFirst("\\{1\\}", s);
+            aURL = tryReadingURL(current);
+            if (aURL != null) {
+                return aURL;
             }
         }
-        String error = "Could not find config file " + filename + " in " + allconfigdirs();
-        log.error(error);
-        throw new ConfigurationException(error);
+        return aURL;
     }
 
-    private static String allconfigdirs() {
+    /** Try reading URL at given location.  For HTTP we read the header
+     * only and check for OK response.  We assume this means it's good and
+     * return this URL for the display to use.  Of course it could fail later,
+     * but that's not our job to check.
+     * 
+     * @param s
+     * @return 
+     */
+    private static URL tryReadingURL(String s) {
+        URL aURL = null;
+        try {
+            aURL = new URL(s);
+            try {
+
+                if (isLocalFile(aURL)) {
+                    // If it's a local URL, then check for existance and read
+                    // of the file.
+                    File aFile = new File(aURL.getFile());
+                    if (!(aFile.exists() && aFile.canRead())) {
+                        aURL = null;
+                    }
+                } else {
+                    // If it's a web URL, then check for non-404 (missing)
+                    // by reading just the html HEAD (cheap)
+                    URLConnection c = aURL.openConnection();
+                    if (c instanceof HttpURLConnection) {
+                        HttpURLConnection h = (HttpURLConnection) (c);
+                        // Don't read all the data at the URL...
+                        h.setRequestMethod("HEAD");
+                        int code = h.getResponseCode();
+                        if (code != HttpURLConnection.HTTP_OK) {
+                            aURL = null;
+                        }
+                    }
+                }
+            } catch (IOException ex) {
+                aURL = null;
+            }
+        } catch (MalformedURLException ex) {
+            aURL = null;
+        }
+        return aURL;
+    }
+
+    public static boolean isLocalFile(URL url) {
+        String scheme = url.getProtocol();
+        return "file".equalsIgnoreCase(scheme) && !hasHost(url);
+    }
+
+    public static boolean hasHost(URL url) {
+        String host = url.getHost();
+        return host != null && !"".equals(host);
+    }
+
+    private static String getAllPatterns() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < configDirectories.size(); ++i) {
-            sb.append(configDirectories.get(i));
-            if (i != configDirectories.size() - 1) {
+        for (int i = 0; i < configPatterns.size(); ++i) {
+            sb.append(configPatterns.get(i));
+            if (i != configPatterns.size() - 1) {
                 sb.append(",");
             }
         }
@@ -117,17 +196,26 @@ public class W2Config {
 
     /**
      * Parse and return the XML Dom element corresponding to a partial file
-     * name.
+     * name.  (SAX)
      * 
      * For example, passing colormaps/Reflectivity, you may get the DOM element
      * from /etc/w2config/colormaps/Reflectivity
      */
-    public static Element getFileElement(String filename)
+    public static Element getElement(String filename)
             throws ConfigurationException {
-        File f = getFile(filename);
+
+        // First try with ".xml" on the end of it...
+        URL u;
+        u = getURL(filename + ".xml");
+        if (u == null) {
+            u = getURL(filename);
+        }
+        if (u == null) {
+            return null;
+        }
         try {
             DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = parser.parse(f);
+            Document doc = parser.parse(u.openStream());
             return doc.getDocumentElement();
         } catch (Exception e) {
             throw new ConfigurationException(e);

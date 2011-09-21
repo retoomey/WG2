@@ -19,19 +19,12 @@ import javax.xml.stream.XMLStreamReader;
  * @author Robert Toomey
  */
 public class Tag_contour extends Tag {
-
-    public final static String TAG = "contour";
     
     /** The <datatype> tag within us */
     public Tag_datatype datatype = new Tag_datatype();
    
     /** The <locationdata> tag within us. */
     public Tag_locationdata locationdata = new Tag_locationdata();
-    
-    @Override
-    public String tag() {
-        return TAG;
-    }
 
     /** Process all child tabs within our tag */
     @Override

@@ -20,19 +20,15 @@ import javax.xml.stream.XMLStreamReader;
 public class Tag_polygonTextConfig extends Tag {
 
     /** A <polygonConfig> tag */
-    public Tag_polygonConfig polygon = new Tag_polygonConfig();
+    public Tag_polygonConfig polygonConfig = new Tag_polygonConfig();
     
     /** A <textConfig> tag */
-    public Tag_textConfig text = new Tag_textConfig();
-    
-    @Override
-    public String tag() {
-        return "polygonTextConfig";
-    }
+    public Tag_textConfig textConfig = new Tag_textConfig();
     
     /** Process all child tabs within our tag */
     @Override
     public void processChildren(XMLStreamReader p) {
-       text.processTag(p);
+       textConfig.processTag(p);
+       polygonConfig.processTag(p);
     }
 }

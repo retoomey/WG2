@@ -45,11 +45,6 @@ public class Tag_contourdata extends Tag {
     
     /** Our array of contours */
     public Tag_array<Tag_contour> array = new Tag_array<Tag_contour>(new TagFactory());
-    
-    @Override
-    public String tag() {
-        return "contourdata";
-    }
  
     @Override
     public void processChildren(XMLStreamReader p) {

@@ -35,11 +35,6 @@ public class Tag_datacolumn extends Tag {
         // Would be nice to have different types to save memory/parsing...
         public String value;
         public boolean valid = false;
-        
-        @Override
-        public String tag() {
-            return "item";
-        }
 
         @Override
         public void handleAttribute(String n, String v) {
@@ -54,21 +49,6 @@ public class Tag_datacolumn extends Tag {
         }
     }
 
-    @Override
-    public String tag() {
-        return "datacolumn";
-    }
-
-    /*
-    @Override
-    public void handleAttribute(String n, String value) {
-        if ("name".equals(n)) {
-            name = value;
-        } else if ("units".equals(n)) {
-            units = value;
-        }
-    }
-*/
     @Override
     public void processChildren(XMLStreamReader p) {
          // If we have a colorDef tag, process it and add to list...

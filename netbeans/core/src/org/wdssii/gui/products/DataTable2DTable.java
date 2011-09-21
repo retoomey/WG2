@@ -1,17 +1,20 @@
 package org.wdssii.gui.products;
 
+import java.util.Comparator;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableRowSorter;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.gui.GridVisibleArea;
-import org.wdssii.gui.swing.ProductTableModel;
-import org.wdssii.gui.swing.SimpleTable;
 
 /**
- *
+ * This sets up the table for a DataTable DataType object.
+ * DataTables have lots of rows, but not too many columns, so we use
+ * a regular swing table.
+ * 
  * @author Robert Toomey
  */
 public class DataTable2DTable extends Product2DTable {
@@ -22,7 +25,7 @@ public class DataTable2DTable extends Product2DTable {
     // has no O(n) column/row stuff.
     private DataTableModel myTableModel;
     private JTable jDataTableSwingTable;
-    
+
     /** Model that wraps around a DataTable */
     private class DataTableModel extends AbstractTableModel {
 
@@ -55,7 +58,7 @@ public class DataTable2DTable extends Product2DTable {
         @Override
         public String getColumnName(int column) {
             if (myDataTable != null) {
-                return  myDataTable.getColHeader(column);
+                return myDataTable.getColHeader(column);
             }
             return null;
         }
@@ -89,22 +92,28 @@ public class DataTable2DTable extends Product2DTable {
         DataType dt = p.getRawDataType();
         // Should always be true.  Can't create DataTable2DTable by reflection
         // without DataTable being loaded.
-        if (dt instanceof DataTable){ 
-            DataTable data = (DataTable)(dt);
-        
+        if (dt instanceof DataTable) {
+            DataTable data = (DataTable) (dt);
+
             // Default is to make a virtual table..
             myTableModel = new DataTableModel(data);
-                        //myTableModel.setDataTable(data);
-
             jDataTableSwingTable = new JTable();
-            //jDataTableSwingTable.setupScrollPane(scrollPane);
             jDataTableSwingTable.setModel(myTableModel);
+            setUpSortingColumns();
             scrollPane.setViewportView(jDataTableSwingTable);
             scrollPane.revalidate();
             scrollPane.repaint();
-            //jProductDataTable.revalidate();
-            // jProductDataTable.repaint();
         }
+    }
+
+    /** Set up sorting columns if wanted */
+    private void setUpSortingColumns() {
+
+        /** Set the sorters for each column */
+        TableRowSorter<DataTableModel> sorter =
+                new TableRowSorter<DataTableModel>(myTableModel);
+        jDataTableSwingTable.setRowSorter(sorter);
+
     }
 
     /** Return a visible grid.  This is used to draw the outline of the

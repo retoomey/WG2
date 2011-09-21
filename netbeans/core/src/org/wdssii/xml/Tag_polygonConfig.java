@@ -1,7 +1,5 @@
 package org.wdssii.xml;
 
-import javax.xml.stream.XMLStreamReader;
-
 /**
  *  Tag which has the following format:
  * 
@@ -17,9 +15,16 @@ import javax.xml.stream.XMLStreamReader;
  */
 public class Tag_polygonConfig extends Tag {
 
-    @Override
-    public String tag() {
-        return "polygonConfig";
-    }
+    /** Number of vertices */
+    public int numVertices = 4;
+    
+    /** Phase angle of polygon */
+    public int phaseAngle = 0;
+    
+    public String dcColumn;
+    
+    public String dcUnit;
+    
+    // FIXME: this contains a colorMap tag...or colorDatabase?
     
 }

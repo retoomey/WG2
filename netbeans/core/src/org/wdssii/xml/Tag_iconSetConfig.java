@@ -22,16 +22,11 @@ public class Tag_iconSetConfig extends Tag {
     public boolean trend = false;
     
     /** A <polygonTextConfig> tag */
-    public Tag_polygonTextConfig polyText = new Tag_polygonTextConfig();
-    
-    @Override
-    public String tag() {
-        return "iconSetConfig";
-    }
+    public Tag_polygonTextConfig polygonTextConfig = new Tag_polygonTextConfig();
     
     /** Process all child tabs within our tag */
     @Override
     public void processChildren(XMLStreamReader p) {
-        polyText.processTag(p);
+        polygonTextConfig.processTag(p);
     }
 }

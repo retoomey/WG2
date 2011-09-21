@@ -48,11 +48,6 @@ public class Tag_locationdata extends Tag {
     public Tag_array<Location> array = new Tag_array<Location>(new TagFactory());
 
     @Override
-    public String tag() {
-        return "locationdata";
-    }
-
-    @Override
     public void processChildren(XMLStreamReader p) {
         array.processTag(p);
     }

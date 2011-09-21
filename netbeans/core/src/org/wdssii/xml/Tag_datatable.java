@@ -18,10 +18,6 @@ import javax.xml.stream.XMLStreamReader;
  */
 public class Tag_datatable extends Tag {
 
-    @Override
-    public String tag() {
-        return "datatable";
-    }
     /** The <datatype> tag within us */
     public Tag_datatype datatype = new Tag_datatype();
     /** The <data> tag within us */

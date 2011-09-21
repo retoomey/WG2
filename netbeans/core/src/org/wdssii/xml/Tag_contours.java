@@ -17,11 +17,6 @@ import javax.xml.stream.XMLStreamReader;
  * @author Robert Toomey
  */
 public class Tag_contours extends Tag {
-
-    @Override
-    public String tag() {
-        return "contours";
-    }
     
     /** The <datatype> tag within us */
     public Tag_datatype datatype = new Tag_datatype();

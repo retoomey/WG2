@@ -12,7 +12,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import org.openide.util.Exceptions;
 
 /**
  * Tag is an html Tag object that handles a Stax parsing stream.
@@ -26,7 +25,23 @@ import org.openide.util.Exceptions;
  */
 public abstract class Tag {
 
-    public abstract String tag();
+    private String cacheTagName;
+    private boolean haveTag = false;
+
+    /* Default tag method returns the part of the classname
+     * without the "Tag_" part.  This is why this class is abstract.
+     */
+    public final String tag() {
+        if (!haveTag) {
+            Class<?> c = this.getClass();
+            String s = c.getSimpleName();
+            s = s.replaceAll("Tag_", "");
+            // FIXME: how to check for errors here?
+            cacheTagName = s;
+            haveTag = true;
+        }
+        return cacheTagName;
+    }
 
     /** Utility function to check for a new start tag */
     protected static String haveStartTag(XMLStreamReader p) {
@@ -196,15 +211,15 @@ public abstract class Tag {
         return success;
 
     }
-    
+
     /** Process document root from a given URL */
     public boolean processAsRoot(URL aURL) {
         boolean success = false;
         XMLInputFactory factory = XMLInputFactory.newInstance();
         try {
             BufferedReader in = new BufferedReader(
-                new InputStreamReader(
-                aURL.openStream()));
+                    new InputStreamReader(
+                    aURL.openStream()));
             XMLStreamReader p = factory.createXMLStreamReader(in);
             success = processAsRoot(p);
         } catch (Exception ex) {
@@ -238,8 +253,8 @@ public abstract class Tag {
                     flag = true;
                 }
                 f.setBoolean(this, flag);
-                
-            // Handle 'int' field type
+
+                // Handle 'int' field type
             } else if (theType.equals("int")) {
                 try {
                     f.setInt(this, Integer.parseInt(value));

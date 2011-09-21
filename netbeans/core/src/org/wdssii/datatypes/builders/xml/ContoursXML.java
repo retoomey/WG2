@@ -29,16 +29,10 @@ import org.wdssii.xml.Tag_datatype;
  */
 public class ContoursXML extends DataTypeXML {
 
-    protected final String XML_CONTOURDATA = "contourdata";
-    protected final String XML_CONTOUR = "contour";
-    protected final String XML_ARRAY = "array";
-    protected final String XML_LOCATIONDATA = "locationdata";
-
-    /** A class that reads a <contourdata> tag from a file */
-    public static class Tag_contourdata extends Tag {
-        @Override
-        public String tag(){ return "contourdata"; }
-    }
+   // protected final String XML_CONTOURDATA = "contourdata";
+   // protected final String XML_CONTOUR = "contour";
+   // protected final String XML_ARRAY = "array";
+   // protected final String XML_LOCATIONDATA = "locationdata";
     
     /** Initialize a data table from an XMLStreamReader 
      * @throws XMLStreamException

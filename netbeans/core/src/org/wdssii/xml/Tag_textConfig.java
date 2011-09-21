@@ -21,11 +21,6 @@ public class Tag_textConfig extends Tag {
     public String textField;
     public String dcColumn;
     public String dcUnit;
-
-    @Override
-    public String tag() {
-        return "textConfig";
-    }
     
     /** Process all child tabs within our tag */
     @Override

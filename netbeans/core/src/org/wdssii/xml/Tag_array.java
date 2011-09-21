@@ -23,18 +23,12 @@ public class Tag_array<T> extends Tag {
         public abstract Object make();
         public abstract boolean processTag(Object o, XMLStreamReader p);
     }
-    public final static String TAG = "array";
     
     /** The stuff */
     public ArrayList<T> data = new ArrayList<T>();
     
     private ArraySubtagFactory factory = null;
     private Object theStuff = null;
-    
-    @Override
-    public String tag() {
-        return TAG;
-    }
 
     public Tag_array(ArraySubtagFactory F) {
         factory = F;

@@ -23,11 +23,6 @@ public class Tag_colorDatabase extends Tag {
     public Map<String, Tag_colorDef> colorDefs = new TreeMap<String, Tag_colorDef>();
     private Tag_colorDef aColor = new Tag_colorDef();
 
-    @Override
-    public String tag() {
-        return "colorDatabase";
-    }
-
     /** Process all child tabs within our tag */
     @Override
     public void processChildren(XMLStreamReader p) {

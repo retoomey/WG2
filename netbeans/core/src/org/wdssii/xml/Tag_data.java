@@ -24,11 +24,6 @@ public class Tag_data extends Tag {
     private Tag_datacolumn col = new Tag_datacolumn();
     
     @Override
-    public String tag() {
-        return "data";
-    }  
-    
-    @Override
     public void processChildren(XMLStreamReader p) {
         if (col.processTag(p)) {
           columns.add(col);

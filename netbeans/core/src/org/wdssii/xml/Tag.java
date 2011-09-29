@@ -5,7 +5,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Map;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
@@ -255,9 +259,17 @@ public abstract class Tag {
                 f.setBoolean(this, flag);
 
                 // Handle 'int' field type
-            } else if (theType.equals("int")) {
+            } else if (theType.equals("int")) {                      
                 try {
-                    f.setInt(this, Integer.parseInt(value));
+                    int anInt = 0;
+                    // Handle '0x' as hex number....
+                    if (value.toLowerCase().startsWith("0x")){
+                      value = value.substring(2);
+                      anInt = Integer.parseInt(value, 16);
+                    }else{
+                        anInt = Integer.parseInt(value);
+                    }  
+                    f.setInt(this, anInt);
                 } catch (NumberFormatException e) {
                     // Could warn....
                 }
@@ -274,6 +286,117 @@ public abstract class Tag {
             // error, error, etc...
         } catch (IllegalAccessException x) {
             // warn...
+        }
+    }
+
+    /** Fill in ArrayList fields from reflection.  For example:
+     * in xml we have "<color " tag.  This will look for
+     * public ArrayList<Tag_color> colors;
+     * and add by reflection each Tag_color
+     * 
+     * @param p 
+     */
+    public void fillArrayListFieldsFromReflection(XMLStreamReader p) {
+
+        String tag = null;
+        if ((tag = haveStartTag(p)) != null) {
+
+            try {
+
+                // For tag <color >  -->
+                // public ArrayList<Tag_color> colors;
+                Class<?> c = this.getClass();
+
+                // ---------------------------------------------------------------------------
+                // Only allow ArrayList for now....
+                Field f = c.getDeclaredField(tag + "s");
+                String theType = f.getType().getName();
+                if (theType.equals("java.util.ArrayList")) {
+
+                    // Anything of form ClassType<Class, Class, ...>
+                    Type type = f.getGenericType();
+                    if (type instanceof ParameterizedType) {
+                        ParameterizedType pt = (ParameterizedType) (type);
+                        //Type rawType = pt.getRawType();
+                        // String raw = rawType.toString(); //arrayList?
+
+                        // We just want one thing inside the <>...
+                        Type[] types = pt.getActualTypeArguments();
+                        if (types.length == 1) {
+                            Type insideType = types[0];
+                            // From pre-generics Type/Class merging...
+                            if (insideType instanceof Class<?>) {
+                                Class<?> theClass = (Class<?>) (insideType);
+
+                                // This class should be a subclass of Tag...
+                                Class<?>[] argTypes = new Class[]{XMLStreamReader.class};
+                                Object[] args = new Object[]{p}; // Actual args
+                                Object classInstance = theClass.newInstance();
+                                Method aMethod = theClass.getMethod("processTag", argTypes);
+                                Object result = aMethod.invoke(classInstance, args);
+
+                                if ((Boolean) (result) == true) {
+                                    // Add this tag to the ArrayList...
+                                    ArrayList<Object> currentArray = (ArrayList<Object>) (f.get(this));
+                                    currentArray.add(classInstance);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // We don't know how to handle this tag...ignore it...
+            } finally {
+            }
+        }
+    }
+
+    /** Fill in Tag_ fields from reflection.  For example:
+     * in xml we have "<color " tag.  This will look for
+     * public Tag_Color color;
+     * and add by reflection
+     * 
+     * @param p 
+     */
+    public void fillTagFieldsFromReflection(XMLStreamReader p) {
+
+        String tag = null;
+        if ((tag = haveStartTag(p)) != null) {
+
+            try {
+
+                // For tag <color >  -->
+                // public Tag_color colors;
+                Class<?> c = this.getClass();
+
+                // ---------------------------------------------------------------------------
+                // Only allow ArrayList for now....
+                Field f = c.getDeclaredField(tag);
+                Type t = f.getType();
+                // FIXME: how to check for Tag_name?
+                Class<?> toMake = null;
+                if (t instanceof Class<?>) {
+                    toMake = (Class<?>) (t);
+
+                    // This class should be a subclass of Tag...
+                    Class<?>[] argTypes = new Class[]{XMLStreamReader.class};
+                    Object[] args = new Object[]{p}; // Actual args
+                    Object classInstance = toMake.newInstance();
+                    Method aMethod = toMake.getMethod("processTag", argTypes);
+                    Object result = aMethod.invoke(classInstance, args);
+
+                    if ((Boolean) (result) == true) {
+                        f.set(this, classInstance);
+                        // Add this tag to the ArrayList...
+                        // ArrayList<Object> currentArray = (ArrayList<Object>) (f.get(this));
+                        //  currentArray.add(classInstance);
+                    }
+                }
+
+            } catch (Exception e) {
+                // We don't know how to handle this tag...ignore it...
+            } finally {
+            }
         }
     }
 }

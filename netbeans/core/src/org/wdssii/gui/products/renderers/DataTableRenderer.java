@@ -13,6 +13,7 @@ import java.awt.Point;
 import gov.nasa.worldwind.render.DrawContext;
 
 import gov.nasa.worldwind.render.GlobeAnnotation;
+import gov.nasa.worldwind.render.MultiLineTextRenderer;
 import java.awt.Color;
 import java.awt.Insets;
 import java.net.URL;
@@ -31,12 +32,18 @@ import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
+import org.wdssii.gui.ColorMap;
+import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.RadialSetReadout;
 import org.wdssii.xml.Tag_iconSetConfig;
 
 /** Renders a DataTable in a worldwind window
+ * 
+ * Lots of mess here, will need cleanup, redesign, etc....just trying to get
+ * it to work at moment...
  * 
  * @author Robert Toomey
  *
@@ -46,6 +53,8 @@ public class DataTableRenderer extends ProductRenderer {
     private ArrayList<Annotation> myIcons = new ArrayList<Annotation>();
     private static Log log = LogFactory.getLog(DataTableRenderer.class);
     private static BasicAnnotationRenderer myRenderer = new BasicAnnotationRenderer();
+    private ColorMap myTextColorMap = null;
+    private ColorMap myPolygonColorMap = null;
 
     public DataTableRenderer() {
         super(true);
@@ -65,27 +74,62 @@ public class DataTableRenderer extends ProductRenderer {
         URL u = W2Config.getURL("/icons/MergerInputRadarsTable");
         tag.processAsRoot(u);
 
+        if (myTextColorMap == null) {
+            ColorMap t = new ColorMap();
+            t.initFromTag(tag.polygonTextConfig.textConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
+            myTextColorMap = t;
+        }
+        if (myPolygonColorMap == null) {
+            ColorMap t = new ColorMap();
+            t.initFromTag(tag.polygonTextConfig.polygonConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
+            myPolygonColorMap = t;
+        }
+
+        // Color lookup is based upon the dcColumn
+        String tColorField = tag.polygonTextConfig.textConfig.dcColumn;
+        Column tColumn = aDataTable.getColumnByName(tColorField);
+
+        // Polygon color lookup is based upon the dcColumn
+        String pColorField = tag.polygonTextConfig.polygonConfig.dcColumn;
+        Column pColumn = aDataTable.getColumnByName(pColorField);
+
         // Do we have a column with name.  Nulls are ok here
+        // textField is the actual TEXT shown in the icon....
         String m = tag.polygonTextConfig.textConfig.textField;
         Column aColumn = aDataTable.getColumnByName(m);
+
         Iterator<String> iter = null;
         if (aColumn != null) {
             iter = aColumn.getIterator();
         }
         // Create an icon per row in table..using the icon configuration
         ArrayList<Location> loc = aDataTable.getLocations();
-        int i = 1;
+        int i = 0;
         for (Location l : loc) {
-            if (aColumn != null) {
-                // FIXME: concurrent modification.  Strange thought I called
-                // createFromDatatype only after DataType fully read...
-                // what's up here?
-                String s = iter.next();
-                addIcon(l, s, tag);
-            } else {
-                addIcon(l, m, tag);
+            int pValue = 0;
+            int tValue = 0;
+            if (tColumn != null) {
+                String t = tColumn.getValue(i);
+
+                // FIXME: ok upperbound should be a float, so Age can be a float
+                // as well...so we really should parse knowing the column type?
+                // crap.  I need to have column types somehow..at least, int,
+                // and float, string...
+                tValue = (int) (Float.parseFloat(t));   // SOOOO breakable..      
             }
-            monitor.subTask("Icon " + i++);
+            if (pColumn != null) {
+                String t = pColumn.getValue(i);
+                pValue = (int) (Float.parseFloat(t));   // SOOOO breakable..   
+            }
+
+            // Add it
+            if (aColumn != null) {
+                String s = aColumn.getValue(i);
+                addIcon(l, s, tValue, pValue, tag);
+            } else {
+                addIcon(l, m, tValue, pValue, tag);
+            }
+            monitor.subTask("Icon " + ++i);
         }
         CommandManager.getInstance().updateDuringRender();  // Humm..different thread...
         monitor.done();
@@ -123,7 +167,7 @@ public class DataTableRenderer extends ProductRenderer {
         //  myRenderer.render
     }
 
-    public void addIcon(Location loc, String text, Tag_iconSetConfig tag) {
+    public void addIcon(Location loc, String text, int cText, int cPolygon, Tag_iconSetConfig tag) {
 
         // try to add something....
         AnnotationAttributes eqAttributes;
@@ -150,7 +194,7 @@ public class DataTableRenderer extends ProductRenderer {
                 Angle.fromDegrees(loc.getLatitude()),
                 Angle.fromDegrees(loc.getLongitude())), 0);
         // loc.getHeightKms());
-        IconAnnotation ea = new IconAnnotation(text, p, eqAttributes, tag);
+        IconAnnotation ea = new IconAnnotation(text, p, cText, cPolygon, eqAttributes, tag);
         myIcons.add(ea);
         //  myProducts.addRenderable(ea);
     }
@@ -172,14 +216,45 @@ public class DataTableRenderer extends ProductRenderer {
     private class IconAnnotation extends GlobeAnnotation {
         // public Earthquake earthquake;
 
+        /** This is the value of the icon for colormap lookup.. 
+        FIXME: Note when we add colorDatabase support this won't work since
+        it will need a string...hummm..
+         */
+        private int textColorValue;
+        /** This is the value of the polygon for colormap lookup... */
+        private int polygonColorValue;
+        
+        private Color textColor;
+        
         private Tag_iconSetConfig tag;
 
         //     public Position position;
-        public IconAnnotation(String text, Position p, AnnotationAttributes defaults,
+        public IconAnnotation(String text, Position p,
+                int textValue,
+                int polygonValue,
+                AnnotationAttributes defaults,
                 Tag_iconSetConfig tag) {
             super(text, p, defaults);
             this.tag = tag;
+            this.textColorValue = textValue;
+            this.polygonColorValue = polygonValue;
             //         this.position = p;
+        }
+        
+        public void updateColors(ColorMap textColorMap, ColorMap polygonColorMap){
+            // Update the icon text color.
+            Color textColor = Color.BLACK;
+            try {
+                //int value = Integer.parseInt(text);
+                if (myTextColorMap != null) {
+                    ColorMapOutput out = new ColorMapOutput();
+                    myTextColorMap.fillColor(out, textColorValue);
+                    textColor = new Color(out.redI(), out.greenI(), out.blueI(), out.alphaI());
+                    this.getAttributes().setTextColor(textColor);
+                    // gl.glColor4f(out.redF(), out.greenF(), out.blueF(), out.alphaF());
+                }
+            } catch (Exception e) {
+            }
         }
 
         @Override
@@ -223,7 +298,7 @@ public class DataTableRenderer extends ProductRenderer {
 
                 // FIXME: just draw filled outline for picking, it's quicker
             }
-            
+
             // FIXME: not sure exactly how to handle missing data yet..
             // right now it always creates a subtag so the defaults are there
             int v = tag.polygonTextConfig.polygonConfig.numVertices;
@@ -240,9 +315,20 @@ public class DataTableRenderer extends ProductRenderer {
             double ch = height / 2.0;
             double polyRadius = Math.sqrt(cw * cw + ch * ch);
 
+            // This could be done once per icon, or only when polygon color
+            // changes...
+            try {
+                // int value = Integer.parseInt(text);
+                if (myPolygonColorMap != null) {
+                    ColorMapOutput out = new ColorMapOutput();
+                    myPolygonColorMap.fillColor(out, polygonColorValue);
+                    gl.glColor4f(out.redF(), out.greenF(), out.blueF(), out.alphaF());
+                }
+            } catch (Exception e) {
+            }
             if (v > 2) {
                 // Background color
-                gl.glColor3f(0.0f, 0.0f, 1.0f);
+                //  gl.glColor3f(0.0f, 0.0f, 1.0f);
 
                 polyRadius /= Math.cos(Math.PI / v);
                 gl.glBegin(GL.GL_POLYGON);
@@ -256,7 +342,7 @@ public class DataTableRenderer extends ProductRenderer {
                 // Doing it this way to avoid extra memory (we can have 1000s of icons)
                 // vs buffer which would be faster.  Might change later
                 // Background color
-                gl.glColor3f(0.0f, 0.0f, 1.0f);
+                //  gl.glColor3f(0.0f, 0.0f, 1.0f);
 
                 double x = -cw;
                 double y = -ch;
@@ -282,8 +368,25 @@ public class DataTableRenderer extends ProductRenderer {
             // the text...
             // This 'centers' the text around the lat/lon location...
             dc.getGL().glTranslated(-width / 2, -height / 2, 0);
+
+            // Total sloppy hacking for moment
+            // This could be done only when column text changes or color map changes
+            Color textColor = Color.BLACK;
+            try {
+                //int value = Integer.parseInt(text);
+                if (myTextColorMap != null) {
+                    ColorMapOutput out = new ColorMapOutput();
+                    myTextColorMap.fillColor(out, textColorValue);
+                    textColor = new Color(out.redI(), out.greenI(), out.blueI(), out.alphaI());
+                    this.getAttributes().setTextColor(textColor);
+                    // gl.glColor4f(out.redF(), out.greenF(), out.blueF(), out.alphaF());
+                }
+            } catch (Exception e) {
+            }
+
             drawText(dc, width, height, opacity, pickPosition);
         }
+        
         /**
          * Render the annotation. Called as a Renderable.
          *

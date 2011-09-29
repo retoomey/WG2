@@ -15,6 +15,7 @@ import javax.xml.stream.XMLStreamReader;
  * }
  * </pre>
  * 
+ * FIXME: having color tag doesn't work yet.
  * @author Robert Toomey
  */
 public class Tag_colorDef extends Tag {

@@ -7,9 +7,10 @@ import java.util.Comparator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.wdssii.gui.products.ProductTextFormatter;
+import org.wdssii.xml.Tag_color;
+import org.wdssii.xml.Tag_colorBin;
+import org.wdssii.xml.Tag_colorMap;
 
 /**
  * Color map converts from a float value to a Color, using a set of ColorBins.
@@ -213,16 +214,129 @@ public class ColorMap {
                 out.alpha = alpha;
             }
         }
-
+        /*
         public static ColorBin ColorBinFactory(Element colorbinXML, float previousUpperBound,
+        ProductTextFormatter f) {
+        
+        ColorBin newBin = null;
+        // -----------------------------------------------------------------------
+        // Bind upper and lower bound values...
+        // <colorBin upperBound=
+        float ub, lb;
+        String upperBoundTag = colorbinXML.getAttribute("upperBound");
+        if (upperBoundTag.equalsIgnoreCase("infinity")) {
+        ub = Float.POSITIVE_INFINITY;
+        } else if (upperBoundTag.equalsIgnoreCase("-infinity")) {
+        ub = Float.NEGATIVE_INFINITY;
+        } else {
+        ub = Float.parseFloat(upperBoundTag);
+        }
+        lb = previousUpperBound;
+        
+        // -----------------------------------------------------------------------
+        // Get the colors for the upper and lower bound
+        // <colorBin...<color r= g= b= a=
+        NodeList colorsXML = colorbinXML.getElementsByTagName("color");
+        short[] c = {255, 255, 255, 255};
+        short[] lbc = {0, 0, 0, 0};
+        short[] ubc = {255, 255, 255, 255};
+        
+        int size = colorsXML.getLength();
+        for (int i = 0; i < size; ++i) {
+        Element aColorXML = (Element) colorsXML.item(i);
+        try {
+        int r = parseColorValue(aColorXML.getAttribute("r"));
+        int g = parseColorValue(aColorXML.getAttribute("g"));
+        int b = parseColorValue(aColorXML.getAttribute("b"));
+        int a = parseColorValue(aColorXML.getAttribute("a"));
+        c[0] = (short) r;
+        c[1] = (short) g;
+        c[2] = (short) b;
+        c[3] = (short) a; // FIXME: check for lose of precision..shouldn't happen
+        
+        } catch (Exception e) {
+        // We catch all exceptions. We can recover by just using a
+        // default color
+        log.error("XML:colormap:color error: "
+        + e.toString());
+        }
+        switch (i) {
+        case 0:  // On first color, make lower color and upper the same
+        //lbc = c;  // copy
+        lbc[0] = c[0];
+        lbc[1] = c[1];
+        lbc[2] = c[2];
+        lbc[3] = c[3];
+        ubc[0] = c[0];
+        ubc[1] = c[1];
+        ubc[2] = c[2];
+        ubc[3] = c[3];
+        break;
+        case 1:  // On second color, make upper color the new one
+        //ubc = c;
+        ubc[0] = c[0];
+        ubc[1] = c[1];
+        ubc[2] = c[2];
+        ubc[3] = c[3];
+        break;
+        default:
+        break; // Add for more colors in list if wanted...
+        }
+        }
+        
+        
+        // This is how we determine if start of bin color is the same as the
+        // ending color.
+        boolean sameColor = ((ubc[0] == lbc[0]) && (ubc[1] == lbc[1]) && (ubc[2] == lbc[2]) && (ubc[3] == lbc[3]));
+        
+        // <colorBin name=
+        String name;
+        if (colorbinXML.hasAttribute("name")) { // Because getAttribute can
+        name = colorbinXML.getAttribute("name");
+        } else {
+        // If no name is given for bin, use the bound to make one
+        try {
+        if (sameColor) {
+        name = f.format(ub);
+        } else {
+        name = f.format(lb, ub);
+        }
+        } catch (Exception e) { // FIXME: check format errors?
+        log.error("Exception is" + e.toString());
+        name = "?";
+        }
+        }
+        
+        // Determine if color bin is linear or not
+        boolean linear = false;
+        if ((sameColor) || (Double.isInfinite(ub))
+        || (Double.isInfinite(lb))
+        || (Double.isNaN(ub))
+        || (Double.isNaN(lb))) {
+        //myLinear = false;
+        } else {
+        linear = true;
+        }
+        if (linear) {
+        newBin = new Linear(lb, ub, ubc[0], ubc[1], ubc[2], ubc[3], lbc[0], lbc[1], lbc[2], lbc[3], name);
+        } else {
+        newBin = new Single(ub, ubc[0], ubc[1], ubc[2], ubc[3], name);
+        }
+        return newBin;
+        }
+         */
+
+        public static ColorBin ColorBinFactory(Tag_colorBin colorbinXML, float previousUpperBound,
                 ProductTextFormatter f) {
 
             ColorBin newBin = null;
+
             // -----------------------------------------------------------------------
             // Bind upper and lower bound values...
             // <colorBin upperBound=
             float ub, lb;
-            String upperBoundTag = colorbinXML.getAttribute("upperBound");
+            String upperBoundTag = colorbinXML.upperBound;
+            //  String upperBoundTag = colorbinXML.getAttribute("upperBound");
             if (upperBoundTag.equalsIgnoreCase("infinity")) {
                 ub = Float.POSITIVE_INFINITY;
             } else if (upperBoundTag.equalsIgnoreCase("-infinity")) {
@@ -235,30 +349,26 @@ public class ColorMap {
             // -----------------------------------------------------------------------
             // Get the colors for the upper and lower bound
             // <colorBin...<color r= g= b= a=
-            NodeList colorsXML = colorbinXML.getElementsByTagName("color");
+            //  NodeList colorsXML = colorbinXML.getElementsByTagName("color");
+            ArrayList<Tag_color> colors = colorbinXML.colors;
+
             short[] c = {255, 255, 255, 255};
             short[] lbc = {0, 0, 0, 0};
             short[] ubc = {255, 255, 255, 255};
 
-            int size = colorsXML.getLength();
+            // int size = colorsXML.getLength();
+            int size = colors.size();
             for (int i = 0; i < size; ++i) {
-                Element aColorXML = (Element) colorsXML.item(i);
-                try {
-                    int r = parseColorValue(aColorXML.getAttribute("r"));
-                    int g = parseColorValue(aColorXML.getAttribute("g"));
-                    int b = parseColorValue(aColorXML.getAttribute("b"));
-                    int a = parseColorValue(aColorXML.getAttribute("a"));
-                    c[0] = (short) r;
-                    c[1] = (short) g;
-                    c[2] = (short) b;
-                    c[3] = (short) a; // FIXME: check for lose of precision..shouldn't happen
+                Tag_color aColorXML = colors.get(i);
+                int r = aColorXML.r;
+                int g = aColorXML.g;
+                int b = aColorXML.b;
+                int a = aColorXML.a;
+                c[0] = (short) r;
+                c[1] = (short) g;
+                c[2] = (short) b;
+                c[3] = (short) a; // FIXME: check for lose of precision..shouldn't happen
 
-                } catch (Exception e) {
-                    // We catch all exceptions. We can recover by just using a
-                    // default color
-                    log.error("XML:colormap:color error: "
-                            + e.toString());
-                }
                 switch (i) {
                     case 0:  // On first color, make lower color and upper the same
                         //lbc = c;  // copy
@@ -290,8 +400,10 @@ public class ColorMap {
 
             // <colorBin name=
             String name;
-            if (colorbinXML.hasAttribute("name")) { // Because getAttribute can
-                name = colorbinXML.getAttribute("name");
+            // if (colorbinXML.hasAttribute("name")) { // Because getAttribute can
+            if (colorbinXML.name != null) {
+                //  name = colorbinXML.getAttribute("name");
+                name = colorbinXML.name;
             } else {
                 // If no name is given for bin, use the bound to make one
                 try {
@@ -420,27 +532,20 @@ public class ColorMap {
     /**
      * Fill in a colormap object from XML information
      * 
-     * @param colormapXML
+     * @param Tag_colorMap
      *            The root node for generating this color map
      */
-    public boolean initFromXML(Element colormapXML, ProductTextFormatter formatter) {
-
-        // colormapXML.getAttribute("canInterpolateBetweenValues");
-
-        // Get each 'unit' attribute (should be just one)
-        NodeList units = colormapXML.getElementsByTagName("unit");
-        if (units.getLength() > 0) {
-            Element aUnitXML = (Element) units.item(0);
-            myUnits = aUnitXML.getAttribute("name");
+    public boolean initFromTag(Tag_colorMap aTag, ProductTextFormatter formatter) {
+        if (aTag.unit != null) {
+            myUnits = aTag.unit.name;
         }
+        // Change any names such as 'white' into RGB values...
+        ProductManager.getInstance().updateNamesToColors(aTag);
 
-        // Get each 'colorBin' attribute, pass on to color bin
-        NodeList bins = colormapXML.getElementsByTagName("colorBin");
         float previousUpperBound = Float.NEGATIVE_INFINITY;
-        for (int i = 0; i < bins.getLength(); ++i) {
-            Element aColorBinXML = (Element) bins.item(i);
+        for (Tag_colorBin bin : aTag.colorBins) {
             //ColorBin aColor = new ColorBin(aColorBinXML, previousUpperBound);
-            ColorBin aColor = ColorBin.ColorBinFactory(aColorBinXML, previousUpperBound, formatter);
+            ColorBin aColor = ColorBin.ColorBinFactory(bin, previousUpperBound, ProductTextFormatter.DEFAULT_FORMATTER);
             myColorBins.add(aColor);
             previousUpperBound = aColor.getUpperBound();
             addUpperBound(previousUpperBound);

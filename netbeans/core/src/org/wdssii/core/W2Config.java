@@ -43,7 +43,7 @@ public class W2Config {
 
     static {
         // For testing pulling over web w2config only....
-        boolean useLocal = false;
+        boolean useLocal = true;
         boolean useWeb = true;
         /*
          * An environment variable W2_CONFIG_LOCATION $HOME $HOME/w2config,

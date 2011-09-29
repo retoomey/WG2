@@ -21,6 +21,7 @@ public class Tag_colorDatabase extends Tag {
 
     /** Collected tag */
     public Map<String, Tag_colorDef> colorDefs = new TreeMap<String, Tag_colorDef>();
+    
     private Tag_colorDef aColor = new Tag_colorDef();
 
     /** Process all child tabs within our tag */

@@ -27,8 +27,11 @@ import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.index.IndexRecord;
+import org.wdssii.xml.Tag_color;
+import org.wdssii.xml.Tag_colorBin;
 import org.wdssii.xml.Tag_colorDatabase;
 import org.wdssii.xml.Tag_colorDef;
+import org.wdssii.xml.Tag_colorMap;
 
 /**
  * --Maintains a set of color maps by product name (color map cache FIXME: Move to generic cache)
@@ -53,10 +56,8 @@ public class ProductManager implements Singleton {
     ProductDataInfo myDefaults = new ProductDataInfo();
     /** The cache for Product objects */
     LRUCache<Product> myProductCache = new LRUCache<Product>();
-    
     /** A map of names to ProductHandlerLists */
     private ArrayList<ProductHandlerList> myProductGroups = new ArrayList<ProductHandlerList>();
-    
     /** Current selected group */
     ProductHandlerList myProductOrderedSet;
 
@@ -68,34 +69,34 @@ public class ProductManager implements Singleton {
         myProductCache.setMaxCacheSize(MAX_CACHE_SIZE);
     }
 
-    public void selectKey(String key){
+    public void selectKey(String key) {
         ProductHandlerList found = getGroupForKey(key);
         myProductOrderedSet = found;
     }
-    
-    private ProductHandlerList getGroupForKey(String key){
+
+    private ProductHandlerList getGroupForKey(String key) {
         ProductHandlerList found = null;
-        for(ProductHandlerList l:myProductGroups){
-            if (l.getKey().equals(key)){
+        for (ProductHandlerList l : myProductGroups) {
+            if (l.getKey().equals(key)) {
                 found = l;
                 break;
             }
         }
         return found;
     }
-    
+
     // called by ColorKeyLayer to get the current color map...
     public ColorMap getCurrentColorMap() {
         return (myProductOrderedSet.getCurrentColorMap());
     }
 
-   /** Get the current selected product handler list */
+    /** Get the current selected product handler list */
     public ProductHandlerList getProductOrderedSet() {
         return myProductOrderedSet;
     }
-    
+
     /** Used by group view to show the stuff */
-    public ArrayList<ProductHandlerList> getGroupList(){
+    public ArrayList<ProductHandlerList> getGroupList() {
         return myProductGroups;
     }
 
@@ -396,27 +397,14 @@ public class ProductManager implements Singleton {
     private ColorMap loadColorMap(String name) {
         // System.out.println("Attempt to load colormap '"+name+"'");
         ColorMap aColorMap = null;
-        // String s = System.getProperty("user.home");
-        // System.out.println("user home is " +s);
-        Element colormapXML = null;
-
-        // Try twice, the file.xml (preferred), and without .xml
-        try {
-            colormapXML = W2Config.getElement("colormaps/" + name);
-        } catch (ConfigurationException c) {
-             System.out.println("Unable to load colormap for " + name
-                        + ", will generate based on values");
-        }
-
-        // Store color map into cache
-        if (colormapXML != null) {
+        URL u = W2Config.getURL("colormaps/" + name);
+        Tag_colorMap tag = new Tag_colorMap();
+        if (tag.processAsRoot(u)) {
             // System.out.println("Colormap:" + name);
             aColorMap = new ColorMap();
             // For the moment, all products use same formatter...
-            aColorMap.initFromXML(colormapXML, ProductTextFormatter.DEFAULT_FORMATTER);
+            aColorMap.initFromTag(tag, ProductTextFormatter.DEFAULT_FORMATTER);
             storeNewColorMap(name, aColorMap);
-        } else {
-            // FIXME: Some sort of constructed colop map from the data values?
         }
         return aColorMap;
     }
@@ -553,6 +541,35 @@ public class ProductManager implements Singleton {
             aURL = W2Config.getURL("colorDatabase.xml");
             myColorDefs.processAsRoot(aURL);
         } catch (Exception c) {
+        }
+    }
+
+    /** Modify a Tag_colorMap, enhancing color names with actually color
+     * information from the color database.
+     */
+    public void updateNamesToColors(Tag_colorMap map) {
+        if (myColorDefs.colorDefs != null) {
+            ArrayList<Tag_colorBin> bins = map.colorBins;
+            if (bins != null) {
+                for (Tag_colorBin b : bins) {
+                    ArrayList<Tag_color> colors = b.colors;
+                    if (colors != null) {
+                        for (Tag_color c : colors) {
+                            if (c.name != null) { // If missing, leave color alone
+                                Tag_colorDef t = myColorDefs.colorDefs.get(c.name);
+                                if (t != null) {
+                                    c.r = t.r;
+                                    c.g = t.g;
+                                    c.b = t.b;
+                                    c.a = t.a;
+                                }
+                            }
+                        }
+
+                    }
+
+                }
+            }
         }
     }
 

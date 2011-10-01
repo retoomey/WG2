@@ -14,13 +14,18 @@ import gov.nasa.worldwind.layers.LayerList;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.view.orbit.FlyToOrbitViewAnimator;
 import gov.nasa.worldwind.view.orbit.OrbitView;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import javax.media.opengl.GL;
-import javax.swing.JOptionPane;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
@@ -73,47 +78,45 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
 
     public WorldWindView() {
 
+        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        final String w = "50"; // MigLayout width parameter
+
+        // Create the toolbar
         jToolBar1 = new javax.swing.JToolBar();
-        jButton1 = new javax.swing.JButton("Test");
-        jSplitPane1 = new javax.swing.JSplitPane();
-        jPanel1 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
-
-        setLayout(new java.awt.BorderLayout());
-
         jToolBar1.setRollover(true);
-
-        //   org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(EarthTopComponent.class, "EarthTopComponent.jButton1.text")); // NOI18N
+        jButton1 = new JButton("Test");
         jButton1.setFocusable(false);
         jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(jButton1);
+        add(jToolBar1, new CC().dockNorth());
 
-        add(jToolBar1, java.awt.BorderLayout.NORTH);
-
-        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane1.setResizeWeight(1.0);
-
+        // Create top panel
+        jPanel1 = new JPanel(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 2));
-        jPanel1.setLayout(new java.awt.BorderLayout());
-        jSplitPane1.setLeftComponent(jPanel1);
 
+        // Create bottom panel
+        jPanel2 = new JPanel(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 0, 51), 2));
-        jPanel2.setLayout(new java.awt.BorderLayout());
-        jSplitPane1.setRightComponent(jPanel2);
 
-        add(jSplitPane1, java.awt.BorderLayout.CENTER);
+        // Put into split pane
+        jSplitPane1 = new JSplitPane(javax.swing.JSplitPane.VERTICAL_SPLIT, true, jPanel1, jPanel2);
+        jSplitPane1.setResizeWeight(1.0);
+        add(jSplitPane1, new CC().minWidth(w).growX().growY());
 
         String bits = System.getProperty("sun.arch.data.model");
         if (bits.equals("32")) {
-            JOptionPane.showMessageDialog(null, "Sorry, currently no 32 bit support.  You really want to run a 64 bit java if you can for this program.");
+            JTextField info = new JTextField();
+            info.setText("Sorry, currently no opengl 32 native library support.  You really want to run a 64 bit java if you can for this program.");
+            jPanel1.add(info, new CC().growX().growY());
         } else {
             // Basic worldwind setup...
             Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
             WorldWindowGLCanvas p = new WorldWindowGLCanvas();
+
             myWorld = p;
             myWorld.setModel(m);
-            jPanel1.add(p, BorderLayout.CENTER);
+            jPanel1.add(p, new CC().minWidth(w).minHeight(w).growX().growY());
             jPanel1.setOpaque(false);
 
             // Either:
@@ -128,7 +131,7 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
             createWG2Layers();
 
             myStatusBar = new ReadoutStatusBar();
-            jPanel2.add(myStatusBar, BorderLayout.CENTER);
+            jPanel2.add(myStatusBar, new CC().growX().growY());
             myStatusBar.setEventSource(myWorld);
         }
         // FIXME: should probably make a preference for this that can be
@@ -343,4 +346,3 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
         return myVolumeLayer;
     }
 }
-

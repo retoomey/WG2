@@ -32,6 +32,7 @@ import org.wdssii.xml.Tag_colorBin;
 import org.wdssii.xml.Tag_colorDatabase;
 import org.wdssii.xml.Tag_colorDef;
 import org.wdssii.xml.Tag_colorMap;
+import org.wdssii.xml.Tag_iconSetConfig;
 
 /**
  * --Maintains a set of color maps by product name (color map cache FIXME: Move to generic cache)
@@ -191,7 +192,69 @@ public class ProductManager implements Singleton {
         // color (not set)
         private boolean myVisibleInList = true;
         private String myListName = DEFAULTS;
+        
+        /** The current color map for this product */
         private ColorMap myColorMap = null;
+        
+        /** Set to true if we have tried to load the xml files for this type,
+         * such as the colormap.xml or iconconfig.xml
+         */
+        private boolean myLoadedXML = false;
+        
+        // We have two main xml formats for Products.  One is the 
+        // <colormap> for float based data to color lookup.  The other
+        // is the icon configuration file <iconSetConfig>.  For the moment
+        // not going to bother with separate classes for this.
+        private Tag_colorMap myColorMapTag = null;
+        private Tag_iconSetConfig myIconSetConfig = null;
+
+        /** Load any xml files that pertain to this particular product */
+        public void loadProductXMLFiles(boolean force) {
+
+            if (force){ myLoadedXML = false; }
+            if (myLoadedXML == false){
+                loadIconSetConfigFromXML();
+                loadColorMapFromXML();
+                myLoadedXML = true;
+            }
+        }
+
+        /**
+         * Force load a color map from xml and make a new color map from it
+         */
+        private void loadColorMapFromXML() {
+            URL u = W2Config.getURL("colormaps/" + myName);
+            Tag_colorMap tag = new Tag_colorMap();
+            if (tag.processAsRoot(u)) {
+                myColorMapTag = tag;
+                ColorMap aColorMap = new ColorMap();
+                aColorMap.initFromTag(tag, ProductTextFormatter.DEFAULT_FORMATTER);
+                myColorMap = aColorMap;         
+            }
+        }
+        
+       /**
+         * Force load an icon configuration file
+         */
+        private void loadIconSetConfigFromXML() {
+            URL u = W2Config.getURL("icons/" + myName);
+            Tag_iconSetConfig tag = new Tag_iconSetConfig();
+            if (tag.processAsRoot(u)) {
+                myIconSetConfig = tag;
+                
+                // We are going to use the color map of the polygon for 
+                // the moment.  The color of the polygon fill is the key.
+                try{  // since any subtag might be null.  We have no map then
+                    Tag_colorMap c = tag.polygonTextConfig.polygonConfig.colorMap;
+                    ColorMap aColorMap = new ColorMap();
+                    aColorMap.initFromTag(c, ProductTextFormatter.DEFAULT_FORMATTER);
+                    myColorMap = aColorMap;      
+                    myColorMapTag = c;
+                }finally{
+                   // null/missing tag
+                }
+            }
+        }
 
         public void copyFrom(ProductDataInfo another) {
             myName = another.myName;
@@ -237,11 +300,17 @@ public class ProductManager implements Singleton {
         }
 
         public ColorMap getColorMap() {
+            loadProductXMLFiles(false);
             return myColorMap;
         }
 
         public void setColorMap(ColorMap theColorMap) {
             myColorMap = theColorMap;
+        }
+        
+        public Tag_iconSetConfig getIconSetConfig(){
+            loadProductXMLFiles(false);
+            return myIconSetConfig;
         }
     }
 
@@ -270,6 +339,8 @@ public class ProductManager implements Singleton {
     /**
      * Parse a 'data' line in the xml. If ProductDataInfo is null, fill in our
      * default settings, otherwise fill the ProductDataInfo
+     * 
+     * FIXME: redo this for stax, clean up xml format as well...
      * 
      * @param fillMe
      * @param aProductXML
@@ -372,41 +443,8 @@ public class ProductManager implements Singleton {
      * @return the color map
      */
     public ColorMap getColorMap(String name) {
-        // Not sure we should allow others to 'get' a color map.
-        //ColorMap aColorMap = myColorMaps.get(name);
-        // if (aColorMap == null) {
-        //     aColorMap = loadColorMap(name);
-        // }
-        //  if (aColorMap == null) {
-        //     // Ok, create a fake color map here...
-        //  }
-        //  return aColorMap;
-
         ProductDataInfo d = getProductDataInfo(name);
-        if (d.getColorMap() == null) {
-            d.setColorMap(loadColorMap(name));
-        }
         return d.getColorMap();
-    }
-
-    /**
-     * @param name
-     *            the name of the color map to return such as 'Reflectivity'
-     * @return a new color map
-     */
-    private ColorMap loadColorMap(String name) {
-        // System.out.println("Attempt to load colormap '"+name+"'");
-        ColorMap aColorMap = null;
-        URL u = W2Config.getURL("colormaps/" + name);
-        Tag_colorMap tag = new Tag_colorMap();
-        if (tag.processAsRoot(u)) {
-            // System.out.println("Colormap:" + name);
-            aColorMap = new ColorMap();
-            // For the moment, all products use same formatter...
-            aColorMap.initFromTag(tag, ProductTextFormatter.DEFAULT_FORMATTER);
-            storeNewColorMap(name, aColorMap);
-        }
-        return aColorMap;
     }
 
     /** Store a new colormap, with option to force store it over an old one.
@@ -449,6 +487,9 @@ public class ProductManager implements Singleton {
             d.setListName(name);
             myProductInfo.put(name, d);
         }
+        // Can't do this here or it will load every file
+        // (the product browser uses info as well )
+        // d.loadProductXMLFiles(false);
         return d;
     }
 

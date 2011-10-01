@@ -86,6 +86,17 @@ public abstract class Tag {
         }
         return atStart;
     }
+    
+    protected boolean atEnd(XMLStreamReader p) {
+        boolean atEnd = false;
+        if (p.getEventType() == XMLStreamConstants.END_ELEMENT) {
+            String endTag = p.getLocalName();
+            if (endTag.equals(tag())) {
+                atEnd = true;
+            }
+        }
+        return atEnd;
+    }
 
     /** Utility function to check for end tag */
     protected static boolean isEndTag(XMLStreamReader p, String end) {
@@ -175,10 +186,15 @@ public abstract class Tag {
             while (nextNotEnd(p)) {
                 processChildren(p);
             }
+            validateTag();
         }
         return foundIt;
     }
 
+    public void validateTag(){
+        
+    }
+    
     /** Process this tag as a document root.  Basically skip any information
      * until we get to our tag.  In STAX, the first event is not a start
      * tag typically.

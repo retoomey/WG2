@@ -31,4 +31,17 @@ public class Tag_polygonConfig extends Tag {
         // colorMap.processTag(p);
         fillTagFieldsFromReflection(p);
     }
+    @Override
+    public void validateTag(){
+        // Check for units in colorMap tag...if missing, use our dcUnit
+        // so that color map renderer will draw it.
+        try{
+            if (colorMap.unit == null){
+                colorMap.unit = new Tag_unit();    
+            }
+            if (colorMap.unit.name == null){
+                colorMap.unit.name = dcUnit;
+            }
+        }finally{}
+    }
 }

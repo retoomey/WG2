@@ -226,134 +226,137 @@ public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
             if (!dc.isPickingMode()) {
 
                 if (aColorMap != null) {
-                    ColorMapOutput hi = new ColorMapOutput();
-                    ColorMapOutput lo = new ColorMapOutput();
-                    // Width of unit text
-                    int wtxt = 0;
-                    String unitName = aColorMap.getUnits();
-                    if ((unitName != null) && (unitName.length() > 0)) {
-                        Rectangle2D boundsUnits = aText.getBounds(unitName);
-                        wtxt = (int) (boundsUnits.getWidth() + 2.0d);
-                    } else {
-                        wtxt = 0;
-                    }
 
-                    // Calculate height
-                    int barwidth = Math.max(viewport.width - wtxt, 1);
                     int aSize = aColorMap.getNumberOfBins();
-                    int cellWidth = barwidth / aSize;
-                    barwidth = cellWidth * aSize;
-
-                    float[] colorRGB = this.color.getRGBColorComponents(null);
-
-                    gl.glDisable(GL.GL_TEXTURE_2D); // no textures
-
-                    // Draw background square color
-                    gl.glColor4ub((byte) this.backColor.getRed(),
-                            (byte) this.backColor.getGreen(), (byte) this.backColor.getBlue(),
-                            (byte) (this.backColor.getAlpha() * this.getOpacity()));
-                    gl.glBegin(GL.GL_POLYGON);
-                    gl.glVertex3d(0, 0, 0);
-                    gl.glVertex3d(1, 0, 0);
-                    gl.glVertex3d(1, 1, 0);
-                    gl.glVertex3d(0, 1, 0);
-                    gl.glVertex3d(0, 0, 0);
-                    gl.glEnd();
-
-                    gl.glLoadIdentity();
-                    // Interesting, remove this and is goes above the status
-                    // line..
-                    gl.glTranslated(locationSW.x(), locationSW.y(), locationSW.z());
-                    // Scale to width x height space
-                    gl.glScaled(scale, scale, 1);
-                    gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
-                    double currentX = 0.0;
-
-                    gl.glBegin(GL.GL_QUADS);
-
-                    for (int i = 0; i < aSize; i++) {
-
-                        aColorMap.getUpperBoundColor(hi, i);  // FIXME: let bin draw itself for possible future classes?
-                        aColorMap.getLowerBoundColor(lo, i);
-                        gl.glColor4f(lo.redF(), lo.greenF(), lo.blueF(),
-                                (float) this.getOpacity());
-                        gl.glVertex2d(currentX, top);
-                        gl.glVertex2d(currentX, bottom);
-                        gl.glColor4f(hi.redF(), hi.greenF(), hi.blueF(),
-                                (float) this.getOpacity());
-                        gl.glVertex2d(currentX + cellWidth, bottom);
-                        gl.glVertex2d(currentX + cellWidth, top);
-                        currentX += cellWidth;
-                    }
-                    //
-                    //gl.glColor4f(1.0f,1.0f,1.0f,1.0f);
-                    // gl.glBegin(GL.GL_LINES); for(int i = 0; i<aSize;i++){
-                    // gl.glVertex3d(currentX, 0, 0); // Draw a vertical line
-                    // (at percentage space) gl.glVertex3d(currentX, 1, 0);
-                    // currentX += xoffset; }
-                    //
-
-                    gl.glEnd();
-
-
-                    // Draw the text labels for bins
-                    aText.begin3DRendering();
-                    boolean drawText = (barwidth >= 100);
-                    if (drawText) {
-                        currentX = viewport.x;
-                        int extraXGap = 7; // Force at least these pixels
-                        // between labels
-                        int drawnToX = viewport.x;
-                        for (int i = 0; i < aSize; i++) {
-                            String label = aColorMap.getBinLabel(i);
-                            // System.out.println("Label is "+label);
-                            // if (aColorMap.myColorBins.get(i) == null){
-                            // System.out.println("---NULL");
-                            // }
-                            Rectangle2D boundsLabel = aText.getBounds(label);
-                            wtxt = (int) (boundsLabel.getWidth());
-                            // Sparse draw, skipping when text overlaps
-                            if (currentX >= drawnToX) {
-
-                                // Don't draw if text sticks outside box
-                                if (currentX + wtxt < (viewport.x + barwidth)) {
-
-                                    // Ok, render and remember how far it drew
-                                    aText.draw(label, (int) (currentX + 2),
-                                            bottom + fontYOffset);
-                                    drawnToX = (int) (currentX + wtxt + extraXGap);
-                                }
-                            }
-
-                            currentX += cellWidth;
-                            // Color lower =
-                            // aColorMap.myColorBins.get(i).getLowerBoundColor();
+                    if (aSize > 0) {
+                        ColorMapOutput hi = new ColorMapOutput();
+                        ColorMapOutput lo = new ColorMapOutput();
+                        // Width of unit text
+                        int wtxt = 0;
+                        String unitName = aColorMap.getUnits();
+                        if ((unitName != null) && (unitName.length() > 0)) {
+                            Rectangle2D boundsUnits = aText.getBounds(unitName);
+                            wtxt = (int) (boundsUnits.getWidth() + 2.0d);
+                        } else {
+                            wtxt = 0;
                         }
+
+                        // Calculate height
+                        int barwidth = Math.max(viewport.width - wtxt, 1);
+                        //int aSize = aColorMap.getNumberOfBins();
+                        int cellWidth = barwidth / aSize;
+                        barwidth = cellWidth * aSize;
+
+                        float[] colorRGB = this.color.getRGBColorComponents(null);
+
+                        gl.glDisable(GL.GL_TEXTURE_2D); // no textures
+
+                        // Draw background square color
+                        gl.glColor4ub((byte) this.backColor.getRed(),
+                                (byte) this.backColor.getGreen(), (byte) this.backColor.getBlue(),
+                                (byte) (this.backColor.getAlpha() * this.getOpacity()));
+                        gl.glBegin(GL.GL_POLYGON);
+                        gl.glVertex3d(0, 0, 0);
+                        gl.glVertex3d(1, 0, 0);
+                        gl.glVertex3d(1, 1, 0);
+                        gl.glVertex3d(0, 1, 0);
+                        gl.glVertex3d(0, 0, 0);
+                        gl.glEnd();
+
+                        gl.glLoadIdentity();
+                        // Interesting, remove this and is goes above the status
+                        // line..
+                        gl.glTranslated(locationSW.x(), locationSW.y(), locationSW.z());
+                        // Scale to width x height space
+                        gl.glScaled(scale, scale, 1);
+                        gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
+                        double currentX = 0.0;
+
+                        gl.glBegin(GL.GL_QUADS);
+
+                        for (int i = 0; i < aSize; i++) {
+
+                            aColorMap.getUpperBoundColor(hi, i);  // FIXME: let bin draw itself for possible future classes?
+                            aColorMap.getLowerBoundColor(lo, i);
+                            gl.glColor4f(lo.redF(), lo.greenF(), lo.blueF(),
+                                    (float) this.getOpacity());
+                            gl.glVertex2d(currentX, top);
+                            gl.glVertex2d(currentX, bottom);
+                            gl.glColor4f(hi.redF(), hi.greenF(), hi.blueF(),
+                                    (float) this.getOpacity());
+                            gl.glVertex2d(currentX + cellWidth, bottom);
+                            gl.glVertex2d(currentX + cellWidth, top);
+                            currentX += cellWidth;
+                        }
+                        //
+                        //gl.glColor4f(1.0f,1.0f,1.0f,1.0f);
+                        // gl.glBegin(GL.GL_LINES); for(int i = 0; i<aSize;i++){
+                        // gl.glVertex3d(currentX, 0, 0); // Draw a vertical line
+                        // (at percentage space) gl.glVertex3d(currentX, 1, 0);
+                        // currentX += xoffset; }
+                        //
+
+                        gl.glEnd();
+
+
+                        // Draw the text labels for bins
+                        aText.begin3DRendering();
+                        boolean drawText = (barwidth >= 100);
+                        if (drawText) {
+                            currentX = viewport.x;
+                            int extraXGap = 7; // Force at least these pixels
+                            // between labels
+                            int drawnToX = viewport.x;
+                            for (int i = 0; i < aSize; i++) {
+                                String label = aColorMap.getBinLabel(i);
+                                // System.out.println("Label is "+label);
+                                // if (aColorMap.myColorBins.get(i) == null){
+                                // System.out.println("---NULL");
+                                // }
+                                Rectangle2D boundsLabel = aText.getBounds(label);
+                                wtxt = (int) (boundsLabel.getWidth());
+                                // Sparse draw, skipping when text overlaps
+                                if (currentX >= drawnToX) {
+
+                                    // Don't draw if text sticks outside box
+                                    if (currentX + wtxt < (viewport.x + barwidth)) {
+
+                                        // Ok, render and remember how far it drew
+                                        aText.draw(label, (int) (currentX + 2),
+                                                bottom + fontYOffset);
+                                        drawnToX = (int) (currentX + wtxt + extraXGap);
+                                    }
+                                }
+
+                                currentX += cellWidth;
+                                // Color lower =
+                                // aColorMap.myColorBins.get(i).getLowerBoundColor();
+                            }
+                        }
+                        //aText.end3DRendering();
+
+                        // Draw 1px border around and inside the map
+                        //gl.glColor4d(colorRGB[0], colorRGB[1], colorRGB[2], this.getOpacity());
+                        gl.glColor4d(colorRGB[0], colorRGB[1], colorRGB[2], 1.0);
+                        gl.glBegin(GL.GL_LINE_STRIP);
+                        gl.glVertex3d(viewport.x, top, 0.0);
+                        gl.glVertex3d(currentX, top, 0.0);
+                        gl.glVertex3d(currentX, bottom, 0.0);
+                        gl.glVertex3d(viewport.x, bottom, 0.0);
+                        gl.glEnd();
+
+                        // Draw the units
+                        if ((unitName != null) && (unitName.length() > 0)) {
+                            int start = (viewport.x + viewport.width - wtxt);
+                            //aText.begin3DRendering();
+                            aText.draw(unitName, start, bottom + fontYOffset);
+
+                        }
+                        aText.end3DRendering();
+
+
                     }
-                    //aText.end3DRendering();
-
-                    // Draw 1px border around and inside the map
-                    //gl.glColor4d(colorRGB[0], colorRGB[1], colorRGB[2], this.getOpacity());
-                    gl.glColor4d(colorRGB[0], colorRGB[1], colorRGB[2], 1.0);
-                    gl.glBegin(GL.GL_LINE_STRIP);
-                    gl.glVertex3d(viewport.x, top, 0.0);
-                    gl.glVertex3d(currentX, top, 0.0);
-                    gl.glVertex3d(currentX, bottom, 0.0);
-                    gl.glVertex3d(viewport.x, bottom, 0.0);
-                    gl.glEnd();
-
-                    // Draw the units
-                    if (unitName.length() > 0) {
-                        int start = (viewport.x + viewport.width - wtxt);
-                        //aText.begin3DRendering();
-                        aText.draw(unitName, start, bottom + fontYOffset);
-
-                    }
-                    aText.end3DRendering();
-
-
                 }
-
 
             } else {
                 /* Pick mode stuff

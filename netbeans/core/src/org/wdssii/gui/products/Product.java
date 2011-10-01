@@ -79,17 +79,23 @@ public class Product implements LRUCacheItem {
     // Raw DataType, if loaded. DataType is loaded in background thread
     final protected Object myRawDataSync = new Object();
     protected DataType myRawDataType = null;
-    protected String myDataType; // FIXME: Store this or just get from record?
+    
+    /** The datatype for this product such as 'Reflectivity'  The product
+     does not have to be loaded for this information */
+    protected final String myDataType;
+    
     protected boolean myDirtyRenderer = true;
     protected String myCacheKey;
-    protected SubtypeType mySubtypeType;
-    protected DataRequest myDataRequest = null;
+    protected final SubtypeType mySubtypeType;
+    protected DataRequest myDataRequest = null;    
     /** Units of the actual data, if known  */
     protected String myDataUnits = "Data";
     // FIXME: need to sync access to this probably...
     protected TreeMap<String, Object> myHelperObjects = new TreeMap<String, Object>();
     // We're going to hide the record details
-    protected IndexRecord myRecord; // /< The index record we hold
+    
+    /** The index record, if any that we were created from */
+    protected final IndexRecord myRecord;
     private String myIndexKey; 		// /< The key used to query the source manager
 
     /** Called on the product with a DataRequest which is just a Future<DataType>
@@ -266,10 +272,7 @@ public class Product implements LRUCacheItem {
     }
 
     public String getDataType() {
-        if (myRecord != null) {
-            return myRecord.getDataType();
-        }
-        return "DATATYPE"; // What to do here?
+       return myDataType;
     }
 
     public String getSubType() {
@@ -440,6 +443,9 @@ public class Product implements LRUCacheItem {
     /** Generate a color map based on data values.  This is currently used when
      * colormap is missing.  Subclasses can override to make a map better based
      * on class (RadialSet, etc.)
+     * 
+     * FIXME: move to ProductDataInfo, since we don't ever subclass Product
+     * do to lazy loading...
      */
     public ColorMap generateColorMap(String units) {
 

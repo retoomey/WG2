@@ -34,6 +34,8 @@ import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
+import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.ProductTextFormatter;
@@ -66,13 +68,8 @@ public class DataTableRenderer extends ProductRenderer {
         // Make sure and always start monitor
         DataTable aDataTable = (DataTable) aProduct.getRawDataType();
         monitor.beginTask("DataTableRenderer:", aDataTable.getNumRows());
-
-        Tag_iconSetConfig tag = new Tag_iconSetConfig();
-        // Ok for the moment get the icon configuration file here.
-        // We might actually read this into the DataType before this point.
-        // Probably should NOT do the xml here..
-        URL u = W2Config.getURL("/icons/MergerInputRadarsTable");
-        tag.processAsRoot(u);
+        ProductDataInfo info = ProductManager.getInstance().getProductDataInfo(aProduct.getDataType());
+        Tag_iconSetConfig tag = info.getIconSetConfig();
 
         if (myTextColorMap == null) {
             ColorMap t = new ColorMap();
@@ -96,6 +93,7 @@ public class DataTableRenderer extends ProductRenderer {
         // Do we have a column with name.  Nulls are ok here
         // textField is the actual TEXT shown in the icon....
         String m = tag.polygonTextConfig.textConfig.textField;
+        if (m == null){ m = "?"; }
         Column aColumn = aDataTable.getColumnByName(m);
 
         Iterator<String> iter = null;

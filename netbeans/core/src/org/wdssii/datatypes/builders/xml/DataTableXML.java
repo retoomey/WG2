@@ -44,7 +44,7 @@ public class DataTableXML extends DataTypeXML {
         TagToMemento(t.datatype, c);
         
         // This is SO wasteful of memory...need to compact this puppy
-        ArrayList<Tag_datacolumn> cols = t.data.columns;
+        ArrayList<Tag_datacolumn> cols = t.data.datacolumn;
         myWorkingColumns = new ArrayList<Column>();
         for(Tag_datacolumn d:cols){ 
            Column aCol = new Column(d.name, d.units, d.values);

@@ -1,6 +1,8 @@
-package org.wdssii.xml;
+package org.wdssii.xml.iconSetConfig;
 
 import javax.xml.stream.XMLStreamReader;
+import org.wdssii.xml.Tag;
+import org.wdssii.xml.Tag_colorMap;
 
 /**
  *  Tag which has the following format:
@@ -23,9 +25,9 @@ public class Tag_textConfig extends Tag {
     public Tag_colorMap colorMap = new Tag_colorMap();
     
     /** Process all child tabs within our tag */
-    @Override
+   /* @Override
     public void processChildren(XMLStreamReader p) {
       // colorMap.processTag(p);
         fillTagFieldsFromReflection(p);
-    }
+    }*/
 }

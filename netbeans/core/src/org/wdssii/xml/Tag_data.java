@@ -19,14 +19,15 @@ import javax.xml.stream.XMLStreamReader;
 public class Tag_data extends Tag {
     
     /** Collected tag */
-    public ArrayList<Tag_datacolumn> columns = new ArrayList<Tag_datacolumn>();
+    public ArrayList<Tag_datacolumn> datacolumn = new ArrayList<Tag_datacolumn>();
     
     private Tag_datacolumn col = new Tag_datacolumn();
     
+    // FIXME: standard arraylist reflection not working here..what's up?
     @Override
     public void processChildren(XMLStreamReader p) {
         if (col.processTag(p)) {
-          columns.add(col);
+          datacolumn.add(col);
           col = new Tag_datacolumn();
         }
     }

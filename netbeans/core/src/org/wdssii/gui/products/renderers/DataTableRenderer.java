@@ -13,10 +13,8 @@ import java.awt.Point;
 import gov.nasa.worldwind.render.DrawContext;
 
 import gov.nasa.worldwind.render.GlobeAnnotation;
-import gov.nasa.worldwind.render.MultiLineTextRenderer;
 import java.awt.Color;
 import java.awt.Insets;
-import java.net.URL;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,7 +22,6 @@ import javax.media.opengl.GL;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.wdssii.core.W2Config;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 
@@ -40,7 +37,9 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.RadialSetReadout;
-import org.wdssii.xml.Tag_iconSetConfig;
+import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
+import org.wdssii.xml.iconSetConfig.Tag_mesonetConfig;
+import org.wdssii.xml.iconSetConfig.Tag_polygonTextConfig;
 
 /** Renders a DataTable in a worldwind window
  * 
@@ -71,64 +70,75 @@ public class DataTableRenderer extends ProductRenderer {
         ProductDataInfo info = ProductManager.getInstance().getProductDataInfo(aProduct.getDataType());
         Tag_iconSetConfig tag = info.getIconSetConfig();
 
-        if (myTextColorMap == null) {
-            ColorMap t = new ColorMap();
-            t.initFromTag(tag.polygonTextConfig.textConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
-            myTextColorMap = t;
-        }
-        if (myPolygonColorMap == null) {
-            ColorMap t = new ColorMap();
-            t.initFromTag(tag.polygonTextConfig.polygonConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
-            myPolygonColorMap = t;
-        }
+        Tag_polygonTextConfig polygonTextConfig = tag.polygonTextConfig;
+        Tag_mesonetConfig mesonetConfig = tag.mesonetConfig;
 
-        // Color lookup is based upon the dcColumn
-        String tColorField = tag.polygonTextConfig.textConfig.dcColumn;
-        Column tColumn = aDataTable.getColumnByName(tColorField);
-
-        // Polygon color lookup is based upon the dcColumn
-        String pColorField = tag.polygonTextConfig.polygonConfig.dcColumn;
-        Column pColumn = aDataTable.getColumnByName(pColorField);
-
-        // Do we have a column with name.  Nulls are ok here
-        // textField is the actual TEXT shown in the icon....
-        String m = tag.polygonTextConfig.textConfig.textField;
-        if (m == null){ m = "?"; }
-        Column aColumn = aDataTable.getColumnByName(m);
-
-        Iterator<String> iter = null;
-        if (aColumn != null) {
-            iter = aColumn.getIterator();
-        }
-        // Create an icon per row in table..using the icon configuration
-        ArrayList<Location> loc = aDataTable.getLocations();
-        int i = 0;
-        for (Location l : loc) {
-            int pValue = 0;
-            int tValue = 0;
-            if (tColumn != null) {
-                String t = tColumn.getValue(i);
-
-                // FIXME: ok upperbound should be a float, so Age can be a float
-                // as well...so we really should parse knowing the column type?
-                // crap.  I need to have column types somehow..at least, int,
-                // and float, string...
-                tValue = (int) (Float.parseFloat(t));   // SOOOO breakable..      
+         if (polygonTextConfig != null) {
+            // FIXME: These are all special cases because of legacy data/code...
+            // need to generalize it....currently all this code is a giant mess...
+            if (myTextColorMap == null) {
+                ColorMap t = new ColorMap();
+                t.initFromTag(tag.polygonTextConfig.textConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
+                myTextColorMap = t;
             }
-            if (pColumn != null) {
-                String t = pColumn.getValue(i);
-                pValue = (int) (Float.parseFloat(t));   // SOOOO breakable..   
+            if (myPolygonColorMap == null) {
+                ColorMap t = new ColorMap();
+                t.initFromTag(tag.polygonTextConfig.polygonConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
+                myPolygonColorMap = t;
             }
 
-            // Add it
-            if (aColumn != null) {
-                String s = aColumn.getValue(i);
-                addIcon(l, s, tValue, pValue, tag);
-            } else {
-                addIcon(l, m, tValue, pValue, tag);
+            // Color lookup is based upon the dcColumn
+            String tColorField = tag.polygonTextConfig.textConfig.dcColumn;
+            Column tColumn = aDataTable.getColumnByName(tColorField);
+
+            // Polygon color lookup is based upon the dcColumn
+            String pColorField = tag.polygonTextConfig.polygonConfig.dcColumn;
+            Column pColumn = aDataTable.getColumnByName(pColorField);
+
+            // Do we have a column with name.  Nulls are ok here
+            // textField is the actual TEXT shown in the icon....
+            String m = tag.polygonTextConfig.textConfig.textField;
+            if (m == null) {
+                m = "?";
             }
-            monitor.subTask("Icon " + ++i);
+            Column aColumn = aDataTable.getColumnByName(m);
+
+            // Iterator<String> iter = null;
+            // if (aColumn != null) {
+            //     iter = aColumn.getIterator();
+            // }
+
+            // Create an icon per row in table..using the icon configuration
+            ArrayList<Location> loc = aDataTable.getLocations();
+            int i = 0;
+            for (Location l : loc) {
+                int pValue = 0;
+                int tValue = 0;
+                if (tColumn != null) {
+                    String t = tColumn.getValue(i);
+
+                    // FIXME: ok upperbound should be a float, so Age can be a float
+                    // as well...so we really should parse knowing the column type?
+                    // crap.  I need to have column types somehow..at least, int,
+                    // and float, string...
+                    tValue = (int) (Float.parseFloat(t));   // SOOOO breakable..      
+                }
+                if (pColumn != null) {
+                    String t = pColumn.getValue(i);
+                    pValue = (int) (Float.parseFloat(t));   // SOOOO breakable..   
+                }
+
+                // Add it
+                if (aColumn != null) {
+                    String s = aColumn.getValue(i);
+                    addIcon(l, s, tValue, pValue, tag);
+                } else {
+                    addIcon(l, m, tValue, pValue, tag);
+                }
+                monitor.subTask("Icon " + ++i);
+            }
         }
+
         CommandManager.getInstance().updateDuringRender();  // Humm..different thread...
         monitor.done();
         setIsCreated();
@@ -221,9 +231,7 @@ public class DataTableRenderer extends ProductRenderer {
         private int textColorValue;
         /** This is the value of the polygon for colormap lookup... */
         private int polygonColorValue;
-        
         private Color textColor;
-        
         private Tag_iconSetConfig tag;
 
         //     public Position position;
@@ -238,8 +246,8 @@ public class DataTableRenderer extends ProductRenderer {
             this.polygonColorValue = polygonValue;
             //         this.position = p;
         }
-        
-        public void updateColors(ColorMap textColorMap, ColorMap polygonColorMap){
+
+        public void updateColors(ColorMap textColorMap, ColorMap polygonColorMap) {
             // Update the icon text color.
             Color textColor = Color.BLACK;
             try {
@@ -384,7 +392,6 @@ public class DataTableRenderer extends ProductRenderer {
 
             drawText(dc, width, height, opacity, pickPosition);
         }
-        
         /**
          * Render the annotation. Called as a Renderable.
          *

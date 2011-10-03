@@ -224,6 +224,7 @@ public class ColorMap {
             // Bind upper and lower bound values...
             // <colorBin upperBound=
             float ub, lb;
+            /*  Using the new built in float parsing in Tag library....
             String upperBoundTag = colorbinXML.upperBound;
             //  String upperBoundTag = colorbinXML.getAttribute("upperBound");
             if (upperBoundTag.equalsIgnoreCase("infinity")) {
@@ -232,7 +233,8 @@ public class ColorMap {
                 ub = Float.NEGATIVE_INFINITY;
             } else {
                 ub = Float.parseFloat(upperBoundTag);
-            }
+            }*/
+            ub = colorbinXML.upperBound;
             lb = previousUpperBound;
 
             // -----------------------------------------------------------------------

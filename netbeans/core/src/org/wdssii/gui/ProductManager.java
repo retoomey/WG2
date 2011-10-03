@@ -32,7 +32,7 @@ import org.wdssii.xml.Tag_colorBin;
 import org.wdssii.xml.Tag_colorDatabase;
 import org.wdssii.xml.Tag_colorDef;
 import org.wdssii.xml.Tag_colorMap;
-import org.wdssii.xml.Tag_iconSetConfig;
+import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
 
 /**
  * --Maintains a set of color maps by product name (color map cache FIXME: Move to generic cache)
@@ -208,6 +208,17 @@ public class ProductManager implements Singleton {
         private Tag_colorMap myColorMapTag = null;
         private Tag_iconSetConfig myIconSetConfig = null;
 
+        private URL colorMapURL;
+        private URL iconSetConfigURL;
+        
+        public URL getCurrentColorMapURL(){
+            return colorMapURL;
+        }
+        
+        public URL getCurrentIconSetURL(){
+            return iconSetConfigURL;
+        }
+        
         /** Load any xml files that pertain to this particular product */
         public void loadProductXMLFiles(boolean force) {
 
@@ -224,12 +235,13 @@ public class ProductManager implements Singleton {
          */
         private void loadColorMapFromXML() {
             URL u = W2Config.getURL("colormaps/" + myName);
+            colorMapURL = u;
             Tag_colorMap tag = new Tag_colorMap();
             if (tag.processAsRoot(u)) {
                 myColorMapTag = tag;
                 ColorMap aColorMap = new ColorMap();
                 aColorMap.initFromTag(tag, ProductTextFormatter.DEFAULT_FORMATTER);
-                myColorMap = aColorMap;         
+                myColorMap = aColorMap;       
             }
         }
         
@@ -238,6 +250,7 @@ public class ProductManager implements Singleton {
          */
         private void loadIconSetConfigFromXML() {
             URL u = W2Config.getURL("icons/" + myName);
+            iconSetConfigURL = u;
             Tag_iconSetConfig tag = new Tag_iconSetConfig();
             if (tag.processAsRoot(u)) {
                 myIconSetConfig = tag;
@@ -250,6 +263,8 @@ public class ProductManager implements Singleton {
                     aColorMap.initFromTag(c, ProductTextFormatter.DEFAULT_FORMATTER);
                     myColorMap = aColorMap;      
                     myColorMapTag = c;
+                }catch(Exception e){
+                    // Any of it null, etc..ignore it...
                 }finally{
                    // null/missing tag
                 }
@@ -299,6 +314,19 @@ public class ProductManager implements Singleton {
             myListName = name;
         }
 
+        /** Return if loaded.  Some stuff like the color key layer will
+         * check this so that it doesn't cause a thrash load of EVERY colormap
+         * by calling getColorMap
+         * @return 
+         */
+        public boolean isLoaded(){
+            return myLoadedXML;
+        }
+        
+        /** Get color map.  Will attempt to load the color map if not
+         * already loaded
+         * @return the ColorMap, or null
+         */
         public ColorMap getColorMap() {
             loadProductXMLFiles(false);
             return myColorMap;

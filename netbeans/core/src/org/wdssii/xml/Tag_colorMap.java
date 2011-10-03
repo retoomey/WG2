@@ -26,7 +26,7 @@ public class Tag_colorMap extends Tag {
     // End Reflection
     // ----------------------------------------------------------------------
  
-    @Override
+  /*  @Override
     public void processChildren(XMLStreamReader p) {
 
         // Experimenting:  This will be probably become the default
@@ -37,7 +37,7 @@ public class Tag_colorMap extends Tag {
         
         // This will put Tag_unit in
         fillTagFieldsFromReflection(p);
-    }
+    }*/
 }
 /*
 public class Tag_colorMap extends Tag_array<Tag_colorBin> {

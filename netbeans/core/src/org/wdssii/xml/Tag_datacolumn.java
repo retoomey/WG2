@@ -27,6 +27,7 @@ public class Tag_datacolumn extends Tag {
     
     // Just store as values, save a little memory at least.  This will
     // change if Tag_item becomes more complex.
+    // Reflection won't catch this field since it's not a Tag subclass
     public ArrayList<String> values = new ArrayList<String>();
     
     // Separate class?  Keeping here for now unless reused

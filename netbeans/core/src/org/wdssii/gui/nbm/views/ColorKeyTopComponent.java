@@ -7,6 +7,7 @@ package org.wdssii.gui.nbm.views;
 import java.awt.BorderLayout;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.TreeMap;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -77,6 +78,8 @@ public final class ColorKeyTopComponent extends ThreadedTopComponent implements 
         myTable = t;
         final DefaultTableModel m = new DefaultTableModel();
         m.addColumn("Product");
+        m.addColumn("C_URL");
+        m.addColumn("I_URL");
 
         myModel = m;
         t.setModel(m);
@@ -98,10 +101,29 @@ public final class ColorKeyTopComponent extends ThreadedTopComponent implements 
 
         for (ProductDataInfo i : info.values()) {
             String n = i.getName();
-            ColorMap c = i.getColorMap();
-            if (c != null) {
-                String[] columns = {n};
-                myModel.addRow(columns);
+
+            URL cmapURL = i.getCurrentColorMapURL();
+            String cmap;
+            if (cmapURL != null) {
+                cmap = cmapURL.toString();
+            } else {
+                cmap = "?";
+            }
+
+            URL imapURL = i.getCurrentIconSetURL();
+            String imap;
+            if (imapURL != null) {
+                imap = imapURL.toString();
+            } else {
+                imap = "?";
+            }
+            
+            if (i.isLoaded()) {  // Don't load them all just for this list
+                ColorMap c = i.getColorMap();
+                if (c != null) {
+                    String[] columns = {n, cmap, imap};
+                    myModel.addRow(columns);
+                }
             }
         }
     }
@@ -225,7 +247,6 @@ public final class ColorKeyTopComponent extends ThreadedTopComponent implements 
             super.approveSelection();
         }
     }
-    
 
     /** Bring up a dialog for saving a new image file */
     public String doImageSaveDialog() {

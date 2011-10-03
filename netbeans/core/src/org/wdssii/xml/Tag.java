@@ -25,6 +25,9 @@ import javax.xml.stream.XMLStreamReader;
  * creating radials or contours AS THEY LOAD...lol.
  * This basically halves the memory usage vs using a full Sax document instead.
  * 
+ * FIXME: bug where if duplicate tag occurs within an unhandled child then
+ * it will overwrite the tag.
+ * 
  * @author Robert Toomey
  */
 public abstract class Tag {
@@ -86,7 +89,7 @@ public abstract class Tag {
         }
         return atStart;
     }
-    
+
     protected boolean atEnd(XMLStreamReader p) {
         boolean atEnd = false;
         if (p.getEventType() == XMLStreamConstants.END_ELEMENT) {
@@ -191,10 +194,9 @@ public abstract class Tag {
         return foundIt;
     }
 
-    public void validateTag(){
-        
+    public void validateTag() {
     }
-    
+
     /** Process this tag as a document root.  Basically skip any information
      * until we get to our tag.  In STAX, the first event is not a start
      * tag typically.
@@ -250,6 +252,10 @@ public abstract class Tag {
 
     /** Process all child tabs within our tag */
     public void processChildren(XMLStreamReader p) {
+
+        // Default snags Tags and ArrayList<Tags>
+        fillTagFieldsFromReflection(p);
+        fillArrayListFieldsFromReflection(p);
     }
 
     /** Handle attributes by reflection.
@@ -263,36 +269,9 @@ public abstract class Tag {
 
         try {
             Class<?> c = this.getClass();
-            Field f = c.getDeclaredField(name);
-            String theType = f.getType().getName();
+            Field f = c.getDeclaredField(name);       
+            parseFieldString(f, value);
 
-            // Handle 'boolean' field type
-            if (theType.equals("boolean")) {
-                boolean flag = false;
-                if (value.equals("yes")) { // todo other types of text
-                    flag = true;
-                }
-                f.setBoolean(this, flag);
-
-                // Handle 'int' field type
-            } else if (theType.equals("int")) {                      
-                try {
-                    int anInt = 0;
-                    // Handle '0x' as hex number....
-                    if (value.toLowerCase().startsWith("0x")){
-                      value = value.substring(2);
-                      anInt = Integer.parseInt(value, 16);
-                    }else{
-                        anInt = Integer.parseInt(value);
-                    }  
-                    f.setInt(this, anInt);
-                } catch (NumberFormatException e) {
-                    // Could warn....
-                }
-            } else {
-                // Handle 'string' type by default (or exception)
-                f.set(this, value);
-            }
         } catch (NoSuchFieldException x) {
             // Store generically in a map<String, String> if no field exists?
             // Not sure I like this since it could let developer avoid using
@@ -300,9 +279,84 @@ public abstract class Tag {
             // String stuff = getStuff("tagname");
             // int i = Integer.parse(stuff);
             // error, error, etc...
-        } catch (IllegalAccessException x) {
-            // warn...
         }
+    }
+
+    /** Parse a field and value from reflection. Return true if handled.
+     * Subclasses can override to add more types if needed.
+     * We handle int, boolean, float and string by default
+     * 
+     * @param f theField we are to set
+     * @param value the string of the xml text to parse
+     * @return true if we handled it
+     */
+    public boolean parseFieldString(Field f, String value) {
+        boolean handled = false;
+        try {
+            String theType = f.getType().getName();
+
+            // ---------------------------------------------------------------
+            // Handle 'boolean' field type
+            // <tag fieldBoolean={yes, no, 1, no }
+            if (theType.equals("boolean")) {
+                boolean flag = false;
+                if (value.equalsIgnoreCase("yes")) {
+                    flag = true;
+                }
+                if (value.equals("1")) {
+                    flag = true;
+                }
+                f.setBoolean(this, flag);
+                handled = true;
+            // ---------------------------------------------------------------
+            // Handle 'int' field type
+            // <tag fieldInteger={0xHex, number }
+            } else if (theType.equals("int")) {
+                try {
+                    int anInt = 0;
+                    // Handle '0x' as hex number....
+                    if (value.toLowerCase().startsWith("0x")) {
+                        value = value.substring(2);
+                        anInt = Integer.parseInt(value, 16);
+                    } else {
+                        anInt = Integer.parseInt(value);
+                    }
+                    f.setInt(this, anInt);
+                    handled = true;
+                } catch (NumberFormatException e) {
+                    // Could warn....
+                }
+
+            // ---------------------------------------------------------------
+            // Handle 'float' field type
+            // <tag fieldInteger={+-infinity, +-inf, float
+            } else if (theType.equals("float")) {
+
+                try {
+                    float aFloat = Float.NaN;
+                    if (value.equalsIgnoreCase("infinity")) {
+                        aFloat = Float.POSITIVE_INFINITY;
+                    } else if (value.equalsIgnoreCase("-infinity")) {
+                        aFloat = Float.NEGATIVE_INFINITY;
+                    } else {
+                        aFloat = Float.parseFloat(value);
+                    }
+                    f.setFloat(this, aFloat);
+                    handled = true;
+                } catch (NumberFormatException e) {
+                    // Could warn....
+                }
+            // ---------------------------------------------------------------
+            // Handle 'string' field type (which is just the xml text)
+            // <tag fieldInteger=xmltext
+            } else {
+                f.set(this, value);
+                handled = true;
+            }
+        } catch (IllegalAccessException e) {
+            // FIXME: notify programmer of bad access
+        }
+        return handled;
     }
 
     /** Fill in ArrayList fields from reflection.  For example:

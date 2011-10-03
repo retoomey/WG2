@@ -27,9 +27,9 @@ public class Tag_contour extends Tag {
     public Tag_locationdata locationdata = new Tag_locationdata();
 
     /** Process all child tabs within our tag */
-    @Override
+   /* @Override
     public void processChildren(XMLStreamReader p) {
        datatype.processTag(p);
        locationdata.processTag(p);
-    }
+    }*/
 }

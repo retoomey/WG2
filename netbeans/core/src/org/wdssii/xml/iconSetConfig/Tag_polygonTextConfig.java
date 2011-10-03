@@ -1,6 +1,7 @@
-package org.wdssii.xml;
+package org.wdssii.xml.iconSetConfig;
 
 import javax.xml.stream.XMLStreamReader;
+import org.wdssii.xml.Tag;
 
 /**
  *  Tag which has the following format:
@@ -19,16 +20,23 @@ import javax.xml.stream.XMLStreamReader;
  */
 public class Tag_polygonTextConfig extends Tag {
 
+    // ----------------------------------------------------------------------
+    // Reflection <iconSetConfig track=, trend=
+    // Attributes
+    // Subtags
     /** A <polygonConfig> tag */
     public Tag_polygonConfig polygonConfig = new Tag_polygonConfig();
     
     /** A <textConfig> tag */
     public Tag_textConfig textConfig = new Tag_textConfig();
+    // End Reflection
+    // ---------------------------------------------------------------------- 
     
     /** Process all child tabs within our tag */
-    @Override
+   /* @Override
     public void processChildren(XMLStreamReader p) {
-       textConfig.processTag(p);
-       polygonConfig.processTag(p);
-    }
+       fillTagFieldsFromReflection(p);
+      // textConfig.processTag(p);
+      // polygonConfig.processTag(p);
+    }*/
 }

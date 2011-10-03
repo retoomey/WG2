@@ -28,8 +28,8 @@ public class Tag_colorDef extends Tag {
     public int b = 0;
     public int a = 255;
 
-    // Just pull the "color" info out directly...
+   /* // Just pull the "color" info out directly...
     @Override
     public void processChildren(XMLStreamReader p) {
-    }
+    }*/
 }

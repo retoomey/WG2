@@ -25,17 +25,17 @@ public class Tag_windBarb extends Tag {
     public Tag_halfUnit halfUnit = new Tag_halfUnit();
     
     public static class Tag_superUnit extends Tag {
-        public String value;
-        public String tolerance;
+        public int value;
+        public int tolerance;
     }
     
     public static class Tag_baseUnit extends Tag {
-        public String value;
-        public String tolerance;
+        public int value;
+        public int tolerance;
     }    
     
     public static class Tag_halfUnit extends Tag {
-        public String value;
-        public String tolerance;
+        public int value;
+        public int tolerance;
     }  
 }

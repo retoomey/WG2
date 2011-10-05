@@ -116,8 +116,21 @@ public class DataTable extends DataType implements Table2DView {
             return values.iterator();
         }
         
+        /** Get column value as a string */
         public String getValue(int row){
             return values.get(row);
+        }
+        
+        /** Get column value as a float */
+        public float getFloat(int row){
+            float v = DataType.MissingData;
+            String s = values.get(row);
+            try{
+                v = Float.parseFloat(s);
+            }catch(NumberFormatException e){
+                
+            }
+            return v;
         }
 
         public int getNumRows() {
@@ -153,6 +166,10 @@ public class DataTable extends DataType implements Table2DView {
 
     public ArrayList<Location> getLocations(){
         return myLocations;
+    }
+    
+    public Location getLocation(int row){
+        return myLocations.get(row);
     }
     
     // New way, called by GUI

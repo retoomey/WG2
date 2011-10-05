@@ -1,14 +1,20 @@
 package org.wdssii.gui.products;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Comparator;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableRowSorter;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView.CellQuery;
+import org.wdssii.geom.Location;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.gui.views.WorldWindView;
 
 /**
  * This sets up the table for a DataTable DataType object.
@@ -93,13 +99,39 @@ public class DataTable2DTable extends Product2DTable {
         // Should always be true.  Can't create DataTable2DTable by reflection
         // without DataTable being loaded.
         if (dt instanceof DataTable) {
-            DataTable data = (DataTable) (dt);
+            final DataTable data = (DataTable) (dt);
 
             // Default is to make a virtual table..
             myTableModel = new DataTableModel(data);
             jDataTableSwingTable = new JTable();
+            jDataTableSwingTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             jDataTableSwingTable.setModel(myTableModel);
             setUpSortingColumns();
+
+            // Add double click...this will try to jump to the location
+            // of the data at the given cell...
+            jDataTableSwingTable.addMouseListener(new MouseAdapter() {
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) {
+                        JTable target = (JTable) e.getSource();
+                        int row = target.getSelectedRow();
+                        //  int column = target.getSelectedColumn();
+                        try {
+                            Location l = data.getLocation(row);
+                            WorldWindView earth = CommandManager.getInstance().getEarthBall();
+                            if (earth != null) {
+                                earth.gotoLocation(l);
+                            }
+                        } catch (Exception ex) {
+                            // recover by just doing nothing...
+                        }
+                        // do some action
+                    }
+                }
+            });
+
             scrollPane.setViewportView(jDataTableSwingTable);
             scrollPane.revalidate();
             scrollPane.repaint();

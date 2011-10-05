@@ -32,9 +32,9 @@ public class Tag_dataColumn extends Tag {
     public String directionCol;
     public String airTemperatureCol;
     public String relativeHumidCol;
-    public String dewTemperatureCol;
     public String pressureCol;
     public String precipitationCol;
+    public String dewpointCol;
     // End Reflection
     // ---------------------------------------------------------------------- 
     

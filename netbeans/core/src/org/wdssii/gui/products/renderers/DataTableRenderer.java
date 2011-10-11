@@ -3,7 +3,10 @@ package org.wdssii.gui.products.renderers;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.LatLon;
+import gov.nasa.worldwind.geom.Matrix;
 import gov.nasa.worldwind.geom.Position;
+import gov.nasa.worldwind.geom.Vec4;
+import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.render.Annotation;
 import gov.nasa.worldwind.render.AnnotationAttributes;
@@ -13,6 +16,8 @@ import java.awt.Point;
 import gov.nasa.worldwind.render.DrawContext;
 
 import gov.nasa.worldwind.render.GlobeAnnotation;
+import gov.nasa.worldwind.terrain.SectorGeometryList;
+import gov.nasa.worldwind.util.OGLStackHandler;
 import java.awt.Color;
 import java.awt.Insets;
 import java.nio.DoubleBuffer;
@@ -52,11 +57,61 @@ import org.wdssii.xml.iconSetConfig.Tag_polygonTextConfig;
  */
 public class DataTableRenderer extends ProductRenderer {
 
-    private ArrayList<Annotation> myIcons = new ArrayList<Annotation>();
+    private ArrayList<BaseIconAnnotation> myIcons = new ArrayList<BaseIconAnnotation>();
     private static Log log = LogFactory.getLog(DataTableRenderer.class);
     private static BasicAnnotationRenderer myRenderer = new BasicAnnotationRenderer();
     private ColorMap myTextColorMap = null;
     private ColorMap myPolygonColorMap = null;
+
+    public static class BaseIconAnnotation extends GlobeAnnotation {
+
+        public BaseIconAnnotation(String text, Position p,
+                AnnotationAttributes defaults) {
+            super(text, p, defaults);
+        }
+
+        /** The '3d' component of our annotation. */
+        public void do3DDraw(DrawContext dc) {
+        }
+
+        /** The regular rendernow stuff for 2D.... */
+        @Override
+        public void renderNow(DrawContext dc) {
+            if (dc == null) {
+                return;
+            }
+            if (!this.getAttributes().isVisible()) {
+                return;
+            }
+            if (dc.isPickingMode() && !this.isPickEnabled()) {
+                return;
+            }
+
+            // doRenderNow
+            if (dc.isPickingMode() && this.getPickSupport() == null) {
+                return;
+            }
+            Vec4 point = this.getAnnotationDrawPoint(dc);
+            if (point == null) {
+                return;
+            }
+            if (dc.getView().getFrustumInModelCoordinates().getNear().distanceTo(point) < 0) {
+                return;
+            }
+            Vec4 screenPoint = dc.getView().project(point);
+            if (screenPoint == null) {
+                return;
+            }
+
+            java.awt.Dimension size = this.getPreferredSize(dc);
+            Position pos = dc.getGlobe().computePositionFromPoint(point);
+
+            double[] scaleAndOpacity = computeDistanceScaleAndOpacity(dc, point, size);
+            this.setDepthFunc(dc, screenPoint);
+            this.drawTopLevelAnnotation(dc, (int) screenPoint.x, (int) screenPoint.y, size.width, size.height,
+                    scaleAndOpacity[0], scaleAndOpacity[1], pos);
+        }
+    }
 
     public DataTableRenderer() {
         super(true);
@@ -74,27 +129,28 @@ public class DataTableRenderer extends ProductRenderer {
         Tag_polygonTextConfig polygonTextConfig = tag.polygonTextConfig;
         Tag_mesonetConfig mesonetConfig = tag.mesonetConfig;
 
+        // FIXME: shouldn't be doing non-oo switching here
         // For the moment, keep polygonTextConfig and mesonet separate....
-        if (mesonetConfig != null) {
-            
+        if ((mesonetConfig != null) && (mesonetConfig.wasRead())) {
+
             Tag_dataColumn dataCol = mesonetConfig.dataColumn;
 
             // Maybe we could create an array of these....
             // FIXME: lots of string --> columnName --> parse row (i) stuff
             // this should be generized some way.
-            
+
             // Try to get the 'Direction' column.
             Column dirColumn = null;
-            if (dataCol != null){
+            if (dataCol != null) {
                 dirColumn = aDataTable.getColumnByName(dataCol.directionCol);
             }
-            
+
             // Try to get the 'Speed' column.
             Column speedColumn = null;
-            if (dataCol != null){
+            if (dataCol != null) {
                 speedColumn = aDataTable.getColumnByName(dataCol.speedCol);
             }
-            
+
             //String atColumnS = mesonetConfig.dataColumn.airTemperatureCol; 
             // Column atColumn = aDataTable.getColumnByName(atColumnS);
             // Create an icon per row in table..using the icon configuration
@@ -103,17 +159,17 @@ public class DataTableRenderer extends ProductRenderer {
             for (Location l : loc) {
                 float speed = DataType.MissingData;
                 float direction = DataType.MissingData;
-                if (dirColumn != null){
+                if (dirColumn != null) {
                     direction = dirColumn.getFloat(i);
                 }
-                if (speedColumn != null){
+                if (speedColumn != null) {
                     speed = speedColumn.getFloat(i);
                 }
-                
+
                 addMesonet(l, direction, speed);
                 monitor.subTask("Icon " + ++i);
             }
-        } else if (polygonTextConfig != null) {
+        } else if ((polygonTextConfig != null) && (polygonTextConfig.wasRead())) {
             // FIXME: These are all special cases because of legacy data/code...
             // need to generalize it....currently all this code is a giant mess...
             if (myTextColorMap == null) {
@@ -201,13 +257,89 @@ public class DataTableRenderer extends ProductRenderer {
 
         // myRenderer.render(dc, this, null, dc.getCurrentLayer());
         DrawContext a = dc;
-        Iterable<Annotation> b = myIcons;
+        Iterable<BaseIconAnnotation> b = myIcons;
         Layer c = dc.getCurrentLayer();
 
-        // Render many, but this doesn't order I think...
-        myRenderer.render(a, myIcons, c);
+        // Direct draw in icon order....note this won't 'order' in any way 
+        // at the moment...Sadly looping is faster than iterable..lol, though
+        // less abstract more breakable
 
+        if (dc == null) {
+            return;
+        }
+
+        if (dc.getVisibleSector() == null) {
+            return;
+        }
+        SectorGeometryList geos = dc.getSurfaceGeometry();
+        if (geos == null) {
+            return;
+        }
+
+        if (myIcons == null) {
+            return;
+        }
+
+        GL gl = dc.getGL();
+
+        // For our icons we have two render passes.  One is for any 3D component
+        // of the icon..the 2nd is the 2D component which overlays any 3D...
+
+        // 3D Pass
+        int size = myIcons.size();
+        for (int i = 0; i < size; i++) {
+            BaseIconAnnotation aIcon = myIcons.get(i);
+            // aIcon.renderNow(dc);
+            aIcon.do3DDraw(dc);
+            //aIcon.draw(dc, i, i, i, Position.ZERO)
+        }
+        // 2D Pass 
+        int attributeMask = GL.GL_COLOR_BUFFER_BIT // for alpha test func and ref, blend func
+                | GL.GL_CURRENT_BIT // for current color
+                | GL.GL_DEPTH_BUFFER_BIT // for depth test, depth mask, depth func
+                | GL.GL_ENABLE_BIT // for enable/disable changes
+                | GL.GL_HINT_BIT // for line smoothing hint
+                | GL.GL_LINE_BIT // for line width, line stipple
+                | GL.GL_TEXTURE_BIT // for texture env
+                | GL.GL_TRANSFORM_BIT // for matrix mode
+                | GL.GL_VIEWPORT_BIT; // for viewport, depth range
+
+        // Wow never knew of this..this object is awesome
+        OGLStackHandler stackHandler = new OGLStackHandler();
+        stackHandler.pushAttrib(gl, attributeMask);
+
+        // Load a parallel projection with dimensions (viewportWidth, viewportHeight)
+        stackHandler.pushProjectionIdentity(gl);
+
+        gl.glOrtho(0d, dc.getView().getViewport().width, 0d, dc.getView().getViewport().height, -1d, 1d);
+        // Push identity matrices on the texture and modelview matrix stacks. Leave the matrix mode as modelview.
+
+        stackHandler.pushTextureIdentity(gl);
+        stackHandler.pushModelviewIdentity(gl);
+
+        // Enable the alpha test.
+        gl.glEnable(GL.GL_ALPHA_TEST);
+
+        gl.glAlphaFunc(GL.GL_GREATER, 0.0f);
+
+        // FIXME: handle picking..and visible flag?
+        // if (!aIcon.getAttributes().isVisible())
+        // if (dc.isPickingMode() && !aIcon.isPickEnabled())	
+        // return;
+
+        //   int size = myIcons.size();
+        for (int i = 0; i < size; i++) {
+            Annotation aIcon = myIcons.get(i);
+            aIcon.renderNow(dc);
+
+            //aIcon.draw(dc, i, i, i, Position.ZERO)
+        }
+
+        // Render many, but this doesn't order I think...
+        //  myRenderer.render(a, myIcons, c);
+        // --> myRenderer.drawMany(a, myIcons, c);
         //  myRenderer.render
+        stackHandler.pop(gl);
     }
 
     public void addIcon(Location loc, String text, int cText, int cPolygon, Tag_iconSetConfig tag) {
@@ -288,7 +420,7 @@ public class DataTableRenderer extends ProductRenderer {
      * First pass use ww annotation object.  Since we have so many icons
      * we'll probably need to make it flyweight
      */
-    private class IconAnnotation extends GlobeAnnotation {
+    private class IconAnnotation extends BaseIconAnnotation {
         // public Earthquake earthquake;
 
         /** This is the value of the icon for colormap lookup.. 
@@ -490,12 +622,11 @@ public class DataTableRenderer extends ProductRenderer {
     /**
      * First hack of mesonet icons
      */
-    private class MesonetIcon extends GlobeAnnotation {
+    private class MesonetIcon extends BaseIconAnnotation {
 
         private Tag_mesonetConfig tag;
         private float myDirection = DataType.MissingData;
         private float mySpeed = DataType.MissingData;
-        
         int barbRadius = 30; // windbarb tag stuff
         double superUnit = 50;
         double superTolerance = 10;
@@ -504,7 +635,7 @@ public class DataTableRenderer extends ProductRenderer {
         double halfUnit = 5;
         double halfTolerance = 5;
         int myCrossHairRadius = 5;
-        
+
         //     public Position position;
         public MesonetIcon(Position p,
                 float direction,
@@ -525,8 +656,7 @@ public class DataTableRenderer extends ProductRenderer {
                 myCrossHairRadius = tag.output.windBarb.crossHairRadius;
                 barbRadius = tag.windBarb.barbRadius;
                 // units? speedUnit..
-            }catch(Exception e){
-                
+            } catch (Exception e) {
             }
         }
 
@@ -540,7 +670,6 @@ public class DataTableRenderer extends ProductRenderer {
             // Not sure we even need this...billboarding using '2d coordinates'
             gl.glScaled(finalScale, finalScale, 1);
         }
-        
         // Override annotation drawing for a simple circle
         private DoubleBuffer shapeBuffer;
 
@@ -551,6 +680,66 @@ public class DataTableRenderer extends ProductRenderer {
                 result += y;
             }
             return result;
+        }
+
+        protected double getPixelSizeAtLocation(DrawContext dc, Position p) {
+            Globe globe = dc.getGlobe();
+            Vec4 locationPoint = globe.computePointFromPosition(p);
+            //Vec4 locationPoint = globe.computePointFromPosition(location.getLatitude(), location.getLongitude(),
+            //     globe.getElevation(location.getLatitude(), location.getLongitude()));
+            double distance = dc.getView().getEyePoint().distanceTo3(locationPoint);
+            return dc.getView().computePixelSizeAtDistance(distance);
+        }
+
+        @Override
+        public void do3DDraw(DrawContext dc) {
+
+            Vec4 point = this.getAnnotationDrawPoint(dc);
+            if (point == null) {
+                return;
+            }
+            if (dc.getView().getFrustumInModelCoordinates().getNear().distanceTo(point) < 0) {
+                return;
+            }
+            Vec4 screenPoint = dc.getView().project(point);
+            if (screenPoint == null) {
+                return;
+            }
+
+           // java.awt.Dimension size = this.getPreferredSize(dc);
+           // Position pos = dc.getGlobe().computePositionFromPoint(point);
+            this.setDepthFunc(dc, screenPoint);
+
+            Position p1 = getPosition();
+            
+            /** Bigger the further so it stays 'same' size in 2D */
+            double finalScale = getPixelSizeAtLocation(dc, p1);
+            
+            /** North becomes Y, East x */
+            Matrix m = dc.getGlobe().computeModelCoordinateOriginTransform(p1);
+
+            OGLStackHandler h = new OGLStackHandler();
+            GL gl = dc.getGL();
+            h.pushModelview(dc.getGL());
+            Matrix modelview = dc.getView().getModelviewMatrix();
+            modelview = modelview.multiply(m);
+
+            double[] compArray = new double[16];
+            Matrix transform = Matrix.IDENTITY;
+            transform = transform.multiply(modelview);
+            transform = transform.multiply(Matrix.fromScale(finalScale));
+            transform.toArray(compArray, 0, false);
+            gl.glLoadMatrixd(compArray, 0);
+            
+            // Poor way of outlining lol
+            gl.glColor3f(0, 0, 0);
+            gl.glLineWidth(4);
+            drawWindBarb3D(dc.getGL());
+            gl.glLineWidth(1);
+            gl.glColor3f(1.0f, 1.0f, 1.0f);
+            drawWindBarb3D(dc.getGL());
+            
+            h.pop(gl);
         }
 
         /** Draw our IconAnnotation.  Kinda stuck on how I do this, since
@@ -570,30 +759,61 @@ public class DataTableRenderer extends ProductRenderer {
                 // this.bindPickableObject(dc, pickPosition);
                 return;
             }
-            drawWindBarb(dc.getGL());
+            
+            GL gl = dc.getGL();
+             // Poor way of outlining lol
+            gl.glColor3f(0, 0, 0);
+            gl.glLineWidth(4);
+            drawWindBarb2D(dc.getGL());
+            gl.glLineWidth(1);
+            gl.glColor3f(1.0f, 1.0f, 1.0f);
+            drawWindBarb2D(dc.getGL());
+            // drawWindBarb(dc.getGL());
+        }
+
+        public void drawWindBarb2D(GL gl){
+            int cr = myCrossHairRadius;
+            float direction = myDirection; // This is from direction column, Not missing...
+            float speed = mySpeed; // speed from data column (not missing)
+            
+            // Draw a billboard box on missing...
+            if ((direction == DataType.MissingData) || (speed == DataType.MissingData)) {
+                float h = cr / 2.0f;
+                gl.glRectd(-h, -h, cr, cr);
+                return;
+            }
+            
+            // Draw a cross hair.
+            gl.glBegin(GL.GL_LINES);
+            gl.glVertex2d(-cr, 0);
+            gl.glVertex2d(cr, 0);
+            gl.glVertex2d(0, cr);
+            gl.glVertex2d(0, -cr);  
+            gl.glEnd();
         }
         
         /** At the moment, draw a wind barb kinda sloppy.  Should cache
          * this stuff.
+         * 
+         * Draw the flat surface projection part of the windbarb
          * @param gl 
          */
-        public void drawWindBarb(GL gl){
+        public void drawWindBarb3D(GL gl) {
             float direction = myDirection; // This is from direction column, Not missing...
             float speed = mySpeed; // speed from data column (not missing)
-            
+
             // temp crosshair radius
-            int cr = myCrossHairRadius;
-            
-            if ((direction == DataType.MissingData) || (speed == DataType.MissingData)){
+           // int cr = myCrossHairRadius;
+
+            if ((direction == DataType.MissingData) || (speed == DataType.MissingData)) {
                 // Can't do windbarb, do a box instead...
-               float h = cr/2.0f;
-               gl.glRectd(-h, -h, cr, cr);
-               return;
+               // float h = cr / 2.0f;
+               // gl.glRectd(-h, -h, cr, cr);
+                return;
             }
-            
+
             // Stuff from configuration...hardcoded at moment
             //Color windBarColor = Color.WHITE;
-            
 
             // interval between two parallel lines: we assume the # of such lines
             // are less than 10.  Dividing gives us 'step' per line along the
@@ -601,25 +821,32 @@ public class DataTableRenderer extends ProductRenderer {
             double step = barbRadius / 10.0f;
             double rlen = step * 4;  // length of a super unit/base unit line
             double hlen = step * 2;  // length of a half unit line
-            double fval1, fval2, wspd, wdir1, wdir2, cs1, cs2, sn1, sn2;
+            double fval1, fval2, wspd, cs1, cs2, sn1, sn2;
             int ibarb, iflag, ihalf, k, n;
 
-            float w1 = mod(90.0f - direction + 260.0f, 360.0f);
-            float w2 = mod(90.0f - 60 - direction + 360.0f, 360.0f);
-
+            // Angle for the MAIN line of the mesonet. 0 north, 90 east
+            float w1 = mod(direction, 360.0f);
+            
+            // Angle for the 'barbs' sticking off.  This is relative to the
+            // base barb line, so 90 would make the barbs perpendicular to the
+            // main line of the windbarb.  Positive sticks away from the barb
+            // in the clockwise direction.
+            float w2 = w1+60.0f;
+            
             // This is getting the angle from the direction value, creating
             // a line from (0,0) to that point on the circle
-            wdir1 = Math.toRadians(w1);
-            wdir2 = Math.toRadians(w2);
+            double wdir1 = Math.toRadians(w1);
+            double wdir2 = Math.toRadians(w2);
             cs1 = Math.cos(wdir1);
-            cs2 = Math.cos(wdir2);
             sn1 = Math.sin(wdir1);
+            
+            cs2 = Math.cos(wdir2);
             sn2 = Math.sin(wdir2);
 
             // main axis.  0,0 is center of icon....
             double x0 = 0, y0 = 0, x1, x2, y1, y2;
-            x2 = x0 + (barbRadius * cs1);
-            y2 = y0 + (barbRadius * sn1);
+            x2 = x0 + (barbRadius * sn1);
+            y2 = y0 + (barbRadius * cs1);
             n = 1; // Count first line
             iflag = ibarb = ihalf = 0;
             wspd = speed;
@@ -649,10 +876,10 @@ public class DataTableRenderer extends ProductRenderer {
             gl.glBegin(GL.GL_LINES);
 
             // Draw a cross hair.
-            gl.glVertex2d(-cr, 0);
-            gl.glVertex2d(cr, 0);
-            gl.glVertex2d(0, cr);
-            gl.glVertex2d(0, -cr);
+           // gl.glVertex2d(-cr, 0);
+           /// gl.glVertex2d(cr, 0);
+           // gl.glVertex2d(0, cr);
+           // gl.glVertex2d(0, -cr);
 
             // Draw first line of barb
             gl.glVertex2d(x0, y0);
@@ -663,16 +890,16 @@ public class DataTableRenderer extends ProductRenderer {
 
                 // First line...
                 fval1 = barbRadius - ((double) (n - 1) * step);
-                x1 = x0 + (fval1 * cs1);
-                y1 = y0 + (fval1 * sn1);
-                x2 = x1 + (rlen * cs2);
-                y2 = y1 + (rlen * sn2);
+                x1 = x0 + (fval1 * sn1);
+                y1 = y0 + (fval1 * cs1);
+                x2 = x1 + (rlen * sn2);
+                y2 = y1 + (rlen * cs2);
                 gl.glVertex2d(x1, y1);
                 gl.glVertex2d(x2, y2);
                 // Second line...
                 fval2 = fval1 - step;
-                x1 = x0 + (fval2 * cs1);
-                y1 = y0 + (fval2 * sn1);
+                x1 = x0 + (fval2 * sn1);
+                y1 = y0 + (fval2 * cs1);
                 gl.glVertex2d(x1, y1);
                 gl.glVertex2d(x2, y2);
                 n += 2;
@@ -681,10 +908,10 @@ public class DataTableRenderer extends ProductRenderer {
             // Base unit: lines
             for (k = 0; k < ibarb; k++) {
                 fval1 = barbRadius - ((double) (n - 1) * step);
-                x1 = x0 + (fval1 * cs1);
-                y1 = y0 + (fval1 * sn1);
-                x2 = x1 + (rlen * cs2);
-                y2 = y1 + (rlen * sn2);
+                x1 = x0 + (fval1 * sn1);
+                y1 = y0 + (fval1 * cs1);
+                x2 = x1 + (rlen * sn2);
+                y2 = y1 + (rlen * cs2);
                 gl.glVertex2d(x1, y1);
                 gl.glVertex2d(x2, y2);
                 n++;
@@ -695,15 +922,15 @@ public class DataTableRenderer extends ProductRenderer {
                 fval1 = barbRadius - ((double) (n - 1) * step);
                 // if we haven't drawn any lines except main axis,
                 // then back two steps to draw the first line
-                // the only line for the half unit
+                // the only line for the half 
                 if (n == 1 && wspd < (halfUnit * 2.0)) {
                     fval1 = fval1 - step * 2;
 
                 }
-                x1 = x0 + (fval1 * cs1);
-                y1 = y0 + (fval1 * sn1);
-                x2 = x1 + (hlen * cs2);
-                y2 = y1 + (hlen * sn2);
+                x1 = x0 + (fval1 * sn1);
+                y1 = y0 + (fval1 * cs1);
+                x2 = x1 + (hlen * sn2);
+                y2 = y1 + (hlen * cs2);
                 gl.glVertex2d(x1, y1);
                 gl.glVertex2d(x2, y2);
             }

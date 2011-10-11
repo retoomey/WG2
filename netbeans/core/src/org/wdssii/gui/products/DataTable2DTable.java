@@ -2,7 +2,6 @@ package org.wdssii.gui.products;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Comparator;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -117,15 +116,18 @@ public class DataTable2DTable extends Product2DTable {
                     if (e.getClickCount() == 2) {
                         JTable target = (JTable) e.getSource();
                         int row = target.getSelectedRow();
-                        //  int column = target.getSelectedColumn();
-                        try {
-                            Location l = data.getLocation(row);
-                            WorldWindView earth = CommandManager.getInstance().getEarthBall();
-                            if (earth != null) {
-                                earth.gotoLocation(l);
+                        if (row > -1) {
+                            row = target.convertRowIndexToModel(row);
+                            //  int column = target.getSelectedColumn();
+                            try {
+                                Location l = data.getLocation(row);
+                                WorldWindView earth = CommandManager.getInstance().getEarthBall();
+                                if (earth != null) {
+                                    earth.gotoLocation(l);
+                                }
+                            } catch (Exception ex) {
+                                // recover by just doing nothing...
                             }
-                        } catch (Exception ex) {
-                            // recover by just doing nothing...
                         }
                         // do some action
                     }

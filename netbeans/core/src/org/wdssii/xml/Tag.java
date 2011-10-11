@@ -35,6 +35,9 @@ public abstract class Tag {
     private String cacheTagName;
     private boolean haveTag = false;
 
+    /** Set to true iff tag was found and processed */
+    private boolean processedTag = false;
+    
     /* Default tag method returns the part of the classname
      * without the "Tag_" part.  This is why this class is abstract.
      */
@@ -50,6 +53,11 @@ public abstract class Tag {
         return cacheTagName;
     }
 
+    /** Return true iff tag was read from xml */
+    public boolean wasRead(){
+        return processedTag;
+    }
+    
     /** Utility function to check for a new start tag */
     protected static String haveStartTag(XMLStreamReader p) {
         String startTag = null;
@@ -189,6 +197,7 @@ public abstract class Tag {
             while (nextNotEnd(p)) {
                 processChildren(p);
             }
+            processedTag = true;
             validateTag();
         }
         return foundIt;

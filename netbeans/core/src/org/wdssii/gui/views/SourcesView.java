@@ -732,7 +732,7 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
         BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
         if (model != null) {
             int row = jSourceListTable.getSelectedRow();
-
+            row = jSourceListTable.convertRowIndexToModel(row);
             if (myModel != null) {
                 BookmarkURLSource s = myModel.getDataForRow(row);
                 if (s != null) {

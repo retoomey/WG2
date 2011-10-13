@@ -1,5 +1,8 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package org.wdssii.gui.nbm.views;
-
 
 import net.miginfocom.swing.MigLayout;
 import org.openide.util.NbBundle;
@@ -7,42 +10,33 @@ import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
-import org.wdssii.gui.views.LayersView;
+import org.wdssii.gui.views.JobsView;
 
 /**
- * LayersTopCompoent
- * 
- * This view shows the list of WorldWind layers and lets us toggle
- * visibility and move them up and down in a stack.
- * 
- * @todo Pull out the stock code into a superclass so others can use it
- * as a generic WorldWind layer control view.
- * 
- * @author Robert Toomey
- * 
+ * Top component which displays something.
  */
-@ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Layers//EN",
+@ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Jobs//EN",
 autostore = false)
-@TopComponent.Description(preferredID = "LayersTopComponent",
-iconBase = "org/wdssii/gui/nbm/views/layers.png",
+@TopComponent.Description(preferredID = "JobsTopComponent",
+//iconBase="SET/PATH/TO/ICON/HERE", 
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "explorer", openAtStartup = true)
-@ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.LayersTopComponent")
+@ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.JobsTopComponent")
 @ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
-@TopComponent.OpenActionRegistration(displayName = "#CTL_LayersAction",
-preferredID = "LayersTopComponent")
-public final class LayersTopComponent extends TopComponent {
+@TopComponent.OpenActionRegistration(displayName = "#CTL_JobsAction",
+preferredID = "JobsTopComponent")
 
-    private LayersView myPanel;
-   
-    public LayersTopComponent() {
+public final class JobsTopComponent extends TopComponent {
+
+    private JobsView myPanel;
+    
+    public JobsTopComponent() {
         initComponents();
-        setLayout(new MigLayout("fill, inset 0", "", ""));
-        myPanel = new LayersView();
+       setLayout(new MigLayout("fill, inset 0", "", ""));
+        myPanel = new JobsView();
         add(myPanel, "grow");
-        // Create our list within the scroll pane
-        setName(NbBundle.getMessage(LayersTopComponent.class, "CTL_LayersTopComponent"));
-        setToolTipText(NbBundle.getMessage(LayersTopComponent.class, "HINT_LayersTopComponent"));
+        setName(NbBundle.getMessage(JobsTopComponent.class, "CTL_JobsTopComponent"));
+        setToolTipText(NbBundle.getMessage(JobsTopComponent.class, "HINT_JobsTopComponent"));
     }
 
     /** This method is called from within the constructor to
@@ -53,14 +47,12 @@ public final class LayersTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
     }// </editor-fold>//GEN-END:initComponents
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
-
     @Override
     public void componentOpened() {
-        if (myPanel != null){
-            myPanel.updateLayerList();
-        }
+        // TODO add custom code on component opening
     }
 
     @Override

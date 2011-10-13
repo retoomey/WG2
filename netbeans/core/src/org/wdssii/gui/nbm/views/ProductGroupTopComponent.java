@@ -15,7 +15,7 @@ autostore = false)
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
 @ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.ProductGroupTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@ActionReference(path = "Menu/Window/WDSSII" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_ProductGroupAction",
 preferredID = "ProductGroupTopComponent")
 public final class ProductGroupTopComponent extends TopComponent {

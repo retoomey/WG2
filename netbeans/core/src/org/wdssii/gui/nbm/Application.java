@@ -10,6 +10,7 @@ import org.openide.windows.InputOutput;
 import org.openide.windows.WindowManager;
 import org.wdssii.core.WDSSII;
 import org.wdssii.core.WdssiiJob;
+import org.wdssii.gui.JobManager;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.storage.DataManager;
 
@@ -45,7 +46,8 @@ public class Application extends ModuleInstall {
         WDSSII.getInstance();
         
         // Add the netbeans job creator
-        WdssiiJob.introduce(new NBJobHandler.NBJobFactory());
+        JobManager.getInstance();
+        //WdssiiJob.introduce(new NBJobHandler.NBJobFactory());
         
         // Add the netbeans preference manager
         PreferencesManager.introduce(new NBPrefHandler());

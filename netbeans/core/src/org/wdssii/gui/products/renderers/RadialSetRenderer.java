@@ -507,7 +507,7 @@ public class RadialSetRenderer extends ProductRenderer {
                         FloatBuffer c = readoutMode ? readout.getRawBuffer() : colors.getRawBuffer();
 
                         // Only render if there is data to render
-                        if (z.capacity() > 0) {
+                        if ((z!= null)&& (z.capacity() > 0)) {
                             gl.glVertexPointer(3, GL.GL_FLOAT, 0, z.rewind());
 
                             // Isn't this color kinda wasteful really?  We have 4 floats per color,

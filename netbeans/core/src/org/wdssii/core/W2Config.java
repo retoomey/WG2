@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -86,6 +88,8 @@ public class W2Config {
             if (aFile.exists()) {
                 try {
                     // We need the URL for the file...
+                    // Doing it this way encodes spaces as %20, which is
+                    // proper URL format.
                     URL u = aFile.toURI().toURL();
                     String path = u.toExternalForm();
                     if (path.endsWith("/")) {
@@ -146,7 +150,11 @@ public class W2Config {
                 if (isLocalFile(aURL)) {
                     // If it's a local URL, then check for existance and read
                     // of the file.
-                    File aFile = new File(aURL.getFile());
+                                  
+                    // URL will have spaces encoded as %20, which will fail in windows
+                    // This will decode %20 into actual spaces for the filename
+                    URI uri = new URI(aURL.toString());
+                    File aFile = new File(uri.getPath());
                     if (!(aFile.exists() && aFile.canRead())) {
                         aURL = null;
                     }
@@ -165,6 +173,8 @@ public class W2Config {
                     }
                 }
             } catch (IOException ex) {
+                aURL = null;
+            } catch (URISyntaxException ex){
                 aURL = null;
             }
         } catch (MalformedURLException ex) {

@@ -11,6 +11,7 @@ import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.xml.Tag_color;
 import org.wdssii.xml.Tag_colorBin;
 import org.wdssii.xml.Tag_colorMap;
+import org.wdssii.xml.Tag_colorMap.Tag_Point;
 
 /**
  * Color map converts from a float value to a Color, using a set of ColorBins.
@@ -126,6 +127,7 @@ public class ColorMap {
         /** The bin label */
         protected String myLabel;
         // FIXME: these should go into the linear subclass...
+        // they are here because of drawing calls...
         protected float myLowerBound;
         protected short red2;
         protected short green2;
@@ -224,16 +226,6 @@ public class ColorMap {
             // Bind upper and lower bound values...
             // <colorBin upperBound=
             float ub, lb;
-            /*  Using the new built in float parsing in Tag library....
-            String upperBoundTag = colorbinXML.upperBound;
-            //  String upperBoundTag = colorbinXML.getAttribute("upperBound");
-            if (upperBoundTag.equalsIgnoreCase("infinity")) {
-                ub = Float.POSITIVE_INFINITY;
-            } else if (upperBoundTag.equalsIgnoreCase("-infinity")) {
-                ub = Float.NEGATIVE_INFINITY;
-            } else {
-                ub = Float.parseFloat(upperBoundTag);
-            }*/
             ub = colorbinXML.upperBound;
             lb = previousUpperBound;
 
@@ -283,7 +275,6 @@ public class ColorMap {
                         break; // Add for more colors in list if wanted...
                 }
             }
-
 
             // This is how we determine if start of bin color is the same as the
             // ending color.
@@ -430,6 +421,44 @@ public class ColorMap {
         if (aTag.unit != null) {
             myUnits = aTag.unit.name;
         }
+
+        if ((aTag.colorBins != null) && (aTag.colorBins.size() > 0)) {
+            return processAsColorBins(aTag, formatter);
+        } else {
+            return processAsPoints(aTag, formatter);
+        }
+    }
+
+    /** Process the Point tags.  It's either these OR the ColorBins, not both */
+    private boolean processAsPoints(Tag_colorMap aTag, ProductTextFormatter formatter) {
+        // FIXME: check valid min/max?
+        float minValue = aTag.min;
+        float maxValue = aTag.max;
+        
+        int numOfBins = aTag.Points.size() - 1;
+        for (int i = 0; i < numOfBins; i++) {
+            Tag_Point p = aTag.Points.get(i);
+            Tag_Point p2 = aTag.Points.get(i + 1);
+
+            float low = (float) (p.x * maxValue);
+            float high = (float) (p2.x * maxValue);
+            ColorBin aColor = new ColorBin.Linear(low, high,
+                    ((short) (p2.r * 255.0f)),
+                    ((short) (p2.g * 255.0f)),
+                    ((short) (p2.b * 255.0f)),
+                    ((short) (1.0f * 255.0f)), // alpha 1 for moment
+                    ((short) (p.r * 255.0f)),
+                    ((short) (p.g * 255.0f)),
+                    ((short) (p.b * 255.0f)),
+                    ((short) (1.0f * 255.0f)), // alpha 1 for moment
+                    formatter.format(low));
+            addOrderedColorBin(aColor);
+        }
+        return true;
+    }
+
+    /** Process the ColorBin tags...one way of doing colors... */
+    private boolean processAsColorBins(Tag_colorMap aTag, ProductTextFormatter formatter) {
         // Change any names such as 'white' into RGB values...
         ProductManager.getInstance().updateNamesToColors(aTag);
 
@@ -437,9 +466,8 @@ public class ColorMap {
         for (Tag_colorBin bin : aTag.colorBins) {
             //ColorBin aColor = new ColorBin(aColorBinXML, previousUpperBound);
             ColorBin aColor = ColorBin.ColorBinFactory(bin, previousUpperBound, ProductTextFormatter.DEFAULT_FORMATTER);
-            myColorBins.add(aColor);
             previousUpperBound = aColor.getUpperBound();
-            addUpperBound(previousUpperBound);
+            addOrderedColorBin(aColor);
         }
 
         // Sort the upperbound, and since the index of it will find our color
@@ -476,59 +504,73 @@ public class ColorMap {
     public boolean initFromLinear(int numOfBins, float minValue, float maxValue, String units,
             ProductTextFormatter f) {
 
-        float low = Float.NEGATIVE_INFINITY;
-        float high = minValue;
-        float step = (maxValue - minValue) / numOfBins;
+        // Experimental 'cool' to 'warm'
+        minValue = 0.0f;
+        //maxValue = 256.0f;  Use max from the data...
 
-        // FIXME: color ranging will need some work, for now black upto max (white)
-        float redStep = 1.0f / numOfBins;
-        float greenStep = 1.0f / numOfBins;
-        float blueStep = 1.0f / numOfBins;
-        float curRed = 0;
-        float curGreen = 0;
-        float curBlue = 0;
+        // FIXME: will read these from 'point' tags like matlab
+        numOfBins = 10;  // number of points -1.  Since last point we'll make a single bin to infinity...
+        double[] reds = {0.0196078, 0.129412, 0.26745, 0.572549, 0.819608, 0.968627, 0.992157, 0.956863, 0.839216, 0.698039, 0.403922};
+        double[] greens = {0.188235, 0.4, 0.576471, 0.772549, 0.898039, 0.968627, 0.858824, 0.647059, 0.376471, 0.0941176, 0.0};
+        double[] blues = {0.380392, 0.67451, 0.764706, 0.870588, 0.941176, 0.968627, 0.780392, 0.509804, 0.301961, 0.168627, 0.121569};
 
-        float lowRed = 0;
-        float lowGreen = 0;
-        float lowBlue = 0;
-        float lowAlpha = 1.0f;
+        // FIXME: the xml tags will have percentage values 0 up to 1? or is it the 'data' value..
+        // Think it would be nice to have an attribute for it such as "value" or "percentage"
+        // int[] steps ={0,         25,       51,       76,       102,      127,      153,      178,      204,      229};
+        // Percentage of min to max value...
+        double[] stepP = {0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0};
 
-        float upRed = 0;
-        float upGreen = 0;
-        float upBlue = 0;
-        float upAlpha = 1.0f;
 
-        // First bin is -infinity to minValue
-        // Last bin has maxValue to +infinity
-        for (int i = 0; i < numOfBins; ++i) {
-            lowRed = curRed;
-            lowGreen = curGreen;
-            lowBlue = curBlue;
-            curRed += redStep;
-            curGreen += greenStep;
-            curBlue += blueStep;
-            upRed = curRed;
-            upGreen = curGreen;
-            upBlue = curBlue;
+        // For a full linear interpolation you always need at LEAST three bins,
+        // and at least 2 points (to interpolate)
+        // [-inf, first] [first, last] [last, inf] (bins)
+        // This means values below or above 'clamp' to min/max, since you can't
+        // interpolate to infinity.
+        // With the 'point' data, we add a first bin with upperbound first:
+     /*   float highFirst = (float)(stepP[0]*maxValue);  // Percentage on 'x'
+        ColorBin firstColor = new ColorBin.Single(highFirst,
+        ((short) (reds[0]*255.0f)),
+        ((short) (greens[0]*255.0f)),
+        ((short) (blues[0]*255.0f)),
+        ((short) (1.0f * 255.0f)),
+        "<"); //
+        addOrderedColorBin(firstColor);*/
+
+        for (int i = 0; i < numOfBins; i++) {
+            float low = (float) (stepP[i] * maxValue);
+            float high = (float) (stepP[i + 1] * maxValue);
             ColorBin aColor = new ColorBin.Linear(low, high,
-                    (short) (upRed * 255.0f), (short) (upGreen * 255.0f), (short) (upBlue * 255.0f), (short) (upAlpha * 255.0f),
-                    (short) (lowRed * 255.0f), (short) (lowGreen * 255.0f), (short) (lowBlue * 255.0f), (short) (lowAlpha * 255.0f),
-                    f.format((float) (low + step / 2.0)));
-            myColorBins.add(aColor);
-            addUpperBound(low);
-            low = aColor.getUpperBound();
-            if (i == numOfBins - 1) {
-                high = Float.POSITIVE_INFINITY;
-            } else {
-                high += step;
-            }
+                    ((short) (reds[i + 1] * 255.0f)),
+                    ((short) (greens[i + 1] * 255.0f)),
+                    ((short) (blues[i + 1] * 255.0f)),
+                    ((short) (1.0f * 255.0f)), // alpha 1 for moment
+                    ((short) (reds[i] * 255.0f)),
+                    ((short) (greens[i] * 255.0f)),
+                    ((short) (blues[i] * 255.0f)),
+                    ((short) (1.0f * 255.0f)), // alpha 1 for moment
+                    f.format(low));
+            addOrderedColorBin(aColor);
         }
+
+        // Last bin from last value to infinity...it will be last color
+      /*  float highLast = Float.POSITIVE_INFINITY;
+        ColorBin lastColor = new ColorBin.Single(highLast,
+        ((short) (reds[numOfBins]*255.0f)),
+        ((short) (greens[numOfBins]*255.0f)),
+        ((short) (blues[numOfBins]*255.0f)),
+        ((short) (1.0f * 255.0f)),
+        ">"); //
+        addOrderedColorBin(lastColor);*/
+
         myUnits = units;
         myGeneratedMap = true;
         return true;
     }
 
-    private void addUpperBound(float upper) {
+    private void addOrderedColorBin(ColorBin bin) {
+
+        myColorBins.add(bin);
+        float upper = bin.myUpperBound;
         myUpperBounds.add(upper);
         if (!Float.isInfinite(upper)) {
             // Humm doesn't catch everything, some color maps are using
@@ -546,6 +588,25 @@ public class ColorMap {
         }
     }
 
+    /*
+    private void addUpperBound(float upper) {
+    myUpperBounds.add(upper);
+    if (!Float.isInfinite(upper)) {
+    // Humm doesn't catch everything, some color maps are using
+    // just 'low' values for range... FIXME: fix all color maps
+    // Velocity for example uses -99899.5 which comes back as a real value
+    //if (DataType.isRealDataValue((float)(upper))){
+    if (upper > -99800.0) { // a guess
+    if (upper > myMaxValue) {
+    myMaxValue = upper;
+    }
+    if (upper < myMinValue) {
+    myMinValue = upper;
+    }
+    }
+    }
+    }
+     */
     public double getMaxValue() {
         return myMaxValue;
     }

@@ -211,6 +211,9 @@ public class ProductManager implements Singleton {
         private URL colorMapURL;
         private URL iconSetConfigURL;
         
+        /** Debug flag for forcing generated maps always */
+        private static boolean forceGenerated = false;
+        
         public URL getCurrentColorMapURL(){
             return colorMapURL;
         }
@@ -225,7 +228,9 @@ public class ProductManager implements Singleton {
             if (force){ myLoadedXML = false; }
             if (myLoadedXML == false){
                 loadIconSetConfigFromXML();
-                loadColorMapFromXML();
+                if (!forceGenerated){
+                    loadColorMapFromXML();
+                }
                 myLoadedXML = true;
             }
         }

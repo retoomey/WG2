@@ -54,7 +54,6 @@ public abstract class Builder {
             //	monitor.beginTask("DataRequest from "+myIndexRecord.getDataType(), IProgressMonitor.UNKNOWN);
             DataType dt = createDataType(myIndexRecord, monitor);
             myDataRequest.setReady(dt);
-            monitor.done();
             return WdssiiJobStatus.OK_STATUS;
         }
     }

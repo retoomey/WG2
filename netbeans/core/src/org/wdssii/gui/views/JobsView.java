@@ -1,11 +1,13 @@
 package org.wdssii.gui.views;
 
+import java.awt.Font;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import net.miginfocom.swing.MigLayout;
+import org.wdssii.gui.JobManager;
 import org.wdssii.gui.swing.JThreadPanel;
 
 /**
@@ -22,41 +24,66 @@ public class JobsView extends JThreadPanel implements WdssiiView {
      *  So we'll make it that way.  add/remove JComponents and access our
      *  Map all in one sync
      */
-    private Object addRemoveLock = new Object();
+    private final Object addRemoveLock = new Object();
     private Map<String, JobPanel> myJobs = new TreeMap<String, JobPanel>();
    
     int add = 0;
     int add2 = 0;
      int remove = 0;
      int remove2 = 0;
+     int addEx = 0;
+     int removeEx = 0;
     private JLabel myInfo;
 
     /** A Panel showing a particular job */
     private static class JobPanel extends JPanel {
 
-        private JProgressBar aBar = new JProgressBar();
-        private JLabel aLabel = new JLabel();
+        /** The progress bar showing a job running */
+        private JProgressBar myBar = new JProgressBar();
         
-        public JobPanel(String taskName) {
+        /** Label showing the main 'task' */
+        private JLabel myTask = new JLabel();
+        
+        /** Label showing the subtask of a job currently running */
+        private JLabel mySubTask = new JLabel();
+        
+        /** Total units of work iff the job is determinate */
+        private int myTotalUnits = -1;
+        
+        public JobPanel() {
             setLayout(new MigLayout("fill", "", ""));
-            add(new JLabel(taskName), "");
-            add(aBar, "growx, wrap");
+            add(myTask, "growx, wrap");
+            add(myBar, "growx, wrap");
+            add(mySubTask, "growx, wrap");
+            
+            // Additional setup
+            myBar.setStringPainted(true);
+            myTask.setFont(new Font(getFont().getName(), Font.PLAIN, 10));
+            mySubTask.setText("none");
+            mySubTask.setFont(new Font(getFont().getName(), Font.PLAIN, 9));
         }
 
         public void setValue(int n) {
-            aBar.setValue(n);
+            String f = String.format("%d/%d", n, myTotalUnits);
+            myBar.setString(f);
+            myBar.setValue(n);
         }
 
         public void setLabel(String label){
-            aLabel.setText(label);
+            myTask.setText(label);
+        }
+        
+        public void setSubTask(String label){
+            mySubTask.setText(label);
         }
         
         public void setIndeterminate(boolean f) {
-            aBar.setIndeterminate(f);
+            myBar.setIndeterminate(f);
         }
 
         public void setMaximum(int m) {
-            aBar.setMaximum(m);
+            myTotalUnits = m;
+            myBar.setMaximum(m);
         }
     }
 
@@ -88,9 +115,9 @@ public class JobsView extends JThreadPanel implements WdssiiView {
             }
         }
 
-        public void addJob(String s, String taskName) {
+        public void addJob(String s) {
             if (v != null){
-                v.addJob(s, taskName);
+                v.addJob(s);
             }
         }
 
@@ -111,6 +138,18 @@ public class JobsView extends JThreadPanel implements WdssiiView {
                 v.setMaximum(s, u);
             }
         }
+
+        public void setSubTask(String s, String subTaskName) {
+             if (v!= null){
+                v.setSubTask(s, subTaskName);
+            }
+        }
+
+        public void setLabel(String s, String taskName) {
+            if (v!= null){
+                v.setLabel(s, taskName);
+            }
+        }
         
     }
     
@@ -119,7 +158,9 @@ public class JobsView extends JThreadPanel implements WdssiiView {
         // Update the list of running jobs...
         int total = myJobs.size();
         int children = myPanel.getComponentCount();
-        myInfo.setText("Current running " + total + " ch:" + children+ " a,a,r,r "+add+", "+add2+", "+remove+", "+remove2);
+        //myInfo.setText("Current running " + total + " ch:" + children+ " a,a,r,r "+add+", "+add2+", "+remove+", "+remove2);
+          myInfo.setText("Start/Finished "+JobManager.totalJobsStarted+", " +JobManager.totalJobsFinished+", "+add+", " +remove+", "
+                  + ""+add2+", "+remove2+", "+addEx+", " +removeEx);
         validate();
         doLayout();
         repaint();
@@ -135,20 +176,21 @@ public class JobsView extends JThreadPanel implements WdssiiView {
         JobsViewHandler.setView(this);
     }
 
-    public void addJob(String aJob, String taskName) {
+    public void addJob(String aJob) {
 
         try {
             synchronized (addRemoveLock) {
-                 add2++;
-                JobPanel p = new JobPanel(taskName);
+                   add ++;
+                JobPanel p = new JobPanel();
                 myPanel.add(p, "growx, wrap");
               
                 myJobs.put(aJob, p);
-                  add ++;
+                add2++;
             }
 
             updateGUI();
         } catch (Exception e) {
+            addEx++;
             String a = e.toString();
         }
        
@@ -160,7 +202,6 @@ public class JobsView extends JThreadPanel implements WdssiiView {
      * @param aJob 
      */
     public void removeJob(String aJob) {
-        // JProgressBar b = myJobs.get(aJob);
         try {
             synchronized (addRemoveLock) {
                 
@@ -174,6 +215,7 @@ public class JobsView extends JThreadPanel implements WdssiiView {
             }
             updateGUI();
         } catch (Exception e) {
+            removeEx++;
             String a = e.toString();
             int b = 1;
         }
@@ -224,6 +266,31 @@ public class JobsView extends JThreadPanel implements WdssiiView {
         }
     }
 
+    public void setSubTask(String aJob, String subTaskName) {
+         try {
+            synchronized (addRemoveLock) {
+                JobPanel p = myJobs.get(aJob);
+                p.setSubTask(subTaskName);
+            }
+            updateGUI();
+
+        } catch (Exception e) {
+        }
+    }
+    
+    public void setLabel(String aJob, String s) {
+         try {
+            synchronized (addRemoveLock) {
+                JobPanel p = myJobs.get(aJob);
+                p.setLabel(s);
+            }
+            updateGUI();
+
+        } catch (Exception e) {
+        }
+    }
+    
+    
     public void finish(String aJob) {
         removeJob(aJob);
     }

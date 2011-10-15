@@ -35,78 +35,78 @@ public class XMLBuilder extends Builder {
 
     private static Log log = LogFactory.getLog(XMLBuilder.class);
 
-    public XMLBuilder(){
+    public XMLBuilder() {
         super("xml");
     }
-    
+
     @Override
     public DataType createDataType(IndexRecord rec, WdssiiJobMonitor w) {
-       URL url = rec.getDataLocationURL(this);
+        URL url = rec.getDataLocationURL(this);
         if (url == null) {
             return null;
         }
 
         return createDataTypeFromURL(url, w);
     }
-    
+
     /** pass in the file name and obtain an object back. */
     public DataType createDataTypeFromURL(URL aURL, WdssiiJobMonitor m) {
 
         if (m != null) {
-            m.beginTask(aURL.toString(), WdssiiJobMonitor.UNKNOWN);
+            m.beginTask("XMLBuilder", WdssiiJobMonitor.UNKNOWN);
+              m.subTask("Reading "+aURL.toString());
         }
 
-         DataType dt = createFromURLStream(aURL, m);
-         return dt;
-         
+        DataType dt = createFromURLStream(aURL, m);
+        return dt;
+
     }
 
     /** Read remote data file 
     private DataType readRemoteFile(String path, String suffix) {
-        File localFile = null;
-        DataType dt = null;
-
-        try {
-            log.info("***FILE READING FROM " + path);
-            // read from remote file and store in temporary file
-            URL url = new URL(path);
-            localFile = File.createTempFile("wdssiijava", ".gz");
-            FileOutputStream fos = new FileOutputStream(localFile);
-            InputStream is = url.openStream();
-            byte[] buffer = new byte[1024 * 1024];
-            int len = 0;
-            while ((len = is.read(buffer)) > 0) {
-                fos.write(buffer, 0, len);
-            }
-            fos.close();
-            dt = readLocalFile(localFile.getAbsolutePath());
-        } catch (Exception e) {
-            //throw new FormatException("Can not read remote file: " + path);	
-            log.error("Exception reading file: " + e.toString());
-        } finally {
-            if (localFile != null) {
-                //localFile.delete();
-                log.info("Created localfile: " + localFile.getAbsolutePath());
-            }
-        }
-        return dt;
+    File localFile = null;
+    DataType dt = null;
+    
+    try {
+    log.info("***FILE READING FROM " + path);
+    // read from remote file and store in temporary file
+    URL url = new URL(path);
+    localFile = File.createTempFile("wdssiijava", ".gz");
+    FileOutputStream fos = new FileOutputStream(localFile);
+    InputStream is = url.openStream();
+    byte[] buffer = new byte[1024 * 1024];
+    int len = 0;
+    while ((len = is.read(buffer)) > 0) {
+    fos.write(buffer, 0, len);
+    }
+    fos.close();
+    dt = readLocalFile(localFile.getAbsolutePath());
+    } catch (Exception e) {
+    //throw new FormatException("Can not read remote file: " + path);	
+    log.error("Exception reading file: " + e.toString());
+    } finally {
+    if (localFile != null) {
+    //localFile.delete();
+    log.info("Created localfile: " + localFile.getAbsolutePath());
+    }
+    }
+    return dt;
     }
      * */
-
     /** Wdssii XML can create directly from xml stream of URL.
      */
-    private DataType createFromURLStream(URL aURL, WdssiiJobMonitor w){
-       
+    private DataType createFromURLStream(URL aURL, WdssiiJobMonitor w) {
+
         DataType dt = null;
-      //  File file = new File(path);
+        //  File file = new File(path);
         InputStream is = null;
         try {
-           // is = new FileInputStream(file);
-          //  if (file.getAbsolutePath().endsWith(".gz")) {
-           //     is = new GZIPInputStream(is);
-          //  }
+            // is = new FileInputStream(file);
+            //  if (file.getAbsolutePath().endsWith(".gz")) {
+            //     is = new GZIPInputStream(is);
+            //  }
             is = aURL.openStream();
-            if (aURL.toString().endsWith(".gz")){
+            if (aURL.toString().endsWith(".gz")) {
                 is = new GZIPInputStream(is);
             }
             // Experimenting:
@@ -166,11 +166,9 @@ public class XMLBuilder extends Builder {
                 }
             }
         }
-        return dt; 
+        return dt;
     }
-    
-    
-    
+
     private DataType readLocalFile(String path) {
 
         DataType dt = null;
@@ -261,7 +259,7 @@ public class XMLBuilder extends Builder {
         // 2 - Base path such as "http://www/warnings"
         // 3 - 'xmldata' formatter_name
         // 4 - short file such as '1999_ktlx.netcdf.gz'
-        String path = params[2]+"/"+params[4];
+        String path = params[2] + "/" + params[4];
         URL url = null;
         try {
             url = new URL(path);

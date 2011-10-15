@@ -211,7 +211,6 @@ public class LatLonGridTile extends TileRenderer.Tile {
         public WdssiiJobStatus run(WdssiiJobMonitor monitor) {
             monitor.beginTask("LatLonTile:", WdssiiJobMonitor.UNKNOWN);
             makeTheTile(dc, aProduct, monitor);
-            monitor.done();
             return WdssiiJobStatus.OK_STATUS;
         }
     }

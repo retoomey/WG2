@@ -98,7 +98,6 @@ public class LatLonGridRenderer extends TileRenderer {
                     } else {
                         // Stack is empty, finish this job....
                         isDone = true;
-                        monitor.done();
                         return WdssiiJobStatus.OK_STATUS;
                     }
                 }

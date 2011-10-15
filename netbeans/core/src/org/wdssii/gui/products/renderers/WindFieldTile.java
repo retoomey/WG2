@@ -258,7 +258,6 @@ public class WindFieldTile extends TileRenderer.Tile {
             }
             tileCreated = true;
 
-            monitor.done();
             return WdssiiJobStatus.OK_STATUS;
         }
     }

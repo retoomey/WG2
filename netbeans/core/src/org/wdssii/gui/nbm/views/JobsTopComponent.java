@@ -18,7 +18,7 @@ import org.wdssii.gui.views.JobsView;
 @ConvertAsProperties(dtd = "-//org.wdssii.gui.nbm.views//Jobs//EN",
 autostore = false)
 @TopComponent.Description(preferredID = "JobsTopComponent",
-//iconBase="SET/PATH/TO/ICON/HERE", 
+iconBase = "org/wdssii/gui/nbm/views/computer_go.png",
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "explorer", openAtStartup = true)
 @ActionID(category = "Window", id = "org.wdssii.gui.nbm.views.JobsTopComponent")

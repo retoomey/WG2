@@ -71,7 +71,6 @@ public class SourceConnectCommand extends SourceCommand {
                             break;
                         }
                     }
-                    monitor.done();
                     aboutToConnect(key, false);
                     
                     // Update GUI (manually do the fire event thing of command manager)

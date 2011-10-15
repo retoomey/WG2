@@ -231,7 +231,6 @@ public class DataTableRenderer extends ProductRenderer {
         }
 
         CommandManager.getInstance().updateDuringRender();  // Humm..different thread...
-        monitor.done();
         setIsCreated();
         return WdssiiJobStatus.OK_STATUS;
     }

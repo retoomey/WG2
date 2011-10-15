@@ -116,8 +116,13 @@ public class NBJobHandler implements WdssiiJobRunner {
         Runnable r = new Runnable(){
             @Override
             public void run() {
+    
+                try{
                   myWdssiiJobMonitor = new NBJobMonitor(myWdssiiJob);
                   myWdssiiJob.run(myWdssiiJobMonitor);
+                }finally{
+                    myWdssiiJobMonitor.done();
+                }
             }
         };
         Thread t = new Thread(r, "WdssiiBackgroundTask");

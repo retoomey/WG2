@@ -170,7 +170,6 @@ public class VisualCollection {
                     break;
                 }
             }
-            monitor.done();
             if (wasCancelled) {
                 myVisualCollection.setLoopEnabled(false);
                 CommandManager.getInstance().executeCommand(new AnimateNotifyCancelCommand(), true);

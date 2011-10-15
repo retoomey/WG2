@@ -124,7 +124,6 @@ public class ContoursRenderer extends ProductRenderer {
                 myOffsets.add(idx);
             }
             setIsCreated();
-            monitor.done();
         }catch(Exception e){
             
         }

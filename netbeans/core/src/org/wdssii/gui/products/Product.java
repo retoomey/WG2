@@ -32,6 +32,7 @@ import org.wdssii.index.IndexSubType;
 import org.wdssii.index.VolumeRecord;
 import org.wdssii.index.HistoricalIndex.Direction;
 import org.wdssii.index.IndexSubType.SubtypeType;
+import org.wdssii.xml.Tag_colorMap;
 
 /** Product is a holder for everything that can possibly be done for a particular
  * type of data in the display.
@@ -460,9 +461,19 @@ public class Product implements LRUCacheItem {
                    minValue = m.getMinValue();
                    maxValue = m.getMaxValue();
                 }
-                aColorMap.initFromLinear(30, minValue, maxValue, units, ProductTextFormatter.DEFAULT_FORMATTER);
+                Tag_colorMap map = Tag_colorMap.getCandidate2();
+                
+                // Override the min/max with values from the data metric..
+                // this makes a better colormap in general..
+                // FIXME: check missing, etc...and allow changing per product
+                // in the GUI editor...
+                map.min = minValue;
+                map.max = maxValue;            
+                map.unit.name = myRawDataType.getUnit();
+                aColorMap.initFromTag(map, ProductTextFormatter.DEFAULT_FORMATTER);
             } else {
-                aColorMap.initFromLinear(30, -1000, 1000, "?", ProductTextFormatter.DEFAULT_FORMATTER);
+                Tag_colorMap map = Tag_colorMap.getCandidate2();
+                aColorMap.initFromTag(map, ProductTextFormatter.DEFAULT_FORMATTER);
             }
         }
         return aColorMap;

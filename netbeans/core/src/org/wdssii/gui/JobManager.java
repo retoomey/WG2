@@ -32,6 +32,20 @@ public class JobManager {
     private ExecutorService myService;
     /** The max threads */
     private int myMaxThreads = 10;
+    /** Count of total started jobs */
+    public static final Object startSync = new Object();
+    public static long totalJobsStarted = 0;
+    /** Count of total finished jobs */
+    public static final Object endSync = new Object();
+    public static long totalJobsFinished = 0;
+
+    public long getStartCount() {
+        return totalJobsStarted;
+    }
+
+    public long getEndCount() {
+        return totalJobsFinished;
+    }
 
     /** Factory for creating a job */
     public static class JobSwingFactory implements WdssiiJobFactory {
@@ -50,9 +64,8 @@ public class JobManager {
          * once it's made...bleh..might try to use before it's ready...
          * 
          */
-       // public static JobsView myView = null;
+        // public static JobsView myView = null;
         public static JobsView.JobsViewHandler myHandler = new JobsView.JobsViewHandler();
-        
         /** The job we are handling */
         private WdssiiJob myWdssiiJob;
         /** The monitor object for this job.  Used by the job to send back
@@ -73,22 +86,17 @@ public class JobManager {
             private boolean myIsStarted = false;
             private boolean myHaveFinished = false;
             private final Object myStartSync = new Object();
-            // private JProgressBar myBar;
 
             private JobSwingMonitor(WdssiiJob job) {
+                myHandler.addJob(this.toString());
             }
 
             @Override
             public void done() {
                 synchronized (myStartSync) {
-                    if (myIsStarted && !myHaveFinished) {
-                        if (myTotalUnits != -1) {
-                            //  myProgressHandle.progress(myTotalUnits);
-                                myHandler.progress(this.toString(), myTotalUnits);
-                        }
-                        // myProgressHandle.finish();
-                            myHandler.finish(this.toString());
-                            myHaveFinished = true;
+                    if (!myHaveFinished) {
+                        myHandler.finish(this.toString());
+                        myHaveFinished = true;
                     }
                 }
             }
@@ -98,39 +106,41 @@ public class JobManager {
                 myTotalUnits = totalUnits;
 
                 synchronized (myStartSync) {
-                    // Try to create a bar in the JobsView
-                    // Humm..maybe we should just send job INFO to JobsView...
-                    // that way it can sync
+
+                    /** Start the job by adding to handler */
                     try {
                         //if (JobSwingRunner.myView != null) {
-                            myHandler.addJob(this.toString(), taskName);
-                           
-                       // }
+                        myHandler.setLabel(this.toString(), taskName);
+                        // }
                     } catch (Exception e) {
+                    } finally {
+                        // Assume started even on exception, so we will try
+                        // to remove everying on 'done'
+                        myIsStarted = true;
                     }
 
+                    /** Set units for the task */
                     if (myTotalUnits == -1) {
-                       // if (myView != null) {
-                            myHandler.switchToIndeterminate(this.toString());
-                       // }
+                        // if (myView != null) {
+                        myHandler.switchToIndeterminate(this.toString());
+                        // }
                         // myProgressHandle.start();
                         // myProgressHandle.switchToIndeterminate();
                     } else {
 
-                       // if (myView != null) {
-                            myHandler.switchToDeterminate(this.toString());
-                            myHandler.setMaximum(this.toString(), myTotalUnits);
-                       // }
+                        // if (myView != null) {
+                        myHandler.switchToDeterminate(this.toString());
+                        myHandler.setMaximum(this.toString(), myTotalUnits);
+                        // }
                         // myProgressHandle.start(totalUnits);
                     }
-                    myIsStarted = true;
                 }
 
             }
 
             @Override
             public void subTask(String subTaskName) {
-                //myProgressHandle.setDisplayName(subTaskName); 
+                myHandler.setSubTask(this.toString(), subTaskName);
             }
 
             @Override
@@ -144,8 +154,8 @@ public class JobManager {
                         myCurrentUnits = myTotalUnits;
                     }
                     //if (myView != null) {
-                        myHandler.progress(this.toString(), myCurrentUnits);
-                   // }
+                    myHandler.progress(this.toString(), myCurrentUnits);
+                    // }
 
                     // myProgressHandle.progress(myCurrentUnits);
                 }
@@ -178,10 +188,17 @@ public class JobManager {
                     // When about to run, set up the swing gui stuff.
                     // note we're in a different thread..
                     try {
+                        // Multiple runners....
+                        synchronized (startSync) {
+                            totalJobsStarted++;
+                        }
                         myWdssiiJobMonitor = new JobSwingMonitor(myWdssiiJob);
                         myWdssiiJob.run(myWdssiiJobMonitor);
                     } finally {
                         // Make sure and cleanup if job didn't call done...
+                        synchronized (endSync) {
+                            totalJobsFinished++;
+                        }
                         myWdssiiJobMonitor.done();
                         // When job is complete, we need to remove from
                         // list of running jobs...

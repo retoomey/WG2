@@ -27,16 +27,4 @@ public class Tag_colorBin extends Tag {
     public ArrayList<Tag_color> colors = new ArrayList<Tag_color>();
     // End Reflection
     // ----------------------------------------------------------------------
-    
-   /* @Override
-    public void processChildren(XMLStreamReader p) {
-   
-        // This will put the Tag_colors into our 'colors' field
-        fillArrayListFieldsFromReflection(p);
-        
-        // This will put Tag_unit in
-      //  fillTagFieldsFromReflection(p);
-    }
-     * 
-     */
 }

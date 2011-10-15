@@ -67,8 +67,7 @@ public class RadialSetRenderer extends ProductRenderer {
 
             // Make sure and always start monitor
             RadialSet aRadialSet = (RadialSet) aProduct.getRawDataType();
-            monitor.beginTask("RadialSetRenderer:", aRadialSet.getNumRadials());
-
+            monitor.beginTask("RadialSetRenderer", aRadialSet.getNumRadials());
             //	long end1 = System.currentTimeMillis() - start;
             //	float seconds1 = (float) ((end1 * 1.0) / 1000.0);
             // System.out.println("RADIAL SET BUILDER SECONDS " + seconds1);
@@ -371,12 +370,8 @@ public class RadialSetRenderer extends ProductRenderer {
 
             }
 
-            monitor.done();
         } catch (Exception e) {
             log.error("3D gen error" + e.toString());
-            if (monitor != null) {
-                monitor.done();
-            }
             return WdssiiJobStatus.CANCEL_STATUS; // We should make this a 'cleaner' exception/catch FIXME
         }
         //long end = System.currentTimeMillis() - start;
@@ -386,7 +381,6 @@ public class RadialSetRenderer extends ProductRenderer {
 
         // System.out.println("********Ending radial set creation");
         CommandManager.getInstance().updateDuringRender();  // Humm..different thread...
-        monitor.done();
         setIsCreated();
         return WdssiiJobStatus.OK_STATUS;
     }

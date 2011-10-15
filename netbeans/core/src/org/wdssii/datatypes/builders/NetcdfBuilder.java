@@ -83,7 +83,8 @@ public class NetcdfBuilder extends Builder {
     public DataType createDataTypeFromURL(URL aURL, WdssiiJobMonitor m) {
 
         if (m != null) {
-            m.beginTask(aURL.toString(), WdssiiJobMonitor.UNKNOWN);
+            m.beginTask("NetcdfBuilder", WdssiiJobMonitor.UNKNOWN);
+            m.subTask("Reading "+aURL.toString());
         }
 
         File theFile;

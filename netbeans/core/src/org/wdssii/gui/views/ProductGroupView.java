@@ -33,6 +33,17 @@ import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
  * @author Robert Toomey
  */
 public class ProductGroupView extends JPanel {
+   
+        /** Our factory, called by reflection to populate menus, etc...*/
+    public static class Factory extends WdssiiDockedViewFactory {
+        public Factory() {
+             super("Groups", "application_cascade.png");   
+        }
+        @Override
+        public Component getNewComponent(){
+            return new ProductGroupView();
+        }
+    }
     
     /** The object 3D list shows the list of 3d objects in the window
      */

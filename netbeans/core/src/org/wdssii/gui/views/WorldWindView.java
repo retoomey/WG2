@@ -7,6 +7,7 @@ import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
+import gov.nasa.worldwind.awt.WorldWindowGLJPanel;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Vec4;
@@ -15,6 +16,7 @@ import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.view.orbit.FlyToOrbitViewAnimator;
 import gov.nasa.worldwind.view.orbit.OrbitView;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
@@ -47,6 +49,8 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
 
     public static final String ID = "worldwind";
 
+    public static final boolean USE_HEAVYWEIGHT = false;
+    
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
@@ -76,8 +80,17 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JToolBar jToolBar1;
 
-    public WorldWindView() {
-
+    /** Our factory, called by reflection to populate menus, etc...*/
+    public static class Factory extends WdssiiDockedViewFactory {
+        public Factory() {
+             super("Earth", "world.png");   
+        }
+        public Component getNewComponent(){
+            return new WorldWindView();
+        }
+    }
+    
+    public WorldWindView() {               
         setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         final String w = "50"; // MigLayout width parameter
 
@@ -93,7 +106,7 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
 
         // Create top panel
         jPanel1 = new JPanel(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 2));
+       // jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 2));
 
         // Create bottom panel
         jPanel2 = new JPanel(new MigLayout(new LC().fill().insetsAll("0"), null, null));
@@ -112,11 +125,13 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
         } else {
             // Basic worldwind setup...
             Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
-            WorldWindowGLCanvas p = new WorldWindowGLCanvas();
-
-            myWorld = p;
+            if (USE_HEAVYWEIGHT){
+                myWorld = new WorldWindowGLCanvas(); 
+            }else{
+                myWorld = new WorldWindowGLJPanel();
+            } 
             myWorld.setModel(m);
-            jPanel1.add(p, new CC().minWidth(w).minHeight(w).growX().growY());
+            jPanel1.add((Component)(myWorld), new CC().minWidth(w).minHeight(w).growX().growY());
             jPanel1.setOpaque(false);
 
             // Either:

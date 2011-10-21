@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import java.awt.Component;
 import java.awt.Font;
 import java.util.Map;
 import java.util.TreeMap;
@@ -34,7 +35,17 @@ public class JobsView extends JThreadPanel implements WdssiiView {
      int addEx = 0;
      int removeEx = 0;
     private JLabel myInfo;
-
+    
+    /** Our factory, called by reflection to populate menus, etc...*/
+    public static class Factory extends WdssiiDockedViewFactory {
+        public Factory() {
+             super("Jobs", "computer_go.png");   
+        }
+        public Component getNewComponent(){
+            return new JobsView();
+        }
+    }
+    
     /** A Panel showing a particular job */
     private static class JobPanel extends JPanel {
 

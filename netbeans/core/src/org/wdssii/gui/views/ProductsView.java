@@ -103,6 +103,17 @@ public class ProductsView extends JThreadPanel implements WdssiiView {
         updateParts();
     }
 
+    /** Our factory, called by reflection to populate menus, etc...*/
+    public static class Factory extends WdssiiDockedViewFactory {
+        public Factory() {
+             super("Products", "filter.gif");   
+        }
+        @Override
+        public Component getNewComponent(){
+            return new ProductsView();
+        }
+    }
+    
     /**The data model for the 'source' list (copies source manager record at
      * moment)  Copy best for thread safety, though might save some memory
      * on large data sets if we didn't.  The reason for our own data structure

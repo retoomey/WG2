@@ -89,6 +89,17 @@ public class NavView extends JThreadPanel implements WdssiiView {
         updateProductList(w);
     }
 
+    /** Our factory, called by reflection to populate menus, etc...*/
+    public static class Factory extends WdssiiDockedViewFactory {
+        public Factory() {
+             super("Navigator", "eye.png");   
+        }
+        @Override
+        public Component getNewComponent(){
+            return new NavView();
+        }
+    }
+    
     /** Storage for the current product list */
     private static class ProductsTableData {
 

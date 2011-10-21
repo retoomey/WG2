@@ -11,7 +11,7 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import org.wdssii.gui.nbm.views.EarthTopComponent;
+import org.wdssii.gui.nbm.views.ThreadedTopComponent;
 
 /**
  * A factory that returns an icon based on a passed name.  We can have
@@ -49,7 +49,7 @@ public class SwingIconFactory {
      */
     public static ImageIcon getImageIconByName(String path,
             String description) {
-        java.net.URL imgURL = EarthTopComponent.class.getResource(path);
+        java.net.URL imgURL = ThreadedTopComponent.class.getResource(path);
         if (imgURL != null) {
             return new ImageIcon(imgURL, description);
         } else {
@@ -62,7 +62,7 @@ public class SwingIconFactory {
      * folder later on.
      */
     public static ImageIcon getImageIconByName(String path) {
-        java.net.URL imgURL = EarthTopComponent.class.getResource(path);
+        java.net.URL imgURL = ThreadedTopComponent.class.getResource(path);
         if (imgURL != null) {
             return new ImageIcon(imgURL);
         } else {

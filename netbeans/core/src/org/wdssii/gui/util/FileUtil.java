@@ -6,7 +6,7 @@ import java.net.URL;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wdssii.gui.nbm.views.EarthTopComponent;
+import org.wdssii.gui.nbm.views.ThreadedTopComponent;
 //import org.eclipse.jface.resource.ImageDescriptor;
 //import org.eclipse.swt.graphics.Image;
 //import org.eclipse.swt.widgets.Display;
@@ -106,7 +106,7 @@ public class FileUtil {
         // FIXME: I've been sloppy with resources, need more work..for now
         // gonna make this stuff be in the nbm directory like the icons
 
-        java.net.URL url = EarthTopComponent.class.getResource(relativePath);
+        java.net.URL url = ThreadedTopComponent.class.getResource(relativePath);
         if (url != null) {
             try {
                 return url != null ? url.openStream() : null;

@@ -228,7 +228,7 @@ public class ColorMapRenderer {
                 }
             }
             // Draw the units
-            if (unitName.length() > 0) {
+            if ((unitName != null) && (unitName.length() > 0)) {
                 wtxt = metrics.stringWidth(unitName);
                 int start = (viewx + w - wtxt);
                 TextLayout t2 = new TextLayout(unitName, f, frc);

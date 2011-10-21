@@ -30,6 +30,69 @@
                 <package>net.contentobjects.jnotify</package>
                 <package>net.contentobjects.jnotify.linux</package>
                 <package>net.contentobjects.jnotify.win32</package>
+                <package>net.infonode.docking</package>
+                <package>net.infonode.docking.action</package>
+                <package>net.infonode.docking.drag</package>
+                <package>net.infonode.docking.drop</package>
+                <package>net.infonode.docking.info</package>
+                <package>net.infonode.docking.internal</package>
+                <package>net.infonode.docking.internalutil</package>
+                <package>net.infonode.docking.location</package>
+                <package>net.infonode.docking.model</package>
+                <package>net.infonode.docking.mouse</package>
+                <package>net.infonode.docking.properties</package>
+                <package>net.infonode.docking.theme</package>
+                <package>net.infonode.docking.theme.internal.laftheme</package>
+                <package>net.infonode.docking.title</package>
+                <package>net.infonode.docking.util</package>
+                <package>net.infonode.gui</package>
+                <package>net.infonode.gui.action</package>
+                <package>net.infonode.gui.border</package>
+                <package>net.infonode.gui.button</package>
+                <package>net.infonode.gui.colorprovider</package>
+                <package>net.infonode.gui.componentpainter</package>
+                <package>net.infonode.gui.draggable</package>
+                <package>net.infonode.gui.hover</package>
+                <package>net.infonode.gui.hover.action</package>
+                <package>net.infonode.gui.hover.hoverable</package>
+                <package>net.infonode.gui.hover.panel</package>
+                <package>net.infonode.gui.icon</package>
+                <package>net.infonode.gui.icon.button</package>
+                <package>net.infonode.gui.laf</package>
+                <package>net.infonode.gui.laf.info</package>
+                <package>net.infonode.gui.laf.ui</package>
+                <package>net.infonode.gui.laf.value</package>
+                <package>net.infonode.gui.layout</package>
+                <package>net.infonode.gui.menu</package>
+                <package>net.infonode.gui.mouse</package>
+                <package>net.infonode.gui.panel</package>
+                <package>net.infonode.gui.shaped</package>
+                <package>net.infonode.gui.shaped.border</package>
+                <package>net.infonode.gui.shaped.panel</package>
+                <package>net.infonode.properties.base</package>
+                <package>net.infonode.properties.base.exception</package>
+                <package>net.infonode.properties.gui</package>
+                <package>net.infonode.properties.gui.util</package>
+                <package>net.infonode.properties.propertymap</package>
+                <package>net.infonode.properties.propertymap.ref</package>
+                <package>net.infonode.properties.propertymap.value</package>
+                <package>net.infonode.properties.types</package>
+                <package>net.infonode.properties.util</package>
+                <package>net.infonode.tabbedpanel</package>
+                <package>net.infonode.tabbedpanel.border</package>
+                <package>net.infonode.tabbedpanel.hover</package>
+                <package>net.infonode.tabbedpanel.info</package>
+                <package>net.infonode.tabbedpanel.internal</package>
+                <package>net.infonode.tabbedpanel.theme</package>
+                <package>net.infonode.tabbedpanel.theme.internal.laftheme</package>
+                <package>net.infonode.tabbedpanel.titledtab</package>
+                <package>net.infonode.util</package>
+                <package>net.infonode.util.collection</package>
+                <package>net.infonode.util.collection.map</package>
+                <package>net.infonode.util.collection.map.base</package>
+                <package>net.infonode.util.collection.notifymap</package>
+                <package>net.infonode.util.math</package>
+                <package>net.infonode.util.signal</package>
                 <package>net.jcip.annotations</package>
                 <package>net.miginfocom.demo</package>
                 <package>net.miginfocom.examples</package>
@@ -391,6 +454,10 @@
             <class-path-extension>
                 <runtime-relative-path>ext/miglayout-3.7.4.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/miglayout-3.7.4.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/idw-gpl.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/idw-gpl.jar</binary-origin>
             </class-path-extension>
         </data>
     </configuration>

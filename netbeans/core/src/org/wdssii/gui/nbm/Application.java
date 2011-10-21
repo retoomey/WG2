@@ -10,6 +10,7 @@ import org.openide.windows.InputOutput;
 import org.openide.windows.WindowManager;
 import org.wdssii.core.WDSSII;
 import org.wdssii.core.WdssiiJob;
+import org.wdssii.gui.DockWindow;
 import org.wdssii.gui.JobManager;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.storage.DataManager;
@@ -53,7 +54,7 @@ public class Application extends ModuleInstall {
         PreferencesManager.introduce(new NBPrefHandler());
 
         // Make any swing GUI items use native look and feel
-        try {
+       /* try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             // GTK might need this line according to eclipse docs if above doesn't work..
             // Currently coding in windows so can't test it yet.
@@ -61,7 +62,7 @@ public class Application extends ModuleInstall {
             //UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
         } catch (Exception e) {
             // Ignore it..not that huge a deal.
-        }
+        }*/
 
         // Fixme: probably need a log4j appender to wrap the output console
         InputOutput io = IOProvider.getDefault().getIO("WDSSII", true);
@@ -74,13 +75,14 @@ public class Application extends ModuleInstall {
                 Frame w = WindowManager.getDefault().getMainWindow();
                 if (w != null){
                  // String currentTitle = w.getTitle();
-                  String dir = DataManager.getInstance().getRootTempDir();
+                 // String dir = DataManager.getInstance().getRootTempDir();
                  // String newTitle = currentTitle.replaceAll("tempdir", "["+dir+"]");
-                  String newTitle = "WDSSII GUI 2.0 "+dir;
-                  w.setTitle(newTitle);
+                 // String newTitle = "WDSSII GUI 2.0 "+dir;
+                  w.setTitle("Netbeans base window");
                 }
             }
         });
+        DockWindow.doit();
     }
 
     public boolean closing() {

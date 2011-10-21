@@ -22,16 +22,29 @@ import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.gui.worldwind.WWCategoryLayer;
+
 /**
  *
  * @author Robert Toomey
  */
 public class LayersView extends JThreadPanel implements WdssiiView {
-  
+
     private final LayerTableModel myModel;
-    private final JTable myTable;                                   
+    private final JTable myTable;
     private javax.swing.JScrollPane jLayersScrollPane;
-    
+
+    /** Our factory, called by reflection to populate menus, etc...*/
+    public static class Factory extends WdssiiDockedViewFactory {
+
+        public Factory() {
+            super("Layers", "layers.png");
+        }
+
+        public Component getNewComponent() {
+            return new LayersView();
+        }
+    }
+
     /** Our custom renderer for our layer view table */
     private static class LayerTableCellRenderer extends WG2TableCellRenderer {
 
@@ -98,9 +111,8 @@ public class LayersView extends JThreadPanel implements WdssiiView {
 
     @Override
     public void updateInSwingThread(Object command) {
-
     }
-        
+
     public LayersView() {
         initComponents();
         final JTable t = new javax.swing.JTable();
@@ -186,7 +198,7 @@ public class LayersView extends JThreadPanel implements WdssiiView {
                 }
             }
         });
-        
+
         // FIXME: Earth ball currently has to be created first or this
         // can't get the layer list...
         updateLayerList();
@@ -201,15 +213,11 @@ public class LayersView extends JThreadPanel implements WdssiiView {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLayersScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(jLayersScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE));
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLayersScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(jLayersScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE));
     }// </editor-fold>     
-    
+
     /** Set up sorting columns if wanted */
     private void setUpSortingColumns() {
 
@@ -286,6 +294,4 @@ public class LayersView extends JThreadPanel implements WdssiiView {
             myTable.setRowSelectionInterval(oldRow, oldRow);
         }
     }
-             
-  
 }

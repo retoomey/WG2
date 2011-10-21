@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import java.awt.Component;
 import javax.swing.JScrollPane;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.GridVisibleArea;
@@ -38,6 +39,16 @@ public class TableProductView extends JThreadPanel implements WdssiiView {
     // private SimpleTable jProductDataTable;
     private Product2DTable myTable;
 
+    /** Our factory, called by reflection to populate menus, etc...*/
+    public static class Factory extends WdssiiDockedViewFactory {
+        public Factory() {
+             super("DataTable", "color_swatch.png");   
+        }
+        public Component getNewComponent(){
+            return new TableProductView();
+        }
+    }
+    
     public TableProductView() {
         initComponents();
         initTable();

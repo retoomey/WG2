@@ -1,6 +1,7 @@
 package org.wdssii.gui.views;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.io.File;
 import java.net.URL;
 import java.util.TreeMap;
@@ -47,7 +48,17 @@ public class ColorKeyView extends JThreadPanel implements WdssiiView {
         updateTable();
         updateColorKey();
     }
-
+    /** Our factory, called by reflection to populate menus, etc...*/
+    public static class Factory extends WdssiiDockedViewFactory {
+        public Factory() {
+             super("ColorKey", "color_wheel.png");   
+        }
+        @Override
+        public Component getNewComponent(){
+            return new ColorKeyView();
+        }
+    }
+    
     public ColorKeyView() {
         initComponents();
         initTable();

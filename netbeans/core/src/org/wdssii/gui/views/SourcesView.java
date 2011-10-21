@@ -64,7 +64,18 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
     private final String myDebugList = "Debug List";
     private BookmarkURLDataTableModel myModel;
     private final CONUSJPanel myCONUSPanel;
-
+    
+    /** Our factory, called by reflection to populate menus, etc...*/
+    public static class Factory extends WdssiiDockedViewFactory {
+        public Factory() {
+             super("Sources", "cart_add.png");   
+        }
+        @Override
+        public Component getNewComponent(){
+            return new SourcesView();
+        }
+    }
+    
     @Override
     public void radarClicked(String name) {
         if (jSourceListTable != null) {

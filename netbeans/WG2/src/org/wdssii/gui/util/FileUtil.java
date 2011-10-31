@@ -96,6 +96,7 @@ public class FileUtil {
      * 2.  Find it inside the jar of the plugin.
      * C:/WJEXPORT/launch.exe, C:/WJEXPORT/plugins/ourplug.jar (icons at top level of jar)
      * --> "icons/test.png"
+     * @deprecated
      */
     public static InputStream streamFromFile(String relativePath) {
         // We want the 'root' of the plugin or project directory, without a '/'

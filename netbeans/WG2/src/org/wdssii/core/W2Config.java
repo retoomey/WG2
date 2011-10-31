@@ -67,13 +67,29 @@ public class W2Config {
                 addDir(s + "/WDSS2/w2config");
                 addDir(s + "/WDSS2/src/w2/w2config");
             }
+
+            // This is for finding the checked in w2config within my compiled source tree..
+            // Not sure if there's an easier way to do this or not
+            try {
+                URL bUrl = ClassLoader.getSystemResource("org/wdssii");
+
+                // ---> filepath/WG2/build/classes/org/wdssii...
+                String bUrls = bUrl.toString();
+                bUrls = bUrls.replaceFirst("/build/classes/org/wdssii", "/w2config");
+                bUrl = new URL(bUrls);
+                // if this is a good url, it's working...so add it..
+                addPattern(bUrl.toString()+"/{1}");
+            } catch (Exception ee) {
+                // oh well don't care...we tried
+            }
+
             addDir("/etc/w2config");
         }
         if (useWeb) {
             // Attempt to get data from web located w2config locations.  We have
             // a cvs repository, also added stuff to the google project page.
             addPattern("http://tensor.protect.nssl/cgi-bin/viewcvs.cgi/cvs/w2/w2config/{1}?view=co");
-            addPattern("http://wg2.googlecode.com/hg/netbeans/core/w2config/{1}");
+            addPattern("http://wg2.googlecode.com/hg/netbeans/WG2/w2config/{1}");
         }
     }
 
@@ -150,7 +166,7 @@ public class W2Config {
                 if (isLocalFile(aURL)) {
                     // If it's a local URL, then check for existance and read
                     // of the file.
-                                  
+
                     // URL will have spaces encoded as %20, which will fail in windows
                     // This will decode %20 into actual spaces for the filename
                     URI uri = new URI(aURL.toString());
@@ -174,7 +190,7 @@ public class W2Config {
                 }
             } catch (IOException ex) {
                 aURL = null;
-            } catch (URISyntaxException ex){
+            } catch (URISyntaxException ex) {
                 aURL = null;
             }
         } catch (MalformedURLException ex) {
@@ -210,6 +226,7 @@ public class W2Config {
      * 
      * For example, passing colormaps/Reflectivity, you may get the DOM element
      * from /etc/w2config/colormaps/Reflectivity
+     * @deprecated
      */
     public static Element getElement(String filename)
             throws ConfigurationException {

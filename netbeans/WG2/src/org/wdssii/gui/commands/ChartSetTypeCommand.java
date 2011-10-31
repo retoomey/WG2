@@ -2,12 +2,10 @@ package org.wdssii.gui.commands;
 
 import java.util.ArrayList;
 import org.wdssii.gui.SingletonManager;
-import org.wdssii.gui.WdssiiXMLAttributeList;
-import org.wdssii.gui.WdssiiXMLAttributeList.WdssiiXMLAttribute;
-import org.wdssii.gui.WdssiiXMLCollection;
-import org.wdssii.gui.WdssiiXMLDocument;
 import org.wdssii.gui.views.ChartView;
 import org.wdssii.gui.commands.WdssiiCommand.WdssiiMenuList;
+import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
+import org.wdssii.xml.wdssiiConfig.Tag_setup;
 
 /** Command to set the chart type for the current chart window
  * 
@@ -22,9 +20,17 @@ public class ChartSetTypeCommand extends WdssiiCommand implements WdssiiMenuList
 
         // Fill in drop down from the XML
         ArrayList<MenuListItem> options = new ArrayList<MenuListItem>();
-        WdssiiXMLDocument doc = SingletonManager.getInstance().getSetupXML();
+        Tag_setup doc = SingletonManager.getInstance().getSetupXML();
         if (doc != null) {
-            WdssiiXMLCollection c = doc.get("charts");
+         
+            ArrayList<Tag_chart> list = doc.charts.charts;
+            for(Tag_chart c:list){
+                if (c.show){
+                    String gname = c.gName;
+                    options.add(new MenuListItem(gname, gname));
+                }
+            }
+            /*WdssiiXMLCollection c = doc.get("charts");
             if (c != null) {
                 // bet I'm gonna get sync errors here....maybe not, we shouldn't
                 // be still reading in the xml by this time.  Could be though.
@@ -41,6 +47,8 @@ public class ChartSetTypeCommand extends WdssiiCommand implements WdssiiMenuList
                     }
                 }
             }
+             * 
+             */
         }
         return options;
     }
@@ -66,7 +74,8 @@ public class ChartSetTypeCommand extends WdssiiCommand implements WdssiiMenuList
 
         String defaultName = null;
 
-        WdssiiXMLDocument doc = SingletonManager.getInstance().getSetupXML();
+       // WdssiiXMLDocument doc = SingletonManager.getInstance().getSetupXML();
+        Tag_setup doc = SingletonManager.getInstance().getSetupXML();
         /*	if (doc != null){
         WdssiiXMLCollection c = doc.get("charts");
         if (c != null){
@@ -82,7 +91,18 @@ public class ChartSetTypeCommand extends WdssiiCommand implements WdssiiMenuList
         }*/
 
         try {
-            defaultName = doc.get("charts").getDefaultList().get("guiString").getString();
+            String chartName = doc.charts.selected;
+            ArrayList<Tag_chart> list = doc.charts.charts;
+            for(Tag_chart c:list){
+                if (c.show){
+                    if (c.name.equals(chartName)){
+                        defaultName = c.gName;
+                        break;
+                    }
+                }
+            }
+            
+           // defaultName = doc.get("charts").getDefaultList().get("guiString").getString();
         } catch (java.lang.NullPointerException e) {
             // it's ok, just means missing xml in chain...	
         }

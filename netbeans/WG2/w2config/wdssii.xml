@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?wdssii version="2.0"?>
+<setup>
+<perspectives show="Basic">
+<perspective className="Basic" loadOnStartup="yes"/>
+<perspective className="VSlice" loadOnStartup="yes"/>
+</perspectives>
+
+<charts selected="VSlice">
+<chart name="DataRangeValue" show="1" gName="Range Data Table"/>
+<chart name="TimeTrend" show="1" gName="Time Trend Chart of current product"/>
+<chart name="VSlice" show="1" gName="Vertical Slice"/>
+<chart name="MemoryUsage" show="1" gName="Memory Usage"/>
+</chart>
+</charts>
+
+</setup>

@@ -16,7 +16,6 @@ import javax.swing.JToggleButton;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.WdssiiXMLDocument;
 import org.wdssii.gui.charts.*;
 import org.wdssii.gui.commands.LLHAreaCommand;
 import org.wdssii.gui.commands.ProductCommand;
@@ -25,15 +24,14 @@ import org.wdssii.gui.commands.ProductToggleFilterCommand.ProductFilterFollowerV
 import org.wdssii.gui.commands.VolumeSetTypeCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.SingletonManager;
-import org.wdssii.gui.WdssiiXMLAttributeList;
-import org.wdssii.gui.WdssiiXMLAttributeList.WdssiiXMLAttribute;
-import org.wdssii.gui.WdssiiXMLCollection;
 import org.wdssii.gui.commands.ChartSetTypeCommand;
 import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.volumes.RadialSetVolume;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.ChartView;
+import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
+import org.wdssii.xml.wdssiiConfig.Tag_setup;
 
 /** The Chart view interface lets us wrap around an RCP view or netbean view 
  * without being coupled to those libraries 
@@ -156,6 +154,7 @@ public class ChartView extends JThreadPanel implements WdssiiView, ProductFilter
             menu.add(item);
         }
 
+       
         // FIXME: broken because we gave up netbeans
        // JButton b = DropDownButtonFactory.createDropDownButton(test, menu);
        // b.setFocusPainted(false);
@@ -257,45 +256,36 @@ public class ChartView extends JThreadPanel implements WdssiiView, ProductFilter
         if ((myCurrentChoice == null) || (factoryChoice.compareTo(myCurrentChoice) != 0)) {
 
             // Create object by name from XML..if possible
-            WdssiiXMLDocument doc = SingletonManager.getInstance().getSetupXML();
+            Tag_setup doc = SingletonManager.getInstance().getSetupXML();
             if (doc != null) {
-                WdssiiXMLCollection c = doc.get("charts");
-                if (c != null) {
+                ArrayList<Tag_chart> list = doc.charts.charts;
+                if (list != null) {
 
-                    // bet I'm gonna get sync errors here....maybe not, we shouldn't
-                    // be still reading in the xml by this time.  Could be though.
-                    ArrayList<String> nameCopy = c.getNames(); // List of CLASS names for each chart
-                    for (String s : nameCopy) {  // each chart name...
-
-                        WdssiiXMLAttributeList a = c.get(s);
-                        if (a != null) {
-                            String name = a.getName(); // Name of chart, which is class name
-                            WdssiiXMLAttribute attr = a.get("guiString");
-                            String guiString = attr.getString();
-                            if ((guiString != null) && guiString.compareTo(factoryChoice) == 0) {
-
-                                Class<?> aClass = null;
+                    for(Tag_chart c:list){
+                        if ((c.gName != null) && (c.gName.compareTo(factoryChoice) == 0)){
+                             Class<?> aClass = null;
                                 try {
                                     //System.out.println("NAME TO CREATE IS "+name);
-                                    aClass = Class.forName("org.wdssii.gui.charts." + name + "Chart");
-                                    Method createMethod = aClass.getMethod("create" + name + "Chart", new Class[]{});
+                                    aClass = Class.forName("org.wdssii.gui.charts." + c.name + "Chart");
+                                    Method createMethod = aClass.getMethod("create" + c.name + "Chart", new Class[]{});
                                     ChartViewChart chart = (ChartViewChart) createMethod.invoke(null, new Object[]{});
-                                    log.debug("Generated chart by reflection " + name);
+                                    log.debug("Generated chart by reflection " + c.name);
 
                                     setChart(chart);
                                     //chart.setUseVirtualVolume(myUseVirtualVolume);
                                     //myChart = chart;
 
-                                    myCurrentChoice = guiString;
+                                    myCurrentChoice = c.gName;
                                 } catch (Exception e) {
                                     log.error("Couldn't create WdssiiChart by name '"
-                                            + name + "' because " + e.toString());
+                                            + c.name + "' because " + e.toString());
                                     myChart = null;
                                 }
-
-                            }
                         }
                     }
+                    // bet I'm gonna get sync errors here....maybe not, we shouldn't
+                    // be still reading in the xml by this time.  Could be though.
+
                 }
             }
 

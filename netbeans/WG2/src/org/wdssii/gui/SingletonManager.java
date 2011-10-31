@@ -2,7 +2,10 @@ package org.wdssii.gui;
 
 import java.io.InputStream;
 
+import java.net.URL;
+import org.wdssii.core.W2Config;
 import org.wdssii.gui.util.FileUtil;
+import org.wdssii.xml.wdssiiConfig.Tag_setup;
 
 /**
  * Singleton getInstance can cause order issues, since each singleton
@@ -24,34 +27,27 @@ public class SingletonManager {
 
     private static SingletonManager instance = null;
     private static boolean notCreated = true;
-    private WdssiiXMLDocument theWdssiiXML = null;
+    // Don't let it be read while it's reading...
+    private Object wdssiiReadLock = new Object();
+    private Tag_setup theWdssiiXML;
 
     private SingletonManager() {
-        // Exists only to defeat instantiation.
-
-        // Read the wdssii xml file...
-        //System.out.println("*********READING XML FILE IN");
         try {
-            // FIXME: hunt for it of course...
-            // FIXME: need this somewhere special
-            InputStream s = FileUtil.streamFromFile("wdssii.xml");
-            //String fullpath = FileUtil.getFilePath("wdssii.xml");
-            theWdssiiXML = WdssiiXML.readDocument(s);
-            /*	ArrayList<PerspectiveXMLDocument> a = doc.myPerspectives;
-            for (PerspectiveXMLDocument d:a){
-            if (d.loadOnStartup){
-            PerspectiveUtil.openPerspectiveByName(d.className);
+            synchronized (wdssiiReadLock) {
+                URL u = W2Config.getURL("wdssii.xml");
+                theWdssiiXML = new Tag_setup();
+                theWdssiiXML.processAsRoot(u);
             }
-            }
-             */
+
         } catch (Exception e) {
             //System.out.println("*********Exception reading setup configuration file:"+e.toString());
         }
-        //System.out.println("WDSSII XML FILE IS "+theWdssiiXML);
     }
 
-    public WdssiiXMLDocument getSetupXML() {
-        return theWdssiiXML;
+    public Tag_setup getSetupXML() {
+        synchronized (wdssiiReadLock) {
+            return theWdssiiXML;
+        }
     }
 
     /**

@@ -26,6 +26,8 @@ import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.util.RadialUtil;
 
 import com.sun.opengl.util.BufferUtil;
+import java.awt.Rectangle;
+import javax.media.opengl.GLDrawable;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.gui.products.ColorMapFloatOutput;
@@ -33,6 +35,7 @@ import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.RadialSetReadout;
+import org.wdssii.gui.views.WorldWindView;
 
 /** Renders a RadialSet
  * 
@@ -389,7 +392,7 @@ public class RadialSetRenderer extends ProductRenderer {
      * FIXME: generalize this ability for all products
      */
     @Override
-    public ProductReadout getProductReadout(Point p, DrawContext dc) {
+    public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
 
         // Ok we're gonna do a 'readout' of the color here....
         // Eventually either in a seperate gl context, or scissor
@@ -402,7 +405,12 @@ public class RadialSetRenderer extends ProductRenderer {
         if (p != null) {
             GL gl = dc.getGL();
             ByteBuffer data = BufferUtil.newByteBuffer(4);
-            int y = dc.getDrawableHeight() - p.y - 1;
+            // The GLDrawable height isn't always the height of the VISIBLE
+            // opengl window.  When using a lightweight widget it's usually
+            // bigger.  Heavyweight you could just use the dc.getDrawableHeight
+            int fullH = (int) (view.getHeight()); ;
+            int y = fullH - p.y - 1;  // Invert Y for openGL...
+
             int boxWidth = 1;
             int xbox = p.x - (boxWidth / 2);
             if (xbox < 0) {

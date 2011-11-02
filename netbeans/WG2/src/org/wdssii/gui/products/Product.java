@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -853,13 +854,13 @@ public class Product implements LRUCacheItem {
         return ourProduct;
     }
 
-    public ProductReadout getProductReadout(Point p, DrawContext dc) {
+    public ProductReadout getProductReadout(Point p, Rectangle aRect, DrawContext dc) {
 
         // Readout comes from the Renderer....because we use our color trick to get it....
         // Readout has to render in order to get the value.
         ProductRenderer r = getRenderer();
         if (r != null) {
-            return r.getProductReadout(p, dc);
+            return r.getProductReadout(p, aRect, dc);
         }
         return new ProductReadout();
     }

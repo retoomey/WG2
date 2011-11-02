@@ -20,6 +20,7 @@ import gov.nasa.worldwind.terrain.SectorGeometryList;
 import gov.nasa.worldwind.util.OGLStackHandler;
 import java.awt.Color;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import javax.media.opengl.GL;
@@ -239,7 +240,7 @@ public class DataTableRenderer extends ProductRenderer {
      * FIXME: generalize this ability for all products
      */
     @Override
-    public ProductReadout getProductReadout(Point p, DrawContext dc) {
+    public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
         RadialSetReadout out = new RadialSetReadout();
         return out;
     }

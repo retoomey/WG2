@@ -71,7 +71,6 @@ public class ProductReadout {
             float v = getValue();
             String u = getUnits();
 
-            System.out.println("VALUE IS " + v);
             if (v == DataType.MissingData) {
                 readout = "Missing";
             } else if (v == DataType.RangeFolded) {

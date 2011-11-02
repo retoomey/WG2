@@ -11,9 +11,10 @@ import org.wdssii.storage.DataManager;
  * @author Robert Toomey
  */
 public class Application {
+
     private static Log log = LogFactory.getLog(Application.class);
 
-    public static void main(String[] args) {
+    public void start() {
         // Start up WDSSII base here ?
         log.info("WDSSII GUI VERSION 2.0 ----------------------------------------------------------");
         log.info("Startup: JAVA VERSION   = " + System.getProperty("java.specification.version"));
@@ -29,7 +30,12 @@ public class Application {
 
         // Add the netbeans preference manager
         PreferencesManager.introduce(new XMLPrefHandler());
-        
+
         DockWindow.startWindows();
+    }
+
+    public static void main(String[] args) {
+        Application a = new Application();
+        a.start();
     }
 }

@@ -19,6 +19,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import javax.media.opengl.GL;
 import javax.swing.JButton;
@@ -48,7 +49,11 @@ import org.wdssii.gui.worldwind.ReadoutStatusBar;
 public class WorldWindView extends JThreadPanel implements WdssiiView {
 
     public static final String ID = "worldwind";
-
+    /** Determines if we use a heavyweight or lightweight java widget for
+     * displaying an earth ball.  Heavyweight used to be faster, but didn't
+     * fit well into the lightweight swing library. Heavyweight also doesn't
+     * work as well with the docking library.
+     */
     public static final boolean USE_HEAVYWEIGHT = false;
     
     // ----------------------------------------------------------------
@@ -85,6 +90,7 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
         public Factory() {
              super("Earth", "world.png");   
         }
+        @Override
         public Component getNewComponent(){
             return new WorldWindView();
         }
@@ -254,7 +260,8 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
         }
         Point p1 = dc.getPickPoint();
         if (p1 != null) {
-            ProductReadout pr = aProduct.getProductReadout(p1, dc);
+            Rectangle rect = myWorld.getView().getViewport();
+            ProductReadout pr = aProduct.getProductReadout(p1, rect, dc);
             String readout = pr.getReadoutString();
             myStatusBar.setReadoutString(readout);
             if (r != null) {
@@ -263,17 +270,26 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
             //System.out.println("READOUT BACK IS:"+aProduct.getReadoutString(p1, dc));
         }
     }
-
+   
     /** Currently the drawer for readout. */
     public void drawLabel(DrawContext dc, String text, Vec4 screenPoint, Color textColor) {
         int x = (int) screenPoint.x();
         int y = (int) screenPoint.y();
-        y = dc.getDrawableHeight() - y - 1;
+        
+        // We have to use VISIBLE viewport with lightweight in order to
+        // get correct height to invert:
+        Rectangle visibleRect = myWorld.getView().getViewport();
+        int fullH = (int) (visibleRect.getHeight());
+        y = fullH - y - 1;  // Invert Y for openGL...
 
         // if (myText == null) {  // Only create once for speed.  We draw a LOT
         myText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
-        // }
-        // Bounds calculations
+        
+        // Bounds calculations.  We'll create an ortho projection based upon
+        // the real size of the window.  With lightweight, this might be
+        // bigger than the visible window.  Heavyweight it will match.
+        // So orth might be 0-1000 in the Y, while 0-200 is the view
+        // that is showing.
         java.awt.Rectangle viewport = dc.getView().getViewport();
 
         Rectangle2D rect = myText.getBounds(text);

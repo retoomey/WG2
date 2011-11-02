@@ -26,11 +26,52 @@ import org.wdssii.storage.DataManager;
 /**
  * The main GUI window.  This handles the main menu items as well as the
  * docking wrappers for each of our views.
+ * 
+ * @author Robert Toomey
  */
 public class DockWindow {
 
     /** Default main window title string */
     final String WINDOWTITLE = "WDSSII GUI 2.0";
+    
+    /** Color themes for infonode */
+    final InfoNodeLookAndFeelTheme[] myColorThemes;
+    
+    /** Infonode window style themes */
+    final DockingWindowsTheme[] myWindowThemes;
+    
+    /** init long stuff... */
+    {
+        InfoNodeLookAndFeelTheme w1 =
+                new InfoNodeLookAndFeelTheme("WDSSII DarkBlueGrey Theme",
+                new Color(110, 120, 150),  // Control color
+                new Color(0, 170, 0),      // primary control color
+                new Color(80, 80, 80),      // Background color
+                Color.WHITE,                // Text color
+                new Color(0, 170, 0),       // selected textbackground color
+                Color.WHITE,                // selected text color
+                0.8);
+
+        InfoNodeLookAndFeelTheme w2 =
+                new InfoNodeLookAndFeelTheme("WDSSII OU Sooner Theme",
+                new Color(153, 0, 0),
+                new Color(0, 0, 255),
+                Color.WHITE,
+                Color.BLACK,
+                Color.WHITE,               // selected textbackground color
+                Color.BLACK,               // selected text color
+                0.8);
+        myColorThemes = new InfoNodeLookAndFeelTheme[]{w1, w2};
+        
+        myWindowThemes = new DockingWindowsTheme[]{
+            new DefaultDockingTheme(),
+            new LookAndFeelDockingTheme(),
+            new BlueHighlightDockingTheme(),
+            new SlimFlatDockingTheme(), new GradientDockingTheme(),
+            new ShapedGradientDockingTheme(),
+            new SoftBlueIceDockingTheme(),
+            new ClassicDockingTheme()};
+    }
 
     public static void startWindows() {
         // Set InfoNode Look and Feel
@@ -52,8 +93,10 @@ public class DockWindow {
         // Docking windwos should be run in the Swing thread
         SwingUtilities.invokeLater(new Runnable() {
 
+            @Override
             public void run() {
-                new DockWindow();
+                DockWindow d = new DockWindow();
+                d.setupRootWindow();
             }
         });
     }
@@ -64,7 +107,7 @@ public class DockWindow {
     /**
      * An array of the static views
      */
-    private Object viewLock = new Object();
+    private final Object viewLock = new Object();
     private ArrayList<View> views = new ArrayList<View>();
     /**
      * Contains all the static views
@@ -132,11 +175,12 @@ public class DockWindow {
     /**
      * The application frame
      */
-    private JFrame frame = new JFrame(WINDOWTITLE);
+    private JFrame myRootFrame = new JFrame(WINDOWTITLE);
 
     public DockWindow() {
-        // configurationManager.getInstance().openRememberedConnections(
-        //         "connectionList.xml");
+    }
+
+    public void setupRootWindow() {
         createRootWindow();
         setDefaultLayout();
         // Sync this to the selection in the menu creation...
@@ -151,13 +195,7 @@ public class DockWindow {
      * @return the view component
      */
     private static JComponent createViewComponent(String text) {
-        StringBuffer sb = new StringBuffer();
-
-        for (int j = 0; j < 100; j++) {
-            sb.append(text + ". This is line " + j + "\n");
-        }
-
-        return new JScrollPane(new JTextArea(sb.toString()));
+        return new JScrollPane(new JTextArea());
     }
 
     /**
@@ -262,34 +300,19 @@ public class DockWindow {
      * Creates the root window and the views.
      */
     private void createRootWindow() {
-        // Create the views
-        Icon i = null;
-        View v;
-
-        // FIXME: Should hunt by reflection, auto handle this...
-        // For the moment creating ALL views...
-        addViewByID("WorldWindView");
-        addViewByID("NavView");
-        addViewByID("JobsView");
-        addViewByID("SourcesView");
-        addViewByID("ProductsView");
-        addViewByID("LayersView");
-        addViewByID("ColorKeyView");
-        addViewByID("TableProductView");
-        addViewByID("ChartView");
-        addViewByID("LLHAreaView");
-        addViewByID("ProductGroupView");
 
         // FIXME: don't get this yet really....
         // The mixed view map makes it easy to mix static and dynamic views inside the same root window
         MixedViewHandler handler = new MixedViewHandler(viewMap,
                 new ViewSerializer() {
 
+                    @Override
                     public void writeView(View view,
                             ObjectOutputStream out) throws IOException {
                         out.writeInt(((DynamicView) view).getId());
                     }
 
+                    @Override
                     public View readView(ObjectInputStream in)
                             throws IOException {
                         return getDynamicView(in.readInt());
@@ -365,9 +388,28 @@ public class DockWindow {
             }
         });
 
+        // Create the views
+        Icon i = null;
+        View v;
+
+        // FIXME: Should hunt by reflection, auto handle this...
+        // For the moment creating ALL views...
+        addViewByID("WorldWindView");
+        addViewByID("NavView");
+        addViewByID("JobsView");
+        addViewByID("SourcesView");
+        addViewByID("ProductsView");
+        addViewByID("LayersView");
+        addViewByID("ColorKeyView");
+        addViewByID("TableProductView");
+        addViewByID("ChartView");
+        addViewByID("LLHAreaView");
+        addViewByID("ProductGroupView");
+
         // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.
         rootWindow.addTabMouseButtonListener(DockingWindowActionMouseButtonListener.MIDDLE_BUTTON_CLOSE_LISTENER);
     }
+
     /**
      * Sets the default window layout.
      */
@@ -376,23 +418,31 @@ public class DockWindow {
         // Stick all views in one tab..except those explicited referenced
         // later
         View[] v = views.toArray(new View[views.size()]);
-        TabWindow tabWindow = new TabWindow(v);
+        TabWindow all = new TabWindow(v);
 
         // Special windows
         View earth = getViewByID("WorldWindView");
         View products = getViewByID("ProductsView");
-        // View sources = getViewByID("SourcesView");
+        View sources = getViewByID("SourcesView");
         View layers = getViewByID("LayersView");
         View nav = getViewByID("NavView");
+        View chart = getViewByID("ChartView");
+        View objects = getViewByID("LLHAreaView");
 
-        // View[] v2 = new View[]{earth, products};
+        TabWindow sourceProducts = new TabWindow(new View[]{sources, products});
+        sourceProducts.setSelectedTab(0);
 
+        SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
+
+        TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart3D, all});
         rootWindow.setWindow(
                 new SplitWindow(true, 0.5f,
-                new SplitWindow(false, 0.7f, earth, nav), tabWindow));
-       /* WindowBar windowBar = rootWindow.getWindowBar(Direction.DOWN);
+                new SplitWindow(false, 0.7f, earth, nav), stuff));
+        stuff.setSelectedTab(0);
+
+        /* WindowBar windowBar = rootWindow.getWindowBar(Direction.DOWN);
         while (windowBar.getChildWindowCount() > 0) {
-            windowBar.getChildWindow(0).close();
+        windowBar.getChildWindow(0).close();
         }
         windowBar.addTab(layers);
          * 
@@ -403,19 +453,19 @@ public class DockWindow {
      * Initializes the frame and shows it.
      */
     private void showFrame() {
-        frame.getContentPane().add(createToolBar(), BorderLayout.NORTH);
-        frame.getContentPane().add(rootWindow, BorderLayout.CENTER);
-        frame.setJMenuBar(createMenuBar());
-        frame.setSize(900, 700);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myRootFrame.getContentPane().add(createToolBar(), BorderLayout.NORTH);
+        myRootFrame.getContentPane().add(rootWindow, BorderLayout.CENTER);
+        myRootFrame.setJMenuBar(createMenuBar());
+        myRootFrame.setSize(900, 700);
+        myRootFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // String currentTitle = w.getTitle();
         String dir = DataManager.getInstance().getRootTempDir();
         // String newTitle = currentTitle.replaceAll("tempdir", "["+dir+"]");
         String newTitle = WINDOWTITLE + " " + dir;
-        frame.setTitle(newTitle);
+        myRootFrame.setTitle(newTitle);
 
-        frame.setVisible(true);
+        myRootFrame.setVisible(true);
     }
 
     /**
@@ -585,45 +635,13 @@ public class DockWindow {
     return layoutMenu;
     }
      */
-    /**
-     * Creates the menu where views can be shown and focused.
-     *
-     * @return the focus view menu
-     */
-    /*
-    private JMenu createFocusViewMenu() {
-    JMenu viewsMenu = new JMenu("Focus View");
-    
-    
-    for (int i = 0; i < views.length; i++) {
-    final View view = views[i];
-    viewsMenu.add("Focus " + view.getTitle()).addActionListener(new ActionListener() {
-    
-    public void actionPerformed(ActionEvent e) {
-    SwingUtilities.invokeLater(new Runnable() {
-    
-    public void run() {
-    // Ensure the view is shown in the root window
-    DockingUtil.addWindow(view,
-    rootWindow);
-    
-    // Transfer focus to the view
-    view.restoreFocus();
-    }
-    });
-    }
-    });
-    }
-    
-    return viewsMenu;
-    }
-     */
+
     /**
      * Creates the menu where the theme can be changed.
      *
      * @return the theme menu
      */
-    private JMenu createThemesMenu() {
+    private JMenu createInfonodeWindowThemeMenu() {
         JMenu themesMenu = new JMenu("Themes");
 
         final RootWindowProperties titleBarStyleProperties = PropertiesUtil.createTitleBarStyleRootWindowProperties();
@@ -634,6 +652,7 @@ public class DockWindow {
         properties.addSuperObject(titleBarStyleProperties);
         titleBarStyleItem.addActionListener(new ActionListener() {
 
+            @Override
             public void actionPerformed(ActionEvent e) {
                 if (titleBarStyleItem.isSelected()) {
                     properties.addSuperObject(titleBarStyleProperties);
@@ -646,18 +665,10 @@ public class DockWindow {
         themesMenu.add(titleBarStyleItem);
         themesMenu.add(new JSeparator());
 
-        DockingWindowsTheme[] themes = {new DefaultDockingTheme(),
-            new LookAndFeelDockingTheme(),
-            new BlueHighlightDockingTheme(),
-            new SlimFlatDockingTheme(), new GradientDockingTheme(),
-            new ShapedGradientDockingTheme(),
-            new SoftBlueIceDockingTheme(),
-            new ClassicDockingTheme()};
-
         ButtonGroup group = new ButtonGroup();
 
-        for (int i = 0; i < themes.length; i++) {
-            final DockingWindowsTheme theme = themes[i];
+        for (int i = 0; i < myWindowThemes.length; i++) {
+            final DockingWindowsTheme theme = myWindowThemes[i];
 
             JRadioButtonMenuItem item = new JRadioButtonMenuItem(theme.getName());
             item.setSelected(i == 0);
@@ -666,11 +677,49 @@ public class DockWindow {
             themesMenu.add(item).addActionListener(
                     new ActionListener() {
 
+                        @Override
                         public void actionPerformed(ActionEvent e) {
                             // Clear the modified properties values
                             properties.getMap().clear(true);
 
                             setTheme(theme);
+                        }
+                    });
+        }
+
+        return themesMenu;
+    }
+
+    private void setColorTheme() {
+    }
+
+    /**
+     * Creates the menu where the theme can be changed.
+     *
+     * @return the theme menu
+     */
+    private JMenu createInfonodeColorThemeMenu() {
+        JMenu themesMenu = new JMenu("Color Themes");
+
+        for (int i = 0; i < myColorThemes.length; i++) {
+            final InfoNodeLookAndFeelTheme theme = myColorThemes[i];
+
+            JRadioButtonMenuItem item = new JRadioButtonMenuItem(theme.getName());
+            item.setSelected(i == 0);
+
+            themesMenu.add(item).addActionListener(
+                    new ActionListener() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Clear the modified properties values
+                            //properties.getMap().clear(true);
+                            try {
+                                UIManager.setLookAndFeel(new InfoNodeLookAndFeel(theme));
+                                SwingUtilities.updateComponentTreeUI(myRootFrame);
+                            } catch (Exception e2) {
+                                // what to do....
+                            }
                         }
                     });
         }
@@ -689,6 +738,7 @@ public class DockWindow {
         buttonsMenu.add("Enable Close").addActionListener(
                 new ActionListener() {
 
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         properties.getDockingWindowProperties().setCloseEnabled(true);
                     }
@@ -697,6 +747,7 @@ public class DockWindow {
         buttonsMenu.add("Hide Close Buttons").addActionListener(
                 new ActionListener() {
 
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         properties.getDockingWindowProperties().setCloseEnabled(false);
                     }
@@ -705,6 +756,7 @@ public class DockWindow {
         buttonsMenu.add("Freeze Layout").addActionListener(
                 new ActionListener() {
 
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         freezeLayout(true);
                     }
@@ -713,6 +765,7 @@ public class DockWindow {
         buttonsMenu.add("Unfreeze Layout").addActionListener(
                 new ActionListener() {
 
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         freezeLayout(false);
                     }
@@ -779,18 +832,19 @@ public class DockWindow {
     private JMenu createFileMenu() {
         JMenu menu = new JMenu("File");
         menu.setMnemonic('F');
-        
+
         JMenuItem eMenuItem = new JMenuItem("Exit");
         eMenuItem.setMnemonic(KeyEvent.VK_C);
         eMenuItem.setToolTipText("Exit application");
         eMenuItem.addActionListener(new ActionListener() {
+
+            @Override
             public void actionPerformed(ActionEvent event) {
                 System.exit(0);
             }
-
         });
         menu.add(eMenuItem);
-        
+
         // menu.addSeparator();
         return menu;
     }
@@ -846,7 +900,8 @@ public class DockWindow {
 
         menu.addSeparator();
         // Theme controls how windows look
-        menu.add(createThemesMenu());
+        menu.add(createInfonodeWindowThemeMenu());
+        menu.add(createInfonodeColorThemeMenu());
         menu.add(createWindowBarsMenu());
         menu.add(createPropertiesMenu());
 
@@ -917,8 +972,7 @@ public class DockWindow {
         properties.replaceSuperObject(currentTheme.getRootWindowProperties(), theme.getRootWindowProperties());
         currentTheme = theme;
     }
-    
-    public void Main(String Args[]){
-        
+
+    public void Main(String Args[]) {
     }
 }

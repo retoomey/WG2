@@ -12,6 +12,7 @@ import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
+import java.awt.Rectangle;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
@@ -90,7 +91,7 @@ public abstract class ProductRenderer {
     }
 
     /** Get the product readout for a given screenpoint in the drawcontext */
-    public ProductReadout getProductReadout(Point p, DrawContext dc) {
+    public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
         return new ProductReadout();
     }
 

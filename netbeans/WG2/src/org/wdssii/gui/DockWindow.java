@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import net.infonode.gui.laf.InfoNodeLookAndFeelTheme;
 import org.wdssii.gui.views.WdssiiDockedViewFactory;
+import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.storage.DataManager;
 
 /**
@@ -318,9 +319,12 @@ public class DockWindow {
                         return getDynamicView(in.readInt());
                     }
                 });
-
-        rootWindow = DockingUtil.createRootWindow(viewMap, handler,
+        if (WorldWindView.USE_HEAVYWEIGHT){
+            rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, handler, true);
+        }else{
+            rootWindow = DockingUtil.createRootWindow(viewMap, handler,
                 true);
+        }
 
         // Set gradient theme. The theme properties object is the super object of our properties object, which
         // means our property value settings will override the theme values

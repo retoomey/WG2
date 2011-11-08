@@ -1,5 +1,6 @@
 package org.wdssii.gui;
 
+import com.sun.opengl.util.j2d.TextRenderer;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -12,6 +13,7 @@ import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
+import javax.media.opengl.GL;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -19,7 +21,12 @@ import org.wdssii.gui.ColorMap.ColorMapOutput;
 
 /**
  * ColorMapRenderer.   Base class for rendering a ColorMap.
- * 
+ * Since I'm only planning a few different ways of rendering, just went ahead
+ * and made it a single class with functions.  Might subclass for the openGL
+ * part of it just to be cleaner...
+ * 1.  Java graphics
+ * 2.  OpenGL
+ * 3.  Disk (through Java graphics)
  * @author Robert Toomey
  */
 public class ColorMapRenderer {
@@ -28,6 +35,9 @@ public class ColorMapRenderer {
     /** ColorMap used by the renderer */
     private ColorMap myColorMap;
 
+    /** The extra filler padding 'above' and 'below' a color bin label */
+    private int hTextPadding = 0;
+    
     /** Get the ColorMap used by the renderer */
     public ColorMap getColorMap() {
         return myColorMap;
@@ -95,7 +105,7 @@ public class ColorMapRenderer {
                     if (h < minH) {
                         h = minH;
                     }
-                    
+
                     // Create it now with wanted size...
                     bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
                     ig2 = bi.createGraphics();
@@ -145,29 +155,28 @@ public class ColorMapRenderer {
                     RenderingHints.VALUE_RENDER_QUALITY);
 
             FontRenderContext frc = g2.getFontRenderContext();
-            Font f = Font.decode("Arial-PLAIN-12"); // shared with opengl code
+            Font f = getFont();
 
             FontMetrics metrics = g2.getFontMetrics(f);
-            int padding = 10;
             int textHeight = metrics.getMaxAscent() + metrics.getMaxDescent();
-            int renderY = metrics.getMaxAscent() + (padding / 2);
-
-            int cellHeight = Math.max(textHeight + padding, h);
+            int renderY = metrics.getMaxAscent() + (hTextPadding / 2);
+            int cellHeight = textHeight+hTextPadding;
+            // FILL: int cellHeight = Math.max(textHeight + padding, h);
 
             ColorMapOutput hi = new ColorMapOutput();
             ColorMapOutput lo = new ColorMapOutput();
 
             // Width of unit text
-            int wtxt = 0;
+            int unitWidth = 0;
             String unitName = myColorMap.getUnits();
             if ((unitName != null) && (unitName.length() > 0)) {
-                wtxt = metrics.stringWidth(unitName) + 2;
+                unitWidth = metrics.stringWidth(unitName) + 2;
             } else {
-                wtxt = 0;
+                unitWidth = 0;
             }
 
             // Calculate height
-            int barwidth = Math.max(w - wtxt, 1);
+            int barwidth = Math.max(w - unitWidth, 1);
             int aSize = myColorMap.getNumberOfBins();
             int cellWidth = barwidth / aSize;
             barwidth = cellWidth * aSize;
@@ -207,7 +216,7 @@ public class ColorMapRenderer {
                 int drawnToX = viewx;
                 for (int i = 0; i < aSize; i++) {
                     String label = myColorMap.getBinLabel(i);
-                    wtxt = metrics.stringWidth(label);
+                    int wtxt = metrics.stringWidth(label);
 
                     // Sparse draw, skipping when text overlaps
                     if (currentX >= drawnToX) {
@@ -227,15 +236,191 @@ public class ColorMapRenderer {
                     currentX += cellWidth;
                 }
             }
-            // Draw the units
-            if ((unitName != null) && (unitName.length() > 0)) {
-                wtxt = metrics.stringWidth(unitName);
-                int start = (viewx + w - wtxt);
+            // Draw the units, only there if unitWidth > 0
+            if (unitWidth > 0) {
+                int start = (viewx + w - unitWidth);
                 TextLayout t2 = new TextLayout(unitName, f, frc);
                 cheezyOutline(g2, start, renderY, t2);
             }
         } else {
         }
+    }
+
+    /** Paint to a given OpenGL context */
+    public void paintToOpenGL(GL gl, int aViewWidth, int aViewHeight, float opacity) {
+
+        if (myColorMap != null) {
+            boolean attribsPushed = false;
+            boolean modelviewPushed = false;
+            boolean projectionPushed = false;
+
+            int viewx = 0;
+
+            // Created text renderer
+            TextRenderer aText = null;
+            Font font = getFont();
+            if (aText == null) {
+                aText = new TextRenderer(font, true, true);
+            }
+            //FontRenderContext frc = aText.getFontRenderContext();
+            FontMetrics metrics = getFontMetrics(font, null);
+
+            int textHeight = metrics.getMaxAscent() + metrics.getMaxDescent();
+            int renderY = metrics.getMaxAscent() + (hTextPadding / 2);
+            int cellHeight = textHeight+hTextPadding;
+            // Different in regular paint because we fill entire image size...
+            //int cellHeight = Math.max(textHeight + padding, h);
+
+            ColorMapOutput hi = new ColorMapOutput();
+            ColorMapOutput lo = new ColorMapOutput();
+
+            // Width of unit text
+            int unitWidth = 0;
+            String unitName = myColorMap.getUnits();
+            if ((unitName != null) && (unitName.length() > 0)) {
+                //Rectangle2D boundsUnits = aText.getBounds(unitName);
+                //wtxt = (int) (boundsUnits.getWidth() + 2.0d);
+                unitWidth = metrics.stringWidth(unitName) + 2;
+            } else {
+                unitWidth = 0;
+            }
+
+            // Calculate height
+            int barwidth = Math.max(aViewWidth - unitWidth, 1);
+            int aSize = myColorMap.getNumberOfBins();
+            int cellWidth = barwidth / aSize;
+            barwidth = cellWidth * aSize;
+
+            double currentX = 0.0;
+            double top = aViewHeight;
+
+            try {
+
+                // System.out.println("Drawing color key layer");
+                gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT
+                        | GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT
+                        | GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
+                        | GL.GL_CURRENT_BIT);
+                attribsPushed = true;
+                gl.glEnable(GL.GL_BLEND);
+                gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+                gl.glDisable(GL.GL_DEPTH_TEST);
+
+                // Standard ortho projection
+                gl.glMatrixMode(GL.GL_PROJECTION);
+                gl.glPushMatrix();
+                projectionPushed = true;
+                gl.glLoadIdentity();
+                gl.glOrtho(0, aViewWidth, 0, aViewHeight, -1, 1);  // TopLeft
+                gl.glMatrixMode(GL.GL_MODELVIEW);
+                gl.glPushMatrix();
+                modelviewPushed = true;
+                gl.glLoadIdentity();
+
+                gl.glDisable(GL.GL_TEXTURE_2D); // no textures
+                gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
+
+                // Erase square of colormap
+                Color backColor = Color.BLACK;
+                gl.glColor4ub((byte) backColor.getRed(),  //FIXME
+                        (byte) backColor.getGreen(), (byte) backColor.getBlue(),
+                        (byte) (backColor.getAlpha() * opacity));
+                gl.glRectd(0.0, top, 0.0 + aViewWidth + 0.5, top-cellHeight-0.5);
+
+                if (aSize > 0) {
+                    gl.glBegin(GL.GL_QUADS);
+
+                    // Draw the boxes of the color map....
+                    for (int i = 0; i < aSize; i++) {
+
+                        myColorMap.getUpperBoundColor(hi, i);
+                        myColorMap.getLowerBoundColor(lo, i);
+
+                        gl.glColor4f(lo.redF(), lo.greenF(), lo.blueF(),
+                                opacity);
+                        gl.glVertex2d(currentX, top);
+                        gl.glVertex2d(currentX, top-cellHeight);
+                        gl.glColor4f(hi.redF(), hi.greenF(), hi.blueF(),
+                                opacity);
+                        gl.glVertex2d(currentX + cellWidth, top-cellHeight);
+                        gl.glVertex2d(currentX + cellWidth, top);
+
+                        currentX += cellWidth;
+                    }
+                    gl.glEnd();
+                }
+                
+                gl.glColor4i(255, 0, 0, 255);
+                // Draw the text labels for bins
+                aText.begin3DRendering();
+                aText.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+                
+                boolean drawText = (barwidth >= 100);
+                if (drawText) {
+                    currentX = viewx;
+                    int extraXGap = 7; // Force at least these pixels
+                    // between labels
+                    int drawnToX = viewx;
+                    for (int i = 0; i < aSize; i++) {
+                        String label = myColorMap.getBinLabel(i);
+                        int wtxt = metrics.stringWidth(label);
+                        
+                        // Sparse draw, skipping when text overlaps
+                        if (currentX >= drawnToX) {
+
+                            // Don't draw if text sticks outside box
+                            if (currentX + wtxt < (viewx + barwidth)) {
+                                
+                                aText.draw(label, (int) (currentX + 2),
+                                        (int)(top-renderY));
+                                drawnToX = (int) (currentX + wtxt + extraXGap);
+                            }
+                        }
+
+                        currentX += cellWidth;
+                    }
+                }
+
+                // Draw the units (only there if wtxt > 0 from above)
+                if (unitWidth > 0) {
+                    int start = (viewx + aViewWidth - unitWidth);
+                    aText.draw(unitName, start, (int)(top-renderY));
+                }
+                aText.end3DRendering();
+
+
+            } finally {
+                if (projectionPushed) {
+                    gl.glMatrixMode(GL.GL_PROJECTION);
+                    gl.glPopMatrix();
+                }
+                if (modelviewPushed) {
+                    gl.glMatrixMode(GL.GL_MODELVIEW);
+                    gl.glPopMatrix();
+                }
+                if (attribsPushed) {
+                    gl.glPopAttrib();
+                }
+            }
+        }
+    }
+
+    public FontMetrics getFontMetrics(Font forFont, Graphics2D g) {
+        // Humm..do this everytime or cache it?
+        FontMetrics fm;
+        // No graphics if openGL.  'Could' pass a component down from above
+        if (g == null) {
+            BufferedImage bi = new BufferedImage(5, 5, BufferedImage.TYPE_INT_RGB);
+            fm = bi.getGraphics().getFontMetrics(forFont);
+        } else {
+            fm = g.getFontMetrics(forFont);
+        }
+        return fm;
+    }
+
+    public Font getFont() {
+        return new Font("Arial", Font.PLAIN, 12);
+        // Font.decode("Arial-PLAIN-12"); // shared with opengl code
     }
 
     /** A cheezy outline behind the text that doesn't require an outline
@@ -271,13 +456,10 @@ public class ColorMapRenderer {
             g2.setRenderingHint(RenderingHints.KEY_RENDERING,
                     RenderingHints.VALUE_RENDER_QUALITY);
 
-            FontRenderContext frc = g2.getFontRenderContext();
-            Font f = Font.decode("Arial-PLAIN-12"); // shared with opengl code
-            
+            Font f = getFont();
             FontMetrics metrics = g2.getFontMetrics(f);
-            int padding = 10;
             int textHeight = metrics.getMaxAscent() + metrics.getMaxDescent();
-            cellHeight = textHeight + padding;
+            cellHeight = textHeight + hTextPadding;
         }
         return cellHeight;
     }

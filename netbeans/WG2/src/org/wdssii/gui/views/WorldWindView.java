@@ -12,6 +12,8 @@ import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.layers.LayerList;
+import gov.nasa.worldwind.layers.ViewControlsLayer;
+import gov.nasa.worldwind.layers.ViewControlsSelectListener;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.view.orbit.FlyToOrbitViewAnimator;
 import gov.nasa.worldwind.view.orbit.OrbitView;
@@ -55,7 +57,7 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
      * work as well with the docking library.
      */
     public static final boolean USE_HEAVYWEIGHT = false;
-    
+
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
@@ -88,15 +90,15 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
     /** Our factory, called by reflection to populate menus, etc...*/
     public static class Factory extends WdssiiDockedViewFactory {
         public Factory() {
-             super("Earth", "world.png");   
+            super("Earth", "world.png");
         }
         @Override
-        public Component getNewComponent(){
+        public Component getNewComponent() {
             return new WorldWindView();
         }
     }
-    
-    public WorldWindView() {               
+   
+    public WorldWindView() {
         setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         final String w = "50"; // MigLayout width parameter
 
@@ -112,7 +114,7 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
 
         // Create top panel
         jPanel1 = new JPanel(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-       // jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 2));
+        // jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 2));
 
         // Create bottom panel
         jPanel2 = new JPanel(new MigLayout(new LC().fill().insetsAll("0"), null, null));
@@ -132,10 +134,10 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
             // Basic worldwind setup...
             Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
             if (USE_HEAVYWEIGHT){
-                myWorld = new WorldWindowGLCanvas(); 
+                myWorld = new WorldWindowGLCanvas();
             }else{
                 myWorld = new WorldWindowGLJPanel();
-            } 
+            }
             myWorld.setModel(m);
             jPanel1.add((Component)(myWorld), new CC().minWidth(w).minHeight(w).growX().growY());
             jPanel1.setOpaque(false);
@@ -175,6 +177,12 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
 
         /** The color key and wg2 overlay layer */
         theLayers.add(new ColorKeyLayer());
+
+        // Create and install the view controls layer and register a controller for it with the World Window.
+        ViewControlsLayer viewControlsLayer = new ViewControlsLayer();
+        theLayers.add(viewControlsLayer);
+        this.getWwd().addSelectListener(new ViewControlsSelectListener(this.getWwd(), viewControlsLayer));
+
     }
 
     public void takeDialogSnapshot() {
@@ -270,12 +278,12 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
             //System.out.println("READOUT BACK IS:"+aProduct.getReadoutString(p1, dc));
         }
     }
-   
+
     /** Currently the drawer for readout. */
     public void drawLabel(DrawContext dc, String text, Vec4 screenPoint, Color textColor) {
         int x = (int) screenPoint.x();
         int y = (int) screenPoint.y();
-        
+
         // We have to use VISIBLE viewport with lightweight in order to
         // get correct height to invert:
         Rectangle visibleRect = myWorld.getView().getViewport();
@@ -284,7 +292,7 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
 
         // if (myText == null) {  // Only create once for speed.  We draw a LOT
         myText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
-        
+
         // Bounds calculations.  We'll create an ortho projection based upon
         // the real size of the window.  With lightweight, this might be
         // bigger than the visible window.  Heavyweight it will match.

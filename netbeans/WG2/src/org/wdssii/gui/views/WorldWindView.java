@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import java.awt.event.ActionEvent;
 import org.wdssii.gui.swing.JThreadPanel;
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.Model;
@@ -22,6 +23,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import javax.media.opengl.GL;
 import javax.swing.JButton;
@@ -35,6 +37,7 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
+import org.wdssii.gui.commands.Snapshot3DWorldCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.renderers.ProductRenderer;
@@ -157,6 +160,16 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
             jPanel2.add(myStatusBar, new CC().growX().growY());
             myStatusBar.setEventSource(myWorld);
         }
+        final WorldWindView theWorld = this;
+        jButton1.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) { 
+               Snapshot3DWorldCommand c = new Snapshot3DWorldCommand();
+               c.setWdssiiView(theWorld);
+               CommandManager.getInstance().executeCommand(c, true);
+            }
+        }); 
         // FIXME: should probably make a preference for this that can be
         // toggled by user if it works correctly/incorrectly
         System.setProperty("sun.awt.noerasebackground", "true");
@@ -186,7 +199,7 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
     }
 
     public void takeDialogSnapshot() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        System.out.println("Take a snapshot");
     }
 
     public LayerList getLayerList() {

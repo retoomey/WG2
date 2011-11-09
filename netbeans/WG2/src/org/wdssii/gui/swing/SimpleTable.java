@@ -3,6 +3,7 @@ package org.wdssii.gui.swing;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -10,6 +11,7 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -47,7 +49,7 @@ public class SimpleTable extends JLabel
     public static class SimpleTableModel {
 
         public SimpleTable myTable;
-        
+        private Font myFont = new Font("SansSerif", Font.PLAIN, 10);
         // We shouldn't be reentrant, sync should be not needed.
         public SimpleTableRenderInfo buffer = new SimpleTableRenderInfo();
 
@@ -64,8 +66,14 @@ public class SimpleTable extends JLabel
             String text;
         }
         private int cellWidth = 50;
+        /** cellHeight used when not using font */
         private int cellHeight = 16;
+        /** When true, calculates height of cell from the current font,
+         * otherwise uses the cellHeight value
+         */
+        private boolean useFontForHeight = true;
         private int headerWidth = 70;
+        /** headerHeight used when not using font */
         private int headerHeight = 16;
         private int numRows = 10000;
         private int numCols = 10000;
@@ -94,7 +102,17 @@ public class SimpleTable extends JLabel
         }
 
         public int getCellHeight() {
-            return cellHeight;
+            int height = cellHeight;
+            if (useFontForHeight) {
+                FontMetrics fm = getFontMetrics(myFont, null);
+                height = fm.getMaxAscent() + fm.getMaxDescent();
+            }
+            return height;
+        }
+
+        /** Left margin used when cells left aligned */
+        public int getLeftMargin() {
+            return 2;
         }
 
         /** Return width of the header, or -1 if off */
@@ -103,7 +121,12 @@ public class SimpleTable extends JLabel
         }
 
         public int getColHeaderHeight() {
-            return headerHeight;
+            int height = headerHeight;
+            if (useFontForHeight) {
+                FontMetrics fm = getFontMetrics(myFont, null);
+                height = fm.getMaxAscent() + fm.getMaxDescent();
+            }
+            return height;
         }
 
         /** Get the row label for given row number ??? */
@@ -123,6 +146,7 @@ public class SimpleTable extends JLabel
             GridVisibleArea a = new GridVisibleArea();
 
             a.startCol = clipBounds.x / getCellWidth();
+            a.clipBounds = clipBounds;
             a.startRow = clipBounds.y / getCellHeight();
             a.lastPartialColumn = (clipBounds.x + clipBounds.width) / getCellWidth();
             a.lastPartialRow = (clipBounds.y + clipBounds.height) / getCellHeight();
@@ -193,21 +217,43 @@ public class SimpleTable extends JLabel
             g.fillRect(x, y, w, h);
 
             g.setColor(info.foreground);
-            g.setFont(new Font("SansSerif", Font.PLAIN, 10));
-            g.drawString(info.text, x, y + 10);
+            g.setFont(myFont);
+            int left = getLeftMargin();
+            FontMetrics fm = getFontMetrics(myFont, g);
+            // Don't need to 'clip' since we draw top down, left right
+            // the cells below will clip above.
+            //int wtxt = fm.stringWidth(info.text);
+
+            g.drawString(info.text, x + left, y + fm.getAscent());
 
             // Cheap border.  FIXME: draw lines instead of boxes for each?
             g.setColor(Color.BLACK);
+            // x = left, y = top
             g.drawRect(x, y, w, h);
+
         }
-        
-        public void setTable(SimpleTable t){
+
+        public void setTable(SimpleTable t) {
             myTable = t;
         }
-        public void handleDataChanged(){
-            if (myTable != null){
+
+        public void handleDataChanged() {
+            if (myTable != null) {
                 myTable.handleDataChanged();
             }
+        }
+
+        public FontMetrics getFontMetrics(Font forFont, Graphics g) {
+            // Humm..do this everytime or cache it?
+            FontMetrics fm;
+            // No graphics if openGL.  'Could' pass a component down from above
+            if (g == null) {
+                BufferedImage bi = new BufferedImage(5, 5, BufferedImage.TYPE_INT_RGB);
+                fm = bi.getGraphics().getFontMetrics(forFont);
+            } else {
+                fm = g.getFontMetrics(forFont);
+            }
+            return fm;
         }
     }
 
@@ -290,8 +336,6 @@ public class SimpleTable extends JLabel
                 }
 
             }
-
-
         }
     }
     private SimpleTableModel myModel;
@@ -314,57 +358,56 @@ public class SimpleTable extends JLabel
         pane.setViewportView(this);
         pane.setColumnHeaderView(myColHeader);
         pane.setRowHeaderView(myRowHeader);
-        
+
         // Listen for value changes in the scroll pane's scrollbars
-        AdjustmentListener listener = new AdjustmentListener(){
+        AdjustmentListener listener = new AdjustmentListener() {
 
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e) {
-                if (myModel != null){
+                if (myModel != null) {
                     myModel.handleScrollAdjust(e);
                 }
-                     /*  Adjustable source = e.getAdjustable();
-
-                       /*
-        // getValueIsAdjusting() returns true if the user is currently
-        // dragging the scrollbar's knob and has not picked a final value
-        if (evt.getValueIsAdjusting()) {
-            // The user is dragging the knob
-            return;
-        }
-
-        // Determine which scrollbar fired the event
-        int orient = source.getOrientation();
-        if (orient == Adjustable.HORIZONTAL) {
-            // Event from horizontal scrollbar
-        } else {
-            // Event from vertical scrollbar
-        }
-
-        // Determine the type of event
-        int type = evt.getAdjustmentType();
-        switch (type) {
-          case AdjustmentEvent.UNIT_INCREMENT:
-              // Scrollbar was increased by one unit
-              break;
-          case AdjustmentEvent.UNIT_DECREMENT:
-              // Scrollbar was decreased by one unit
-              break;
-          case AdjustmentEvent.BLOCK_INCREMENT:
-              // Scrollbar was increased by one block
-              break;
-          case AdjustmentEvent.BLOCK_DECREMENT:
-              // Scrollbar was decreased by one block
-              break;
-          case AdjustmentEvent.TRACK:
-              // The knob on the scrollbar was dragged
-              break;
-        }
-
-        // Get current value
-        int value = evt.getValue();*/
+                /*  Adjustable source = e.getAdjustable();
+                
+                /*
+                // getValueIsAdjusting() returns true if the user is currently
+                // dragging the scrollbar's knob and has not picked a final value
+                if (evt.getValueIsAdjusting()) {
+                // The user is dragging the knob
+                return;
+                }
+                
+                // Determine which scrollbar fired the event
+                int orient = source.getOrientation();
+                if (orient == Adjustable.HORIZONTAL) {
+                // Event from horizontal scrollbar
+                } else {
+                // Event from vertical scrollbar
+                }
+                
+                // Determine the type of event
+                int type = evt.getAdjustmentType();
+                switch (type) {
+                case AdjustmentEvent.UNIT_INCREMENT:
+                // Scrollbar was increased by one unit
+                break;
+                case AdjustmentEvent.UNIT_DECREMENT:
+                // Scrollbar was decreased by one unit
+                break;
+                case AdjustmentEvent.BLOCK_INCREMENT:
+                // Scrollbar was increased by one block
+                break;
+                case AdjustmentEvent.BLOCK_DECREMENT:
+                // Scrollbar was decreased by one block
+                break;
+                case AdjustmentEvent.TRACK:
+                // The knob on the scrollbar was dragged
+                break;
+                }
+                
+                // Get current value
+                int value = evt.getValue();*/
             }
-            
         };
         pane.getHorizontalScrollBar().addAdjustmentListener(listener);
         pane.getVerticalScrollBar().addAdjustmentListener(listener);
@@ -390,10 +433,8 @@ public class SimpleTable extends JLabel
         Graphics2D g2 = (Graphics2D) (g);
 
         if (myModel != null) {
-            Rectangle drawHere = g.getClipBounds();
+            Rectangle drawHere = getVisibleRect();
             GridVisibleArea a = myModel.getVisibleGrid(drawHere);
-            // g2.setColor(Color.GREEN);
-            // g.fillRect(drawHere.x + 10, drawHere.y + 10, drawHere.width - 20, drawHere.height - 20);
 
             for (int row = a.startRow; row <= a.lastPartialRow; row++) {
                 for (int col = a.startCol; col <= a.lastPartialColumn; col++) {

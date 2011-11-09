@@ -1,5 +1,7 @@
 package org.wdssii.gui;
 
+import java.awt.Rectangle;
+
 /** Object representing a square section of visible table area.
  * Used to render product outlines for readout in the 3D world, also to render table
  * tracking.
@@ -18,7 +20,8 @@ public class GridVisibleArea {
     public int startRow;
     public int lastFullRow;
     public int lastPartialRow;
-
+    public Rectangle clipBounds;
+    
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

@@ -7,6 +7,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.Date;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataRequest;
@@ -26,6 +27,28 @@ import org.wdssii.index.IndexRecord;
  */
 public abstract class Builder {
 
+    /** Info snagged from file/URL without reading ALL of it.
+     * Used by GUI to pre-fetch Product, Choice and Time (selections) 
+     * from our format files
+     */
+    public static class BuilderFileInfo {
+
+        /** The TypeName such as Reflectivity.  Attribute 'TypName' */
+        public String TypeName = "None";
+        /** The DataType gotten from the file.   Attribute 'DataType' */
+        public String DataType = "None";
+        /** Choice from file.  Elevation, height, etc... */
+        public String Choice = "None";
+        /** Was the DataType 'sparse'? */
+        boolean sparse = false;
+        /** Any error during xml reading. GUI can show a dialog */
+        public String error;
+        /** Field set to true only if everything read correctly */
+        public boolean success = false;
+        /** The time for this product */
+        public Date Time = new Date();
+    }
+    
     /** The subdirectory used in the DataManager.  For example, on startup 
      DataManager makes a 'wg-some-temp/' directory.  This would be
      'wg-some-temp/myTempSubdir' for all files we download
@@ -58,6 +81,10 @@ public abstract class Builder {
         }
     }
 
+    public static BuilderFileInfo getBuilderFileInfo(URL aURL) {
+        return new BuilderFileInfo();
+    }
+    
     /** A utility for builders that copies from a ReadableByteChannel to
      * a WritableByteChannel
      * @param in

@@ -14,7 +14,6 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
@@ -46,22 +45,7 @@ public class NetcdfBuilder extends Builder {
     /** Info snagged from a netcdf file.  Used by GUI to prefetch
      * Product, Choice and Time (selections) from our format netcdf files
      */
-    public static class NetcdfFileInfo {
-
-        /** The TypeName such as Reflectivity.  Attribute 'TypName' */
-        public String TypeName;
-        /** The DataType gotten from the file.   Attribute 'DataType' */
-        public String DataType;
-        /** Choice from file.  Elevation, height, etc... */
-        public String Choice;
-        /** Was the DataType 'sparse'? */
-        boolean sparse;
-        /** Any error during netcdf reading. GUI can show a dialog */
-        public String error;
-        /** Field set to true only if everything read correctly */
-        public boolean success = false;
-        /** The time for this product */
-        public Date Time;
+    public static class NetcdfFileInfo extends BuilderFileInfo {
     }
 
     public NetcdfBuilder() {
@@ -218,7 +202,16 @@ public class NetcdfBuilder extends Builder {
      * 
      * @param path 
      */
-    public static NetcdfFileInfo getNetcdfFileInfo(String path) {
+    public static NetcdfFileInfo getBuilderFileInfo(URL aURL) {
+        
+        // Currently this is only called for a local file from the GUI,
+        // so we assume that:
+        String text = aURL.toString();
+
+        // Now get the file from the URL
+        File aFile = Builder.getFileFromURL(aURL);
+        String path = aFile.getAbsolutePath();
+            
         NetcdfFileInfo info = new NetcdfFileInfo();
         NetcdfFile ncfile = null;
 

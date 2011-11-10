@@ -229,6 +229,29 @@ public abstract class Tag {
         return found;
     }
 
+    /** Process just this tag and STOP.  Normally don't do this.  GUI uses
+     * this to process a 'header' of a URL/file to gather info.
+     * The tag must match the given.
+     */
+    public boolean processOneAndStop(XMLStreamReader p){
+        boolean found = false;
+        boolean done = false;
+        try {
+            while (!done && p.hasNext()) {
+                int event = p.next();
+                switch (event) {
+                    case XMLStreamConstants.START_ELEMENT: {
+                        found = processTag(p);
+                        done = true;// even if not the tag we wanted....
+                        break;
+                    }
+                }
+            }
+        } catch (XMLStreamException ex) {
+        }
+        return found;
+    }
+            
     /** Process document root from a given File */
     public boolean processAsRoot(File f) {
         boolean success = false;
@@ -258,7 +281,7 @@ public abstract class Tag {
         return success;
 
     }
-
+    
     /** Process all child tabs within our tag */
     public void processChildren(XMLStreamReader p) {
 

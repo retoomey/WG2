@@ -8,10 +8,8 @@ import org.wdssii.datatypes.Contours;
 import org.wdssii.datatypes.Contours.ContoursMemento;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.geom.Location;
-import org.wdssii.xml.Tag;
 import org.wdssii.xml.Tag_contour;
 import org.wdssii.xml.Tag_contours;
-import org.wdssii.xml.Tag_datatype;
 
 /** Parse read/write contour XML data files.
  * The XML for the contours is a bit dense, because of backward compatibility to read old data files
@@ -29,11 +27,6 @@ import org.wdssii.xml.Tag_datatype;
  */
 public class ContoursXML extends DataTypeXML {
 
-   // protected final String XML_CONTOURDATA = "contourdata";
-   // protected final String XML_CONTOUR = "contour";
-   // protected final String XML_ARRAY = "array";
-   // protected final String XML_LOCATIONDATA = "locationdata";
-    
     /** Initialize a data table from an XMLStreamReader 
      * @throws XMLStreamException
      * Overrides with covariance */

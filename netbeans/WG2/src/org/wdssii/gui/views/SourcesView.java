@@ -11,7 +11,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
@@ -33,15 +32,15 @@ import org.wdssii.core.RadarInfo;
 
 import org.wdssii.core.SourceBookmarks.*;
 import org.wdssii.core.SourceBookmarks;
-import org.wdssii.datatypes.builders.Builder;
 import org.wdssii.datatypes.builders.NetcdfBuilder;
-import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import net.miginfocom.swing.MigLayout;
+import org.wdssii.datatypes.builders.Builder.BuilderFileInfo;
+import org.wdssii.datatypes.builders.XMLBuilder;
 import org.wdssii.gui.swing.CONUSJPanel;
 import org.wdssii.gui.swing.CONUSJPanel.CONUSJPanelListener;
 import org.wdssii.gui.swing.JThreadPanel;
@@ -64,18 +63,21 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
     private final String myDebugList = "Debug List";
     private BookmarkURLDataTableModel myModel;
     private final CONUSJPanel myCONUSPanel;
+    private Date mySingleDate;
     
     /** Our factory, called by reflection to populate menus, etc...*/
     public static class Factory extends WdssiiDockedViewFactory {
+
         public Factory() {
-             super("Sources", "cart_add.png");   
+            super("Sources", "cart_add.png");
         }
+
         @Override
-        public Component getNewComponent(){
+        public Component getNewComponent() {
             return new SourcesView();
         }
     }
-    
+
     @Override
     public void radarClicked(String name) {
         if (jSourceListTable != null) {
@@ -98,8 +100,8 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
 
     @Override
     public void updateInSwingThread(Object info) {
-       // We don't update externally..only from clicked buttons, etc..
-       // which are of course already in the swing thread.
+        // We don't update externally..only from clicked buttons, etc..
+        // which are of course already in the swing thread.
     }
 
     /** Filter to looks for local data files.  We can make this more 
@@ -403,7 +405,7 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
         jRootTab.addTab("From index.xml", p1);
         jRootTab.addTab("From single file", p2);
     }
-    
+
     private JPanel createIndexLoadPanel() {
 
         // The load from index panel ------------------------------------------
@@ -506,8 +508,9 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
         JPanel p = new JPanel();
         p.setLayout(new MigLayout("fillx, wrap 3", "[pref!][][pref!]", ""));
 
-        p.add(new JLabel("URL:"));
+        p.add(new JLabel("Filename:"));
         jSingleURLTextField = new javax.swing.JTextField();
+        jSingleURLTextField.setEditable(false);
         p.add(jSingleURLTextField, "growx");
         JButton b = new JButton("Browse Single File...");
         p.add(b, "right");
@@ -528,8 +531,21 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
         jSingleTimeTextField = new javax.swing.JTextField();
         jSingleTimeTextField.setEditable(false);
         p.add(jSingleTimeTextField, "growx, spanx 2");
+        p.add(new JLabel("DataType:"));
+        jDataTypeTextField = new javax.swing.JTextField();
+        jDataTypeTextField.setEditable(false);
+        p.add(jDataTypeTextField, "growx, spanx 2");
+        b = new javax.swing.JButton("Clear Info");
+        b.addActionListener(new java.awt.event.ActionListener() {
+
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jClearLocalButtonActionPerformed(evt);
+            }
+        });
+        p.add(b, "skip 1, right");
         b = new javax.swing.JButton("Add to LOCALFILES");
-        p.add(b, "skip 2, right");
+        p.add(b);
         b.addActionListener(new java.awt.event.ActionListener() {
 
             @Override
@@ -584,17 +600,39 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
             String text = aURL.toString();
             jSingleURLTextField.setText(text);
 
-            // Now get the file from the URL
-            File aFile = Builder.getFileFromURL(aURL);
-            String absolutePath = aFile.getAbsolutePath();
-
-            // FIXME: add stuff for xml file
-            NetcdfFileInfo info = NetcdfBuilder.getNetcdfFileInfo(absolutePath);
+            BuilderFileInfo info = NetcdfBuilder.getBuilderFileInfo(aURL);
             if (info.success) {
-                jSingleProductTextField.setText(info.TypeName);
-                jSingleChoiceTextField.setText(info.Choice);
-                jSingleTimeTextField.setText(info.Time.toString());
+                setToInfo(info);
+            } else {
+                info = XMLBuilder.getBuilderFileInfo(aURL);
+                if (info.success) {
+                    setToInfo(info);
+                }
             }
+        }
+    }
+
+    private void setToInfo(BuilderFileInfo info) {
+        jSingleProductTextField.setText(info.TypeName);
+        jSingleChoiceTextField.setText(info.Choice);
+        setSingleTimeDate(info.Time);
+        jDataTypeTextField.setText(info.DataType);
+    }
+
+    private void clearInfo() {
+        jSingleURLTextField.setText("");
+        jSingleProductTextField.setText("");
+        jSingleChoiceTextField.setText("");
+        setSingleTimeDate(null);
+        jDataTypeTextField.setText("");
+    }
+    
+    private void setSingleTimeDate(Date aDate){
+        mySingleDate = aDate;
+        if (aDate != null){
+            jSingleTimeTextField.setText(aDate.toString());
+        }else{
+            jSingleTimeTextField.setText("");
         }
     }
 
@@ -602,6 +640,10 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
         // TODO add your handling code here:
     }
 
+    private void jClearLocalButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        clearInfo();
+    }
+    
     private void jAddLocalButtonActionPerformed(java.awt.event.ActionEvent evt) {
 
         // Check URL format first...
@@ -639,10 +681,7 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
             return;
         }
 
-        // Use the current time for product.  FIXME: could we open it up
-        // and get the time?  Maybe
-        Calendar cal = Calendar.getInstance();
-        Date d = cal.getTime();
+        Date d = mySingleDate;
 
         // Ugggh. Params for netcdf differ from params for xml files, so we
         // fudge it for now...
@@ -665,7 +704,8 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
         // Finally try to add it.
         if (params != null) {
             SourceManager.getInstance().addSingleURL(aURL, product, choice, d, params);
-            JOptionPane.showMessageDialog(null, "Added file to local file index",
+            clearInfo();
+            JOptionPane.showMessageDialog(this, "Added file to local file index",
                     "Add success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -677,6 +717,7 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
     private javax.swing.JTextField jSingleChoiceTextField;
     private javax.swing.JTextField jSingleProductTextField;
     private javax.swing.JTextField jSingleTimeTextField;
+    private javax.swing.JTextField jDataTypeTextField;
     private javax.swing.JTextField jSingleURLTextField;
     private javax.swing.JScrollPane jSourceTableScrollPane;
     private javax.swing.JTextField jURLTextField;

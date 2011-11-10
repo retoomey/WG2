@@ -402,7 +402,17 @@ public class ProductHandlerList {
             }
         }
     }
-
+    
+    // Pick support for product handlers.
+    public void doPick(DrawContext dc, java.awt.Point pickPoint)
+    {
+        for (ProductHandler current : myDrawHandlers) {
+            if (current.wouldDraw(this)) {
+                current.doPick(dc, pickPoint);
+            }
+        }
+    }
+    
     public void setOnlyMode(String handlerKey, boolean flag) {
         setOnlyMode(getProductHandler(handlerKey), flag);
     }

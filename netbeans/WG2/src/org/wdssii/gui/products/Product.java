@@ -827,6 +827,23 @@ public class Product implements LRUCacheItem {
         }
     }
 
+    public void doPick(DrawContext dc, java.awt.Point pickPoint){
+         // wouldDraw has already been called by here
+        getRenderer();
+        ProductRenderer pr = getRenderer();
+        if (pr != null) {
+            if (myDirtyRenderer) {
+
+                // FIXME: Design problem.  Renderer needs the FilterList from handler,
+                // but eventually we'll have multiple handlers..one might have a low pass filter
+                // and one might not...but we only have a SINGLE renderer kept right now...
+                pr.initToProduct(dc, this);
+                myDirtyRenderer = false;
+            }
+            pr.doPick(dc, pickPoint);
+        }
+    }
+    
     /*
      * Get our product that sync in time/subtype to the given product.  We can
      * return null if we don't have a match.

@@ -82,9 +82,14 @@ public abstract class ProductRenderer {
         }
     }
 
-    // Draw the product in the current dc
+    /** Draw the product in the current dc */
     public abstract void draw(DrawContext dc);
 
+    /** Pick an object in the current dc at point */
+    public void doPick(DrawContext dc, java.awt.Point pickPoint){
+    
+    }
+    
     /** Return the product we draw */
     public Product getProduct() {
         return myProduct;
@@ -109,6 +114,10 @@ public abstract class ProductRenderer {
 
         GridVisibleArea a = CommandManager.getInstance().getVisibleGrid();
         drawGridOutline(dc, a);
+    }
+    
+    public void highlightObject(Object o){
+        
     }
 
     public void drawReadoutCellOutline(DrawContext dc, ProductReadout pr) {

@@ -212,10 +212,14 @@ public class ProductHandler { // Interface?
         return draw;
     }
 
-    public void draw(DrawContext dc) { // , ProductHandlerList handlerList) {
-        // System.out.println("Handler called draw on "+getKeyForProduct(myProduct));
+    public void draw(DrawContext dc) {
         myProduct.myProductHandler = this;
-        myProduct.draw(dc); // , handlerList, this);
+        myProduct.draw(dc);
+    }
+    
+    public void doPick(DrawContext dc, java.awt.Point pickPoint){
+        myProduct.myProductHandler = this;
+        myProduct.doPick(dc, pickPoint);
     }
 
     /**

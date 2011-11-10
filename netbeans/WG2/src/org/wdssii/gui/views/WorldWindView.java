@@ -9,6 +9,8 @@ import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.awt.WorldWindowGLJPanel;
+import gov.nasa.worldwind.event.SelectEvent;
+import gov.nasa.worldwind.event.SelectListener;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Vec4;
@@ -92,15 +94,17 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
 
     /** Our factory, called by reflection to populate menus, etc...*/
     public static class Factory extends WdssiiDockedViewFactory {
+
         public Factory() {
             super("Earth", "world.png");
         }
+
         @Override
         public Component getNewComponent() {
             return new WorldWindView();
         }
     }
-   
+    
     public WorldWindView() {
         setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         final String w = "50"; // MigLayout width parameter
@@ -136,13 +140,13 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
         } else {
             // Basic worldwind setup...
             Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
-            if (USE_HEAVYWEIGHT){
+            if (USE_HEAVYWEIGHT) {
                 myWorld = new WorldWindowGLCanvas();
-            }else{
+            } else {
                 myWorld = new WorldWindowGLJPanel();
             }
             myWorld.setModel(m);
-            jPanel1.add((Component)(myWorld), new CC().minWidth(w).minHeight(w).growX().growY());
+            jPanel1.add((Component) (myWorld), new CC().minWidth(w).minHeight(w).growX().growY());
             jPanel1.setOpaque(false);
 
             // Either:
@@ -159,6 +163,13 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
             myStatusBar = new ReadoutStatusBar();
             jPanel2.add(myStatusBar, new CC().growX().growY());
             myStatusBar.setEventSource(myWorld);
+
+            myWorld.addSelectListener(new SelectListener() {
+
+                public void selected(SelectEvent event) {
+                    handleSelectEvent(event);
+                }
+            });
         }
         final WorldWindView theWorld = this;
         jButton1.addActionListener(new ActionListener(){
@@ -396,5 +407,26 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
 
     public LLHAreaLayer getVolumeLayer() {
         return myVolumeLayer;
+    }
+
+    /** Have to pass these down to the product renderers somehow...
+    If we do that though, then popups might overlap each other if we
+    have multiple stuff trying to draw.  Might be better to keep one global
+    select for any window....*/
+    public void handleSelectEvent(SelectEvent e) {
+        System.out.println("SELECT:" + e.getTopObject());
+        if (e.getEventAction().equals(SelectEvent.ROLLOVER)) {
+
+
+            // highlight?
+            Product aProduct = ProductManager.getInstance().getTopProduct();
+            if (aProduct == null) {
+                return;
+            }
+            ProductRenderer r = aProduct.getRenderer();
+            if (r != null) {
+                r.highlightObject(e.getTopObject());
+            }
+        }
     }
 }

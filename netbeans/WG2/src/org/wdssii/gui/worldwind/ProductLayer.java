@@ -12,7 +12,7 @@ import org.wdssii.gui.products.ProductHandlerList;
  * @author Robert Toomey
  * @version $Id$
  */
-public class ProductLayer extends RenderableLayer implements WWCategoryLayer {
+public class ProductLayer extends AbstractLayer implements WWCategoryLayer {
 
     protected Product myProduct;
     protected boolean myDirty = true;
@@ -42,16 +42,13 @@ public class ProductLayer extends RenderableLayer implements WWCategoryLayer {
         // Get the current product list
         ProductHandlerList list = ProductManager.getInstance().getProductOrderedSet();
         list.draw(dc);
-        
-        // Current 'icon' system
-       // for (Renderable renderable : getActiveRenderables())
-      //  {
-            // If the caller has specified their own Iterable,
-            // then we cannot make any guarantees about its contents.
-      //      if (renderable != null)
-     //           renderable.render(dc);
-      //  }
+    }
     
+    @Override
+    public void doPick(DrawContext dc, java.awt.Point pickPoint)
+    {
+        ProductHandlerList list = ProductManager.getInstance().getProductOrderedSet();
+        list.doPick(dc, pickPoint);
     }
 
     @Override

@@ -1,13 +1,8 @@
 package org.wdssii.gui.products.renderers;
 
 import gov.nasa.worldwind.Locatable;
-import gov.nasa.worldwind.avlist.AVKey;
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.LatLon;
-import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.Annotation;
-import gov.nasa.worldwind.render.AnnotationAttributes;
 import gov.nasa.worldwind.render.BasicAnnotationRenderer;
 import java.awt.Point;
 
@@ -16,37 +11,26 @@ import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.terrain.SectorGeometryList;
 import gov.nasa.worldwind.util.OGLStackHandler;
 import java.awt.Color;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import javax.media.opengl.GL;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataTable;
-import org.wdssii.datatypes.DataTable.Column;
-import org.wdssii.datatypes.DataType;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
-import org.wdssii.gui.products.ProductTextFormatter;
-import org.wdssii.gui.products.RadialSetReadout;
 import org.wdssii.gui.products.renderers.icons.BaseIconAnnotation;
-import org.wdssii.gui.products.renderers.icons.PolygonIcon;
-import org.wdssii.gui.products.renderers.icons.MesonetIcon;
 import org.wdssii.gui.products.renderers.icons.MesonetIcon.MesonetIconFactory;
 import org.wdssii.gui.products.renderers.icons.PolygonIcon.PolygonIconFactory;
-import org.wdssii.xml.iconSetConfig.Tag_dataColumn;
 import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
-import org.wdssii.xml.iconSetConfig.Tag_mesonetConfig;
-import org.wdssii.xml.iconSetConfig.Tag_polygonTextConfig;
 
 /** Renders a DataTable in a worldwind window
  * 
@@ -63,13 +47,11 @@ public class DataTableRenderer extends ProductRenderer {
     public static BasicAnnotationRenderer myRenderer = new BasicAnnotationRenderer();
     private ColorMap myTextColorMap = null;
     private ColorMap myPolygonColorMap = null;
-    
     // Not sure this should be here....
     private PickSupport pickSupport = new PickSupport();
-    
     // FIXME: really need non-static...
     public static BaseIconAnnotation hovered = null;
-    
+
     public DataTableRenderer() {
         super(true);
     }
@@ -81,7 +63,7 @@ public class DataTableRenderer extends ProductRenderer {
         DataTable aDataTable = (DataTable) aProduct.getRawDataType();
         monitor.beginTask("DataTableRenderer:", aDataTable.getNumRows());
         ProductDataInfo info = ProductManager.getInstance().getProductDataInfo(aProduct.getDataType());
-        
+
         // Factory
         Tag_iconSetConfig tag = info.getIconSetConfig();
         // Check for mesonet icons...
@@ -100,11 +82,15 @@ public class DataTableRenderer extends ProductRenderer {
     @Override
     public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
         final Object o = hovered;
-        ProductReadout out = new ProductReadout(){
+        ProductReadout out = new ProductReadout() {
+
             @Override
             public String getReadoutString() {
-                if (o == null){ return "nope";}
-                else{ return o.toString(); }
+                if ((o != null) && (o instanceof BaseIconAnnotation)) {
+                    BaseIconAnnotation a = (BaseIconAnnotation) (o);
+                    return a.getReadoutString();
+                }
+                return "N/A";
             }
         };
         return out;
@@ -136,16 +122,16 @@ public class DataTableRenderer extends ProductRenderer {
 
         // For our icons we have two render passes.  One is for any 3D component
         // of the icon..the 2nd is the 2D component which overlays any 3D...
-        if (pickMode){
-             this.pickSupport.clearPickList();
-             this.pickSupport.beginPicking(dc);
-             
-             // Save current color...
+        if (pickMode) {
+            this.pickSupport.clearPickList();
+            this.pickSupport.beginPicking(dc);
+
+            // Save current color...
             // float[] inColor = new float[4];	
             // gl.glGetFloatv(GL.GL_CURRENT_COLOR, inColor, 0);
 
         }
-        
+
         // 3D Pass
         int size = myIcons.size();
         for (int i = 0; i < size; i++) {
@@ -184,25 +170,25 @@ public class DataTableRenderer extends ProductRenderer {
 
         for (int i = 0; i < size; i++) {
             Annotation aIcon = myIcons.get(i);
-            Color color= Color.WHITE;
-            if (pickMode){
+            Color color = Color.WHITE;
+            if (pickMode) {
                 color = dc.getUniquePickColor();
                 dc.getGL().glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
             }
             aIcon.render(dc);
-            if(pickMode){
-                 this.pickSupport.addPickableObject(color.getRGB(), aIcon,	
-                            ((Locatable) aIcon).getPosition(), false);
+            if (pickMode) {
+                this.pickSupport.addPickableObject(color.getRGB(), aIcon,
+                        ((Locatable) aIcon).getPosition(), false);
             }
         }
         stackHandler.pop(gl);
-        if (pickMode){
+        if (pickMode) {
             // Adds picked object to the DrawContext..
-             this.pickSupport.resolvePick(dc, pickPoint, dc.getCurrentLayer());	
-             this.pickSupport.endPicking(dc);
+            this.pickSupport.resolvePick(dc, pickPoint, dc.getCurrentLayer());
+            this.pickSupport.endPicking(dc);
         }
     }
-    
+
     /**
      * 
      * @param dc
@@ -210,80 +196,28 @@ public class DataTableRenderer extends ProductRenderer {
      */
     @Override
     public void draw(DrawContext dc) {
-         drawData(dc, false, null);
+        drawData(dc, false, null);
     }
-    
+
     /** Pick an object in the current dc at point */
     @Override
-    public void doPick(DrawContext dc, java.awt.Point pickPoint){
-        
+    public void doPick(DrawContext dc, java.awt.Point pickPoint) {
         drawData(dc, true, pickPoint);
-        /*
-        this.pickSupport.clearPickList();
-        this.pickSupport.beginPicking(dc);
-		
-        try
-        {	
-            for (BaseIconAnnotation renderable : myIcons) 	
-            {	
-                // If the caller has specified their own Iterable,	
-                // then we cannot make any guarantees about its contents.	
-                if (renderable != null)
-                {	
-                    float[] inColor = new float[4];	
-                    dc.getGL().glGetFloatv(GL.GL_CURRENT_COLOR, inColor, 0);	
-                    java.awt.Color color = dc.getUniquePickColor();
-                    dc.getGL().glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());	
-
-                    try
-                    {	
-                        renderable.render(dc);
-                    }
-
-                    catch (Exception e)
-                    {
-                        continue; // go on to next renderable	
-                    }
- 	
-                    dc.getGL().glColor4fv(inColor, 0);
-                    if (renderable instanceof Locatable)
-                    {	
-                        this.pickSupport.addPickableObject(color.getRGB(), renderable,	
-                            ((Locatable) renderable).getPosition(), false);	
-                    }
-                    else
-                    {
-                        this.pickSupport.addPickableObject(color.getRGB(), renderable);	
-
-                    }
-                }
-            }
-            this.pickSupport.resolvePick(dc, pickPoint, dc.getCurrentLayer());	
-        }
-        finally
-        {	
-            this.pickSupport.endPicking(dc); 	
-
-        }
-         * 
-         */
     }
 
     @Override
     public void highlightObject(Object o) {
-        if (o == null){
-            //System.out.println("Object is NULL");
-        }else{
-        if (o instanceof BaseIconAnnotation) {
-            // wow what to do here??
-           // System.out.println("Object is BASE ICON!!" + o.toString());
-            BaseIconAnnotation b = (BaseIconAnnotation)(o);
+        hovered = null;
+        if ((o != null) && (o instanceof BaseIconAnnotation)) {
+            // Humm..need to make sure this is OUR icon
+            BaseIconAnnotation b = (BaseIconAnnotation) (o);
             hovered = b;
             CommandManager.getInstance().getEarthBall().repaint();
-        } else {
-           // System.out.println("Object not base..." + o.toString());
-            hovered= null;
         }
-        }
+    }
+
+    @Override
+    public boolean canOverlayOtherData() {
+        return true;
     }
 }

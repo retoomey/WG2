@@ -33,16 +33,12 @@ public class PolygonIcon extends BaseIconAnnotation {
 
         public static void create(WdssiiJobMonitor monitor, DataTable aDataTable, Tag_polygonTextConfig polygonTextConfig, ArrayList<BaseIconAnnotation> list) {
             if ((polygonTextConfig != null) && (polygonTextConfig.wasRead())) {
-                //if (myTextColorMap == null) {
-                    ColorMap textCM = new ColorMap();
-                    textCM.initFromTag(polygonTextConfig.textConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
-                 //   myTextColorMap = t;
-                //}
-                //if (myPolygonColorMap == null) {
-                    ColorMap polyCM = new ColorMap();
-                    polyCM.initFromTag(polygonTextConfig.polygonConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
-                   // myPolygonColorMap = t;
-                //}
+                ColorMap textCM = new ColorMap();
+                textCM.initFromTag(polygonTextConfig.textConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
+
+                ColorMap polyCM = new ColorMap();
+                polyCM.initFromTag(polygonTextConfig.polygonConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
+
 
                 // Color lookup is based upon the dcColumn
                 String tColorField = polygonTextConfig.textConfig.dcColumn;
@@ -125,6 +121,12 @@ public class PolygonIcon extends BaseIconAnnotation {
             //  myProducts.addRenderable(ea);
         }
     }
+    
+    @Override
+    public String getReadoutString(){
+        return "Polygon: "+this.toString();
+    }
+    
     /** This is the value of the icon for colormap lookup.. 
     FIXME: Note when we add colorDatabase support this won't work since
     it will need a string...hummm..
@@ -196,15 +198,10 @@ public class PolygonIcon extends BaseIconAnnotation {
      */
     @Override
     protected void doDraw(DrawContext dc, int width, int height, double opacity, Position pickPosition) {
-        // Draw colored circle around screen point - use annotation's text color
-        //       super.doDraw(dc, width, width, opacity, position);  
-        if (dc.isPickingMode()) {
-            //      if (pickPosition != null){
-            //          this.bindPickableObject(dc, pickPosition);
-            //      }
-        }
-
+ 
         boolean pick = dc.isPickingMode();
+        int tWidth = width;
+        int tHeight = height;
         if (!pick && (this == DataTableRenderer.hovered)) {
             width += 6;
             height += 6;
@@ -214,12 +211,10 @@ public class PolygonIcon extends BaseIconAnnotation {
         int v = tag.polygonConfig.numVertices;
         int p = tag.polygonConfig.phaseAngle;
 
-        // this.applyColor(dc, new Color(255, 0, 0, 255), 1.0, true);
-
         GL gl = dc.getGL();
 
         // Draw the background polygon ---------------------------------
-
+gl.glDisable(GL.GL_DEPTH_TEST);
         // Calculate the radius of a bounding circle around the text...
         double cw = width / 2.0;
         double ch = height / 2.0;
@@ -228,7 +223,6 @@ public class PolygonIcon extends BaseIconAnnotation {
         // This could be done once per icon, or only when polygon color
         // changes...
         try {
-            // int value = Integer.parseInt(text);
             if (!pick) {
                 if (myPolygonColorMap != null) {
                     ColorMapOutput out = new ColorMapOutput();
@@ -239,9 +233,6 @@ public class PolygonIcon extends BaseIconAnnotation {
         } catch (Exception e) {
         }
         if (v > 2) {
-            // Background color
-            //  gl.glColor3f(0.0f, 0.0f, 1.0f);
-
             polyRadius /= Math.cos(Math.PI / v);
             gl.glBegin(GL.GL_POLYGON);
             for (int i = 0; i < v; i++) {
@@ -253,9 +244,6 @@ public class PolygonIcon extends BaseIconAnnotation {
         } else {
             // Doing it this way to avoid extra memory (we can have 1000s of icons)
             // vs buffer which would be faster.  Might change later
-            // Background color
-            //  gl.glColor3f(0.0f, 0.0f, 1.0f);
-
             double x = -cw;
             double y = -ch;
             double x2 = x + width;
@@ -279,7 +267,7 @@ public class PolygonIcon extends BaseIconAnnotation {
         // Think I will eventually make my own in order to outline
         // the text...
         // This 'centers' the text around the lat/lon location...
-        dc.getGL().glTranslated(-width / 2, -height / 2, 0);
+        dc.getGL().glTranslated(-tWidth / 2, -tHeight / 2, 0);
 
         if (!pick) {
             // Total sloppy hacking for moment
@@ -297,7 +285,7 @@ public class PolygonIcon extends BaseIconAnnotation {
             } catch (Exception e) {
             }
 
-            drawText(dc, width, height, opacity, pickPosition);
+            drawText(dc, tWidth, tHeight, opacity, pickPosition);
         }
     }
 }

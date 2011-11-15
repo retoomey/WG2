@@ -212,4 +212,9 @@ public class ContoursRenderer extends ProductRenderer {
             }
         }
     }
+
+    @Override
+    public boolean canOverlayOtherData() {
+       return true;
+    }
 }

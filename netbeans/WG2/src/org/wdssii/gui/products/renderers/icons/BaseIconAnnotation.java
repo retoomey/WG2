@@ -43,6 +43,10 @@ public class BaseIconAnnotation extends GlobeAnnotation {
         this.doDraw(dc, width, height, finalOpacity, pickPosition);
     }
 
+    public String getReadoutString(){
+        return this.toString();
+    }
+    
     /** The '3d' component of our annotation. */
     public void do3DDraw(DrawContext dc) {
     }

@@ -6,6 +6,7 @@ import java.util.Date;
 import org.wdssii.gui.products.Product.ProductTimeWindowInfo;
 import org.wdssii.gui.products.filters.DataFilter;
 import gov.nasa.worldwind.render.DrawContext;
+import org.wdssii.gui.products.Product.ProductTimeWindowAge;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 
 /**
@@ -24,10 +25,8 @@ public class ProductHandler { // Interface?
 
     /** The current product we are using */
     protected Product myProduct;
-    
     /** The navigator for our product type */
     protected ProductNavigator myNavigator = null;
-    
     /** The filter list for this handler.
      * Humm..we'll need to 'spawn' a new ProductHandler with different filters right? 
      */
@@ -86,8 +85,8 @@ public class ProductHandler { // Interface?
     }
 
     public FilterList getFList() {
-        if (myProduct != null){
-             myFList.setColorMap(myProduct.getColorMap());
+        if (myProduct != null) {
+            myFList.setColorMap(myProduct.getColorMap());
         }
         return myFList;
     }
@@ -204,7 +203,7 @@ public class ProductHandler { // Interface?
         if (getIsVisible() && !onlyModeHide) {
             //return(myProduct.wouldDraw(handlerList));
 
-            if ((info == ProductTimeWindowInfo.IN_WINDOW) && myProduct.spaceAvailable(handlerList)) {
+            if ((info.myState == ProductTimeWindowAge.IN_WINDOW) && myProduct.spaceAvailable(handlerList)) {
                 draw = true;
             }
         }
@@ -216,8 +215,8 @@ public class ProductHandler { // Interface?
         myProduct.myProductHandler = this;
         myProduct.draw(dc);
     }
-    
-    public void doPick(DrawContext dc, java.awt.Point pickPoint){
+
+    public void doPick(DrawContext dc, java.awt.Point pickPoint) {
         myProduct.myProductHandler = this;
         myProduct.doPick(dc, pickPoint);
     }
@@ -258,55 +257,19 @@ public class ProductHandler { // Interface?
         if (myProduct != null) {
             // Only the product type knows the time window for product type
             ProductTimeWindowInfo info = myProduct.isInTimeWindow(myHandlerList.getSimulationTime());
-
-            switch (info) {
-                case IN_WINDOW:
-                    myMessage = "In window";
-                    break;
-                case BAD_PRODUCT:
-                    myMessage = "Invalid";
-                    break;
-                case TOO_NEW:
-                    myMessage = "In future";
-                    break;
-                case TOO_OLD:
-                    myMessage = "> 1 min old";
-                    break; // FIXME: based on product info
-                default:
-                    myMessage = "??";
-                    break;
+            if (info != null) {
+                myMessage = info.myAgeString;
+            } else {
+                myMessage = "??";
             }
         }
     }
-    /*
-    public boolean isInTimeWindow(ProductHandlerList aList)
-    {
-    boolean inWindow = false;
-    if (myRecord != null){
-    Date ourDate = myRecord.getTime();
-    Date simulationTime = aList.getSimulationTime();
-    long seconds = (simulationTime.getTime() - ourDate.getTime())/1000;
-    
-    // Message has to be higher up, depends upon 
-    myMessage = "Testing";
-    if (seconds < 0){
-    myMessage = "In future";
-    }else if (seconds > 1*60){
-    myMessage = "> 1 min old";
-    }else{
-    myMessage = "In window";
-    inWindow = true;
-    }
-    }
-    return inWindow;
-    }
-     */
 
     public ProductNavigator getNavigator() {
-        
+
         // All Products we handle will be of the same type, thus
         // we only create the navigator once.
-        if (myNavigator == null){
+        if (myNavigator == null) {
             myNavigator = myProduct.createNavigator();
         }
         return myNavigator;

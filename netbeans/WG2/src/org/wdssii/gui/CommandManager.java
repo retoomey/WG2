@@ -217,11 +217,13 @@ public class CommandManager implements Singleton {
     }
 
     public void cacheManagerNotify() {
-        WdssiiView view = getNamedViewed(CacheView.ID);
+      /*  WdssiiView view = getNamedViewed(CacheView.ID);
         if (view instanceof CacheView) {
             CacheView pcv = (CacheView) (view);
             pcv.update();
         }
+         * 
+         */
     }
 
     // All the 'move' commands and the 'load' record

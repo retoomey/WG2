@@ -104,7 +104,7 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
             return new WorldWindView();
         }
     }
-    
+
     public WorldWindView() {
         setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         final String w = "50"; // MigLayout width parameter
@@ -172,15 +172,15 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
             });
         }
         final WorldWindView theWorld = this;
-        jButton1.addActionListener(new ActionListener(){
+        jButton1.addActionListener(new ActionListener() {
 
             @Override
-            public void actionPerformed(ActionEvent e) { 
-               Snapshot3DWorldCommand c = new Snapshot3DWorldCommand();
-               c.setWdssiiView(theWorld);
-               CommandManager.getInstance().executeCommand(c, true);
+            public void actionPerformed(ActionEvent e) {
+                Snapshot3DWorldCommand c = new Snapshot3DWorldCommand();
+                c.setWdssiiView(theWorld);
+                CommandManager.getInstance().executeCommand(c, true);
             }
-        }); 
+        });
         // FIXME: should probably make a preference for this that can be
         // toggled by user if it works correctly/incorrectly
         System.setProperty("sun.awt.noerasebackground", "true");
@@ -414,15 +414,14 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
     have multiple stuff trying to draw.  Might be better to keep one global
     select for any window....*/
     public void handleSelectEvent(SelectEvent e) {
-        System.out.println("SELECT:" + e.getTopObject());
+        Product aProduct = ProductManager.getInstance().getTopProduct();
+        if (aProduct == null) {
+            return;
+        }
+        
+        // Dispatch different events.  Should we just pass the SelectEvent in?
         if (e.getEventAction().equals(SelectEvent.ROLLOVER)) {
 
-
-            // highlight?
-            Product aProduct = ProductManager.getInstance().getTopProduct();
-            if (aProduct == null) {
-                return;
-            }
             ProductRenderer r = aProduct.getRenderer();
             if (r != null) {
                 r.highlightObject(e.getTopObject());

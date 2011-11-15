@@ -27,7 +27,6 @@ import org.wdssii.util.RadialUtil;
 
 import com.sun.opengl.util.BufferUtil;
 import java.awt.Rectangle;
-import javax.media.opengl.GLDrawable;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.gui.products.ColorMapFloatOutput;
@@ -35,7 +34,6 @@ import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.RadialSetReadout;
-import org.wdssii.gui.views.WorldWindView;
 
 /** Renders a RadialSet
  * 
@@ -469,7 +467,7 @@ public class RadialSetRenderer extends ProductRenderer {
      * @param dc
      *            Draw context in opengl for drawing our radial set
      */
-    public void drawData(DrawContext dc, boolean readoutMode) {
+    public void drawData(DrawContext dc, boolean readoutMode) {        
         if (isCreated() && (verts != null) && (colors != null)) {
             GL gl = dc.getGL();
 
@@ -552,5 +550,10 @@ public class RadialSetRenderer extends ProductRenderer {
     @Override
     public void draw(DrawContext dc) {
         drawData(dc, false);
+    }
+
+    @Override
+    public boolean canOverlayOtherData() {
+       return false;
     }
 }

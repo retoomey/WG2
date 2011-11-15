@@ -23,6 +23,7 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.core.LRUCache.LRUCacheItem;
+import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.products.volumes.IndexRecordVolume;
@@ -71,7 +72,13 @@ public class Product implements LRUCacheItem {
     private final String VOLUME_CLASSPATH = "org.wdssii.gui.products.volumes";
     private final String NAVIGATOR_CLASSPATH = "org.wdssii.gui.products.navigators";
 
-    public enum ProductTimeWindowInfo {
+    public static class ProductTimeWindowInfo {
+        public ProductTimeWindowAge myState = ProductTimeWindowAge.IN_WINDOW;
+        public long myAgeSeconds = 0;
+        public String myAgeString = "In window";
+    }
+    
+    public enum ProductTimeWindowAge {
 
         IN_WINDOW,
         TOO_NEW,
@@ -171,14 +178,17 @@ public class Product implements LRUCacheItem {
                     if (mySource == null) {
                         System.out.println("***** my source is NULL?????");
                     }
+                    ProductRenderer pr = p.getRenderer();
+                    boolean canOverlay = false;
+                    if (pr != null){
+                        canOverlay = pr.canOverlayOtherData();
+                    }
                     if (foundUs
                             && // We're in the list (so this draws after us)
                             // FIXME: or do we want the ACTUAL would be showing function instead?
                             // For instance if h is out of time window, do we want to draw?
-                            (h.getIsVisible()) && // This product is not hidden
-                            // by user
-                            (p.fillsSpaceAroundRadar()) && // More general than
-                            // class check
+                            (h.getIsVisible()) && // This product is not hidden by user
+                            (!canOverlay) &&
                             (p.getIndexKey().compareTo(mySource) == 0)) // Source
                     // name
                     // same
@@ -788,20 +798,31 @@ public class Product implements LRUCacheItem {
 
     /** @return true if product is in valid time window */
     public ProductTimeWindowInfo isInTimeWindow(Date aSimulationTime) {
-        ProductTimeWindowInfo info;
+        ProductTimeWindowInfo info = new ProductTimeWindowInfo(); 
         if (myRecord != null) {
+            
             Date ourDate = myRecord.getTime();
+            ProductDataInfo theInfo = ProductManager.getInstance().getProductDataInfo(myDataType);
+            long maxTimeWindow = 5*60; // 5 mins
+            if (theInfo != null){
+                maxTimeWindow = theInfo.getTimeWindowSeconds();
+            }
             Date simulationTime = aSimulationTime;
             long seconds = (simulationTime.getTime() - ourDate.getTime()) / 1000;
+            info.myAgeSeconds = seconds;
             if (seconds < 0) {
-                info = ProductTimeWindowInfo.TOO_NEW;
-            } else if (seconds > 1 * 60) {
-                info = ProductTimeWindowInfo.TOO_OLD;
+                info.myState = ProductTimeWindowAge.TOO_NEW;
+                info.myAgeString = "In future";
+            } else if (seconds > maxTimeWindow) {
+                info.myState = ProductTimeWindowAge.TOO_OLD;
+                info.myAgeString = "> "+info.myAgeSeconds+" seconds";
             } else {
-                info = ProductTimeWindowInfo.IN_WINDOW;
+                info.myState = ProductTimeWindowAge.IN_WINDOW;
+                info.myAgeString = "In window";
             }
         } else {
-            info = ProductTimeWindowInfo.BAD_PRODUCT;
+            info.myState = ProductTimeWindowAge.BAD_PRODUCT;
+            info.myAgeString = "Invalid";
         }
         return info;
     }

@@ -409,6 +409,7 @@ public class DockWindow {
         addViewByID("ChartView");
         addViewByID("LLHAreaView");
         addViewByID("ProductGroupView");
+        addViewByID("CacheView");
 
         // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.
         rootWindow.addTabMouseButtonListener(DockingWindowActionMouseButtonListener.MIDDLE_BUTTON_CLOSE_LISTENER);
@@ -432,13 +433,16 @@ public class DockWindow {
         View nav = getViewByID("NavView");
         View chart = getViewByID("ChartView");
         View objects = getViewByID("LLHAreaView");
-
+        View jobs = getViewByID("JobsView");
+        View cache = getViewByID("CacheView");
+        
+        TabWindow debug = new TabWindow(new View[]{jobs, cache});
         TabWindow sourceProducts = new TabWindow(new View[]{sources, products});
         sourceProducts.setSelectedTab(0);
 
         SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
 
-        TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart3D, all});
+        TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart3D, debug, all});
         rootWindow.setWindow(
                 new SplitWindow(true, 0.5f,
                 new SplitWindow(false, 0.7f, earth, nav), stuff));

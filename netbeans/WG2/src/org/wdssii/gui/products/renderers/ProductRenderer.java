@@ -241,4 +241,11 @@ public abstract class ProductRenderer {
     public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
         return WdssiiJobStatus.CANCEL_STATUS;
     }
+    
+    /**
+     * 
+     * @return true if this product can overlay other data for the same source
+     * 
+     */
+    public abstract boolean canOverlayOtherData();
 }

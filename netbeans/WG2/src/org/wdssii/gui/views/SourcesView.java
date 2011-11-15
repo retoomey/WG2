@@ -482,7 +482,7 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
         p.add(jBookTabPane, "spanx 3, growx, growy");
         jSourceTableScrollPane = new javax.swing.JScrollPane();
         jBookTabPane.addTab("List", jSourceTableScrollPane);
-
+        
         // Listener setup ----------------------------------------------------- 
         jURLTextField.addActionListener(new java.awt.event.ActionListener() {
 

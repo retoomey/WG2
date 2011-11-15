@@ -2,7 +2,6 @@ package org.wdssii.gui;
 
 import gov.nasa.worldwind.event.PositionEvent;
 import java.awt.Color;
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.TreeMap;
@@ -170,6 +169,15 @@ public class ProductManager implements Singleton {
     public int getCacheSize() {
         return myProductCache.getCacheSize();
     }
+    
+    /** Get the number of items in the cache */
+    public int getCacheFilledSize() {
+        return myProductCache.getCacheFilledSize();
+    }
+    
+    public ArrayList<Product> getCurrentCacheList(){
+         return myProductCache.getStackCopy();
+    }
 
     /** Trim all products from cache matching a given index key */
     public int trimCacheMatchingIndexKey(String indexKey) {
@@ -200,6 +208,11 @@ public class ProductManager implements Singleton {
          * such as the colormap.xml or iconconfig.xml
          */
         private boolean myLoadedXML = false;
+        
+        /** Time window for this product.  If outside time of window minus
+         * this date value, product is considered too old to display
+         */
+        private long myTimeWindowSeconds = 350;  // 5 min default
         
         // We have two main xml formats for Products.  One is the 
         // <colormap> for float based data to color lookup.  The other
@@ -345,6 +358,10 @@ public class ProductManager implements Singleton {
             loadProductXMLFiles(false);
             return myIconSetConfig;
         }
+        
+        public long getTimeWindowSeconds(){
+            return myTimeWindowSeconds;
+        }     
     }
 
     /**
@@ -710,6 +727,11 @@ public class ProductManager implements Singleton {
         }
         return (theProduct);
     }
+    
+    /** GUI uses to pull current stack item.  We'll probably need to synchronize later. */
+    public Product getProductAt(int i){
+        return myProductCache.get(i);
+    }
 
     // Internal create product method
     private Product makeProduct(String anIndex, IndexRecord init) {
@@ -726,19 +748,6 @@ public class ProductManager implements Singleton {
         return p;
     }
 
-    // Called when a product is clicked in the record picker
-    // Notice this is using a single record for a product
-	/*public static boolean RecordPickerSelection(String indexName, 
-    String datatype, String subtype, Date time) {
-    System.out.println("*****************************RECORD PICKED");	
-    // Just pass it on to the current product handler list
-    ProductHandlerList h = CommandManager.getInstance()
-    .getProductOrderedSet();
-    h.recordPickerSelectedProduct(indexName, datatype, subtype, time);
-    
-    return true; // FIXME:
-    }
-     */
     public void clearProductCache() {
         myProductCache.clear();
         //  myLRUStack.clear();

@@ -1,6 +1,7 @@
 package org.wdssii.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.TreeMap;
 
 /**
@@ -31,8 +32,11 @@ public class LRUCache<T> {
 
         public boolean shouldDelete(T test);
     }
+    /** The lock for dealing with myLRUCache and myLRUStack */
+    private final Object myLRULock = new Object();
     /** The lookup map from a 'key' to the object wanted */
     private TreeMap<String, T> myLRUCache = new TreeMap<String, T>();
+    /** The LRU stack of objects */
     private ArrayList<T> myLRUStack = new ArrayList<T>();
     private int myMinCacheSize = 50;
     private int myMaxCacheSize = 500;
@@ -42,20 +46,49 @@ public class LRUCache<T> {
     as it has been referenced and is now more important than older entries
      */
     public T get(String key) {
-        T theThing = myLRUCache.get(key);
+        T theThing = null;
+        synchronized (myLRULock) {
+            theThing = myLRUCache.get(key);
+        }
         raiseToTop(theThing);
         return theThing;
     }
 
-    
-    public void put(String key, T putMe){
-        
+    /** Get an item by given index i. 
+     * @param i
+     * @return item at i or null
+     */
+    public T get(int i) {
+        synchronized (myLRULock) {
+            if (i < myLRUStack.size()) {
+                return myLRUStack.get(i);
+            }
+        }
+        return null;
+    }
+
+    /** Make a copy of the current stack.  Used by GUI for synchronized
+    access to our T objects.  Note that the individual T objects if modified
+    will cause sync issues, but the whole point of a cache to to keep sets
+    of repeated non-modified objects*/
+    public ArrayList<T> getStackCopy() {
+        ArrayList<T> aList = null;
+        synchronized (myLRULock) {  // Make sure not changing while copied
+            aList = new ArrayList<T>(myLRUStack);
+        }
+        return aList;
+    }
+
+    public void put(String key, T putMe) {
+
         // Make room for the item if needed..
         trimCache(myCacheSize - 1);
-        myLRUCache.put(key, putMe);
-        myLRUStack.add(putMe); 
+        synchronized (myLRULock) {
+            myLRUCache.put(key, putMe);
+            myLRUStack.add(putMe);
+        }
     }
-    
+
     /** Kinda defeats the point, but get an object without raising it within
      * the LRU stack....normally you would just call get
      * @param key
@@ -71,15 +104,19 @@ public class LRUCache<T> {
      */
     private void raiseToTop(T raiseMe) {
         if (raiseMe != null) {
-            myLRUStack.remove(raiseMe);
-            myLRUStack.add(raiseMe);
+            synchronized (myLRULock) {
+                myLRUStack.remove(raiseMe);
+                myLRUStack.add(raiseMe);
+            }
         }
     }
 
     /** Clear all entries from the cache */
     public void clear() {
-        myLRUCache.clear();
-        myLRUStack.clear();
+        synchronized (myLRULock) {
+            myLRUCache.clear();
+            myLRUStack.clear();
+        }
     }
 
     /** Set the minimum size of the cache.  This is the size we trim too */
@@ -110,6 +147,13 @@ public class LRUCache<T> {
         return myCacheSize;
     }
 
+    /** Get the current filled cache size */
+    public int getCacheFilledSize() {
+        synchronized (myLRULock) {
+            return myLRUStack.size();
+        }
+    }
+
     /** Get the cache key for a cached item. */
     private String getCacheKey(T forMe) {
         String key;
@@ -131,13 +175,15 @@ public class LRUCache<T> {
         try {
             while (true) {
                 // Drop oldest from stack until we've got space...
-                if (myLRUStack.size() > toSize) {
-                    T oldest = myLRUStack.get(0); // Oldest
-                    myLRUStack.remove(0);
-                    String key = getCacheKey(oldest);
-                    myLRUCache.remove(key);
-                } else {
-                    break;
+                synchronized (myLRULock) {
+                    if (myLRUStack.size() > toSize) {
+                        T oldest = myLRUStack.get(0); // Oldest
+                        myLRUStack.remove(0);
+                        String key = getCacheKey(oldest);
+                        myLRUCache.remove(key);
+                    } else {
+                        break;
+                    }
                 }
             }
         } catch (Exception e) {
@@ -150,14 +196,16 @@ public class LRUCache<T> {
         int removed = 0;
         try {
             ArrayList<T> toDelete = new ArrayList<T>();
-            for (T p : myLRUStack) {
-                if (compare.shouldDelete(p)) {
-                    toDelete.add(p);
-                    myLRUCache.remove(getCacheKey(p));
-                    removed++;
+            synchronized (myLRULock) {
+                for (T p : myLRUStack) {
+                    if (compare.shouldDelete(p)) {
+                        toDelete.add(p);
+                        myLRUCache.remove(getCacheKey(p));
+                        removed++;
+                    }
                 }
+                myLRUStack.removeAll(toDelete);
             }
-            myLRUStack.removeAll(toDelete);
         } catch (Exception e) {
             System.out.println("Exception purging cache for index " + e.toString());
         }

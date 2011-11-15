@@ -1,48 +1,24 @@
 package org.wdssii.gui.commands;
 
-//import org.eclipse.jface.dialogs.IInputValidator;
-//import org.eclipse.jface.dialogs.InputDialog;
-//import org.eclipse.jface.window.Window;
-//import org.eclipse.swt.widgets.Display;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import org.wdssii.gui.ProductManager;
 
 /** Called by name from WdssiiDynamic */
-public class CacheSetSizeCommand extends WdssiiCommand {
+public class CacheSetSizeCommand extends CacheCommand {
 
-    /**
-     * This class validates a String. It makes sure that the String is between 5 and 8
-     * characters
-     */
-    /*private class LengthValidator implements IInputValidator {
-    
-     * Validates the String. Returns null for no error, or an error message
-     * 
-     * @param newText the String to validate
-     * @return String
-     *
-    @Override
-    public String isValid(String newText) {
-    //	int len = newText.length();
-    int minCacheSize = ProductManager.MIN_CACHE_SIZE;  // FIXME: get from cache, and/or make a class that takes range
-    int maxCacheSize = ProductManager.MAX_CACHE_SIZE;
-    
-    int value = 0;
-    try{
-    value = Integer.valueOf(newText);
-    }catch(NumberFormatException e){
-    return "Enter a number";
+    private JComponent myRoot = null;
+
+    public CacheSetSizeCommand() {
     }
-    if (value < minCacheSize){
-    return "Too small a number";
+
+    public CacheSetSizeCommand(JComponent root) {
+        myRoot = root;
     }
-    if (value > maxCacheSize){
-    return "Too large a number";
-    }
-    
-    // Input must be OK
-    return null;
-    }
-    }*/
+
     @Override
     public boolean execute() {
 
@@ -51,17 +27,22 @@ public class CacheSetSizeCommand extends WdssiiCommand {
         // Bring up a model dialog to get cache size.  We will pin the size
         // between the min and max.
         int currentSize = ProductManager.getInstance().getCacheSize();
-
-        /*InputDialog dlg = new InputDialog(Display.getCurrent().getActiveShell(),
-        "", "Enter cache size between "+ProductManager.MIN_CACHE_SIZE+" and "
-        +ProductManager.MAX_CACHE_SIZE, Integer.toString(currentSize), new LengthValidator());
-        if (dlg.open() == Window.OK) {
-        // User clicked OK; update the label with the input
-        // label.setText(dlg.getValue());
-        ProductManager.getInstance().setCacheSize(Integer.valueOf(dlg.getValue()));
-        //System.out.println("Value is "+dlg.getValue());
-        }*/
-
+        SpinnerNumberModel model =
+                new SpinnerNumberModel(currentSize, //initial value
+                ProductManager.MIN_CACHE_SIZE, //min
+                ProductManager.MAX_CACHE_SIZE, //max
+                1);  //step
+        JSpinner spinner = new JSpinner(model);
+        JLabel text = new JLabel("Number of products to hold in cache:");
+        final Object[] inputs = new JComponent[]{
+            text, spinner
+        };
+        Object[] options = {"OK", "Cancel"};
+        int n = JOptionPane.showOptionDialog(myRoot, inputs, "Set Cache Size", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        if (n == 0) {
+            int value = model.getNumber().intValue();
+            ProductManager.getInstance().setCacheSize(value);
+        }
         return true;
     }
 }

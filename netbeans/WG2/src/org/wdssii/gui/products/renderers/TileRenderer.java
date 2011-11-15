@@ -147,4 +147,9 @@ public class TileRenderer extends ProductRenderer {
     @Override
     public void draw(DrawContext dc) {
     }
+    
+    @Override
+    public boolean canOverlayOtherData() {
+       return false;
+    }
 }

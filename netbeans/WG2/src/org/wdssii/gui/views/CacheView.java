@@ -237,7 +237,7 @@ public class CacheView extends JThreadPanel implements WdssiiView {
         clearButton.setToolTipText("Clear all products from the cache");
         jToolBar1.add(clearButton);
         JButton sizeButton = new JButton("Size");
-        clearButton.setToolTipText("Set the maximum size of the product cache");
+        sizeButton.setToolTipText("Set the maximum size of the product cache");
         jToolBar1.add(sizeButton);
         add(jToolBar1, new CC().dockNorth());
 
@@ -299,7 +299,19 @@ public class CacheView extends JThreadPanel implements WdssiiView {
             }
             e.add(n);
         }
-        String out = String.format("Products %d of %d stored", aSize, maxSize);
+        // Get current size of heap in bytes
+        long heapSize = Runtime.getRuntime().totalMemory();
+        heapSize =heapSize/1024/1024; // MB
+        // Get maximum size of heap in bytes. The heap cannot grow beyond this size.
+        // Any attempt will result in an OutOfMemoryException.
+        long heapMaxSize = Runtime.getRuntime().maxMemory();
+        heapMaxSize = heapMaxSize/1024/1024;
+        // Get amount of free memory within the heap in bytes. This size will increase
+        // after garbage collection and decrease as new objects are created.
+        long heapFreeSize = Runtime.getRuntime().freeMemory();
+        heapFreeSize = heapFreeSize/1024/1024;
+
+        String out = String.format("Products %d of %d stored.  Heap %d/%d, %d free", aSize, maxSize, heapSize, heapMaxSize, heapFreeSize);
         myLabel.setText(out);
         myModel.setDataTypes(e);
         myModel.fireTableDataChanged();

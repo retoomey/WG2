@@ -106,7 +106,8 @@ public class ProductVolume {
             VolumeSlice3DOutput dest, // output object, subclasses can override to add different data
             Globe gb, // Nasa globe for projection... not sure I want to directly depend on this class.
             FilterList list,
-            boolean useFilters) // ArrayList<DataFilter> list /* Data filter list to use*/)
+            boolean useFilters, // ArrayList<DataFilter> list /* Data filter list to use*/)
+            double vert)
     {
 
         // Generates a 2D array of colors as well as a 3D index/vertex array at once.
@@ -209,7 +210,7 @@ public class ProductVolume {
                 // Only add topleft and top right points on top row, otherwise they overlap....
                 if (addTopLeft) {
                     LatLon topLeft = new LatLon(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon));
-                    v = g.computePoint(gb, topLeft.getLatitude(), topLeft.getLongitude(), currentHeight,
+                    v = g.computePoint(gb, topLeft.getLatitude(), topLeft.getLongitude(), currentHeight*vert,
                             useTerrain);
                     vertexBuffer.put((float) (v.x));
                     vertexBuffer.put((float) (v.y));
@@ -220,7 +221,7 @@ public class ProductVolume {
                 if (addBottomLeft) {
 
                     LatLon bottomLeft = new LatLon(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon));
-                    v = g.computePoint(gb, bottomLeft.getLatitude(), bottomLeft.getLongitude(), currentHeight - deltaHeight,
+                    v = g.computePoint(gb, bottomLeft.getLatitude(), bottomLeft.getLongitude(), (currentHeight - deltaHeight)*vert,
                             useTerrain);
                     vertexBuffer.put((float) (v.x));
                     vertexBuffer.put((float) (v.y));
@@ -230,7 +231,7 @@ public class ProductVolume {
 
                 if (addBottomRight) {
                     LatLon bottomRight = new LatLon(Angle.fromDegrees(currentLat + deltaLat), Angle.fromDegrees(currentLon + deltaLon));
-                    v = g.computePoint(gb, bottomRight.getLatitude(), bottomRight.getLongitude(), currentHeight - deltaHeight,
+                    v = g.computePoint(gb, bottomRight.getLatitude(), bottomRight.getLongitude(), (currentHeight - deltaHeight)*vert,
                             useTerrain);
 
                     vertexBuffer.put((float) (v.x));
@@ -257,7 +258,7 @@ public class ProductVolume {
                 if (addTopRight) {  // Only on top row
 
                     LatLon topRight = new LatLon(Angle.fromDegrees(currentLat + deltaLat), Angle.fromDegrees(currentLon + deltaLon));
-                    v = g.computePoint(gb, topRight.getLatitude(), topRight.getLongitude(), currentHeight,
+                    v = g.computePoint(gb, topRight.getLatitude(), topRight.getLongitude(), currentHeight*vert,
                             useTerrain);
                     vertexBuffer.put((float) (v.x));
                     vertexBuffer.put((float) (v.y));
@@ -307,6 +308,7 @@ public class ProductVolume {
         float[] value2DVertices = dest.getValue2dFloatArray(g.rows * g.cols);
 
         double startHeight = g.topHeight;
+        System.out.println("Topheight, bottomheight "+g.topHeight+", "+g.bottomHeight);
         double deltaHeight = (g.topHeight - g.bottomHeight) / (1.0 * g.rows);
         double deltaLat = (g.endLat - g.startLat) / g.cols;
         double deltaLon = (g.endLon - g.startLon) / g.cols;

@@ -1,9 +1,7 @@
 package org.wdssii.gui.commands;
 
-//import org.eclipse.jface.dialogs.IDialogConstants;
-//import org.eclipse.jface.dialogs.MessageDialog;
-//import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.PreferencesManager;
@@ -21,19 +19,32 @@ public class SourceAddCommand extends SourceClearCommand {
     /** By default if user clicks a button, require a confirm dialog */
     private boolean myUserConfirm = true;
     private boolean myUserReport = true;
-
-    /** Called directly if linked to button */
-    public SourceAddCommand() {
-    }
-
+    private JComponent myRoot = null;
+    
     /**
+     * 
+     * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
+     * @param path	The path such as "http://...."
+     * @param realtime	Is this a realtime index?  (requires a socket connection)
+     */
+    public SourceAddCommand(String niceName, String path, boolean realtime, boolean connect) {
+        //setIndexName(key);
+        myNiceName = niceName;
+        myUserConfirm = false;
+        myUserReport = false;
+        myPath = path;
+        myRealtime = realtime;
+        myConnect = connect;
+    }
+    
+       /**
      * 
      * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
      * @param path	The path such as "http://...."
      * @param needUserConfirm	Do we use user dialogs? (scripting turns this off)
      * @param realtime	Is this a realtime index?  (requires a socket connection)
      */
-    public SourceAddCommand(String niceName, String path, boolean needUserConfirm,
+    public SourceAddCommand(JComponent myRoot, String niceName, String path, boolean needUserConfirm,
             boolean needUserReport, boolean realtime, boolean connect) {
         //setIndexName(key);
         myNiceName = niceName;
@@ -58,7 +69,7 @@ public class SourceAddCommand extends SourceClearCommand {
                 JCheckBox checkbox = new JCheckBox("Do not show this message again.");
                 String message = "Add and connect to source '" + myNiceName + "'?";
                 Object[] params = {message, checkbox};
-                int n = JOptionPane.showConfirmDialog(null, params, "Confirm source addition", JOptionPane.YES_NO_OPTION);
+                int n = JOptionPane.showConfirmDialog(myRoot, params, "Confirm source addition", JOptionPane.YES_NO_OPTION);
                 boolean dontShow = checkbox.isSelected();
                 if (n == 0) { // Yes
                     doJob = true;
@@ -74,10 +85,10 @@ public class SourceAddCommand extends SourceClearCommand {
                 updateGUI = true;  // Add needs a 'unconnected' icon and name in list.
                 if (myUserReport) {
                     if (newKey != null) {
-                        JOptionPane.showMessageDialog(null, "Add was successful",
+                        JOptionPane.showMessageDialog(myRoot, "Add was successful",
                                 "Add success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        JOptionPane.showMessageDialog(null, "Add not successful",
+                        JOptionPane.showMessageDialog(myRoot, "Add not successful",
                                 "Add failure", JOptionPane.ERROR_MESSAGE);
                     }
                 }

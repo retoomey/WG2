@@ -179,8 +179,10 @@ public class LLHAreaSlice extends LLHArea {
             return;
         }
 
-        // Get the altitudes
-        double[] altitudes = this.getAltitudes(dc.getVerticalExaggeration());
+        // Get the true altitudes for sampling purposes
+        // vertical is for rendering only...getAltitudes(dc.getVerticalExaggeration());
+        double[] altitudes = this.getAltitudes();
+                
         myAltitude0 = altitudes[0];  // Hack
         myAltitude1 = altitudes[1];
 
@@ -327,6 +329,8 @@ public class LLHAreaSlice extends LLHArea {
             double[] altitudes,
             int currentSubdivisions) {
         String newKey = getNewCacheKey();
+        // Add exaggeration to cache key so changing exaggeration will redraw it
+        newKey += dc.getVerticalExaggeration();
         if (newKey.compareTo(myCacheKey) == 0) {
             return myGeometry;
         }
@@ -510,6 +514,7 @@ public class LLHAreaSlice extends LLHArea {
                     polyVertices[index2], polyVertices[index2 + 1], polyVertices[index2 + 2],
                     subdivisions, locationVerts);
 
+            double vert = dc.getVerticalExaggeration();
             for (int p = 0; p < numPoints; p++) {
                 int pindex = 3 * p;
                 Vec4 vec = new Vec4(locationVerts[pindex], locationVerts[pindex + 1], locationVerts[pindex + 2]);
@@ -519,7 +524,7 @@ public class LLHAreaSlice extends LLHArea {
                 for (int j = 0; j < 2; j++) {
                     // vec = this.computePointFromPosition(dc, pos2.getLatitude(), pos2.getLongitude(), altitudes[j],
                     //        terrainConformant[j]);
-                    vec = globe.computePointFromPosition(pos2.getLatitude(), pos2.getLongitude(), altitudes[j]);
+                    vec = globe.computePointFromPosition(pos2.getLatitude(), pos2.getLongitude(), altitudes[j]*vert);
 
                     pindex = 2 * p + j;
                     pindex = 3 * (vertexPos + pindex);
@@ -566,7 +571,7 @@ public class LLHAreaSlice extends LLHArea {
                 endLat, endLon, altitudes[0], altitudes[1], dc.getGlobe(), 0); //++myIterationCount);
 
         // Let the volume generate the 3D slice output
-        myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true);
+        myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true, dc.getVerticalExaggeration());
     }
 
     /** Our version of computePointFromPosition that doesn't make new objects and do tons of checks.

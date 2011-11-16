@@ -173,11 +173,11 @@ public class SourceManager implements Singleton {
             CommandManager c = CommandManager.getInstance();
             boolean connect = true;
             // Add the manual index...
-            c.executeCommand(new SourceAddCommand("Localfiles", HistoricalIndex.MANUAL, false, false, false, true), false);
-            c.executeCommand(new SourceAddCommand("CONUS", "file:/E:/CONUS/code_index.xml?p=xml", false, false, false, connect), false);
-            c.executeCommand(new SourceAddCommand("KTLX", "file:/E:/KTLX-large/radar_data.xml?p=xml", false, false, false, connect), false);
-            c.executeCommand(new SourceAddCommand("Wind", "file:/E:/WindData/code_index.xml", false, false, false, connect), false);
-            c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml?p=xml", false, false, false, connect), false);
+            c.executeCommand(new SourceAddCommand("Localfiles", HistoricalIndex.MANUAL, false, true), false);
+            c.executeCommand(new SourceAddCommand("CONUS", "file:/E:/CONUS/code_index.xml?p=xml", false, connect), false);
+            c.executeCommand(new SourceAddCommand("KTLX", "file:/E:/KTLX-large/radar_data.xml?p=xml", false, connect), false);
+            c.executeCommand(new SourceAddCommand("Wind", "file:/E:/WindData/code_index.xml", false, connect), false);
+            c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml?p=xml", false, connect), false);
         } catch (Exception e) {
             // Recover
         }

@@ -1221,7 +1221,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         LatLon location = this.getSlice().getLocations().get(locationIndex);
         double altitude = this.getSlice().getAltitudes()[altitudeIndex];
 
-        Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude);
+        double vert = dc.getVerticalExaggeration();
+        Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude*vert);
         LLHAreaControlPoint controlPoint =
                 new BasicLLHAreaControlPoint(this, this.getSlice(), locationIndex, altitudeIndex, point);
 

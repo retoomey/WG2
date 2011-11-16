@@ -10,11 +10,9 @@ import gov.nasa.worldwind.render.Material;
 import gov.nasa.worldwind.render.OrderedRenderable;
 import gov.nasa.worldwind.render.airspaces.Geometry;
 import gov.nasa.worldwind.util.Logging;
-import gov.nasa.worldwind.util.PerformanceStatistic;
 
 import java.awt.Point;
 import java.nio.Buffer;
-import java.util.Iterator;
 
 import javax.media.opengl.GL;
 
@@ -191,7 +189,6 @@ public class LLHAreaRenderer {
     }
 
     public void pickNow(DrawContext dc, Iterable<? extends LLHArea> airspaces, java.awt.Point pickPoint, Layer layer) {
-        PickSupport pickSupport = this.getPickSupport();
         pickSupport.beginPicking(dc);
         try {
             // The pick method will bind pickable objects to the renderer's PickSupport.
@@ -304,7 +301,6 @@ public class LLHAreaRenderer {
         }
 
         protected void draw(DrawContext dc, PickSupport pickSupport) {
-            LLHAreaRenderer renderer = this.getRenderer();
             renderer.drawOrderedAirspace(dc, this, pickSupport);
         }
     }

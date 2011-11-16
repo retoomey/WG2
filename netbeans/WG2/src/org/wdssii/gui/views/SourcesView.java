@@ -838,7 +838,7 @@ public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanel
         boolean realtime = true;
         boolean connect = true;
         CommandManager.getInstance().executeCommand(
-                new SourceAddCommand(name, path, confirm, report, realtime, connect), false);
+                new SourceAddCommand(this, name, path, confirm, report, realtime, connect), false);
     }
 
     public String doSourceOpenDialog() {

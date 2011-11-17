@@ -13,6 +13,7 @@ import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.index.IndexRecord;
+import org.wdssii.storage.DataManager;
 
 /**
  * @author lakshman
@@ -95,8 +96,9 @@ public abstract class Builder {
     public static void copy(ReadableByteChannel in, WritableByteChannel out) throws IOException {
         // First, we need a buffer to hold blocks of copied bytes.
         // FIXME: advantage to reusing buffer or different size?
-        ByteBuffer buffer = ByteBuffer.allocateDirect(32 * 1024);
-
+        //ByteBuffer buffer = ByteBuffer.allocateDirect(32 * 1024);
+        ByteBuffer buffer = DataManager.getInstance().allocate(32*1024, "Builder Copy");
+        
         // Now loop until no more bytes to read and the buffer is empty
         while (in.read(buffer) != -1 || buffer.position() > 0) {
             // The read() call leaves the buffer in "fill mode". To prepare
@@ -113,6 +115,9 @@ public abstract class Builder {
             // position to the limit and the limit to the buffer capacity.
             buffer.compact();
         }
+        // Just for clarity
+        buffer = null;
+        DataManager.getInstance().deallocate(32*1024, "Builder Copy");
     }
 
     /** A utility function to correctly get a File from a URL.  This makes

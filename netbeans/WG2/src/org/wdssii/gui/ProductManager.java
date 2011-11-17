@@ -706,7 +706,7 @@ public class ProductManager implements Singleton {
             if (theProduct == null) {
                 //System.out.println("Product not in cache: "+productCacheKey);
 
-                theProduct = ProductManager.getInstance().makeProduct(anIndex, init);
+                theProduct = makeProduct(anIndex, init);
                 if (theProduct != null) {
                     theProduct.setCacheKey(productCacheKey);
 

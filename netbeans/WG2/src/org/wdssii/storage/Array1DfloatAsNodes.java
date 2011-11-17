@@ -20,20 +20,15 @@ public class Array1DfloatAsNodes extends DataStorage implements Array1Dfloat {
 
     private int mySize;
     private float myBackground;
-    /** The 'root' for all nodes for this data structure */
-    private final String myTileRoot;
+    /** The key for this node */
+    private final String myKey;
     /** Every time we create one, we give it a unique number */
     private static int counter = 1;
 
-    // Initializer block...Shared by all constructors, called before constructors
-    {
-        // Unique id for Array
-        counter++;
-        myTileRoot = "Array1D" + counter;
-    }
-
     public Array1DfloatAsNodes(int aSize, float backgroundValue) {
+        counter++;
         mySize = aSize;
+        myKey = "Array1D" + "s" + mySize;
         myBackground = backgroundValue;
 
         // Node size based off DataManager node size.
@@ -52,9 +47,8 @@ public class Array1DfloatAsNodes extends DataStorage implements Array1Dfloat {
      *
      */
     @Override
-    public FloatBuffer getRawBuffer() {
-        final String key = myTileRoot + "s" + mySize;
-        DataNode tile = DataManager.getInstance().getTile(key, mySize, myBackground);
+    public FloatBuffer getRawBuffer() {    
+        DataNode tile = DataManager.getInstance().getTile(myKey, mySize, myBackground);
         return tile.getRawBuffer();
     }
 
@@ -63,8 +57,7 @@ public class Array1DfloatAsNodes extends DataStorage implements Array1Dfloat {
 
         // Here we have the CPU and IO hit (the speed cost we pay to save RAM)
         // This code duplicates with set "inline"
-        final String key = myTileRoot + "s" + mySize;
-        DataNode tile = DataManager.getInstance().getTile(key, mySize, myBackground);
+        DataNode tile = DataManager.getInstance().getTile(myKey, mySize, myBackground);
         return tile.get(x);
     }
 
@@ -73,8 +66,7 @@ public class Array1DfloatAsNodes extends DataStorage implements Array1Dfloat {
 
         // Here we have the CPU and IO hit (the speed cost we pay to save RAM)
         // This code duplicates with get "inline"
-        final String key = myTileRoot + "s" + mySize;
-        DataNode tile = DataManager.getInstance().getTile(key, mySize, myBackground);
+        DataNode tile = DataManager.getInstance().getTile(myKey, mySize, myBackground);
         tile.set(x, value);
     }
 
@@ -85,8 +77,7 @@ public class Array1DfloatAsNodes extends DataStorage implements Array1Dfloat {
 
     @Override
     public Object getBufferLock() {
-        final String key = myTileRoot + "s" + mySize;
-        DataNode tile = DataManager.getInstance().getTile(key, mySize, myBackground);
+        DataNode tile = DataManager.getInstance().getTile(myKey, mySize, myBackground);
         return tile.getReadLock();
     }
 }

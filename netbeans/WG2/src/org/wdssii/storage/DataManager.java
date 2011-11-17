@@ -2,14 +2,13 @@ package org.wdssii.storage;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wdssii.core.LRUCache;
 
 /** The data manager will handle:
  * Loading/Offloading data from disk to ram...
@@ -30,26 +29,33 @@ public class DataManager {
     private static Log log = LogFactory.getLog(DataManager.class);
     private String myDiskLocation;
     private File myTempDir = null;
-    private int myPurgeCount = 0;
-    /** Number of nodes we try to hold in RAM (RAM cache size)
-     * Note: This size is true for 2D data tiles, not for the GL rendered nodes (not yet at least)
-     */
-    private int myRAMCacheNodeMaxCount = 500;
+    
+    /** Number of nodes we try to hold in RAM (RAM cache size)  The LRUCache
+     will hold this many objects */
+    private int myRAMCacheNodeMaxCount = 50;
     private final int mySizePerNode = 1000000;  // Size in floats
-    // LRU reference cache.  These two structures work together, so the synchronize lock is for both
-    private Object myCacheLock = new Object();
-    TreeMap<String, DataNode> myTileRAMCache = new TreeMap<String, DataNode>();
-    ArrayList<DataNode> myLRUStack = new ArrayList<DataNode>();  //0, 1, 2, ... LRU product (at end of list)
-
+   
+     /** The cache for DataNode objects */
+    LRUCache<DataNode> myCache = new LRUCache<DataNode>();
+    
+    /** Number of bytes allocated by program */
+    private long myAllocatedBytes = 0;
+    
+    /** Number of bytes deallocated by program */
+    private long myDeallocatedBytes = 0;
+    
+    /** Number of bytes failed to allocate by program */
+    private long myFailedAllocatedBytes = 0;
+    
     private DataManager() {
         // Exists only to defeat instantiation.
         // FIXME: make GUI able to change this....
         myDiskLocation = System.getProperty("java.io.tmpdir");
         try {
             myTempDir = createTempDir();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            myCache.setMinCacheSize(50);
+            myCache.setMaxCacheSize(200);
+        } catch (IOException e){
         }
 
         log.info("OS temporary directory is: " + myDiskLocation);
@@ -60,6 +66,50 @@ public class DataManager {
 
     }
 
+    /** Using this function for all creation of ByteBuffers will allow
+     * us to track the memory usage better...caller should call
+     * deallocate below when the ByteBuffer is set to null
+     * 
+     * @return new ByteBuffer or null
+     */
+    public ByteBuffer allocate(int aSize, String who){
+        ByteBuffer bb = ByteBuffer.allocateDirect(aSize);
+        if (bb !=null){
+            myAllocatedBytes += aSize;
+        }else{
+            myFailedAllocatedBytes += aSize;
+        }
+        return bb;
+    }
+    
+    /** Anyone calling allocate above should call this to let us know
+     * it's been nulled.  Doesn't mean JVM or native library has Garbage
+     * collected it though...just counting for debugging purposes.
+     * 
+     * @param aSize
+     * @param who 
+     */
+    public void deallocate(int aSize, String who){
+        myAllocatedBytes -= aSize;
+        myDeallocatedBytes += aSize;
+    }
+    
+    public long getAllocatedBytes(){
+        return myAllocatedBytes;
+    }
+    
+    public long getDeallocatedBytes(){
+        return myDeallocatedBytes;
+    }
+    
+    public long getFailedAllocatedBytes(){
+        return myFailedAllocatedBytes;
+    }
+    
+    public int getNumberOfCachedItems(){
+        return myCache.getCacheFilledSize();
+    }
+    
     public String getTempDirName(String subname) {
         File dir = getTempDir(subname);
         return dir.getAbsolutePath();
@@ -157,44 +207,29 @@ public class DataManager {
         DataNode theTile = null;
         if (key != null) {
 
-            synchronized (myCacheLock) { // Wait until the get is safe...
-                theTile = myTileRAMCache.get(key);  // Safe to get
-            }
-            // Product not in cache, create it and add it to cache
-            if (theTile == null) {
-
-                // We can allow other threads to do stuff while we create a new tile
-                // Create a new data tile and get it into ram.
-                theTile = new DataNode(key, firstSize, background);  // FIXME: does the tile need the key?
-                boolean success = theTile.loadNodeIntoRAM();
-                if (!success) {
-                    log.error("Failed to load tile " + key);
-                    // FIXME: try to get more memory?
-                }
-                // First, check cache size and trim to maxsize -1 before adding new product
-                // Problem with this is if cache size can change on the fly we need to trim
-                // to the new lower size actually.  This only works with new cache == old
-                trimCache(myRAMCacheNodeMaxCount - 1);
-                synchronized (myCacheLock) {
-                    myTileRAMCache.put(key, theTile);
-                    myLRUStack.add(theTile);
-                }
-                // Tile already found in cache.  Raise it in the LRU to top
-            } else {
-                //System.out.println("Product is IN cache: "+productCacheKey);
-                // Move item to top of LRU cache...
-                //log.info("Tile restore "+key);
-                synchronized (myCacheLock) {
-                    myLRUStack.remove(theTile);  // Move product from inside stack to 'top'
-                    myLRUStack.add(theTile);
-                }
-            }
-
+            theTile = myCache.get(key);
+            
+            // Tile not in cache, create it and add it to cache
+            if (theTile == null){
+                
+                theTile = new DataNode(key, firstSize, background);
+                boolean success = ((theTile != null) && (theTile.loadNodeIntoRAM()));
+                if (success){
+                   // theTile.setCacheKey() constructor
+                    
+                    myCache.put(key, theTile);
+                    // CommandManager.getInstance().cacheManagerNotify();
+                }else{
+                    log.error("Wasn't able to create/load a tile");
+                }          
+                // Tile already found in cache
+            } 
         }
         return (theTile);
     }
 
     /** Trim cache down to the MIN_CACHE_SIZE */
+    /*
     private void trimCache(int toSize) {
 
         // Don't trim less than zero
@@ -226,14 +261,14 @@ public class DataManager {
             }
         } catch (Exception e) {
             log.error("Exception purging cache element " + e.toString());
-            e.printStackTrace();
         }
-    }
+    }*/
 
     public void dataCreated(DataStorage storage, int memoryGuess) {
         //myCurrentData.put(storage, memoryGuess);
     }
 
+    /*
     public void printData() {
 
         //Iterator<Entry<DataStorage, Integer>> i = myCurrentData.entrySet().iterator();
@@ -251,4 +286,6 @@ public class DataManager {
         }
         //log.info(arg0)
     }
+     * 
+     */
 }

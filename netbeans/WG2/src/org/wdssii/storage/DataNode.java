@@ -150,7 +150,8 @@ public class DataNode {
 
                 log.info("Allocation node " + this);
 
-                myDataByte = ByteBuffer.allocateDirect(mySize * 4);
+                myDataByte = DataManager.getInstance().allocate(mySize*4, "DataNode");
+               // myDataByte = ByteBuffer.allocateDirect(mySize * 4);
                 myDataByte.order(ByteOrder.nativeOrder());
 
                 myLoaded = true;
@@ -182,6 +183,9 @@ public class DataNode {
         boolean success = false;
         success = writeToDisk();
         synchronized (getWriteLock()) {
+            if(myDataByte != null){
+                DataManager.getInstance().deallocate(mySize*4, "DataNode");
+            }
             myDataByte = null; // Delete from RAM
             myLoaded = false;  // Mark as unloaded
         }

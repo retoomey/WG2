@@ -32,6 +32,7 @@ import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
+import org.wdssii.storage.DataManager;
 
 public class CacheView extends JThreadPanel implements WdssiiView {
 
@@ -54,6 +55,10 @@ public class CacheView extends JThreadPanel implements WdssiiView {
     private final JTable myTable;
     private javax.swing.JScrollPane jLayersScrollPane;
     private JLabel myLabel;
+    /** When on, update GUI on the fly.  Updating this list a lot can
+     * make the display slugish, so making it gui controlled.
+     */
+    private boolean myActiveMonitor = false;
 
     /** Our factory, called by reflection to populate menus, etc...*/
     public static class Factory extends WdssiiDockedViewFactory {
@@ -132,7 +137,12 @@ public class CacheView extends JThreadPanel implements WdssiiView {
 
     @Override
     public void updateInSwingThread(Object command) {
-        updateCacheList();
+        if (command != null){
+            if (command instanceof Boolean){  // From refresh button
+                updateCacheList(true, true);
+            }
+        }
+        updateCacheList(myActiveMonitor, true);
     }
 
     public CacheView() {
@@ -187,7 +197,7 @@ public class CacheView extends JThreadPanel implements WdssiiView {
                 // so we don't check click count.
                 if (e.getComponent().isEnabled()
                         && e.getButton() == MouseEvent.BUTTON2) {
-                    updateCacheList();
+                    // updateCacheList();
                     return;
                 }
                 if (e.getComponent().isEnabled()
@@ -223,7 +233,7 @@ public class CacheView extends JThreadPanel implements WdssiiView {
 
         // FIXME: Earth ball currently has to be created first or this
         // can't get the layer list...
-        updateCacheList();
+        updateCacheList(myActiveMonitor, true);
     }
 
     private void initComponents() {
@@ -239,6 +249,15 @@ public class CacheView extends JThreadPanel implements WdssiiView {
         JButton sizeButton = new JButton("Size");
         sizeButton.setToolTipText("Set the maximum size of the product cache");
         jToolBar1.add(sizeButton);
+        JCheckBox monitorButton = new JCheckBox("Watch");
+        monitorButton.setToolTipText("Update table on the fly (can slow display)");
+        jToolBar1.add(monitorButton);
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.setToolTipText("Refresh product watch table");
+        jToolBar1.add(refreshButton);
+        JButton garbageButton = new JButton("GC");
+        garbageButton.setToolTipText("Force a java garbage collection");
+        jToolBar1.add(garbageButton);
         add(jToolBar1, new CC().dockNorth());
 
         // Create the infomation label
@@ -268,6 +287,32 @@ public class CacheView extends JThreadPanel implements WdssiiView {
                 CommandManager.getInstance().executeCommand(cssc, true);
             }
         });
+
+        monitorButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                myActiveMonitor = !myActiveMonitor;
+                updateGUI();
+            }
+        });
+        
+        refreshButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               updateGUI(true);
+            }
+        });
+        
+        garbageButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               System.gc();
+               updateGUI();
+            }
+        });
     }
 
     /** Set up sorting columns if wanted */
@@ -276,47 +321,71 @@ public class CacheView extends JThreadPanel implements WdssiiView {
 
     /** Update the cache list with information pulled from the Product cache
      */
-    public final void updateCacheList() {
+    public final void updateCacheList(boolean updateTable, boolean updateMemory) {
         ArrayList<CacheTableEntry> e = new ArrayList<CacheTableEntry>();
 
-        // Try to save old selection.  We'll assume if the number of layers
-        // is the same that the old row is the same row...
-        int oldRow = myTable.getSelectedRow();
-
+        // Shared code with side effects
         ProductManager pm = ProductManager.getInstance();
         ArrayList<Product> products = pm.getCurrentCacheList();
         int aSize = products.size();
         int maxSize = pm.getCacheSize();
-        for (int i = 0; i < aSize; i++) {
-            Product p = products.get(i);
-            CacheTableEntry n = new CacheTableEntry();
-            if (p != null) {
-                n.name = p.getCacheKey();
-                n.datatype = p.getDataType();
-            } else {
-                n.name = "null";
-                n.datatype = "None";
-            }
-            e.add(n);
-        }
-        // Get current size of heap in bytes
-        long heapSize = Runtime.getRuntime().totalMemory();
-        heapSize =heapSize/1024/1024; // MB
-        // Get maximum size of heap in bytes. The heap cannot grow beyond this size.
-        // Any attempt will result in an OutOfMemoryException.
-        long heapMaxSize = Runtime.getRuntime().maxMemory();
-        heapMaxSize = heapMaxSize/1024/1024;
-        // Get amount of free memory within the heap in bytes. This size will increase
-        // after garbage collection and decrease as new objects are created.
-        long heapFreeSize = Runtime.getRuntime().freeMemory();
-        heapFreeSize = heapFreeSize/1024/1024;
 
-        String out = String.format("Products %d of %d stored.  Heap %d/%d, %d free", aSize, maxSize, heapSize, heapMaxSize, heapFreeSize);
-        myLabel.setText(out);
-        myModel.setDataTypes(e);
-        myModel.fireTableDataChanged();
-        if (oldRow > -1) {
-            myTable.setRowSelectionInterval(oldRow, oldRow);
+        int oldRow = -1;
+        if (updateTable) {
+            // Try to save old selection.  We'll assume if the number of layers
+            // is the same that the old row is the same row...
+            oldRow = myTable.getSelectedRow();
+            for (int i = 0; i < aSize; i++) {
+                Product p = products.get(i);
+                CacheTableEntry n = new CacheTableEntry();
+                if (p != null) {
+                    n.name = p.getCacheKey();
+                    n.datatype = p.getDataType();
+                } else {
+                    n.name = "null";
+                    n.datatype = "None";
+                }
+                e.add(n);
+            }
+        }
+
+        if (updateMemory) {
+            // Get current size of heap in bytes
+            long heapSize = Runtime.getRuntime().totalMemory();
+            heapSize = heapSize / 1024 / 1024; // MB
+            // Get maximum size of heap in bytes. The heap cannot grow beyond this size.
+            // Any attempt will result in an OutOfMemoryException.
+            long heapMaxSize = Runtime.getRuntime().maxMemory();
+            heapMaxSize = heapMaxSize / 1024 / 1024;
+            // Get amount of free memory within the heap in bytes. This size will increase
+            // after garbage collection and decrease as new objects are created.
+            long heapFreeSize = Runtime.getRuntime().freeMemory();
+
+            heapFreeSize = heapFreeSize / 1024 / 1024;
+
+            long bufferSize = DataManager.getInstance().getAllocatedBytes();
+            bufferSize = bufferSize / 1024 / 1024;
+
+            long fbufferSize = DataManager.getInstance().getFailedAllocatedBytes();
+            fbufferSize = fbufferSize / 1024 / 1024;
+
+            long d = DataManager.getInstance().getDeallocatedBytes();
+            d = d / 1024 / 1024;
+            
+            int nt = DataManager.getInstance().getNumberOfCachedItems();
+            
+            String out = String.format(
+                    "<html>Products %d of %d stored.<br> Java Heap %d/%d MB, %d MB Available<br> DataManager: Allocated %d MB, Deallocated %d MB, %d MB<b>failed</b> Tiles: %d",
+                    aSize, maxSize, heapSize, heapMaxSize, heapFreeSize, bufferSize, d, fbufferSize, nt);
+            myLabel.setText(out);
+        }
+
+        if (updateTable) {
+            myModel.setDataTypes(e);
+            myModel.fireTableDataChanged();
+            if ((oldRow > -1) && (oldRow < aSize)) {
+                myTable.setRowSelectionInterval(oldRow, oldRow);
+            }
         }
     }
 }

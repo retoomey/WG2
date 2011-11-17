@@ -1,7 +1,6 @@
 package org.wdssii.core;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.TreeMap;
 
 /**
@@ -12,6 +11,8 @@ import java.util.TreeMap;
  * 
  * FIXME: not sure the cache key even needed really...the object should be
  * enough..
+ * 
+ * The cache uses a stack, where the 0th item is the oldest, n-1 the newest.
  * 
  * @author Robert Toomey
  */
@@ -38,8 +39,16 @@ public class LRUCache<T> {
     private TreeMap<String, T> myLRUCache = new TreeMap<String, T>();
     /** The LRU stack of objects */
     private ArrayList<T> myLRUStack = new ArrayList<T>();
+    
+    /** The smallest setting for the cache size */
     private int myMinCacheSize = 50;
+    
+    /** The largest setting for the cache size */
     private int myMaxCacheSize = 500;
+    
+    /** The current full size of the cache.  Could have fewer than this
+     * many items in the cache
+     */
     private int myCacheSize = myMinCacheSize;
 
     /** Get an item given a key.  Getting an item MOVES it up in the LRU stack,
@@ -125,12 +134,18 @@ public class LRUCache<T> {
         if (myMaxCacheSize < myMinCacheSize) {
             myMaxCacheSize = myMinCacheSize;
         }
+        if (myCacheSize < myMinCacheSize){
+            setCacheSize(myMinCacheSize);
+        }
     }
 
     public void setMaxCacheSize(int max) {
         myMaxCacheSize = max;
         if (myMinCacheSize > myMaxCacheSize) {
             myMinCacheSize = myMaxCacheSize;
+        }
+        if (myCacheSize > myMaxCacheSize){
+            setCacheSize(myMaxCacheSize);
         }
     }
 

@@ -43,6 +43,9 @@ public class W2Config {
      */
     private static List<String> configPatterns;
 
+    /** The timeout for trying to pull a URL off a remote web-server */
+    private static final float WEB_TIMEOUT_SECS = .5f;
+    
     static {
         // For testing pulling over web w2config only....
         boolean useLocal = true;
@@ -180,11 +183,24 @@ public class W2Config {
                     URLConnection c = aURL.openConnection();
                     if (c instanceof HttpURLConnection) {
                         HttpURLConnection h = (HttpURLConnection) (c);
+                        // Set the timeout, don't want the display hanging
+                        // trying to get a remote file.  Humm.  How to handle
+                        // this properly?  Dialog?  FIXME?
+                        h.setConnectTimeout((int)(WEB_TIMEOUT_SECS * 1000.0f)); 
+                        h.setAllowUserInteraction(false);
+                        h.setDoInput(false);
+                        h.setDoOutput(false);
+                        
+                        // ISPs and others redirect common errors to a 
+                        // custom html page, which we would confuse as a valid
+                        // data file.
+                        h.setInstanceFollowRedirects(false);
+                        
                         // Don't read all the data at the URL...
                         h.setRequestMethod("HEAD");
                         int code = h.getResponseCode();
                         if (code != HttpURLConnection.HTTP_OK) {
-                            aURL = null;
+                            aURL = null;                            
                         }
                     }
                 }

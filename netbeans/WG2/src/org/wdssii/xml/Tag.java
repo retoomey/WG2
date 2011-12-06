@@ -34,10 +34,9 @@ public abstract class Tag {
 
     private String cacheTagName;
     private boolean haveTag = false;
-
     /** Set to true iff tag was found and processed */
     private boolean processedTag = false;
-    
+
     /* Default tag method returns the part of the classname
      * without the "Tag_" part.  This is why this class is abstract.
      */
@@ -54,10 +53,10 @@ public abstract class Tag {
     }
 
     /** Return true iff tag was read from xml */
-    public boolean wasRead(){
+    public boolean wasRead() {
         return processedTag;
     }
-    
+
     /** Utility function to check for a new start tag */
     protected static String haveStartTag(XMLStreamReader p) {
         String startTag = null;
@@ -233,7 +232,7 @@ public abstract class Tag {
      * this to process a 'header' of a URL/file to gather info.
      * The tag must match the given.
      */
-    public boolean processOneAndStop(XMLStreamReader p){
+    public boolean processOneAndStop(XMLStreamReader p) {
         boolean found = false;
         boolean done = false;
         try {
@@ -251,7 +250,7 @@ public abstract class Tag {
         }
         return found;
     }
-            
+
     /** Process document root from a given File */
     public boolean processAsRoot(File f) {
         boolean success = false;
@@ -269,19 +268,21 @@ public abstract class Tag {
     /** Process document root from a given URL */
     public boolean processAsRoot(URL aURL) {
         boolean success = false;
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        try {
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(
-                    aURL.openStream()));
-            XMLStreamReader p = factory.createXMLStreamReader(in);
-            success = processAsRoot(p);
-        } catch (Exception ex) {
+        if (aURL != null) {
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            try {
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(
+                        aURL.openStream()));
+                XMLStreamReader p = factory.createXMLStreamReader(in);
+                success = processAsRoot(p);
+            } catch (Exception ex) {
+            }
         }
         return success;
 
     }
-    
+
     /** Process all child tabs within our tag */
     public void processChildren(XMLStreamReader p) {
 
@@ -301,7 +302,7 @@ public abstract class Tag {
 
         try {
             Class<?> c = this.getClass();
-            Field f = c.getDeclaredField(name);       
+            Field f = c.getDeclaredField(name);
             parseFieldString(f, value);
 
         } catch (NoSuchFieldException x) {
@@ -340,9 +341,9 @@ public abstract class Tag {
                 }
                 f.setBoolean(this, flag);
                 handled = true;
-            // ---------------------------------------------------------------
-            // Handle 'int' field type
-            // <tag fieldInteger={0xHex, number }
+                // ---------------------------------------------------------------
+                // Handle 'int' field type
+                // <tag fieldInteger={0xHex, number }
             } else if (theType.equals("int")) {
                 try {
                     int anInt = 0;
@@ -359,9 +360,9 @@ public abstract class Tag {
                     // Could warn....
                 }
 
-            // ---------------------------------------------------------------
-            // Handle 'float' field type
-            // <tag fieldInteger={+-infinity, +-inf, float
+                // ---------------------------------------------------------------
+                // Handle 'float' field type
+                // <tag fieldInteger={+-infinity, +-inf, float
             } else if (theType.equals("float")) {
 
                 try {
@@ -378,9 +379,9 @@ public abstract class Tag {
                 } catch (NumberFormatException e) {
                     // Could warn....
                 }
-            // ---------------------------------------------------------------
-            // Handle 'string' field type (which is just the xml text)
-            // <tag fieldInteger=xmltext
+                // ---------------------------------------------------------------
+                // Handle 'string' field type (which is just the xml text)
+                // <tag fieldInteger=xmltext
             } else {
                 f.set(this, value);
                 handled = true;

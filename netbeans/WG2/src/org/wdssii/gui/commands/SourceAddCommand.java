@@ -19,6 +19,10 @@ public class SourceAddCommand extends SourceClearCommand {
     /** By default if user clicks a button, require a confirm dialog */
     private boolean myUserConfirm = true;
     private boolean myUserReport = true;
+    
+    /** Root window that called this command.  Used by dialogs to link
+     * to proper caller window.  Important for multiple displays
+     */
     private JComponent myRoot = null;
     
     /**
@@ -28,7 +32,6 @@ public class SourceAddCommand extends SourceClearCommand {
      * @param realtime	Is this a realtime index?  (requires a socket connection)
      */
     public SourceAddCommand(String niceName, String path, boolean realtime, boolean connect) {
-        //setIndexName(key);
         myNiceName = niceName;
         myUserConfirm = false;
         myUserReport = false;
@@ -44,9 +47,9 @@ public class SourceAddCommand extends SourceClearCommand {
      * @param needUserConfirm	Do we use user dialogs? (scripting turns this off)
      * @param realtime	Is this a realtime index?  (requires a socket connection)
      */
-    public SourceAddCommand(JComponent myRoot, String niceName, String path, boolean needUserConfirm,
+    public SourceAddCommand(JComponent root, String niceName, String path, boolean needUserConfirm,
             boolean needUserReport, boolean realtime, boolean connect) {
-        //setIndexName(key);
+        myRoot = root;
         myNiceName = niceName;
         myUserConfirm = needUserConfirm;
         myUserReport = needUserReport;

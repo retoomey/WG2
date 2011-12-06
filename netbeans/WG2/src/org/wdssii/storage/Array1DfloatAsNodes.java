@@ -28,7 +28,7 @@ public class Array1DfloatAsNodes extends DataStorage implements Array1Dfloat {
     public Array1DfloatAsNodes(int aSize, float backgroundValue) {
         counter++;
         mySize = aSize;
-        myKey = "Array1D" + "s" + mySize;
+        myKey = "Array1D" + "s" + counter;
         myBackground = backgroundValue;
 
         // Node size based off DataManager node size.

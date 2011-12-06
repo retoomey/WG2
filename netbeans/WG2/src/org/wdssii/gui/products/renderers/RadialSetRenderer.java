@@ -467,7 +467,7 @@ public class RadialSetRenderer extends ProductRenderer {
      * @param dc
      *            Draw context in opengl for drawing our radial set
      */
-    public void drawData(DrawContext dc, boolean readoutMode) {        
+    public void drawData(DrawContext dc, boolean readoutMode) { 
         if (isCreated() && (verts != null) && (colors != null)) {
             GL gl = dc.getGL();
 

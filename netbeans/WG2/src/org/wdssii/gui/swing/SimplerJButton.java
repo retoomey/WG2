@@ -41,7 +41,7 @@ public class SimplerJButton extends JButton {
             super.installDefaults(b);
 
             b.setOpaque(true);
-            b.setBorderPainted(true);
+            b.setBorderPainted(false);
             b.setRolloverEnabled(true);
 
             dashedRectGapX = UIManager.getInt("ButtonUI.dashedRectGapX");
@@ -55,11 +55,11 @@ public class SimplerJButton extends JButton {
 
         @Override
         public void paintFocus(Graphics g, AbstractButton b, Rectangle r1, Rectangle r2, Rectangle r) {
-            int width = b.getWidth();
-            int height = b.getHeight();
-            g.setColor(focusColor);
-            BasicGraphicsUtils.drawDashedRect(g, dashedRectGapX, dashedRectGapY,
-                    width - dashedRectGapWidth, height - dashedRectGapHeight);
+          //  int width = b.getWidth();
+          //  int height = b.getHeight();
+          //  g.setColor(focusColor);
+          //  BasicGraphicsUtils.drawDashedRect(g, dashedRectGapX, dashedRectGapY,
+          //          width - dashedRectGapWidth, height - dashedRectGapHeight);
         }
 
         @Override

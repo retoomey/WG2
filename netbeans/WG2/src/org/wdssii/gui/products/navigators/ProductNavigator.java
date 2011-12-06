@@ -1,5 +1,6 @@
 package org.wdssii.gui.products.navigators;
 
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.AnimateCommand;
 import org.wdssii.gui.commands.ProductJumpToCommand;
 import org.wdssii.gui.commands.WdssiiCommand;
@@ -152,6 +153,10 @@ public class ProductNavigator {
 
     /** Default jump to command  Subclasses can override to change behavior/layout */
     public WdssiiCommand getJumpToCommand() {
-        return new ProductJumpToCommand();
+        ProductJumpToCommand p= new ProductJumpToCommand();
+        // For now, directly link to the single world view we have.
+        // This will change if/when we go multiple groups/earthballs 
+        p.setWdssiiView( CommandManager.getInstance().getEarthBall());
+        return p;
     }
 }

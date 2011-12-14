@@ -304,11 +304,11 @@ public class ProductVolume {
         DataValueRecord rec = getNewDataValueRecord();
 
         // Buffers are reused from our geometry object
+        dest.setDimensions(g.rows, g.cols);
         int[] color2DVertices = dest.getColor2dFloatArray(3 * g.rows * g.cols);
         float[] value2DVertices = dest.getValue2dFloatArray(g.rows * g.cols);
 
         double startHeight = g.topHeight;
-        System.out.println("Topheight, bottomheight "+g.topHeight+", "+g.bottomHeight);
         double deltaHeight = (g.topHeight - g.bottomHeight) / (1.0 * g.rows);
         double deltaLat = (g.endLat - g.startLat) / g.cols;
         double deltaLon = (g.endLon - g.startLon) / g.cols;

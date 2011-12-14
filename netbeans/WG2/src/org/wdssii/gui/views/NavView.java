@@ -677,7 +677,7 @@ public class NavView extends JThreadPanel implements WdssiiView {
         if (d == null) {
             text = "No Current Product";
         } else {
-            text = d.getProductInfoString();
+            text = d.getProductInfoString(true);
         }
         jProductInfoLabel.setText(text);
     }

@@ -73,11 +73,12 @@ public class Product implements LRUCacheItem {
     private final String NAVIGATOR_CLASSPATH = "org.wdssii.gui.products.navigators";
 
     public static class ProductTimeWindowInfo {
+
         public ProductTimeWindowAge myState = ProductTimeWindowAge.IN_WINDOW;
         public long myAgeSeconds = 0;
         public String myAgeString = "In window";
     }
-    
+
     public enum ProductTimeWindowAge {
 
         IN_WINDOW,
@@ -88,21 +89,18 @@ public class Product implements LRUCacheItem {
     // Raw DataType, if loaded. DataType is loaded in background thread
     final protected Object myRawDataSync = new Object();
     protected DataType myRawDataType = null;
-    
     /** The datatype for this product such as 'Reflectivity'  The product
-     does not have to be loaded for this information */
+    does not have to be loaded for this information */
     protected final String myDataType;
-    
     protected boolean myDirtyRenderer = true;
     protected String myCacheKey;
     protected final SubtypeType mySubtypeType;
-    protected DataRequest myDataRequest = null;    
+    protected DataRequest myDataRequest = null;
     /** Units of the actual data, if known  */
     protected String myDataUnits = "Data";
     // FIXME: need to sync access to this probably...
     protected TreeMap<String, Object> myHelperObjects = new TreeMap<String, Object>();
     // We're going to hide the record details
-    
     /** The index record, if any that we were created from */
     protected final IndexRecord myRecord;
     private String myIndexKey; 		// /< The key used to query the source manager
@@ -180,7 +178,7 @@ public class Product implements LRUCacheItem {
                     }
                     ProductRenderer pr = p.getRenderer();
                     boolean canOverlay = false;
-                    if (pr != null){
+                    if (pr != null) {
                         canOverlay = pr.canOverlayOtherData();
                     }
                     if (foundUs
@@ -188,8 +186,8 @@ public class Product implements LRUCacheItem {
                             // FIXME: or do we want the ACTUAL would be showing function instead?
                             // For instance if h is out of time window, do we want to draw?
                             (h.getIsVisible()) && // This product is not hidden by user
-                            (!canOverlay) &&
-                            (p.getIndexKey().compareTo(mySource) == 0)) // Source
+                            (!canOverlay)
+                            && (p.getIndexKey().compareTo(mySource) == 0)) // Source
                     // name
                     // same
                     {
@@ -284,7 +282,7 @@ public class Product implements LRUCacheItem {
     }
 
     public String getDataType() {
-       return myDataType;
+        return myDataType;
     }
 
     public String getSubType() {
@@ -468,18 +466,18 @@ public class Product implements LRUCacheItem {
                 DataTypeMetric m = myRawDataType.getDataTypeMetric();
                 float minValue = -100;
                 float maxValue = 100;
-                if (m != null){
-                   minValue = m.getMinValue();
-                   maxValue = m.getMaxValue();
+                if (m != null) {
+                    minValue = m.getMinValue();
+                    maxValue = m.getMaxValue();
                 }
                 Tag_colorMap map = Tag_colorMap.getCandidate2();
-                
+
                 // Override the min/max with values from the data metric..
                 // this makes a better colormap in general..
                 // FIXME: check missing, etc...and allow changing per product
                 // in the GUI editor...
                 map.min = minValue;
-                map.max = maxValue;            
+                map.max = maxValue;
                 map.unit.name = myRawDataType.getUnit();
                 aColorMap.initFromTag(map, ProductTextFormatter.DEFAULT_FORMATTER);
             } else {
@@ -580,9 +578,13 @@ public class Product implements LRUCacheItem {
      * 
      * @return string
      */
-    public String getProductInfoString() {
+    public String getProductInfoString(boolean full) {
         String shortName = SourceManager.getInstance().getNiceShortName(getIndexKey());
-        return (String.format("%s %s %s %s", shortName, getDataType(), getSubType(), getTimeStamp()));
+        if (full) {
+            return (String.format("%s %s %s %s", shortName, getDataType(), getSubType(), getTimeStamp()));
+        } else {
+            return (String.format("%s %s", shortName, getDataType()));
+        }
     }
 
     /**
@@ -798,13 +800,13 @@ public class Product implements LRUCacheItem {
 
     /** @return true if product is in valid time window */
     public ProductTimeWindowInfo isInTimeWindow(Date aSimulationTime) {
-        ProductTimeWindowInfo info = new ProductTimeWindowInfo(); 
+        ProductTimeWindowInfo info = new ProductTimeWindowInfo();
         if (myRecord != null) {
-            
+
             Date ourDate = myRecord.getTime();
             ProductDataInfo theInfo = ProductManager.getInstance().getProductDataInfo(myDataType);
-            long maxTimeWindow = 5*60; // 5 mins
-            if (theInfo != null){
+            long maxTimeWindow = 5 * 60; // 5 mins
+            if (theInfo != null) {
                 maxTimeWindow = theInfo.getTimeWindowSeconds();
             }
             Date simulationTime = aSimulationTime;
@@ -815,7 +817,7 @@ public class Product implements LRUCacheItem {
                 info.myAgeString = "In future";
             } else if (seconds > maxTimeWindow) {
                 info.myState = ProductTimeWindowAge.TOO_OLD;
-                info.myAgeString = "> "+info.myAgeSeconds+" seconds";
+                info.myAgeString = "> " + info.myAgeSeconds + " seconds";
             } else {
                 info.myState = ProductTimeWindowAge.IN_WINDOW;
                 info.myAgeString = "In window";
@@ -848,8 +850,8 @@ public class Product implements LRUCacheItem {
         }
     }
 
-    public void doPick(DrawContext dc, java.awt.Point pickPoint){
-         // wouldDraw has already been called by here
+    public void doPick(DrawContext dc, java.awt.Point pickPoint) {
+        // wouldDraw has already been called by here
         getRenderer();
         ProductRenderer pr = getRenderer();
         if (pr != null) {
@@ -864,7 +866,7 @@ public class Product implements LRUCacheItem {
             pr.doPick(dc, pickPoint);
         }
     }
-    
+
     /*
      * Get our product that sync in time/subtype to the given product.  We can
      * return null if we don't have a match.

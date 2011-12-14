@@ -228,7 +228,7 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
 
                         // FIXME: Probably could make a renderer that just uses our 'product' as a function, then
                         // zooming would work perfectly.
-                        XYSeries xyseries = new XYSeries(p.getProductInfoString());
+                        XYSeries xyseries = new XYSeries(p.getProductInfoString(true));
                         ColorMap cm = p.getColorMap();
 
                         double max = -100000.0;

@@ -78,7 +78,7 @@ public class VSlicePlot extends XYPlot {
     public void draw(Graphics2D g2, Rectangle2D area, Point2D anchor,
             PlotState parentState, PlotRenderingInfo info) {
 
-        super.draw(g2, area, anchor, parentState, info);
+       super.draw(g2, area, anchor, parentState, info);
     }
 
     @Override

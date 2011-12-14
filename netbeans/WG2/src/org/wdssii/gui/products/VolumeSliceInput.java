@@ -28,9 +28,20 @@ public class VolumeSliceInput {
         gb = aGlobe;
         iterationCount = uniqueID;  // do we stil need this?
     }
-    ;
 
-	public int rows;
+    public VolumeSliceInput(VolumeSliceInput o) {
+        rows = o.rows;
+        cols = o.cols;
+        startLat = o.startLat;
+        startLon = o.startLon;
+        endLat = o.endLat;
+        endLon = o.endLon;
+        bottomHeight = o.bottomHeight;
+        topHeight = o.topHeight;
+        gb = o.gb;
+        iterationCount = o.iterationCount;
+    }
+    public int rows;
     public int cols;
     public double startLat;
     public double startLon;

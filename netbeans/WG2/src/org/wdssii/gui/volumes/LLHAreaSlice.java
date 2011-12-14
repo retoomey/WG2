@@ -31,7 +31,7 @@ import javax.swing.JComponent;
 public class LLHAreaSlice extends LLHArea {
 
     /** The number of rows or altitudes of the VSlice */
-    public static final int myNumRows = 100;  //50
+    public static final int myNumRows = 50;  //50
     
     /** The number of cols or change in Lat/Lon */
     public static final int myNumCols = 100; //100

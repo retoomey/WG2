@@ -3,258 +3,96 @@ package org.wdssii.gui.charts;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Paint;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
-import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.PaintScale;
-import org.jfree.chart.renderer.xy.XYBlockRenderer;
-import org.jfree.chart.renderer.xy.XYItemRendererState;
-import org.jfree.data.DomainOrder;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.Range;
-import org.jfree.data.general.DatasetChangeListener;
-import org.jfree.data.general.DatasetGroup;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYZDataset;
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.LLHAreaManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.LLHAreaManager.VolumeTableData;
 import org.wdssii.gui.products.FilterList;
+import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
+import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.products.VolumeSlice2DOutput;
 import org.wdssii.gui.volumes.LLHAreaSlice;
 
 public class VSliceChart extends ChartViewJFreeChart {
 
-    static boolean toggle = false;
-    private VSliceDataset myDataset = new VSliceDataset();
-    private NumberAxis myRangeAxis = null;
-    private NumberAxis myHeightAxis = null;
+    /** A NumberAxis that forces auto range (zoom out or menu picked) to be
+     * the default height/range of the LLHAreaSlice we are following
+     */
+    public static class VSliceNumberAxis extends NumberAxis {
 
-    public static class VSlicePaintScale implements PaintScale {
+        private Range myVSliceRange = null;
+        private boolean myAllowNegative = true;
 
-        Color myColor;
+        public VSliceNumberAxis(String label, boolean allowNegative) {
+            super(label);
+            myAllowNegative = allowNegative;
+        }
+
+        public void setVSliceRange(Range aRange) {
+            myVSliceRange = aRange;
+            setRange(myVSliceRange);
+        }
+
+        /** Zoom out auto-adjust should go to the FULL vslice we're following.. */
+        @Override
+        protected void autoAdjustRange() {
+            if (myVSliceRange != null) {
+                setRange(myVSliceRange, false, false);
+            }
+        }
+
+        @Override
+        public Range getRange() {
+            Range sRange = super.getRange();
+            double min;
+            if (myAllowNegative) {
+                min = sRange.getLowerBound();
+            } else {
+                min = Math.max(0, sRange.getLowerBound());
+            }
+            // ensure lowerBound < upperBound to prevent exception
+            return new Range(
+                    min, Math.max(1e-8, sRange.getUpperBound()));
+        }
 
         @Override
         public double getLowerBound() {
-            // TODO Auto-generated method stub
-            return 0;
-        }
-
-        public void hack(int r, int g, int b) {
-            myColor = new Color(r, g, b);
-        }
-
-        @Override
-        public Paint getPaint(double arg0) {
-            return myColor;
-        }
-
-        @Override
-        public double getUpperBound() {
-            // TODO Auto-generated method stub
-            return 0;
+            Range r = getRange();
+            return r.getLowerBound();
         }
     }
-
-    public static class VSliceChartRenderer extends XYBlockRenderer {
-
-        VSlicePaintScale myPrivate = null;
-        public int[] myColors = null;
-        private static final long serialVersionUID = -1814981271936657507L;
-        
-        @Override
-        public void drawItem(Graphics2D g2, XYItemRendererState state,
-                Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-                ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-                int series, int item, CrosshairState crosshairState, int pass) {
-            if (myPrivate == null) {
-                myPrivate = new VSlicePaintScale();
-                myPrivate.hack(0, 0, 0);
-                setPaintScale(myPrivate);
-            }
-            if (myColors == null) {
-                //p = this.getPaintScale().getPaint(z);
-            } else {
-                int cstart = item * 3;
-                if (myColors.length > cstart+2){
-                     myPrivate.hack(myColors[cstart], myColors[cstart + 1], myColors[cstart + 2]);
-                }
-            }
-            //setPaintScale(myPrivate); inf loop
-
-            super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis, dataset, series, item, crosshairState, pass);
-            /*
-            double x = dataset.getXValue(series, item);
-            double y = dataset.getYValue(series, item);
-            double z = 0.0;
-            if (dataset instanceof XYZDataset) {
-            z = ((XYZDataset) dataset).getZValue(series, item);
-            }
-            Paint p;
-            if (myColors == null){
-            p = this.getPaintScale().getPaint(z);
-            }else{
-            int cstart = item*3;
-            
-            p = new Color(myColors[cstart], myColors[cstart+1], myColors[cstart+2]);
-            }
-            System.out.println("Draw item "+item*3);
-            double bwidth = getBlockWidth();
-            double bheight = getBlockHeight();
-            double xOffset = -bwidth/2.0;  // Anchor center
-            double yOffset = -bheight/2.0;
-            
-            double xx0 = domainAxis.valueToJava2D(x + xOffset, dataArea,
-            plot.getDomainAxisEdge());
-            double yy0 = rangeAxis.valueToJava2D(y + yOffset, dataArea,
-            plot.getRangeAxisEdge());
-            double xx1 = domainAxis.valueToJava2D(x + bwidth
-            + xOffset, dataArea, plot.getDomainAxisEdge());
-            double yy1 = rangeAxis.valueToJava2D(y + bheight
-            + yOffset, dataArea, plot.getRangeAxisEdge());
-            Rectangle2D block;
-            PlotOrientation orientation = plot.getOrientation();
-            if (orientation.equals(PlotOrientation.HORIZONTAL)) {
-            block = new Rectangle2D.Double(Math.min(yy0, yy1),
-            Math.min(xx0, xx1), Math.abs(yy1 - yy0),
-            Math.abs(xx0 - xx1));
-            }
-            else {
-            block = new Rectangle2D.Double(Math.min(xx0, xx1),
-            Math.min(yy0, yy1), Math.abs(xx1 - xx0),
-            Math.abs(yy1 - yy0));
-            }
-            g2.setPaint(p);
-            g2.fill(block);
-            g2.setStroke(new BasicStroke(1.0f));
-            g2.draw(block);
-            EntityCollection entities = state.getEntityCollection();
-            if (entities != null) {
-            addEntity(entities, block, dataset, series, item, 0.0, 0.0);
-            }	*/
-        }
-
-        public void setColors(int[] colors) {
-            myColors = colors;
-        }
-    }
-
-    /** We implement the XYZDataset so that our vslice data can go into any table
-     * type that is made by the JFreeChart library (That uses an XYZDataset)
-     * @author Robert Toomey
-     *
-     */
-    public static class VSliceDataset implements XYZDataset {
-
-        LLHAreaSlice myVSlice;
-        int numOfCols = LLHAreaSlice.myNumCols;
-        int numOfRows = LLHAreaSlice.myNumRows;
-
-        @Override
-        public int getSeriesCount() {
-            return 1;
-        }
-
-        @Override
-        public int getItemCount(int series) {
-            return numOfCols * numOfRows;
-        }
-
-        @Override
-        public Number getX(int series, int item) {
-            return new Double(getXValue(series, item));
-        }
-
-        @Override
-        public double getXValue(int series, int item) {
-            return item % numOfCols;  // X is the column number
-        }
-
-        @Override
-        public Number getY(int series, int item) {
-            return new Double(getYValue(series, item));
-        }
-
-        @Override
-        public double getYValue(int series, int item) {
-            return numOfRows - (Math.floor(item / numOfCols)) - 1;
-        }
-
-        @Override
-        public Number getZ(int series, int item) {
-            return new Double(getZValue(series, item));
-        }
-
-        @Override
-        public double getZValue(int series, int item) {
-            return 0.0;
-        }
-
-        @Override
-        public DatasetGroup getGroup() {
-            return null;
-        }
-
-        @SuppressWarnings("rawtypes")
-        @Override
-        public Comparable getSeriesKey(int series) {
-            return "Vertical Slice";
-        }
-
-        @SuppressWarnings("rawtypes")
-        @Override
-        public int indexOf(Comparable seriesKey) {
-            return 0;
-        }
-
-        @Override
-        public DomainOrder getDomainOrder() {
-            return DomainOrder.ASCENDING;
-        }
-
-        @Override
-        public void addChangeListener(DatasetChangeListener listener) {
-            // ignore
-        }
-
-        @Override
-        public void removeChangeListener(DatasetChangeListener listener) {
-            // ignore
-        }
-
-        @Override
-        public void setGroup(DatasetGroup group) {
-            // ignore
-        }
-
-        public void setVSlice(LLHAreaSlice slice) {
-            myVSlice = slice;
-        }
-    }
+    // static boolean toggle = false;
+    /** The axis for range in KM of the VSlice bottom distance */
+    private VSliceNumberAxis myRangeAxis;
+    /** The axis for the height of the VSlice side distance */
+    private VSliceNumberAxis myHeightAxis;
     static int counter = 0;
-    // We use this so that we only update when the vslice CHANGES.
-    // VSlices keep a counter of each time they recreate the vslice 'grid' of colors.
-    private int myIterationCount = -1;
-    private VSliceChartRenderer myRenderer = null;
-    private Object myCurrentKey;
+    /** The current full key for us */
+    private String myCurrentKey;
+    /** The last GIS key.  This is the key part that deals with the 'shape'
+     * of the VSlice without product/volume
+     */
+    private String myGISKey = "";
+    private VSliceFixedGridPlot myPlot = null;
 
-    public VSliceChart(String arg0, Font arg1, Plot arg2, VSliceDataset data, VSliceChartRenderer r, boolean arg3) {
+    public VSliceChart(String arg0, Font arg1, VSliceFixedGridPlot arg2, boolean arg3) {
 
         myJFreeChart = new JFreeChart(arg0, arg1, arg2, arg3);
-        myDataset = data;
-        myRenderer = r;
+        myPlot = arg2;
     }
 
     /** Return the LLHAreaSlice that we are currently drawing a plot for */
@@ -281,47 +119,55 @@ public class VSliceChart extends ChartViewJFreeChart {
     @Override
     public void updateChart() {
 
-        FilterList aList = null;
+        // The LLHAreaSlice is the geometry in the 3d window we are
+        // matching our coordinates to.
         LLHAreaSlice slice = getVSliceToPlot();
-        myDataset.setVSlice(slice);
+        //   myDataset.setVSlice(slice);
 
         // Slice existence check....
         if (slice == null) {
             return;
         }   // No slice to follow, return..
 
-
-        /*int iteration = slice.getIterationCount();
-        boolean iterationDifferent = false;
-        if (iteration != myIterationCount){
-        iterationDifferent = true;
-        //System.out.println("VSLICE ITERATION CHANGE "+iteration+" was "+myIterationCount);
-        }
-        myIterationCount = iteration;
-         */
-
         /** Get the volume we are following */
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(getUseProductKey(), getUseVirtualVolume());
-        if (volume == null){ return; }
-        //	String key = volume.getKey();
-        //	boolean keyDifferent = false;
-        //	if (!key.equals(myCurrentKey)){
-        //		keyDifferent = true;
-        //	}
-        //	myCurrentKey = key;
+        if (volume == null) {
+            return;
+        }
 
+        FilterList aList = null;
+        String useKey = getUseProductKey();
+        String titleKey = "";
         /** Get the filter list of the product we are following */
         ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
         if (phl != null) {
-            ProductHandler tph = phl.getProductHandler(getUseProductKey());
+            ProductHandler tph = phl.getProductHandler(useKey);
             if (tph != null) {
                 aList = tph.getFList();
             }
+            Product p = tph.getProduct();
+            if (p != null) {
+                titleKey = p.getProductInfoString(false);
+            }
         }
-        if (aList == null){ return; }
-        
+        if (aList == null) {
+            return;
+        }
+
         /** Get the GIS key of the slice */
-        String key = slice.getGISKey();
+        String gisKey = slice.getGISKey();
+
+        // Sync the height/range axis to the GIS vslice range when updated, this resets
+        // any 'zoom' in the chart...but only if GIS key has CHANGED.  This
+        // way users can toggle products and keep zoom level for comparison,
+        // but if they drag the vslice we reset to full slice.
+        if (!myGISKey.equals(gisKey)) {
+            myRangeAxis.setVSliceRange(new Range(0, slice.getRangeKms() / 1000.0));
+            myHeightAxis.setVSliceRange(new Range(slice.getBottomHeightKms() / 1000.0, slice.getTopHeightKms() / 1000.0));
+        }
+        myGISKey = gisKey;
+
+        String key = gisKey;
 
         /** Add volume key */
         key += volume.getKey();
@@ -329,88 +175,174 @@ public class VSliceChart extends ChartViewJFreeChart {
         /** Add filter key */
         key += aList.getFilterKey(getUseProductFilters());
 
-        //String key = slice.getKey(getUseVirtualVolume(), aList, getUseProductFilters());
-
         boolean keyDifferent = false;
         if (!key.equals(myCurrentKey)) {
             keyDifferent = true;
         }
         myCurrentKey = key;
-        //if (!(iterationDifferent || keyDifferent)){
-        //	return;
-        //}
+
         if (!keyDifferent) {
             return;
         }
 
-        if (keyDifferent) {
-            //System.out.println("VSLICE KEY CHANGE");
+       // if (keyDifferent) {
+       //     System.out.println("VSLICE KEY CHANGE");
+       // }
+
+        myPlot.setVolumeAndSlice(slice, volume, aList);
+        myJFreeChart.setTitle(titleKey);
+        myJFreeChart.fireChartChanged();
+        //myJFreeChart.setTitle("Vertical Slice (F" + counter++ + ")");
+    }
+
+    /** Fixed grid draws a background of vslice at current zoom level.
+     * We render the vslice grid directly in the render function of the plot.
+     * Why not use a JFreeChart block renderer?  Well we want a set grid resolution,
+     * but 'infinite' sampling resolution as we zoom in.  Freechart has a 'fixed'
+     * data grid.  However we do call super here so that we can add
+     * regular freechart stuff over our vslice.  Think of the vslice as
+     * a very special background to the plot.
+     */
+    public static class VSliceFixedGridPlot extends XYPlot {
+
+        private ProductVolume myVolume;
+        private LLHAreaSlice mySlice;
+        private FilterList myList;
+
+        private VSliceFixedGridPlot(XYDataset dataset, ValueAxis domainAxis, ValueAxis rangeAxis, XYItemRenderer renderer) {
+            super(dataset, domainAxis, rangeAxis, renderer);
         }
-        VolumeSlice2DOutput dest = new VolumeSlice2DOutput();
 
-        volume.generate2DGrid(slice.getGrid(), dest, aList, getUseProductFilters());
+        @Override
+        public boolean render(Graphics2D g2, Rectangle2D dataArea,
+                int index, PlotRenderingInfo info,
+                CrosshairState cross) {
+            boolean result = false;
+            if ((myVolume != null) && (mySlice != null)) {
+                VolumeSliceInput sourceGrid = mySlice.getGrid();
+                if (sourceGrid != null) {
 
-        myRenderer.setColors(dest.getColor2dFloatArray(0));
-        myRangeAxis.setRange(new Range(0, slice.getRangeKms() / 1000.0));
-        myHeightAxis.setRange(new Range(slice.getBottomHeightKms() / 1000.0, slice.getTopHeightKms() / 1000.0));
-        //myHeightKms = slice.getHeightKms();
+                    VolumeSliceInput subGrid = new VolumeSliceInput(sourceGrid);
 
-        myJFreeChart.setTitle("Vertical Slice (F" + counter++ + ")");
+                    // Hummm..which index do we draw on?
+                    ValueAxis rangeAxis = getDomainAxisForDataset(0);
+                    ValueAxis heightAxis = getRangeAxisForDataset(0);
+                    double bottomKms = heightAxis.getLowerBound() * 1000.0;
+                    double topKms = heightAxis.getUpperBound() * 1000.0;
+                    double leftKms = rangeAxis.getLowerBound() * 1000.0;
+                    double rightKms = rangeAxis.getUpperBound() * 1000.0;
+                    VolumeSlice2DOutput dest = new VolumeSlice2DOutput();
+
+                    // modify the fullGrid to the 'zoomed' subview.  We can tell
+                    // this by looking at the axis range and height.
+
+                    // Zoom height is easy:
+                    subGrid.bottomHeight = bottomKms;
+                    subGrid.topHeight = topKms;
+
+// FIXME: configuration/gui                  
+                    subGrid.rows = 200;
+                    subGrid.cols = 200;
+                    // Range is harder....since this changes startlat/lon,
+                    // and end lat/lon by a percentage of the range values...
+                    // so range is assumed at '0--> R'
+                    // We assume 'delta' change in lat/lon from start to end is linear based on
+                    // the fullRange...
+                    final double sLat = subGrid.startLat;
+                    final double sLon = subGrid.startLon;
+                    double fullRange = mySlice.getRangeKms();  // 100% say 100 KMS
+                    double deltaLatPerKm = (subGrid.endLat - sLat) / fullRange;
+                    double deltaLonPerKm = (subGrid.endLon - sLon) / fullRange;
+
+                    // Now adjust the start/end lat/lon by percentage
+                    subGrid.startLat = sLat + (leftKms * deltaLatPerKm);
+                    subGrid.endLat = sLat + (rightKms * deltaLatPerKm);
+                    subGrid.startLon = sLon + (leftKms * deltaLonPerKm);
+                    subGrid.endLon = sLon + (rightKms * deltaLonPerKm);
+
+                    // FIXME: modify grid only when axis change...
+                    myVolume.generate2DGrid(subGrid, dest, myList, false);
+                    int[] data = dest.getColor2dFloatArray(0);
+
+                    // Render the dynamic 'grid' of data. Note that unlike
+                    // JFreeChart we dynamically resample our dataset based
+                    // upon the 'zoom' level
+                    int numOfCols = dest.getCols();
+                    int numOfRows = dest.getRows();
+                    double stepX = dataArea.getWidth() / numOfCols;
+                    double stepY = dataArea.getHeight() / numOfRows;
+                    double atX = dataArea.getX();
+                    double atY = dataArea.getY();
+                    int stepColor = 0;
+
+                    for (int r = 0; r < numOfRows; r++) {
+                        atX = dataArea.getX();
+                        for (int c = 0; c < numOfCols; c++) {
+                            try {
+                                g2.setColor(new Color(data[stepColor], data[stepColor + 1], data[stepColor + 2]));
+                                // +2 to cover the round off due to doubles
+                                g2.fillRect((int) atX, (int) atY, (int) stepX + 2, (int) stepY + 2);
+                            } catch (Exception e) {
+                                // Because if it's off it hangs all drawing... FIXME:
+                                // System.out.println("EXCEPTION WAS AT " + r + ", " + c + " with size " + data.length);
+                            }
+                            stepColor += 3;
+                            atX += stepX;
+                        }
+                        atY += stepY;
+                    }
+
+                }
+
+                // This will do any 'extra' regular freechart renderers as overlays
+                result = true;// super.render(g2, dataArea, index, info, cross);
+            }
+            return result;
+        }
+
+        private void setVolumeAndSlice(LLHAreaSlice slice, ProductVolume volume, FilterList list) {
+            myVolume = volume;
+            mySlice = slice;
+            myList = list;
+        }
     }
 
     /** Static method to create a vslice chart, called by reflection */
     public static VSliceChart createVSliceChart() {
 
-        System.out.println("CREATE VSLICE CHART CALLED");
-        VSliceDataset dataset = new VSliceDataset();
+        // The range in KM for the VSlice
+        VSliceNumberAxis rangeAxis = new VSliceNumberAxis("Range KM", true);
+        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        rangeAxis.setLowerMargin(0.0);
+        rangeAxis.setUpperMargin(0.0);
 
-        // These get autosized to the 'units' of the slice...
-        NumberAxis xAxis = new NumberAxis("X");
-        xAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        xAxis.setLowerMargin(0.0);
-        xAxis.setUpperMargin(0.0);
+        // The height in KM for the VSlice
+        VSliceNumberAxis heightAxis = new VSliceNumberAxis("Height KM", true);
+        heightAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        heightAxis.setLowerMargin(0.0);
+        heightAxis.setUpperMargin(0.0);
 
-        NumberAxis yAxis = new NumberAxis("Y");
-        yAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        yAxis.setLowerMargin(0.0);
-        yAxis.setUpperMargin(0.0);
+        // a 'fake' dataset since we bypass the normal renderer...
+        VSliceFixedGridPlot plot = new VSliceFixedGridPlot(null, rangeAxis, heightAxis, null);
 
-        // These axis don't mean much for us.  They show the 'block' number, which is useful for debugging
-        // only.  The library needs it though
-        //xAxis.setVisible(false);
-        //yAxis.setVisible(false);
-
-        VSliceChartRenderer renderer = new VSliceChartRenderer();
-
-        // We really need our own paint scale thing...
-        //	PaintScale scale = new GrayPaintScale(0.0, 100.0);
-        //	renderer.setPaintScale(scale);
-
-        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
-        //	plot.setBackgroundPaint(Color.lightGray);
+        // Ignored since we bypass the plot stuff
+        plot.setBackgroundPaint(Color.blue);
         plot.setDomainGridlinesVisible(true);
-        plot.setRangeGridlinePaint(Color.green);
-        VSliceChart chart = new VSliceChart("Chart", JFreeChart.DEFAULT_TITLE_FONT, plot, dataset, renderer, true);
+        plot.setRangeGridlinePaint(Color.red);
+
+        VSliceChart chart = new VSliceChart("Chart", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
         chart.myJFreeChart.removeLegend();
         //	chart.setBackgroundPaint(Color.white);
 
-        // The range in KM for the VSlice
-        NumberAxis xAxis2 = new NumberAxis("Range KM");
-        xAxis2.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        xAxis2.setLowerMargin(0.0);
-        xAxis2.setUpperMargin(0.0);
-        plot.setDomainAxis(1, xAxis2);
-        plot.setDomainAxisLocation(1, AxisLocation.BOTTOM_OR_RIGHT);
-        chart.myRangeAxis = xAxis2;
 
-        // The height in KM for the VSlice
-        NumberAxis yAxis2 = new NumberAxis("Height KM");
-        yAxis2.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        yAxis2.setLowerMargin(0.0);
-        yAxis2.setUpperMargin(0.0);
-        plot.setRangeAxis(1, yAxis2);
-        plot.setRangeAxisLocation(1, AxisLocation.BOTTOM_OR_LEFT);
-        chart.myHeightAxis = yAxis2;
+        //  plot.setDomainAxis(1, xAxis2);
+        //  plot.setDomainAxisLocation(1, AxisLocation.BOTTOM_OR_RIGHT);
+        chart.myRangeAxis = rangeAxis;
+
+
+        //  plot.setRangeAxis(1, yAxis2);
+        //  plot.setRangeAxisLocation(1, AxisLocation.BOTTOM_OR_LEFT);
+        chart.myHeightAxis = heightAxis;
 
         // Just a test, we're probably going to have to make our own
         // scale subclass that uses our color map

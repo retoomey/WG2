@@ -36,14 +36,19 @@ public class LLHAreaSlice extends LLHArea {
     /** The number of cols or change in Lat/Lon */
     public static final int myNumCols = 100; //100
     
-    private VolumeSliceInput myCurrentGrid = null;
+    /** Holder for the slice GIS 'state' */
+    private VolumeSliceInput myCurrentGrid = 
+            new VolumeSliceInput(myNumRows, myNumCols, 0, 0,
+                0, 0, 0, 50);
+    
+    /** This info is in the SliceInput, might be able to remove it */
     private List<LatLon> locations = new ArrayList<LatLon>();
+    
     private int subdivisions = 1;  // power of 2 breakdown of side..
     private VSliceRenderer myRenderer = new VSliceRenderer();
     private ProductVolume myVolumeProduct = null;
     private VolumeSlice3DOutput myGeometry = new VolumeSlice3DOutput();
-    private double myAltitude0 = 0;
-    private double myAltitude1 = 50;
+
     private String myCacheKey = "";
 
     private LLHAreaSliceGUI myControls = null;
@@ -75,8 +80,10 @@ public class LLHAreaSlice extends LLHArea {
     public double getHeightKms() {
         // Get the range of this vslice in Kms...
         // double[] altitudes = this.getAltitudes(dc.getVerticalExaggeration());
-        double bottomHeight = myAltitude0;  // Remembered from last draw...FIXME.
-        double topHeight = myAltitude1;
+       // double bottomHeight = myAltitude0;  // Remembered from last draw...FIXME.
+       // double topHeight = myAltitude1;
+        double bottomHeight = myCurrentGrid.bottomHeight;
+        double topHeight = myCurrentGrid.topHeight;
         return topHeight - bottomHeight;
     }
 
@@ -98,6 +105,7 @@ public class LLHAreaSlice extends LLHArea {
     public void setLocations(Iterable<? extends LatLon> locations) {
         this.locations.clear();
         this.addLocations(locations);
+        updateCurrentGrid();
     }
 
     protected List<LatLon> getLocationList() {
@@ -112,6 +120,7 @@ public class LLHAreaSlice extends LLHArea {
                 }
             }
         }
+        updateCurrentGrid();
         this.setExtentOutOfDate();
     }
 
@@ -178,13 +187,12 @@ public class LLHAreaSlice extends LLHArea {
         if (locations.isEmpty()) {
             return;
         }
-
+        
         // Get the true altitudes for sampling purposes
         // vertical is for rendering only...getAltitudes(dc.getVerticalExaggeration());
         double[] altitudes = this.getAltitudes();
-                
-        myAltitude0 = altitudes[0];  // Hack
-        myAltitude1 = altitudes[1];
+        myCurrentGrid.bottomHeight = altitudes[0];
+        myCurrentGrid.topHeight = altitudes[1];
 
         int currentDivisions = this.subdivisions;
 
@@ -199,7 +207,7 @@ public class LLHAreaSlice extends LLHArea {
             gl.glEnable(GL.GL_CULL_FACE);
             gl.glFrontFace(GL.GL_CCW);
 
-            this.drawVSlice(dc, locations, edgeFlags, altitudes, currentDivisions,
+            this.drawVSlice(dc, locations, edgeFlags, currentDivisions,
                     referenceCenter);
 
             gl.glPopAttrib();
@@ -262,8 +270,8 @@ public class LLHAreaSlice extends LLHArea {
             newKey = newKey + l.getLatitude() + ":";
             newKey = newKey + l.getLongitude() + ":";
         }
-        newKey = newKey + myAltitude0;
-        newKey = newKey + myAltitude1;
+        newKey = newKey + myCurrentGrid.bottomHeight;
+        newKey = newKey + myCurrentGrid.topHeight;
         return newKey;
     }
 
@@ -326,7 +334,6 @@ public class LLHAreaSlice extends LLHArea {
      * @return
      */
     private VolumeSlice3DOutput getVSliceGeometry(DrawContext dc, List<LatLon> locations, List<Boolean> edgeFlags,
-            double[] altitudes,
             int currentSubdivisions) {
         String newKey = getNewCacheKey();
         // Add exaggeration to cache key so changing exaggeration will redraw it
@@ -337,7 +344,7 @@ public class LLHAreaSlice extends LLHArea {
 
         // System.out.println("_------------>>> REGENERATE VSLICE!!!");
         myCacheKey = newKey;
-        this.makeVSlice(dc, locations, edgeFlags, altitudes, currentSubdivisions, myGeometry);
+        this.makeVSlice(dc, locations, edgeFlags, currentSubdivisions, myGeometry);
 
         // Fire changed event?  Is this enough?
         CommandManager.getInstance().executeCommand(new LLHAreaCommand(), true);
@@ -346,9 +353,9 @@ public class LLHAreaSlice extends LLHArea {
 
     /** New routine, draw a vslice  */
     private void drawVSlice(DrawContext dc, List<LatLon> locations, List<Boolean> edgeFlags,
-            double[] altitudes, int currentDivisions,
+            int currentDivisions,
             Vec4 referenceCenter) {
-        VolumeSlice3DOutput geom = this.getVSliceGeometry(dc, locations, edgeFlags, altitudes,
+        VolumeSlice3DOutput geom = this.getVSliceGeometry(dc, locations, edgeFlags,
                 currentDivisions);
 
         myRenderer.drawVSlice(dc, geom);
@@ -388,7 +395,8 @@ public class LLHAreaSlice extends LLHArea {
     }
 
     public double getBottomHeightKms() {
-        return myAltitude0;
+      //  return myAltitude0;
+        return myCurrentGrid.bottomHeight;
     }
 
     public double getTopHeightKms() {
@@ -397,19 +405,18 @@ public class LLHAreaSlice extends LLHArea {
     }
 
     private void makeVSlice(DrawContext dc, List<LatLon> locations, List<Boolean> edgeFlags,
-            double[] altitudes,
             int currentSubdivisions,
             VolumeSlice3DOutput dest) {
         if (locations.isEmpty()) {
             return;
         }
-
+System.out.println("Make v slice called");
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(getProductFollow(), getUseVirtualVolume());
         myVolumeProduct = volume;
 
         // VSlice only.  Two locations, the points on the bottom. Make sure the east one is right of the west one...
         // FIXME: duplicate code with getLeftLocation/getRightLocation
-        LatLon l1 = locations.get(0);
+    /*    LatLon l1 = locations.get(0);
         LatLon l2 = locations.get(1);
         LatLon leftBottom;
         LatLon rightBottom;
@@ -419,7 +426,7 @@ public class LLHAreaSlice extends LLHArea {
         } else {
             leftBottom = l2;
             rightBottom = l1;
-        }
+        }*/
 
         // Get the filter list and the record object
         // ArrayList<DataFilter> list = null;
@@ -513,7 +520,9 @@ public class LLHAreaSlice extends LLHArea {
                     polyVertices[index1], polyVertices[index1 + 1], polyVertices[index1 + 2],
                     polyVertices[index2], polyVertices[index2 + 1], polyVertices[index2 + 2],
                     subdivisions, locationVerts);
-
+            double altitudes[] = new double[2];
+            altitudes[0] = myCurrentGrid.bottomHeight;
+            altitudes[1] = myCurrentGrid.topHeight;
             double vert = dc.getVerticalExaggeration();
             for (int p = 0; p < numPoints; p++) {
                 int pindex = 3 * p;
@@ -561,19 +570,50 @@ public class LLHAreaSlice extends LLHArea {
         //  dest.getVertexGeometry().setNormalData(vertexCount, normals);
 
         // Generate the 3D VSlice in the window, and the 2D slice for charting...
+     /*   double startLat = leftBottom.getLatitude().getDegrees();
+        double startLon = leftBottom.getLongitude().getDegrees();
+        double endLat = rightBottom.getLatitude().getDegrees();
+        double endLon = rightBottom.getLongitude().getDegrees();
+
+        myCurrentGrid.set(myNumRows, myNumCols, startLat, startLon,
+               endLat, endLon, altitudes[0], altitudes[1]);
+      */
+        myCurrentGrid.set(myNumRows, myNumCols, myCurrentGrid.startLat, myCurrentGrid.startLon,
+                myCurrentGrid.endLat, myCurrentGrid.endLon,
+                myCurrentGrid.bottomHeight, myCurrentGrid.topHeight);
+        // Let the volume generate the 3D slice output
+        myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true, dc.getVerticalExaggeration());
+    }
+
+    /** Update the current grid that is the GIS location of the slice */
+    private void updateCurrentGrid(){
+             
+        // VSlice only.  Two locations, the points on the bottom. Make sure the east one is right of the west one...
+        // FIXME: duplicate code with getLeftLocation/getRightLocation
+        LatLon l1 = locations.get(0);
+        LatLon l2 = locations.get(1);
+        LatLon leftBottom;
+        LatLon rightBottom;
+        if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
+            leftBottom = l1;
+            rightBottom = l2;
+        } else {
+            leftBottom = l2;
+            rightBottom = l1;
+        }
+
+         // Generate the 3D VSlice in the window, and the 2D slice for charting...
         double startLat = leftBottom.getLatitude().getDegrees();
         double startLon = leftBottom.getLongitude().getDegrees();
         double endLat = rightBottom.getLatitude().getDegrees();
         double endLon = rightBottom.getLongitude().getDegrees();
 
-        // The input data
-        myCurrentGrid = new VolumeSliceInput(myNumRows, myNumCols, startLat, startLon,
-                endLat, endLon, altitudes[0], altitudes[1], dc.getGlobe(), 0); //++myIterationCount);
-
-        // Let the volume generate the 3D slice output
-        myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true, dc.getVerticalExaggeration());
+        myCurrentGrid.startLat = startLat;
+        myCurrentGrid.startLon = startLon;
+        myCurrentGrid.endLat = endLat;
+        myCurrentGrid.endLon = endLon;
     }
-
+    
     /** Our version of computePointFromPosition that doesn't make new objects and do tons of checks.
      * Meant to be called from the generate function only where we have already done all the safety checks.
      * Since this is called a zillion times during rendering any speed improvement here helps.

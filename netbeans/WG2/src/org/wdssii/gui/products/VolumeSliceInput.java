@@ -7,16 +7,12 @@ import gov.nasa.worldwind.globes.Globe;
 /** VolumeSliceInput is a holder class for the unique layout in 3D space of a vertical or cappi slice.
  * VolumeProducts use this to create visual sliced representations of their data.
  * 
- * FIXME: we're coupled to worldwind right now for projection...should subclass this for input in the worldwind part.
- * Not sure the compute location should even BE here..
- * 
  * @author Robert Toomey
  *
  */
 public class VolumeSliceInput {
 
-    public VolumeSliceInput(int r, int c, double slat, double slon, double elat, double elon, double bh, double th,
-            Globe aGlobe, int uniqueID) {
+    public VolumeSliceInput(int r, int c, double slat, double slon, double elat, double elon, double bh, double th) {
         rows = r;
         cols = c;
         startLat = slat;
@@ -25,8 +21,6 @@ public class VolumeSliceInput {
         endLon = elon;
         bottomHeight = bh;
         topHeight = th;
-        gb = aGlobe;
-        iterationCount = uniqueID;  // do we stil need this?
     }
 
     public VolumeSliceInput(VolumeSliceInput o) {
@@ -38,8 +32,6 @@ public class VolumeSliceInput {
         endLon = o.endLon;
         bottomHeight = o.bottomHeight;
         topHeight = o.topHeight;
-        gb = o.gb;
-        iterationCount = o.iterationCount;
     }
     public int rows;
     public int cols;
@@ -48,12 +40,21 @@ public class VolumeSliceInput {
     public double endLat;
     public double endLon;
     public double bottomHeight;
-    public double topHeight;
-    public int iterationCount;
-    public Globe gb;
+    public double topHeight;   
 
+    public void set(int r, int c, double slat, double slon, double elat, double elon, double bh, double th) {
+        rows = r;
+        cols = c;
+        startLat = slat;
+        startLon = slon;
+        endLat = elat;
+        endLon = elon;
+        bottomHeight = bh;
+        topHeight = th;       
+    }
+    
     /** Compute the x,y,z actual point in the current projection system */
-    public Vec4 computePoint(Globe globe, Angle latitude, Angle longitude, double elevation,
+   /* public Vec4 computePoint(Globe globe, Angle latitude, Angle longitude, double elevation,
             boolean terrainConformant) {
         //   double newElevation = elevation;
 
@@ -63,5 +64,5 @@ public class VolumeSliceInput {
         //   }
 
         return gb.computePointFromPosition(latitude, longitude, elevation);
-    }
+    }*/
 }

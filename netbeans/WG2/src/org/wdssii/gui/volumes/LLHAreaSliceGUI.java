@@ -77,7 +77,7 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
         });
         add(jMaxHeightKMS);
 
-        jLabel1.setText("Label1");
+        jLabel1.setText("Top Meters");
         add(jLabel1);
     }  
     

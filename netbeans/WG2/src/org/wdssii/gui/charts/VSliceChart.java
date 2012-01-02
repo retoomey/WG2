@@ -6,6 +6,7 @@ import gov.nasa.worldwind.globes.Globe;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
@@ -365,16 +366,26 @@ public class VSliceChart extends ChartViewJFreeChart {
                 subGrid.bottomHeight = bottomKms;
                 subGrid.topHeight = topKms;
 
-// FIXME: configuration/gui                  
-                subGrid.rows = 200;
-                subGrid.cols = 200;
-                if (subGrid.rows > dataArea.getWidth()){
-                    subGrid.rows = (int)(dataArea.getWidth());
+                // Figure out number of rows/cols for a 'pixel' size
+                // Maximum resolution is 1 pixel per row/col..
+                // FIXME: maybe configurable if too 'slow' on a system
+                final double pixelR = 1.0f;
+                final double pixelC = 1.0f;
+                subGrid.rows = (int) (dataArea.getHeight() / pixelR);
+                subGrid.cols = (int) (dataArea.getWidth() / pixelC);
+
+                // Maximum rows/col for speed?
+                // Doing 16:9 ratio.  This should at least be ignore when
+                // saving as an image in order to get the best detail.
+                if (subGrid.rows > 150) {
+                    subGrid.rows = 150;
                 }
-                if (subGrid.cols > dataArea.getHeight()){
-                    subGrid.cols = (int)(dataArea.getHeight());
+                if (subGrid.cols > 200) {
+                    subGrid.cols = 200;
                 }
-               
+
+                // System.out.println("ROWS/COLS "+subGrid.rows+", "+subGrid.cols+
+                //       " {"+dataArea.getHeight()+","+dataArea.getWidth());
                 // Range is harder....since this changes startlat/lon,
                 // and end lat/lon by a percentage of the range values...
                 // so range is assumed at '0--> R'
@@ -416,6 +427,13 @@ public class VSliceChart extends ChartViewJFreeChart {
                     double atY = dataArea.getY();
                     int stepColor = 0;
 
+                    // We want antialiasing turned OFF for the rectangle pass
+                    // since it slows us down too much and doesn't change appearance
+                    RenderingHints rhints = g2.getRenderingHints();
+                    boolean antiOn = rhints.containsValue(RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                            RenderingHints.VALUE_ANTIALIAS_OFF);
+
                     for (int r = 0; r < numOfRows; r++) {
                         atX = dataArea.getX();
                         for (int c = 0; c < numOfCols; c++) {
@@ -431,6 +449,12 @@ public class VSliceChart extends ChartViewJFreeChart {
                             atX += stepX;
                         }
                         atY += stepY;
+                    }
+
+                    // Restore anti for text/etc done in overlay
+                    if (antiOn) {
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                RenderingHints.VALUE_ANTIALIAS_ON);
                     }
                 }
             }
@@ -456,7 +480,7 @@ public class VSliceChart extends ChartViewJFreeChart {
         rangeAxis.setUpperMargin(0.0);
         rangeAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits());
         rangeAxis.setAxisLineVisible(true);
-        
+
         // The height in KM for the VSlice
         VSliceNumberAxis heightAxis = new VSliceNumberAxis("Height KM", true);
         heightAxis.setLowerMargin(0.0);
@@ -468,13 +492,13 @@ public class VSliceChart extends ChartViewJFreeChart {
         TerrainXYZDataset ds = new TerrainXYZDataset();
         XYAreaRenderer ar = new XYAreaRenderer();
         ar.setSeriesPaint(0, Color.DARK_GRAY);
-          // Doesn't work...great.
+        // Doesn't work...great.
         //ar.setSeriesOutlinePaint(0, Color.GREEN);
-       // ar.setSeriesOutlineStroke(0, new BasicStroke(2));     
-        
+        // ar.setSeriesOutlineStroke(0, new BasicStroke(2));     
+
         // a 'fake' dataset since we bypass the normal renderer...
         VSliceFixedGridPlot plot = new VSliceFixedGridPlot(ds, rangeAxis, heightAxis, ar);
-        plot.setAxisOffset(new RectangleInsets(5,5,5,5));
+        plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
 
         VSliceChart chart = new VSliceChart("Chart", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
         /** Make it white (ignore theme color) */

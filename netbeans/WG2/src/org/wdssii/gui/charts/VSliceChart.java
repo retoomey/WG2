@@ -3,6 +3,7 @@ package org.wdssii.gui.charts;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.globes.ElevationModel;
 import gov.nasa.worldwind.globes.Globe;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -16,6 +17,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.DomainOrder;
 import org.jfree.data.Range;
 import org.jfree.data.general.DatasetChangeListener;
@@ -490,11 +492,17 @@ public class VSliceChart extends ChartViewJFreeChart {
 
         // The terrain overlay for the chart...
         TerrainXYZDataset ds = new TerrainXYZDataset();
-        XYAreaRenderer ar = new XYAreaRenderer();
-        ar.setSeriesPaint(0, Color.DARK_GRAY);
-        // Doesn't work...great.
-        //ar.setSeriesOutlinePaint(0, Color.GREEN);
-        // ar.setSeriesOutlineStroke(0, new BasicStroke(2));     
+        XYLineAndShapeRenderer arLine = new XYLineAndShapeRenderer();
+        arLine.setSeriesOutlinePaint(0, Color.GREEN);
+        arLine.setSeriesFillPaint(0, Color.GREEN);
+        arLine.setSeriesPaint(0, Color.BLUE);
+ 
+        // The terrain renderer
+        XYAreaRenderer ar = new XYAreaRenderer(XYAreaRenderer.AREA);
+        ar.setOutline(true);
+        ar.setSeriesPaint(0, new Color(34, 139, 034));  // ForestGreen
+        ar.setSeriesOutlinePaint(0, Color.RED);         // Red outline
+        ar.setSeriesOutlineStroke(0, new BasicStroke(2));     
 
         // a 'fake' dataset since we bypass the normal renderer...
         VSliceFixedGridPlot plot = new VSliceFixedGridPlot(ds, rangeAxis, heightAxis, ar);

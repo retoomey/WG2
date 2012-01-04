@@ -27,7 +27,7 @@ import org.wdssii.gui.worldwind.WWCategoryLayer;
  *
  * @author Robert Toomey
  */
-public class LayersView extends JThreadPanel implements WdssiiView {
+public class LayersView extends JThreadPanel implements CommandListener {
 
     private final LayerTableModel myModel;
     private final JTable myTable;

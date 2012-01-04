@@ -156,7 +156,7 @@ public class ProductNavigator {
         ProductJumpToCommand p= new ProductJumpToCommand();
         // For now, directly link to the single world view we have.
         // This will change if/when we go multiple groups/earthballs 
-        p.setWdssiiView( CommandManager.getInstance().getEarthBall());
+        p.setTargetListener( CommandManager.getInstance().getEarthBall());
         return p;
     }
 }

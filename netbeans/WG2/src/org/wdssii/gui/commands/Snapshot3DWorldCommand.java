@@ -13,9 +13,9 @@ public class Snapshot3DWorldCommand extends WdssiiCommand {
     @Override
     public boolean execute() {
 
-        if (myWdssiiView != null) {
-            if (myWdssiiView instanceof WorldWindView) {
-                WorldWindView e = (WorldWindView) (myWdssiiView);
+        if (myTargetListener != null) {
+            if (myTargetListener instanceof WorldWindView) {
+                WorldWindView e = (WorldWindView) (myTargetListener);
                 e.takeDialogSnapshot();
             }
         }

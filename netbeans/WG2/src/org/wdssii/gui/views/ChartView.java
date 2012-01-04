@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
-import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
@@ -25,11 +24,13 @@ import org.wdssii.gui.commands.VolumeSetTypeCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.SingletonManager;
 import org.wdssii.gui.commands.ChartSetTypeCommand;
+import org.wdssii.gui.commands.ProductFollowCommand;
+import org.wdssii.gui.commands.WdssiiCommand;
 import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.volumes.RadialSetVolume;
 import org.wdssii.gui.swing.JThreadPanel;
+import org.wdssii.gui.swing.JwgDropDownButton;
 import org.wdssii.gui.swing.SwingIconFactory;
-import org.wdssii.gui.views.ChartView;
 import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
 import org.wdssii.xml.wdssiiConfig.Tag_setup;
 
@@ -39,7 +40,7 @@ import org.wdssii.xml.wdssiiConfig.Tag_setup;
  * @author Robert Toomey
  *
  */
-public class ChartView extends JThreadPanel implements WdssiiView, ProductFilterFollowerView, ProductFollowerView, VolumeTypeFollowerView {
+public class ChartView extends JThreadPanel implements CommandListener, ProductFilterFollowerView, ProductFollowerView, VolumeTypeFollowerView {
 
     private static Log log = LogFactory.getLog(ChartView.class);
 // ----------------------------------------------------------------
@@ -94,6 +95,7 @@ public class ChartView extends JThreadPanel implements WdssiiView, ProductFilter
     private boolean myUseProductFilters;
     static int counter = 1;
     public final String[] myInterps = new String[]{"None", "Experiment: Binomial I"};
+    public int counter2 = 1;
 
     public ChartView() {
         initComponents();
@@ -111,9 +113,8 @@ public class ChartView extends JThreadPanel implements WdssiiView, ProductFilter
         // Still, using all strings from properties might be a good way to go
         jVirtualToggleButton = new JToggleButton();
         Icon i = SwingIconFactory.getIconByName("brick_add.png");
-        jVirtualToggleButton.setIcon(i); 
-        //org.openide.awt.Mnemonics.setLocalizedText(jVirtualToggleButton, org.openide.util.NbBundle.getMessage(ChartTopComponent.class, "ChartTopComponent.jVirtualToggleButton.text")); // NOI18N
-        // jVirtualToggleButton.setToolTipText(org.openide.util.NbBundle.getMessage(ChartTopComponent.class, "ChartTopComponent.jVirtualToggleButton.toolTipText")); // NOI18N
+        jVirtualToggleButton.setIcon(i);
+        jVirtualToggleButton.setToolTipText("Toggle virtual/nonvirtual volume");
         jVirtualToggleButton.setFocusable(false);
         jVirtualToggleButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jVirtualToggleButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -127,8 +128,6 @@ public class ChartView extends JThreadPanel implements WdssiiView, ProductFilter
         jToolBar1.add(jVirtualToggleButton);
 
         // Interpolation button
-        // FIXME: gonna take some work, will need a dynamic menu list.
-
         Icon test = SwingIconFactory.getIconByName("layers.png");
         JPopupMenu menu = new JPopupMenu();
         ActionListener menuAction = new ActionListener() {
@@ -154,12 +153,27 @@ public class ChartView extends JThreadPanel implements WdssiiView, ProductFilter
             menu.add(item);
         }
 
-       
-        // FIXME: broken because we gave up netbeans
-       // JButton b = DropDownButtonFactory.createDropDownButton(test, menu);
-       // b.setFocusPainted(false);
-       // b.setToolTipText("Choose the type of interpolation"); // properties?
-       // this.jToolBar1.add(b);
+        JwgDropDownButton b1 = new JwgDropDownButton(test);
+        b1.setToolTipText("Choose the type of interpolation");
+        b1.setMenu(menu);
+        jToolBar1.add(b1);
+
+        // ---------------------------------------------------------
+        // The product follow menu
+        test = SwingIconFactory.getIconByName("application_cascade.png");
+        JwgDropDownButton b2 = new JwgDropDownButton(test) {
+            @Override
+            public void generateMenu() { 
+                // Because the list dynamically changes
+                ProductFollowCommand f = new ProductFollowCommand();
+                f.setTargetListener(ChartView.this);
+                JPopupMenu menu = WdssiiCommand.getSwingMenuFor(f);            
+                setMenu(menu);
+            }
+        };
+        b2.setToolTipText("Choose product to follow");
+        jToolBar1.add(b2);
+
     }
 
     private void initComponents() {
@@ -204,7 +218,7 @@ public class ChartView extends JThreadPanel implements WdssiiView, ProductFilter
         CommandManager.getInstance().executeCommand(vToggle, true);
     }
 
-    public void initCharts() {
+    public final void initCharts() {
 
         // Top area where chart goes
         myChartBox = this.jChartPanel; // strange
@@ -261,26 +275,26 @@ public class ChartView extends JThreadPanel implements WdssiiView, ProductFilter
                 ArrayList<Tag_chart> list = doc.charts.charts;
                 if (list != null) {
 
-                    for(Tag_chart c:list){
-                        if ((c.gName != null) && (c.gName.compareTo(factoryChoice) == 0)){
-                             Class<?> aClass = null;
-                                try {
-                                    //System.out.println("NAME TO CREATE IS "+name);
-                                    aClass = Class.forName("org.wdssii.gui.charts." + c.name + "Chart");
-                                    Method createMethod = aClass.getMethod("create" + c.name + "Chart", new Class[]{});
-                                    ChartViewChart chart = (ChartViewChart) createMethod.invoke(null, new Object[]{});
-                                    log.debug("Generated chart by reflection " + c.name);
+                    for (Tag_chart c : list) {
+                        if ((c.gName != null) && (c.gName.compareTo(factoryChoice) == 0)) {
+                            Class<?> aClass = null;
+                            try {
+                                //System.out.println("NAME TO CREATE IS "+name);
+                                aClass = Class.forName("org.wdssii.gui.charts." + c.name + "Chart");
+                                Method createMethod = aClass.getMethod("create" + c.name + "Chart", new Class[]{});
+                                ChartViewChart chart = (ChartViewChart) createMethod.invoke(null, new Object[]{});
+                                log.debug("Generated chart by reflection " + c.name);
 
-                                    setChart(chart);
-                                    //chart.setUseVirtualVolume(myUseVirtualVolume);
-                                    //myChart = chart;
+                                setChart(chart);
+                                //chart.setUseVirtualVolume(myUseVirtualVolume);
+                                //myChart = chart;
 
-                                    myCurrentChoice = c.gName;
-                                } catch (Exception e) {
-                                    log.error("Couldn't create WdssiiChart by name '"
-                                            + c.name + "' because " + e.toString());
-                                    myChart = null;
-                                }
+                                myCurrentChoice = c.gName;
+                            } catch (Exception e) {
+                                log.error("Couldn't create WdssiiChart by name '"
+                                        + c.name + "' because " + e.toString());
+                                myChart = null;
+                            }
                         }
                     }
                     // bet I'm gonna get sync errors here....maybe not, we shouldn't

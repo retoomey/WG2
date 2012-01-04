@@ -34,7 +34,7 @@ import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.storage.DataManager;
 
-public class CacheView extends JThreadPanel implements WdssiiView {
+public class CacheView extends JThreadPanel implements CommandListener {
 
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.

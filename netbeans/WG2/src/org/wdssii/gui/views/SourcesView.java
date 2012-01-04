@@ -55,7 +55,7 @@ import org.wdssii.gui.swing.JThreadPanel;
  * @author Robert Toomey
  * 
  */
-public class SourcesView extends JThreadPanel implements WdssiiView, CONUSJPanelListener {
+public class SourcesView extends JThreadPanel implements CommandListener, CONUSJPanelListener {
 
     private ArrayList<BookmarkURLSource> mySourceList;
     private static final String ALLGROUPS = "All";

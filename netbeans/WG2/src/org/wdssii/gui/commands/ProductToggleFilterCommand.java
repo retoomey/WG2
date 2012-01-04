@@ -1,6 +1,6 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.views.WdssiiView;
+import org.wdssii.gui.views.CommandListener;
 
 /** Toggle a flag that says if we're using a regular volume or a virtual one
  * The chart view and LLHArea views use this for which volume to follow
@@ -9,7 +9,7 @@ import org.wdssii.gui.views.WdssiiView;
 public class ProductToggleFilterCommand extends ProductChangeCommand {
 
     /** Interface for a view following a use filter toggle */
-    public static interface ProductFilterFollowerView extends WdssiiView {
+    public static interface ProductFilterFollowerView extends CommandListener {
 
         /** Set the use filter */
         void setUseFilter(boolean useFilter);
@@ -23,9 +23,9 @@ public class ProductToggleFilterCommand extends ProductChangeCommand {
         // We are a toggle command...look for current value:
         boolean current = getToggleState();
 
-        if (myWdssiiView != null) {
-            if (myWdssiiView instanceof ProductFilterFollowerView) {
-                ((ProductFilterFollowerView) myWdssiiView).setUseFilter(current);
+        if (myTargetListener != null) {
+            if (myTargetListener instanceof ProductFilterFollowerView) {
+                ((ProductFilterFollowerView) myTargetListener).setUseFilter(current);
             }
         }
         return true;

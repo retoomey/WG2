@@ -47,7 +47,7 @@ import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 
-public class NavView extends JThreadPanel implements WdssiiView {
+public class NavView extends JThreadPanel implements CommandListener {
 
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.

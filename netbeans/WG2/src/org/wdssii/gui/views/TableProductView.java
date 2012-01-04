@@ -13,7 +13,7 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.swing.JThreadPanel;
 
-public class TableProductView extends JThreadPanel implements WdssiiView {
+public class TableProductView extends JThreadPanel implements CommandListener {
 
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.

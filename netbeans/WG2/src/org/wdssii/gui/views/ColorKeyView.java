@@ -25,7 +25,7 @@ import org.wdssii.gui.swing.JThreadPanel;
  * 
  * @author Robert Toomey
  */
-public class ColorKeyView extends JThreadPanel implements WdssiiView {
+public class ColorKeyView extends JThreadPanel implements CommandListener {
 
     public static final String ID = "ColorKeyView";
 

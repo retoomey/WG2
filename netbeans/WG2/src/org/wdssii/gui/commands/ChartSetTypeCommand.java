@@ -3,7 +3,6 @@ package org.wdssii.gui.commands;
 import java.util.ArrayList;
 import org.wdssii.gui.SingletonManager;
 import org.wdssii.gui.views.ChartView;
-import org.wdssii.gui.commands.WdssiiCommand.WdssiiMenuList;
 import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
 import org.wdssii.xml.wdssiiConfig.Tag_setup;
 
@@ -12,14 +11,14 @@ import org.wdssii.xml.wdssiiConfig.Tag_setup;
  * @author Robert Toomey
  *
  */
-public class ChartSetTypeCommand extends WdssiiCommand implements WdssiiMenuList {
+public class ChartSetTypeCommand extends WdssiiCommand {
 
     /** Get the list of suboptions for command.  Sort them in drop-down or dialog order */
     @Override
-    public ArrayList<MenuListItem> getSuboptions() {
+    public ArrayList<CommandOption> getCommandOptions() {
 
         // Fill in drop down from the XML
-        ArrayList<MenuListItem> options = new ArrayList<MenuListItem>();
+        ArrayList<CommandOption> options = new ArrayList<CommandOption>();
         Tag_setup doc = SingletonManager.getInstance().getSetupXML();
         if (doc != null) {
          
@@ -27,7 +26,7 @@ public class ChartSetTypeCommand extends WdssiiCommand implements WdssiiMenuList
             for(Tag_chart c:list){
                 if (c.show){
                     String gname = c.gName;
-                    options.add(new MenuListItem(gname, gname));
+                    options.add(new CommandOption(gname, gname));
                 }
             }
             /*WdssiiXMLCollection c = doc.get("charts");
@@ -55,12 +54,12 @@ public class ChartSetTypeCommand extends WdssiiCommand implements WdssiiMenuList
 
     /** During RCP updateElements, each element of the list needs updating. */
     @Override
-    public String getCurrentOptionInfo() {
+    public String getSelectedOption() {
 
         String choice = null;
-        if (myWdssiiView != null) {
-            if (myWdssiiView instanceof ChartView) {
-                choice = ((ChartView) myWdssiiView).getCurrentChoice();
+        if (myTargetListener != null) {
+            if (myTargetListener instanceof ChartView) {
+                choice = ((ChartView) myTargetListener).getCurrentChoice();
             }
         }
         if (choice == null) {
@@ -120,9 +119,9 @@ public class ChartSetTypeCommand extends WdssiiCommand implements WdssiiMenuList
             // Null choice currently means button was picked..should bring up dialog..
             if (value != null) {
                 // Need the view in order to send the command...
-                if (myWdssiiView != null) {
-                    if (myWdssiiView instanceof ChartView) {
-                        ((ChartView) myWdssiiView).setCurrentChoice(value);
+                if (myTargetListener != null) {
+                    if (myTargetListener instanceof ChartView) {
+                        ((ChartView) myTargetListener).setCurrentChoice(value);
                     }
                 }
             }

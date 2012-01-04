@@ -53,7 +53,7 @@ import org.wdssii.gui.worldwind.ReadoutStatusBar;
  * 
  * @author Robert Toomey
  */
-public class WorldWindView extends JThreadPanel implements WdssiiView {
+public class WorldWindView extends JThreadPanel implements CommandListener {
 
     public static final String ID = "worldwind";
     /** Determines if we use a heavyweight or lightweight java widget for
@@ -177,7 +177,7 @@ public class WorldWindView extends JThreadPanel implements WdssiiView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Snapshot3DWorldCommand c = new Snapshot3DWorldCommand();
-                c.setWdssiiView(theWorld);
+                c.setTargetListener(theWorld);
                 CommandManager.getInstance().executeCommand(c, true);
             }
         });

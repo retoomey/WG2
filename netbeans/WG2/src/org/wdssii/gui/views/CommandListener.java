@@ -6,5 +6,5 @@ package org.wdssii.gui.views;
  * @author Robert Toomey
  *
  */
-public interface WdssiiView {
+public interface CommandListener {
 }

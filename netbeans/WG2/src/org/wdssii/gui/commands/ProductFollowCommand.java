@@ -6,10 +6,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.commands.WdssiiCommand.WdssiiMenuList;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
-import org.wdssii.gui.views.WdssiiView;
+import org.wdssii.gui.views.CommandListener;
 
 /** Command to follow a particular product, such as in a chart where it is watching the top product or
  * a particular product.
@@ -19,13 +18,13 @@ import org.wdssii.gui.views.WdssiiView;
  * @author Robert Toomey
  *
  */
-public class ProductFollowCommand extends ProductCommand implements WdssiiMenuList {
-
+public class ProductFollowCommand extends ProductCommand {
+    
     /** The string representing following top and displayed to the user */
     public final static String top = "Follow selected (top) product";
 
     /** Interface for a view following the current list of products.*/
-    public static interface ProductFollowerView extends WdssiiView {
+    public static interface ProductFollowerView extends CommandListener {
 
         /** Set the product you are following to this key (can include top) */
         void setCurrentProductFollow(String changeTo);
@@ -34,41 +33,41 @@ public class ProductFollowCommand extends ProductCommand implements WdssiiMenuLi
         String getCurrentProductFollow();
     }
 
-    /** Get the list of suboptions for command.  Sort them in drop-down or dialog order */
+    /** Get the list of options for command.  Sort them in drop-down or dialog order */
     @Override
-    public ArrayList<MenuListItem> getSuboptions() {
+    public ArrayList<CommandOption> getCommandOptions() {
 
         // Go through products, get a sorted string list...
         ProductManager m = ProductManager.getInstance();
         ProductHandlerList p = m.getProductOrderedSet();
         Iterator<ProductHandler> iter = p.getIterator();
-        ArrayList<MenuListItem> theList = new ArrayList<MenuListItem>();
+        ArrayList<CommandOption> theList = new ArrayList<CommandOption>();
         int currentLine = 0;
         while (iter.hasNext()) {
             ProductHandler h = iter.next();
-            theList.add(new MenuListItem(h.getListName(), h.getKey()));
+            theList.add(new CommandOption(h.getListName(), h.getKey()));
             currentLine++;
         }
-        Collections.sort(theList, new Comparator<MenuListItem>() {
+        Collections.sort(theList, new Comparator<CommandOption>() {
 
             @Override
-            public int compare(MenuListItem o1, MenuListItem o2) {
+            public int compare(CommandOption o1, CommandOption o2) {
                 return o1.visibleText.compareTo(o2.visibleText);
             }
         });
-        theList.add(0, new MenuListItem(top, ProductHandlerList.TOP_PRODUCT));
+        theList.add(0, new CommandOption(top, ProductHandlerList.TOP_PRODUCT));
 
         return theList;
     }
 
     /** During RCP updateElements, each element of the list needs updating. */
     @Override
-    public String getCurrentOptionInfo() {
+    public String getSelectedOption() {
 
         String choice = null;
-        if (myWdssiiView != null) {
-            if (myWdssiiView instanceof ProductFollowerView) {
-                choice = ((ProductFollowerView) myWdssiiView).getCurrentProductFollow();
+        if (myTargetListener != null) {
+            if (myTargetListener instanceof ProductFollowerView) {
+                choice = ((ProductFollowerView) myTargetListener).getCurrentProductFollow();
             }
         }
         if (choice == null) {
@@ -84,22 +83,19 @@ public class ProductFollowCommand extends ProductCommand implements WdssiiMenuLi
 
         // Get the parameter out of us.  Should be "wdssii.ChartSetTypeParameter"
         if (myParameters != null) {
-            String value = myParameters.get("wdssii.ProductFollowParameter");
+            String value = myParameters.get(option);
 
             // Null choice currently means button was picked..should bring up dialog..
             if (value != null) {
                 // Need the view in order to send the command...
-                if (myWdssiiView != null) {
-                    if (myWdssiiView instanceof ProductFollowerView) {
-                        ((ProductFollowerView) myWdssiiView).setCurrentProductFollow(value);
+                if (myTargetListener != null) {
+                    if (myTargetListener instanceof ProductFollowerView) {
+                        ((ProductFollowerView) myTargetListener).setCurrentProductFollow(value);
                     }
                 }
             }
         } else {
-            System.out.println("Choose a product to follow in the drop down menu");
-
-            // Ok this is the 'top' button..not the drop menu...so bring up a dialog or do nothing?
-            // Need the view though...
+            System.out.println("ProductFollowCommand needs main option to tell what to follow");
         }
         return true;
     }

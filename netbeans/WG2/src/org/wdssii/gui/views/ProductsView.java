@@ -56,7 +56,7 @@ import org.wdssii.index.IndexWatcher;
  * @author Robert Toomey
  * 
  */
-public class ProductsView extends JThreadPanel implements WdssiiView {
+public class ProductsView extends JThreadPanel implements CommandListener {
     
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.

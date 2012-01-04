@@ -49,7 +49,7 @@ public class LRUCache<T> {
     /** The current full size of the cache.  Could have fewer than this
      * many items in the cache
      */
-    private int myCacheSize = myMinCacheSize;
+    private int myCacheSize = 200;
 
     /** Get an item given a key.  Getting an item MOVES it up in the LRU stack,
     as it has been referenced and is now more important than older entries

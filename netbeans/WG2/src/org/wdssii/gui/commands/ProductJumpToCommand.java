@@ -17,9 +17,9 @@ public class ProductJumpToCommand extends ProductCommand {
         Product p = getOurProduct();
         if (p != null) {
             Location loc = p.getBaseLocation();
-            if (myWdssiiView != null) {
-                if (myWdssiiView instanceof WorldWindView) {
-                    WorldWindView e = (WorldWindView) (myWdssiiView);
+            if (myTargetListener != null) {
+                if (myTargetListener instanceof WorldWindView) {
+                    WorldWindView e = (WorldWindView) (myTargetListener);
                     e.gotoLocation(loc);
                 }
             }

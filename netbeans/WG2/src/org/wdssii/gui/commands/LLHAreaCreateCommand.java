@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.wdssii.gui.LLHAreaManager;
-import org.wdssii.gui.commands.WdssiiCommand.WdssiiMenuList;
 
 /** Called by name from WdssiiDynamic */
-public class LLHAreaCreateCommand extends LLHAreaCommand implements WdssiiMenuList {
+public class LLHAreaCreateCommand extends LLHAreaCommand {
 
     private static final String PARM_MSG = "wdssii.LLHAreaCreateParameter";
   //  public final static String top = "Goop goop goop";
@@ -34,15 +33,15 @@ public class LLHAreaCreateCommand extends LLHAreaCommand implements WdssiiMenuLi
     }
 
     @Override
-    public ArrayList<MenuListItem> getSuboptions() {
+    public ArrayList<CommandOption> getCommandOptions() {
 
         LLHAreaManager area = LLHAreaManager.getInstance();
         ArrayList<String> list = area.getObjectNameList();
-        ArrayList<MenuListItem> theList = new ArrayList<MenuListItem>();
+        ArrayList<CommandOption> theList = new ArrayList<CommandOption>();
         Iterator<String> iter = list.iterator();
         while (iter.hasNext()) {
             String visible = iter.next();
-            theList.add(new MenuListItem("Create a " + visible, visible));
+            theList.add(new CommandOption("Create a " + visible, visible));
         }
 
         // We'll let them stay in manager order
@@ -58,7 +57,7 @@ public class LLHAreaCreateCommand extends LLHAreaCommand implements WdssiiMenuLi
     }
 
     @Override
-    public String getCurrentOptionInfo() {
+    public String getSelectedOption() {
         LLHAreaManager area = LLHAreaManager.getInstance();
         System.out.println("*******CURRECT NAME " + area.getCurrentFactoryName());
         return area.getCurrentFactoryName();

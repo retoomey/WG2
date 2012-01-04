@@ -408,7 +408,8 @@ public class DockWindow {
         addViewByID("TableProductView");
         addViewByID("ChartView");
         addViewByID("LLHAreaView");
-        addViewByID("ProductGroupView");
+        // Disable for now since this does nothing yet
+        // addViewByID("ProductGroupView");
         addViewByID("CacheView");
 
         // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.

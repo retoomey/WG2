@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonModel;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.UIManager;
@@ -101,6 +102,11 @@ public class SimplerJButton extends JButton {
         setOpaque(true);
     }
 
+    public SimplerJButton(Icon icon){
+        super(icon);
+        setOpaque(true);
+    }
+        
     @Override
     protected void paintComponent(Graphics g) {
 

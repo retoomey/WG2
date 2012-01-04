@@ -32,7 +32,7 @@ import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHArea.LLHAreaMemento;
 
-public class LLHAreaView extends JThreadPanel implements WdssiiView {
+public class LLHAreaView extends JThreadPanel implements CommandListener {
 
     public static final String ID = "wdssii.LLHAreaView";
 

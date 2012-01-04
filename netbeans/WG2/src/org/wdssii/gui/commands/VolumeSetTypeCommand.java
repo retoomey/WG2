@@ -1,6 +1,6 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.views.WdssiiView;
+import org.wdssii.gui.views.CommandListener;
 
 /** Toggle a flag that says if we're using a regular volume or a virtual one
  * The chart view and LLHArea views use this for which volume to follow
@@ -9,7 +9,7 @@ import org.wdssii.gui.views.WdssiiView;
 public class VolumeSetTypeCommand extends WdssiiCommand {
 
     /** Interface for a view following a virtual/regular volume toggle */
-    public static interface VolumeTypeFollowerView extends WdssiiView {
+    public static interface VolumeTypeFollowerView extends CommandListener {
 
         /** Set the volume type */
         void setUseVirtualVolume(boolean useVirtual);
@@ -18,8 +18,8 @@ public class VolumeSetTypeCommand extends WdssiiCommand {
         boolean getUseVirtualVolume();
     }
 
-    public VolumeSetTypeCommand(WdssiiView v, boolean newState){
-        myWdssiiView = v;
+    public VolumeSetTypeCommand(CommandListener v, boolean newState){
+        myTargetListener = v;
         setToggleState(newState);
     }
     
@@ -29,9 +29,9 @@ public class VolumeSetTypeCommand extends WdssiiCommand {
         boolean current = getToggleState();
 
         // Need the view in order to send the command...
-        if (myWdssiiView != null) {
-            if (myWdssiiView instanceof VolumeTypeFollowerView) {
-                ((VolumeTypeFollowerView) myWdssiiView).setUseVirtualVolume(current);
+        if (myTargetListener != null) {
+            if (myTargetListener instanceof VolumeTypeFollowerView) {
+                ((VolumeTypeFollowerView) myTargetListener).setUseVirtualVolume(current);
             }
         }
         return true;

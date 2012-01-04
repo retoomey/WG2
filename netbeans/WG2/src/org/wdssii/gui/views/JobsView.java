@@ -18,7 +18,7 @@ import org.wdssii.gui.swing.JThreadPanel;
  * Jobs view will handle displaying updating information on threaded jobs
  * 
  */
-public class JobsView extends JThreadPanel implements WdssiiView {
+public class JobsView extends JThreadPanel implements CommandListener {
 
     private JPanel myPanel;
     /** Adding and removing JComponents doesn't seem to be thread-safe,

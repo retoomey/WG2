@@ -16,7 +16,7 @@ import org.wdssii.gui.views.CacheView;
 import org.wdssii.gui.views.LLHAreaView;
 import org.wdssii.gui.views.SourceManagerView;
 import org.wdssii.gui.views.TableProductView;
-import org.wdssii.gui.views.WdssiiView;
+import org.wdssii.gui.views.CommandListener;
 import org.wdssii.index.IndexRecord;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.event.SelectEvent;
@@ -38,7 +38,7 @@ public class CommandManager implements Singleton {
     private VisualCollection myVisualCollection = new VisualCollection();
     public static String CommandPath = "org.wdssii.gui.commands.";
     private final Object myViewLock = new Object();
-    private TreeMap<String, WdssiiView> myNamedViews = new TreeMap<String, WdssiiView>();
+    private TreeMap<String, CommandListener> myNamedViews = new TreeMap<String, CommandListener>();
 
     // You should not create NavigationAction
     // yourself. Any class method using a NavigationAction must have that
@@ -142,7 +142,7 @@ public class CommandManager implements Singleton {
         return instance;
     }
 
-    public void registerView(String name, WdssiiView aView) {
+    public void registerView(String name, CommandListener aView) {
         synchronized (myViewLock) {
             myNamedViews.put(name, aView);
         }
@@ -155,7 +155,7 @@ public class CommandManager implements Singleton {
         }
     }
 
-    public WdssiiView getNamedViewed(String name) {
+    public CommandListener getNamedViewed(String name) {
         synchronized (myViewLock) {
             return (myNamedViews.get(name));
         }
@@ -283,7 +283,7 @@ public class CommandManager implements Singleton {
      * (myProductOrderedSet.getSimulationTime()); }
      */
     public void handleRecord(IndexRecord rec) {
-        WdssiiView view = getNamedViewed(SourceManagerView.ID);
+        CommandListener view = getNamedViewed(SourceManagerView.ID);
         if (view instanceof SourceManagerView) {
             SourceManagerView smv = (SourceManagerView) (view);
             smv.update();  // Different thread
@@ -291,7 +291,7 @@ public class CommandManager implements Singleton {
     }
 
     public GridVisibleArea getVisibleGrid() {
-        WdssiiView view = getNamedViewed(TableProductView.ID);
+        CommandListener view = getNamedViewed(TableProductView.ID);
         if (view instanceof TableProductView) {
             TableProductView table = (TableProductView) (view);
             return (table.getVisibleGrid());
@@ -315,7 +315,7 @@ public class CommandManager implements Singleton {
 
         // This is being called from the worldwind thread...not the SWT.
         // Any SWT update code must wrap within async..
-        WdssiiView view = getNamedViewed(LLHAreaView.ID);
+        CommandListener view = getNamedViewed(LLHAreaView.ID);
         if (view != null) {
             //    LLHAreaView vv = (LLHAreaView) (view);
             //   vv.earthViewSelection(world, event);
@@ -386,8 +386,8 @@ public class CommandManager implements Singleton {
 
         // All views are considered to be command listeners for now...
         synchronized (myViewLock) {
-            Collection<WdssiiView> c = myNamedViews.values();
-            for (WdssiiView v : c) {
+            Collection<CommandListener> c = myNamedViews.values();
+            for (CommandListener v : c) {
                 Class<?> theClass = v.getClass();
                 Class<?> commandClass = command.getClass();
                 String rootClass = WdssiiCommand.class.getSimpleName();

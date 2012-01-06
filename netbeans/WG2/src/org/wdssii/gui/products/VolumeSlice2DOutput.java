@@ -11,26 +11,38 @@ public class VolumeSlice2DOutput {
     /** Int is wasteful.  Could compact as a single float for RGBA */
     private int[] myColor2DBuffer = null;
     private float[] myValue2DBuffer = null;
-    
     /** The number of rows this was made with */
     private int rows = 0;
-    
     /** The number of cols this was made with */
     private int cols = 0;
-    
-    public void setDimensions(int r, int c){
+    /** True iff the output was successfully generated */
+    private boolean valid = false;
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean v) {
+        valid = v;
+        if (!valid) {
+            myColor2DBuffer = null;
+            myValue2DBuffer = null;
+        }
+    }
+
+    public void setDimensions(int r, int c) {
         rows = r;
         cols = c;
     }
-    
-    public int getRows(){
+
+    public int getRows() {
         return rows;
     }
-    
-    public int getCols(){
+
+    public int getCols() {
         return cols;
     }
-    
+
     /** An array used for filling in colors */
     public int[] getColor2dFloatArray(int size) {
         if (myColor2DBuffer == null) {

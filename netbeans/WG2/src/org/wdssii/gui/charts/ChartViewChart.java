@@ -92,4 +92,5 @@ public class ChartViewChart {
     public final boolean getUseProductFilters() {
         return myUseProductFilters;
     }
+
 }

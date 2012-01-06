@@ -532,6 +532,7 @@ public class ProductVolume {
         DataValueRecord rec = getNewDataValueRecord();
 
         // Buffers are reused from our geometry object
+        dest.setValid(false);
         dest.setDimensions(g.rows, g.cols);
         int[] color2DVertices = dest.getColor2dFloatArray(3 * g.rows * g.cols);
         float[] value2DVertices = dest.getValue2dFloatArray(g.rows * g.cols);
@@ -580,6 +581,8 @@ public class ProductVolume {
         }
         if (warning) {
             System.out.println("Exception during 2D VSlice grid generation " + message);
+        }else{
+            dest.setValid(true);
         }
     }
 

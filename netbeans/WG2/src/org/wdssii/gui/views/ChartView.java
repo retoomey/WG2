@@ -162,12 +162,13 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
         // The product follow menu
         test = SwingIconFactory.getIconByName("application_cascade.png");
         JwgDropDownButton b2 = new JwgDropDownButton(test) {
+
             @Override
-            public void generateMenu() { 
+            public void generateMenu() {
                 // Because the list dynamically changes
                 ProductFollowCommand f = new ProductFollowCommand();
                 f.setTargetListener(ChartView.this);
-                JPopupMenu menu = WdssiiCommand.getSwingMenuFor(f);            
+                JPopupMenu menu = WdssiiCommand.getSwingMenuFor(f);
                 setMenu(menu);
             }
         };
@@ -179,23 +180,22 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
     private void initComponents() {
 
         jToolBar1 = new javax.swing.JToolBar();
-        jChartPanel = new javax.swing.JPanel();
-        jGUIPanel = new javax.swing.JPanel();
+        myChartBox = new javax.swing.JPanel();
+        myChartGUIBox = new javax.swing.JPanel();
 
         setLayout(new java.awt.BorderLayout());
 
         jToolBar1.setRollover(true);
         add(jToolBar1, java.awt.BorderLayout.NORTH);
 
-        jChartPanel.setLayout(new java.awt.BorderLayout());
-        add(jChartPanel, java.awt.BorderLayout.CENTER);
+        myChartBox.setLayout(new java.awt.BorderLayout());
+        add(myChartBox, java.awt.BorderLayout.CENTER);
 
-        jGUIPanel.setLayout(new java.awt.BorderLayout());
-        add(jGUIPanel, java.awt.BorderLayout.SOUTH);
+        myChartGUIBox.setLayout(new java.awt.BorderLayout());
+        add(myChartGUIBox, java.awt.BorderLayout.SOUTH);
+
+
     }
-    // Variables declaration - do not modify                     
-    private javax.swing.JPanel jChartPanel;
-    private javax.swing.JPanel jGUIPanel;
     private javax.swing.JToolBar jToolBar1;
 
     private void jPopupMenuActionPerformed(java.awt.event.ActionEvent evt) {
@@ -219,15 +219,6 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
     }
 
     public final void initCharts() {
-
-        // Top area where chart goes
-        myChartBox = this.jChartPanel; // strange
-
-        // Bottom area where GUI items will go
-        myChartGUIBox = this.jGUIPanel;
-        //myChartGUIBox.setVisible(false);
-        // FIXME: Will need a scrolling panel for the GUI....
-        //myParent = parent;
 
         CommandManager.getInstance().registerView("ChartView", this);
 

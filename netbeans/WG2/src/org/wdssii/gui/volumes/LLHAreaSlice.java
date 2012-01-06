@@ -410,7 +410,6 @@ public class LLHAreaSlice extends LLHArea {
         if (locations.isEmpty()) {
             return;
         }
-System.out.println("Make v slice called");
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(getProductFollow(), getUseVirtualVolume());
         myVolumeProduct = volume;
 

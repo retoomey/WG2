@@ -8,12 +8,16 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.PlotRenderingInfo;
+import org.jfree.chart.plot.PlotState;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -248,7 +252,7 @@ public class VSliceChart extends ChartViewJFreeChart {
         @Override
         public Number getZ(int series, int item) {
 
-            // This number is meaningless since the 'value' is 
+            // This number is meaningless since the 'value' is
             // the same as the height, we might find a use for this later
             return 0;
         }
@@ -339,6 +343,8 @@ public class VSliceChart extends ChartViewJFreeChart {
         private LLHAreaSlice mySlice;
         private FilterList myList;
         private TerrainXYZDataset myTerrain;
+        /** The buffer for holding onto our 2D slice output data */
+        private VolumeSlice2DOutput my2DSlice = new VolumeSlice2DOutput();
 
         private VSliceFixedGridPlot(TerrainXYZDataset dataset, ValueAxis domainAxis, ValueAxis rangeAxis, XYItemRenderer renderer) {
             super(dataset, domainAxis, rangeAxis, renderer);
@@ -346,9 +352,14 @@ public class VSliceChart extends ChartViewJFreeChart {
         }
 
         @Override
-        public void drawBackground(Graphics2D g2, Rectangle2D dataArea) {
+        public void draw(Graphics2D g, Rectangle2D area, Point2D p, PlotState state, PlotRenderingInfo info) {
+            super.draw(g, area, p, state, info);
+        }
 
+        @Override
+        public void drawBackground(Graphics2D g2, Rectangle2D dataArea) {
             // Calculate the 'zoomed' lat/lon for our followed slice
+            my2DSlice.setValid(false);
             if (mySlice != null) {
                 VolumeSliceInput sourceGrid = mySlice.getGrid();
                 VolumeSliceInput subGrid = new VolumeSliceInput(sourceGrid);
@@ -411,18 +422,15 @@ public class VSliceChart extends ChartViewJFreeChart {
                         subGrid.endLon);
 
                 if (myVolume != null) {
-                    //VolumeSliceInput sourceGrid = mySlice.getGrid();
 
-                    // FIXME: modify grid only when axis change...
-                    VolumeSlice2DOutput dest = new VolumeSlice2DOutput();
-                    myVolume.generate2DGrid(subGrid, dest, myList, false);
-                    int[] data = dest.getColor2dFloatArray(0);
+                    myVolume.generate2DGrid(subGrid, my2DSlice, myList, false);
+                    int[] data = my2DSlice.getColor2dFloatArray(0);
 
                     // Render the dynamic 'grid' of data. Note that unlike
                     // JFreeChart we dynamically resample our dataset based
                     // upon the 'zoom' level
-                    int numOfCols = dest.getCols();
-                    int numOfRows = dest.getRows();
+                    int numOfCols = my2DSlice.getCols();
+                    int numOfRows = my2DSlice.getRows();
                     double stepX = dataArea.getWidth() / numOfCols;
                     double stepY = dataArea.getHeight() / numOfRows;
                     double atX = dataArea.getX();
@@ -496,13 +504,13 @@ public class VSliceChart extends ChartViewJFreeChart {
         arLine.setSeriesOutlinePaint(0, Color.GREEN);
         arLine.setSeriesFillPaint(0, Color.GREEN);
         arLine.setSeriesPaint(0, Color.BLUE);
- 
+
         // The terrain renderer
         XYAreaRenderer ar = new XYAreaRenderer(XYAreaRenderer.AREA);
         ar.setOutline(true);
         ar.setSeriesPaint(0, new Color(34, 139, 034));  // ForestGreen
         ar.setSeriesOutlinePaint(0, Color.RED);         // Red outline
-        ar.setSeriesOutlineStroke(0, new BasicStroke(2));     
+        ar.setSeriesOutlineStroke(0, new BasicStroke(2));
 
         // a 'fake' dataset since we bypass the normal renderer...
         VSliceFixedGridPlot plot = new VSliceFixedGridPlot(ds, rangeAxis, heightAxis, ar);
@@ -543,7 +551,7 @@ public class VSliceChart extends ChartViewJFreeChart {
         /* final Composite box = new Composite((Composite) parent, SWT.NONE);
         box.setLayout(new RowLayout());
         
-        // SRV 
+        // SRV
         Text srv = new Text(box, SWT.LEFT);
         srv.setText("HeightKMs:");
         srv.setEditable(false);
@@ -568,8 +576,88 @@ public class VSliceChart extends ChartViewJFreeChart {
         });
         
         return box;
-         * 
+         *
          */
         return null;
+    }
+
+    /** Draw the mouse overlay (readout) probably */
+    @Override
+    public void paintMouseOverlay(Graphics2D gd, ChartPanel pnl) {
+        Rectangle2D b = pnl.getScreenDataArea();
+        final int y = (int) b.getY();
+        final int x = (int) b.getX();
+        final int h = (int) b.getHeight();
+        final int w = (int) b.getWidth();
+        final double wf = b.getWidth();
+        final double wh = b.getHeight();
+        final double xf = b.getX();
+        final double yf = b.getY();
+
+        // Check to see mouse is inside the actual vslice chart area
+        if ((myMouseX > x)
+                && (myMouseY > y)
+                && (myMouseX < x + w)
+                && (myMouseY < y + h)) {
+
+            // Draw a crosshair...
+            // Fixme: make this pretty with stroke
+            gd.setColor(Color.BLUE);
+            gd.setStroke(new BasicStroke(
+                    1f,
+                    BasicStroke.CAP_ROUND,
+                    BasicStroke.JOIN_ROUND,
+                    1f,
+                    new float[]{2f},
+                    0f));
+            // vertical
+            gd.drawLine(myMouseX, y + 5, myMouseX, y + h - 5);
+            // horizontal
+            gd.drawLine(x + 5, myMouseY, x + w - 5, myMouseY);
+            gd.setStroke(new BasicStroke(1));
+            
+            // Draw readout text.
+            if (myPlot != null) {
+                boolean haveData = myPlot.my2DSlice.isValid();
+                if (haveData) {
+
+                    // FIXME: Readout will have to be more advanced,
+                    // getting the data format/unit etc from the actual
+                    // product....first pass just want something working
+                    float[] data = myPlot.my2DSlice.getValue2dFloatArray(0);
+
+                    // Render the dynamic 'grid' of data. Note that unlike
+                    // JFreeChart we dynamically resample our dataset based
+                    // upon the 'zoom' level
+                    int numOfCols = myPlot.my2DSlice.getCols();
+                    int numOfRows = myPlot.my2DSlice.getRows();
+
+                    // Actually need double accuracy, kinda annoying but it's
+                    // because the 'grid' is broken up with double precision
+                    // in rendering
+                    double pixelPerCol = wf / numOfCols;
+                    double pixelPerRow = wh / numOfRows;
+
+                    int myRow = (int) ((myMouseY - yf) / pixelPerRow);
+                    int myCol = (int) ((myMouseX - xf) / pixelPerCol);
+
+                    // Draw an 'outline' around the cell of the slice
+                    int boxx = (int) (xf + (myCol * pixelPerCol));
+                    int boxy = (int) (yf + (myRow * pixelPerRow));
+                    gd.drawRect(boxx, boxy, (int) pixelPerCol, (int) pixelPerRow);
+
+                    gd.setColor(Color.WHITE);
+                    float value = 0;
+                    int index = (myRow*numOfCols)+myCol;
+                    if (index < data.length){
+                        value = data[index];
+                    }
+                    String out = String.format("%f at (%d, %d)", value, myRow, myCol);
+                    gd.drawString(out, myMouseX, myMouseY);
+                    
+                }
+            }
+        }
+
     }
 }

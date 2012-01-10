@@ -32,37 +32,84 @@ import javax.swing.JComponent;
 public class LLHArea extends AVListImpl implements Movable {
 
     /** Change to pass onto the LLHArea.  All fields common to
-     LLHArea are here
-    */
+    LLHArea are here
+     */
     public static class LLHAreaMemento {
+
         public boolean visible;
         public boolean useVisible = false;  // Hummm either flags or set on creation
         public boolean only;
         public boolean useOnly = false;
-        public double maxHeight;
-        public boolean useMaxHeight = false;
+        private double maxHeight;
+        private boolean useMaxHeight = false;
+        private double minHeight;
+        private boolean useMinHeight = false;
+
+        public double getMinHeight() {
+            return minHeight;
+        }
+
+        public void setMinHeight(double h) {
+            final double a= getMinAllowedHeight();
+            if (h >= a) {
+                minHeight = h;
+            } else {
+                h = a;
+            }
+            
+            // Minimum total size of slice
+            final double m = maxHeight-getMinAllowedSize();
+            if (h >= m){
+                minHeight = m;
+            }
+            useMinHeight = true;
+        }
+
+        public double getMaxHeight() {
+            return maxHeight;
+        }
+
+        public void setMaxHeight(double h) {
+            final double a = getMaxAllowedHeight();
+            if (h <= a) {
+                maxHeight = h;
+            } else {
+                h = a;
+            }
+            
+            // Minimum total size of slice
+            final double m = minHeight + getMinAllowedSize();
+            if (h <= m) {
+                maxHeight = m;
+            }
+            useMaxHeight = true;
+        }
+
+        public double getMaxAllowedHeight() {
+            return 20000;  // Meters
+        }
+
+        public double getMinAllowedHeight() {
+            return -20000; // Meters
+        }
+
+        public double getMinAllowedSize() {
+            return 100;  // Meters
+        }
     }
-    
     // Hummm
     private boolean visible = true;
-    private boolean only = false; 
-    
+    private boolean only = false;
     /** Every LLHArea can follow a particular product */
     protected String myProductFollow = ProductHandlerList.TOP_PRODUCT;
-    
     /** Do we use virtual volume or regular one? */
     protected boolean myUseVirtualVolume = false;
-
     protected static final String SUBDIVISIONS = "Subdivisions";
     protected static final String VERTICAL_EXAGGERATION = "VerticalExaggeration";
-
     private AirspaceAttributes attributes;
-    
     protected double lowerAltitude = 0.0;
     protected double upperAltitude = 1.0;
-    
     private LatLon groundReference;
-
     // Geometry computation and rendering support.
     private LLHAreaRenderer renderer = new LLHAreaRenderer();
     private GeometryBuilder geometryBuilder = new GeometryBuilder();
@@ -72,20 +119,30 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     /** Get the memento for this class */
-    public LLHAreaMemento getMemento(){
+    public LLHAreaMemento getMemento() {
         LLHAreaMemento m = new LLHAreaMemento();
         m.visible = visible;
         m.only = only;
         m.maxHeight = upperAltitude;
+        m.minHeight = lowerAltitude;
         return m;
     }
-    
-    public void setFromMemento(LLHAreaMemento l){
-        if (l.useVisible){ setVisible(l.visible); }
-        if (l.useOnly) { setOnly(l.only); }
-        if (l.useMaxHeight){ setAltitudes(lowerAltitude, l.maxHeight);}
+
+    public void setFromMemento(LLHAreaMemento l) {
+        if (l.useVisible) {
+            setVisible(l.visible);
+        }
+        if (l.useOnly) {
+            setOnly(l.only);
+        }
+        if (l.useMaxHeight) {
+            setAltitudes(lowerAltitude, l.maxHeight);
+        }
+        if (l.useMinHeight) {
+            setAltitudes(l.minHeight, upperAltitude);
+        }
     }
-    
+
     // Airspaces perform about 5% better if their extent is cached, so do that here.
     protected static class ExtentInfo {
         // The extent depends on the state of the globe used to compute it, and the vertical exaggeration.
@@ -124,7 +181,7 @@ public class LLHArea extends AVListImpl implements Movable {
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
-    
+
     public boolean isOnly() {
         return this.only;
     }
@@ -178,7 +235,7 @@ public class LLHArea extends AVListImpl implements Movable {
     public void setGroundReference(LatLon groundReference) {
         this.groundReference = groundReference;
     }
-    
+
     public boolean isAirspaceVisible(DrawContext dc) {
         Extent extent = this.getExtent(dc);
         return extent != null && extent.intersects(dc.getView().getFrustumInModelCoordinates());
@@ -361,7 +418,7 @@ public class LLHArea extends AVListImpl implements Movable {
                 max_perp = perpendicular_proj;
             }
         }
-        
+
         // The bottom and top of the cylinder are the extrema parallel projections from the center point along the axis.
         Vec4 bottomPoint = axis.multiply3(min_parallel).add3(centerPoint);
         Vec4 topPoint = axis.multiply3(max_parallel).add3(centerPoint);
@@ -432,19 +489,17 @@ public class LLHArea extends AVListImpl implements Movable {
     public boolean getUseVirtualVolume() {
         return myUseVirtualVolume;
     }
-    
+
     /** Activate our GUI within the given JComponent.  The JComponent is
      * assumed empty.  We should assign the layout we want to it.  The
      * caller is trusting us to handle this properly. 
      * 
      * @param source 
      */
-    public void activateGUI(JComponent source){
-        
+    public void activateGUI(JComponent source) {
     }
-    
+
     /** Update our current GUI controls */
-    public void updateGUI(){
-        
+    public void updateGUI() {
     }
 }

@@ -6,8 +6,13 @@
  */
 package org.wdssii.gui.volumes;
 
+import javax.swing.JLabel;
+import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.LLHAreaManager;
 import org.wdssii.gui.commands.LLHAreaChangeCommand;
@@ -26,82 +31,96 @@ import org.wdssii.gui.volumes.LLHArea.LLHAreaMemento;
  */
 public class LLHAreaSliceGUI extends javax.swing.JPanel {
 
+    /** The VSlice object in 3D window we're linked to */
     private final LLHAreaSlice myOwner;
+    /** Spinner for max height of slice */
+    private JSpinner jMaxHeightKMS;
+    /** Spinner for min height of slice */
+    private JSpinner jMinHeightKMS;
 
     /** Creates new form LLHAreaSliceGUI */
     public LLHAreaSliceGUI(LLHAreaSlice owner) {
         myOwner = owner;
         setupComponents();
-        String name = LLHAreaManager.getInstance().getVisibleName(owner);
-        jNameLabel.setText(name);
-
-        // Create a model for our max height spinner
-        double maxHeight = myOwner.getTopHeightKms();
-        double max = 20000;
-        max = Math.max(20000, maxHeight);
-        SpinnerModel model =
-                new SpinnerNumberModel(maxHeight, //initial value
-                0, //min  FIXME: get from LLHArea
-                max, //max FIXME: get from LLHArea
-                1); // 1 Meter step
-        jMaxHeightKMS.setModel(model);
+        //  String name = LLHAreaManager.getInstance().getVisibleName(owner);
+        //   jNameLabel.setText(name);
     }
 
     /** General update call */
     public void updateGUI() {
-        String name = LLHAreaManager.getInstance().getVisibleName(myOwner);
-        jNameLabel.setText(name);
         LLHAreaMemento m = myOwner.getMemento();
-        jMaxHeightKMS.setValue(m.maxHeight);
-        // Humm will round be an issue?
+        jMaxHeightKMS.setValue(m.getMaxHeight());
+        jMinHeightKMS.setValue(m.getMinHeight());
     }
 
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JSpinner jMaxHeightKMS;
-    private javax.swing.JLabel jNameLabel;
-    
     private void setupComponents() {
 
-        jNameLabel = new javax.swing.JLabel();
-        jMaxHeightKMS = new javax.swing.JSpinner();
-        jLabel1 = new javax.swing.JLabel();
+        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
 
-        setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-
-        jNameLabel.setText("Name");
-
+        LLHAreaMemento m = myOwner.getMemento();
+        double maxHeight = m.getMaxHeight();
+        double minHeight = m.getMinHeight();
+        double min = m.getMinAllowedHeight();
+        double max = m.getMaxAllowedHeight();
+        double size = m.getMinAllowedSize();
+        
+        // Create max spinner
+        jMaxHeightKMS = new JSpinner();
         jMaxHeightKMS.addChangeListener(new javax.swing.event.ChangeListener() {
+
+            @Override
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jMaxHeightKMSStateChanged(evt);
             }
         });
-        add(jMaxHeightKMS);
 
-        jLabel1.setText("Top Meters");
-        add(jLabel1);
-    }  
-    
-    private void jMaxHeightKMSStateChanged(javax.swing.event.ChangeEvent evt) {                                           
+        SpinnerModel model =
+                new SpinnerNumberModel(maxHeight, //initial value
+                min+size, // min of the max value
+                max,      // max of the max value
+                1); // 1 meter step.  Changable units might be nice
+        jMaxHeightKMS.setModel(model);
+        add(new JLabel("Top"));
+        add(jMaxHeightKMS);
+        add(new JLabel("Meters"), "wrap");
+        
+
+        // Create min spinner
+        jMinHeightKMS = new JSpinner();
+        jMinHeightKMS.addChangeListener(new javax.swing.event.ChangeListener() {
+
+            @Override
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jMinHeightKMSStateChanged(evt);
+            }
+        });
+
+        SpinnerModel model2 =
+                new SpinnerNumberModel(minHeight, //initial value
+                min, // min
+                max-size, //max
+                1); // 1 Meter step
+        jMinHeightKMS.setModel(model2);
+        add(new JLabel("Bottom"));
+        add(jMinHeightKMS);
+        add(new JLabel("Meters"), "wrap");
+    }
+
+    /** Change the maximum height of slice */
+    private void jMaxHeightKMSStateChanged(ChangeEvent evt) {
         double value = (Double) jMaxHeightKMS.getValue();
         LLHAreaMemento m = myOwner.getMemento();
-        m.useMaxHeight = true;
-        m.maxHeight = value;
+        m.setMaxHeight(value);
         LLHAreaChangeCommand c = new LLHAreaChangeCommand(myOwner, m);
         CommandManager.getInstance().executeCommand(c, true);
-    }  
-    
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    }
 
-        setLayout(null);
-    }// </editor-fold>//GEN-END:initComponents
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
+    /** Change the minimum height of slice */
+    private void jMinHeightKMSStateChanged(ChangeEvent evt) {
+        double value = (Double) jMinHeightKMS.getValue();
+        LLHAreaMemento m = myOwner.getMemento();
+        m.setMinHeight(value);
+        LLHAreaChangeCommand c = new LLHAreaChangeCommand(myOwner, m);
+        CommandManager.getInstance().executeCommand(c, true);
+    }
 }

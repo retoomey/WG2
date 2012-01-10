@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -7,13 +8,18 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.JCheckBox;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.LLHAreaManager.VolumeTableData;
 import org.wdssii.gui.commands.LLHAreaCreateCommand;
 import org.wdssii.gui.CommandManager;
@@ -36,7 +42,7 @@ public class LLHAreaView extends JThreadPanel implements CommandListener {
 
     public static final String ID = "wdssii.LLHAreaView";
 
-   // ----------------------------------------------------------------
+    // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
     // When sources or products change, update the navigation controls
@@ -48,14 +54,16 @@ public class LLHAreaView extends JThreadPanel implements CommandListener {
     public void updateInSwingThread(Object command) {
         updateTable();
     }
-    
-        /** Our factory, called by reflection to populate menus, etc...*/
+
+    /** Our factory, called by reflection to populate menus, etc...*/
     public static class Factory extends WdssiiDockedViewFactory {
+
         public Factory() {
-             super("3D Objects", "brick_add.png");   
+            super("3D Objects", "brick_add.png");
         }
+
         @Override
-        public Component getNewComponent(){
+        public Component getNewComponent() {
             return new LLHAreaView();
         }
     }
@@ -372,36 +380,49 @@ public class LLHAreaView extends JThreadPanel implements CommandListener {
         }
         jObjects3DListTable.repaint();
     }
-private void initComponents() {
+
+    private void initComponents() {
 
         jEditToolBar = new javax.swing.JToolBar();
         jButton1 = new javax.swing.JButton("VSlice");
         jButton2 = new javax.swing.JButton("Box");
-        jControlsToolBar = new javax.swing.JToolBar();
+        jControlsToolBar = new JPanel();
         jRootControlPanel = new javax.swing.JPanel();
         jTextField1 = new javax.swing.JTextField();
-        jObjectScrollPane = new javax.swing.JScrollPane();
+        jObjectScrollPane = new JScrollPane();
+        JScrollPane jControlScrollPane = new JScrollPane();
+        jControlScrollPane.add(jControlsToolBar);
+        jControlsToolBar.setLayout(new MigLayout(new LC().insetsAll("3"), null, null));
 
+        JSplitPane northSouth = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                jObjectScrollPane, jControlScrollPane);
+        northSouth.setResizeWeight(.50);
+        jControlScrollPane.setViewportView(jControlsToolBar);
+        
         setLayout(new java.awt.BorderLayout());
 
         jEditToolBar.setRollover(true);
 
-       // org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(LLHAreaTopComponent.class, "LLHAreaTopComponent.jButton1.text")); // NOI18N
+        // org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(LLHAreaTopComponent.class, "LLHAreaTopComponent.jButton1.text")); // NOI18N
         jButton1.setFocusable(false);
         jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jButton1.addActionListener(new java.awt.event.ActionListener() {
+
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
         jEditToolBar.add(jButton1);
 
-       // org.openide.awt.Mnemonics.setLocalizedText(jButton2, org.openide.util.NbBundle.getMessage(LLHAreaTopComponent.class, "LLHAreaTopComponent.jButton2.text")); // NOI18N
+        // org.openide.awt.Mnemonics.setLocalizedText(jButton2, org.openide.util.NbBundle.getMessage(LLHAreaTopComponent.class, "LLHAreaTopComponent.jButton2.text")); // NOI18N
         jButton2.setFocusable(false);
         jButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jButton2.addActionListener(new java.awt.event.ActionListener() {
+
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
             }
@@ -410,39 +431,40 @@ private void initComponents() {
 
         add(jEditToolBar, java.awt.BorderLayout.NORTH);
 
-        jControlsToolBar.setRollover(true);
+      //  jControlsToolBar.setRollover(true);
 
         jRootControlPanel.setBackground(new java.awt.Color(255, 102, 102));
         jRootControlPanel.setPreferredSize(new java.awt.Dimension(200, 50));
         jRootControlPanel.setLayout(new java.awt.BorderLayout());
 
-       // jTextField1.setText(org.openide.util.NbBundle.getMessage(LLHAreaTopComponent.class, "LLHAreaTopComponent.jTextField1.text")); // NOI18N
+        // jTextField1.setText(org.openide.util.NbBundle.getMessage(LLHAreaTopComponent.class, "LLHAreaTopComponent.jTextField1.text")); // NOI18N
         jTextField1.setText("Controls for selected 3DObject");
         jRootControlPanel.add(jTextField1, java.awt.BorderLayout.CENTER);
 
         jControlsToolBar.add(jRootControlPanel);
 
-        add(jControlsToolBar, java.awt.BorderLayout.PAGE_END);
-        add(jObjectScrollPane, java.awt.BorderLayout.CENTER);
+        //  add(jControlsToolBar, java.awt.BorderLayout.PAGE_END);
+        // add(jObjectScrollPane, java.awt.BorderLayout.CENTER);
+        add(northSouth, java.awt.BorderLayout.CENTER);
+
     }// </editor-fold>                        
- private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         LLHAreaCreateCommand doit = new LLHAreaCreateCommand("Slice");
         CommandManager.getInstance().executeCommand(doit, true);
-    }                                        
+    }
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
         LLHAreaCreateCommand doit = new LLHAreaCreateCommand("Box");
         CommandManager.getInstance().executeCommand(doit, true);
-    }                                        
-
+    }
     // Variables declaration - do not modify                     
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JToolBar jControlsToolBar;
+    private JPanel jControlsToolBar;
     private javax.swing.JToolBar jEditToolBar;
     private javax.swing.JScrollPane jObjectScrollPane;
     private javax.swing.JPanel jRootControlPanel;
     private javax.swing.JTextField jTextField1;
     // End of variables declaration                   
-
 }

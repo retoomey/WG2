@@ -32,27 +32,21 @@ public class LLHAreaSlice extends LLHArea {
 
     /** The number of rows or altitudes of the VSlice */
     public static final int myNumRows = 50;  //50
-    
     /** The number of cols or change in Lat/Lon */
     public static final int myNumCols = 100; //100
-    
     /** Holder for the slice GIS 'state' */
-    private VolumeSliceInput myCurrentGrid = 
+    private VolumeSliceInput myCurrentGrid =
             new VolumeSliceInput(myNumRows, myNumCols, 0, 0,
-                0, 0, 0, 50);
-    
+            0, 0, 0, 50);
     /** This info is in the SliceInput, might be able to remove it */
     private List<LatLon> locations = new ArrayList<LatLon>();
-    
     private int subdivisions = 1;  // power of 2 breakdown of side..
     private VSliceRenderer myRenderer = new VSliceRenderer();
     private ProductVolume myVolumeProduct = null;
     private VolumeSlice3DOutput myGeometry = new VolumeSlice3DOutput();
-
     private String myCacheKey = "";
-
     private LLHAreaSliceGUI myControls = null;
-    
+
     public int getNumRows() {
         return myNumRows;
     }
@@ -80,8 +74,8 @@ public class LLHAreaSlice extends LLHArea {
     public double getHeightKms() {
         // Get the range of this vslice in Kms...
         // double[] altitudes = this.getAltitudes(dc.getVerticalExaggeration());
-       // double bottomHeight = myAltitude0;  // Remembered from last draw...FIXME.
-       // double topHeight = myAltitude1;
+        // double bottomHeight = myAltitude0;  // Remembered from last draw...FIXME.
+        // double topHeight = myAltitude1;
         double bottomHeight = myCurrentGrid.bottomHeight;
         double topHeight = myCurrentGrid.topHeight;
         return topHeight - bottomHeight;
@@ -97,7 +91,7 @@ public class LLHAreaSlice extends LLHArea {
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(myProductFollow, getUseVirtualVolume());
         myVolumeProduct = volume;
     }
-    
+
     public List<LatLon> getLocations() {
         return Collections.unmodifiableList(this.locations);
     }
@@ -187,7 +181,7 @@ public class LLHAreaSlice extends LLHArea {
         if (locations.isEmpty()) {
             return;
         }
-        
+
         // Get the true altitudes for sampling purposes
         // vertical is for rendering only...getAltitudes(dc.getVerticalExaggeration());
         double[] altitudes = this.getAltitudes();
@@ -272,6 +266,23 @@ public class LLHAreaSlice extends LLHArea {
         }
         newKey = newKey + myCurrentGrid.bottomHeight;
         newKey = newKey + myCurrentGrid.topHeight;
+        return newKey;
+    }
+
+    /** Get a pretty GIS label for rendering in a chart, for instance */
+    public String getGISLabel() {
+        LatLon left = getLeftLocation();
+        LatLon right = getRightLocation();
+        return getGISLabel(left.getLatitude().degrees,
+                left.getLongitude().degrees,
+                right.getLatitude().degrees,
+                right.getLongitude().degrees);
+    }
+
+    public String getGISLabel(double startLat, double startLon, double endLat, double endLong) {
+        String newKey = String.format(
+                "(%5.2f, %5.2f)                        (%5.2f, %5.2f)",
+                startLat, startLon, endLat, endLong);
         return newKey;
     }
 
@@ -395,12 +406,12 @@ public class LLHAreaSlice extends LLHArea {
     }
 
     public double getBottomHeightKms() {
-      //  return myAltitude0;
+        //  return myAltitude0;
         return myCurrentGrid.bottomHeight;
     }
 
     public double getTopHeightKms() {
-       // return myAltitude1;
+        // return myAltitude1;
         return upperAltitude;
     }
 
@@ -420,11 +431,11 @@ public class LLHAreaSlice extends LLHArea {
         LatLon leftBottom;
         LatLon rightBottom;
         if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
-            leftBottom = l1;
-            rightBottom = l2;
+        leftBottom = l1;
+        rightBottom = l2;
         } else {
-            leftBottom = l2;
-            rightBottom = l1;
+        leftBottom = l2;
+        rightBottom = l1;
         }*/
 
         // Get the filter list and the record object
@@ -532,7 +543,7 @@ public class LLHAreaSlice extends LLHArea {
                 for (int j = 0; j < 2; j++) {
                     // vec = this.computePointFromPosition(dc, pos2.getLatitude(), pos2.getLongitude(), altitudes[j],
                     //        terrainConformant[j]);
-                    vec = globe.computePointFromPosition(pos2.getLatitude(), pos2.getLongitude(), altitudes[j]*vert);
+                    vec = globe.computePointFromPosition(pos2.getLatitude(), pos2.getLongitude(), altitudes[j] * vert);
 
                     pindex = 2 * p + j;
                     pindex = 3 * (vertexPos + pindex);
@@ -573,10 +584,10 @@ public class LLHAreaSlice extends LLHArea {
         double startLon = leftBottom.getLongitude().getDegrees();
         double endLat = rightBottom.getLatitude().getDegrees();
         double endLon = rightBottom.getLongitude().getDegrees();
-
+        
         myCurrentGrid.set(myNumRows, myNumCols, startLat, startLon,
-               endLat, endLon, altitudes[0], altitudes[1]);
-      */
+        endLat, endLon, altitudes[0], altitudes[1]);
+         */
         myCurrentGrid.set(myNumRows, myNumCols, myCurrentGrid.startLat, myCurrentGrid.startLon,
                 myCurrentGrid.endLat, myCurrentGrid.endLon,
                 myCurrentGrid.bottomHeight, myCurrentGrid.topHeight);
@@ -585,8 +596,8 @@ public class LLHAreaSlice extends LLHArea {
     }
 
     /** Update the current grid that is the GIS location of the slice */
-    private void updateCurrentGrid(){
-             
+    private void updateCurrentGrid() {
+
         // VSlice only.  Two locations, the points on the bottom. Make sure the east one is right of the west one...
         // FIXME: duplicate code with getLeftLocation/getRightLocation
         LatLon l1 = locations.get(0);
@@ -601,7 +612,7 @@ public class LLHAreaSlice extends LLHArea {
             rightBottom = l1;
         }
 
-         // Generate the 3D VSlice in the window, and the 2D slice for charting...
+        // Generate the 3D VSlice in the window, and the 2D slice for charting...
         double startLat = leftBottom.getLatitude().getDegrees();
         double startLon = leftBottom.getLongitude().getDegrees();
         double endLat = rightBottom.getLatitude().getDegrees();
@@ -612,7 +623,7 @@ public class LLHAreaSlice extends LLHArea {
         myCurrentGrid.endLat = endLat;
         myCurrentGrid.endLon = endLon;
     }
-    
+
     /** Our version of computePointFromPosition that doesn't make new objects and do tons of checks.
      * Meant to be called from the generate function only where we have already done all the safety checks.
      * Since this is called a zillion times during rendering any speed improvement here helps.
@@ -669,7 +680,6 @@ public class LLHAreaSlice extends LLHArea {
         return 2 * gb.getSubdivisionPointsVertexCount(subdivisions);
     }
 
-    
     private void makeSectionOutlineIndices(int subdivisions, int vertexPos, int indexPos, int[] indices,
             boolean beginEdgeFlag, boolean endEdgeFlag) {
         GeometryBuilder gb = this.getGeometryBuilder();
@@ -699,27 +709,28 @@ public class LLHAreaSlice extends LLHArea {
             indices[index] = pos + 1;
         }
     }
-    
+
     @Override
-    public void activateGUI(JComponent source){ 
+    public void activateGUI(JComponent source) {
         // Create the controls only if they don't already exist.
         // FIXME: maybe some caching among common types?  We probably won't
         // have more than 5-10 3D volume objects per display, so for now
         // we have a unique set of controls per vslice.
-        if (myControls == null){
+        if (myControls == null) {
             myControls = new LLHAreaSliceGUI(this);
         }
-        
+
         // Set the layout and add our controls
         source.setLayout(new java.awt.BorderLayout());
         source.add(myControls, java.awt.BorderLayout.CENTER);
-        
+        myControls.doLayout();
+
         updateGUI();
     }
-    
+
     @Override
-    public void updateGUI(){
-        if (myControls != null){
+    public void updateGUI() {
+        if (myControls != null) {
             myControls.updateGUI();
         }
     }

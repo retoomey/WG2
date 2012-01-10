@@ -22,11 +22,14 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.DomainOrder;
 import org.jfree.data.Range;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetGroup;
 import org.jfree.data.xy.XYZDataset;
+import org.jfree.ui.HorizontalAlignment;
+import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.LLHAreaManager;
@@ -104,10 +107,15 @@ public class VSliceChart extends ChartViewJFreeChart {
     private String myGISKey = "";
     private VSliceFixedGridPlot myPlot = null;
 
+
     public VSliceChart(String arg0, Font arg1, VSliceFixedGridPlot arg2, boolean arg3) {
 
-        myJFreeChart = new JFreeChart(arg0, arg1, arg2, arg3);
+        myJFreeChart = new JFreeChart(arg0, arg1, arg2, arg3);    
         myPlot = arg2;
+        myPlot.myText= new TextTitle("", new Font("Dialog", Font.PLAIN, 11));
+        myPlot.myText.setPosition(RectangleEdge.BOTTOM);
+        myPlot.myText.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+        myJFreeChart.addSubtitle(myPlot.myText);
     }
 
     /** Return the LLHAreaSlice that we are currently drawing a plot for */
@@ -153,9 +161,10 @@ public class VSliceChart extends ChartViewJFreeChart {
         if (!myGISKey.equals(gisKey)) {
             myRangeAxis.setVSliceRange(new Range(0, slice.getRangeKms() / 1000.0));
             myHeightAxis.setVSliceRange(new Range(slice.getBottomHeightKms() / 1000.0, slice.getTopHeightKms() / 1000.0));
+            myPlot.myText.setText(slice.getGISLabel());
         }
         myGISKey = gisKey;
-
+            
         /** Get the volume we are following */
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(getUseProductKey(), getUseVirtualVolume());
         if (volume == null) {
@@ -339,6 +348,7 @@ public class VSliceChart extends ChartViewJFreeChart {
      */
     public static class VSliceFixedGridPlot extends XYPlot {
 
+        private TextTitle myText;
         private ProductVolume myVolume;
         private LLHAreaSlice mySlice;
         private FilterList myList;
@@ -415,7 +425,9 @@ public class VSliceChart extends ChartViewJFreeChart {
                 subGrid.endLat = sLat + (rightKms * deltaLatPerKm);
                 subGrid.startLon = sLon + (leftKms * deltaLonPerKm);
                 subGrid.endLon = sLon + (rightKms * deltaLonPerKm);
-
+                String newKey = mySlice.getGISLabel(subGrid.startLat, subGrid.startLon, 
+                        subGrid.endLat, subGrid.endLon);             
+                myText.setText(newKey);
                 myTerrain.syncToRange(rangeAxis, subGrid.startLat,
                         subGrid.startLon,
                         subGrid.endLat,

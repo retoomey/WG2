@@ -30,6 +30,66 @@ import javax.swing.JComponent;
  */
 public class LLHAreaSlice extends LLHArea {
 
+    /** Change to pass onto the LLHArea.  All fields common to
+    LLHArea are here
+     */
+    public static class LLHAreaSliceMemento extends LLHAreaMemento {
+
+        private double leftLatDegrees;
+        private boolean useLeftLatDegrees = false;
+        private double leftLonDegrees;
+        private boolean useLeftLonDegrees = false;
+        private double rightLatDegrees;
+        private boolean useRightLatDegrees = false;
+        private double rightLonDegrees;
+        private boolean useRightLonDegrees = false;
+
+        public LLHAreaSliceMemento(LLHAreaSlice a) {
+            super(a);
+            final LatLon left = a.getLeftLocation();
+            final LatLon right = a.getRightLocation();
+            leftLatDegrees = left.getLatitude().degrees;
+            leftLonDegrees = left.getLongitude().degrees;
+            rightLatDegrees = right.getLatitude().degrees;
+            rightLonDegrees = right.getLongitude().degrees;
+        }
+
+        public double getLeftLatDegrees() {
+            return leftLatDegrees;
+        }
+
+        public void setLeftLatDegrees(double lld) {
+            useLeftLatDegrees = true;
+            leftLatDegrees = lld;
+        }
+
+        public double getLeftLonDegrees() {
+            return leftLonDegrees;
+        }
+
+        public void setLeftLonDegrees(double lld) {
+            useLeftLonDegrees = true;
+            leftLonDegrees = lld;
+        }
+
+        public double getRightLatDegrees() {
+            return rightLatDegrees;
+        }
+
+        public void setRightLatDegrees(double rld) {
+            useRightLatDegrees = true;
+            rightLatDegrees = rld;
+        }
+
+        public double getRightLonDegrees() {
+            return rightLonDegrees;
+        }
+
+        public void setRightLonDegrees(double rld) {
+            useRightLonDegrees = true;
+            rightLonDegrees = rld;
+        }
+    }
     /** The number of rows or altitudes of the VSlice */
     public static final int myNumRows = 50;  //50
     /** The number of cols or change in Lat/Lon */
@@ -40,12 +100,80 @@ public class LLHAreaSlice extends LLHArea {
             0, 0, 0, 50);
     /** This info is in the SliceInput, might be able to remove it */
     private List<LatLon> locations = new ArrayList<LatLon>();
+    private LatLon myLeftLocation;
+    private LatLon myRightLocation;
     private int subdivisions = 1;  // power of 2 breakdown of side..
     private VSliceRenderer myRenderer = new VSliceRenderer();
     private ProductVolume myVolumeProduct = null;
     private VolumeSlice3DOutput myGeometry = new VolumeSlice3DOutput();
     private String myCacheKey = "";
     private LLHAreaSliceGUI myControls = null;
+
+    /** Get the memento for this class */
+    @Override
+    public LLHAreaSliceMemento getMemento() {
+        return new LLHAreaSliceMemento(this);
+    }
+
+    @Override
+    public void setFromMemento(LLHAreaMemento l) {
+        if (l instanceof LLHAreaSliceMemento){
+            LLHAreaSliceMemento ls = (LLHAreaSliceMemento)(l);
+            setFromMemento(ls);
+        }else{
+            super.setFromMemento(l);
+        }
+    }
+    
+    /** Not overridden */
+    public void setFromMemento(LLHAreaSliceMemento l) {
+        super.setFromMemento(l);
+
+        boolean updateLocations = false;
+        LatLon newLeft = myLeftLocation;
+        LatLon newRight = myRightLocation;
+
+        if (l.useLeftLatDegrees || l.useLeftLonDegrees) {
+            double newLeftLat = myLeftLocation.latitude.degrees;
+            double newLeftLon = myLeftLocation.longitude.degrees;
+            if (l.useLeftLatDegrees) {
+                newLeftLat = l.leftLatDegrees;
+            }
+            if (l.useLeftLonDegrees) {
+                newLeftLon = l.leftLonDegrees;
+            }
+            newLeft = new LatLon(
+                    Angle.fromDegrees(newLeftLat),
+                    Angle.fromDegrees(newLeftLon));
+            updateLocations = true;
+        }
+
+        if (l.useRightLatDegrees || l.useRightLonDegrees) {
+            double newRightLat = myRightLocation.latitude.degrees;
+            double newRightLon = myRightLocation.longitude.degrees;
+            if (l.useRightLatDegrees) {
+                newRightLat = l.rightLatDegrees;
+            }
+            if (l.useRightLonDegrees) {
+                newRightLon = l.rightLonDegrees;
+            }
+            newRight = new LatLon(
+                    Angle.fromDegrees(newRightLat),
+                    Angle.fromDegrees(newRightLon));
+            updateLocations = true;
+        }
+
+        if (updateLocations) {
+            List<LatLon> newLocations = new ArrayList<LatLon>();
+            newLocations.add(newLeft);
+            newLocations.add(newRight);
+            
+            // Validate locations here in case user puts in some crazy
+            // values...?  FIXME
+            //System.out.println("SET to "+newLeft+", "+newRight);
+            this.setLocations(newLocations);
+        }
+    }
 
     public int getNumRows() {
         return myNumRows;
@@ -62,12 +190,9 @@ public class LLHAreaSlice extends LLHArea {
 
     // public int getIterationCount(){ return myIterationCount; }
     public double getRangeKms() {
-        // Get the range of this vslice in Kms...
-        LatLon l1 = locations.get(0);
-        LatLon l2 = locations.get(1);
         // FIXME: cleaner way of this?....fetch radius of current globe..
         double radius = CommandManager.getInstance().getEarthBall().getWwd().getModel().getGlobe().getRadius();
-        double length = LatLon.greatCircleDistance(l1, l2).radians * radius;
+        double length = LatLon.greatCircleDistance(myLeftLocation, myRightLocation).radians * radius;
         return length;
     }
 
@@ -114,6 +239,7 @@ public class LLHAreaSlice extends LLHArea {
                 }
             }
         }
+        orderLocations(this.locations);
         updateCurrentGrid();
         this.setExtentOutOfDate();
     }
@@ -373,36 +499,67 @@ public class LLHAreaSlice extends LLHArea {
 
     }
 
+    protected void orderLocations(List<LatLon> input) {
+        // VSlice only.  Two locations, the points on the bottom. 
+        // Make sure the east one is right of the west one...
+        LatLon l1 = input.get(0);
+        LatLon l2 = input.get(1);
+        LatLon leftBottom, rightBottom;
+        if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
+            leftBottom = l1;
+            rightBottom = l2;
+        } else {
+            leftBottom = l2;
+            rightBottom = l1;
+        }
+        myLeftLocation = leftBottom;
+        myRightLocation = rightBottom;
+    }
+
     public LatLon getLeftLocation() {
+
+        return myLeftLocation;
         // VSlice only.  Two locations, the points on the bottom. Make sure the east one is right of the west one...
+        //  List<LatLon> ordered = new ArrayList<LatLon>();
+
+        //  LatLon l1 = locations.get(0);
+        //  LatLon l2 = locations.get(1);
+        /*
         LatLon l1 = locations.get(0);
         LatLon l2 = locations.get(1);
         LatLon leftBottom;
         //LatLon rightBottom;
         if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
-            leftBottom = l1;
-            //rightBottom = l2;
+        leftBottom = l1;
+        //rightBottom = l2;
         } else {
-            leftBottom = l2;
-            // rightBottom = l1;
+        leftBottom = l2;
+        // rightBottom = l1;
         }
         return leftBottom;
+         * 
+         */
     }
 
     public LatLon getRightLocation() {
+
+        return myRightLocation;
+
         // VSlice only.  Two locations, the points on the bottom. Make sure the east one is right of the west one...
-        LatLon l1 = locations.get(0);
+      /*  LatLon l1 = locations.get(0);
         LatLon l2 = locations.get(1);
         //  LatLon leftBottom;
         LatLon rightBottom;
         if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
-            // leftBottom = l1;
-            rightBottom = l2;
+        // leftBottom = l1;
+        rightBottom = l2;
         } else {
-            // leftBottom = l2;
-            rightBottom = l1;
+        // leftBottom = l2;
+        rightBottom = l1;
         }
         return rightBottom;
+         * 
+         */
     }
 
     public double getBottomHeightKms() {

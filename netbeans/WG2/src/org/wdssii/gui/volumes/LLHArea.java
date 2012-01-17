@@ -45,21 +45,28 @@ public class LLHArea extends AVListImpl implements Movable {
         private double minHeight;
         private boolean useMinHeight = false;
 
+        public LLHAreaMemento(LLHArea a) {
+            visible = a.visible;
+            only = a.only;
+            maxHeight = a.upperAltitude;
+            minHeight = a.lowerAltitude;
+        }
+
         public double getMinHeight() {
             return minHeight;
         }
 
         public void setMinHeight(double h) {
-            final double a= getMinAllowedHeight();
+            final double a = getMinAllowedHeight();
             if (h >= a) {
                 minHeight = h;
             } else {
                 h = a;
             }
-            
+
             // Minimum total size of slice
-            final double m = maxHeight-getMinAllowedSize();
-            if (h >= m){
+            final double m = maxHeight - getMinAllowedSize();
+            if (h >= m) {
                 minHeight = m;
             }
             useMinHeight = true;
@@ -76,7 +83,7 @@ public class LLHArea extends AVListImpl implements Movable {
             } else {
                 h = a;
             }
-            
+
             // Minimum total size of slice
             final double m = minHeight + getMinAllowedSize();
             if (h <= m) {
@@ -120,12 +127,7 @@ public class LLHArea extends AVListImpl implements Movable {
 
     /** Get the memento for this class */
     public LLHAreaMemento getMemento() {
-        LLHAreaMemento m = new LLHAreaMemento();
-        m.visible = visible;
-        m.only = only;
-        m.maxHeight = upperAltitude;
-        m.minHeight = lowerAltitude;
-        return m;
+        return new LLHAreaMemento(this);     
     }
 
     public void setFromMemento(LLHAreaMemento l) {

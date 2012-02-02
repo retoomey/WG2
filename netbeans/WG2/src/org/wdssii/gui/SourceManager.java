@@ -12,8 +12,8 @@ import org.wdssii.index.IndexCollection;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.index.IndexWatcher;
 import org.wdssii.index.HistoricalIndex.Direction;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.index.ManualLoadIndex;
 
 /**
@@ -29,7 +29,7 @@ import org.wdssii.index.ManualLoadIndex;
  */
 public class SourceManager implements Singleton {
 
-    private static Log log = LogFactory.getLog(SourceManager.class);
+    private static Logger log = LoggerFactory.getLogger(SourceManager.class);
     /** The manual index for local files */
     private ManualLoadIndex myManualIndex;
 
@@ -174,9 +174,9 @@ public class SourceManager implements Singleton {
             boolean connect = true;
             // Add the manual index...
             c.executeCommand(new SourceAddCommand("Localfiles", HistoricalIndex.MANUAL, false, true), false);
-            c.executeCommand(new SourceAddCommand("CONUS", "file:/E:/CONUS/code_index.xml?p=xml", false, connect), false);
-            c.executeCommand(new SourceAddCommand("KTLX", "file:/E:/KTLX-large/radar_data.xml?p=xml", false, connect), false);
-            c.executeCommand(new SourceAddCommand("Wind", "file:/E:/WindData/code_index.xml", false, connect), false);
+           // c.executeCommand(new SourceAddCommand("CONUS", "file:/E:/CONUS/code_index.xml?p=xml", false, connect), false);
+           // c.executeCommand(new SourceAddCommand("KTLX", "file:/E:/KTLX-large/radar_data.xml?p=xml", false, connect), false);
+           // c.executeCommand(new SourceAddCommand("Wind", "file:/E:/WindData/code_index.xml", false, connect), false);
             c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml?p=xml", false, connect), false);
         } catch (Exception e) {
             // Recover

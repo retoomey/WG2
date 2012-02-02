@@ -1,7 +1,7 @@
 package org.wdssii.datatypes.builders;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
 import org.wdssii.core.PrototypeFactory;
 import org.wdssii.datatypes.DataRequest;
@@ -18,7 +18,7 @@ import org.wdssii.index.IndexRecord;
  */
 public abstract class BuilderFactory {
 
-    private static Log log = LogFactory.getLog(BuilderFactory.class);
+    private static Logger log = LoggerFactory.getLogger(BuilderFactory.class);
     /** name to Builder */
     private static final PrototypeFactory<Builder> factory;
 

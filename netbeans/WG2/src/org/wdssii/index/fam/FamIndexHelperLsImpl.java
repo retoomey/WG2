@@ -7,8 +7,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author lakshman
@@ -23,7 +23,7 @@ public class FamIndexHelperLsImpl implements FamIndexHelper {
     private NewFilesOnly newFilesOnly;
     private long updateIntervalInMilliSeconds = 60 * 1000; // milliseconds
     private final File[] emptyList = new File[0];
-    private final Log log = LogFactory.getLog(FamIndexHelperLsImpl.class);
+    private final Logger log = LoggerFactory.getLogger(FamIndexHelperLsImpl.class);
 
     public FamIndexHelperLsImpl(FilenameFilter pattern) {
         this.filenamePattern = pattern;

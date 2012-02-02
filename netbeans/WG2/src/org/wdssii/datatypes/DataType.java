@@ -10,8 +10,8 @@ import java.util.Map.Entry;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
 
 /**
@@ -21,7 +21,7 @@ import org.wdssii.geom.Location;
  */
 public class DataType {
 
-    private static Log log = LogFactory.getLog(DataType.class);
+    private static Logger log = LoggerFactory.getLogger(DataType.class);
     /** The origin location of the DataType, such as the radar center for RadialSets */
     protected Location originLocation;
     /** The start time of the data set */

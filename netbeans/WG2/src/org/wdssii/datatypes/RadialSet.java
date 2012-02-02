@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
 import org.wdssii.geom.Location;
@@ -19,7 +19,7 @@ import org.wdssii.util.RadialUtil;
  */
 public class RadialSet extends DataType implements Table2DView {
 
-    private static Log log = LogFactory.getLog(RadialSet.class);
+    private static Logger log = LoggerFactory.getLogger(RadialSet.class);
     /** Elevation in degrees of this radial set */
     private final float elevDegs;
     /** Elevation in radians of this radial set */

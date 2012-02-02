@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import org.wdssii.geom.Location;
 import ucar.nc2.NetcdfFile;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
@@ -20,7 +20,7 @@ import org.wdssii.util.StringUtil;
  */
 public abstract class DataTypeNetcdf {
 
-    private static Log log = LogFactory.getLog(DataTypeNetcdf.class);
+    private static Logger log = LoggerFactory.getLogger(DataTypeNetcdf.class);
 
     /** Try to create a DataType by reflection.  This is called from NetcdfBuilder by reflection
      * All netcdf builder classes have to implement this or what's the point?

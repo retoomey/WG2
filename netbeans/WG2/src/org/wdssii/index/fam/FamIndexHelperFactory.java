@@ -2,8 +2,8 @@ package org.wdssii.index.fam;
 
 import java.io.FilenameFilter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author lakshman
@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class FamIndexHelperFactory {
 
-    private static Log log = LogFactory.getLog(FamIndexHelperFactory.class);
+    private static Logger log = LoggerFactory.getLogger(FamIndexHelperFactory.class);
     private static boolean tryInotify = true;
 
     public static void setTryInotify(boolean flag) {

@@ -2,17 +2,14 @@ package org.wdssii.gui.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-//import org.eclipse.jface.resource.ImageDescriptor;
-//import org.eclipse.swt.graphics.Image;
-//import org.eclipse.swt.widgets.Display;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class FileUtil {
 
-    private static Log log = LogFactory.getLog(FileUtil.class);
+    private static Logger log = LoggerFactory.getLogger(FileUtil.class);
     /*
     public static URL resolveURLPath(String path) {
     

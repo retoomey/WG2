@@ -14,8 +14,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 
@@ -31,7 +31,7 @@ import org.wdssii.gui.ColorMap.ColorMapOutput;
  */
 public class ColorMapRenderer {
 
-    private static Log log = LogFactory.getLog(ColorMapRenderer.class);
+    private static Logger log = LoggerFactory.getLogger(ColorMapRenderer.class);
     /** ColorMap used by the renderer */
     private ColorMap myColorMap;
 

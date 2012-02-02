@@ -4,8 +4,8 @@ import java.net.URL;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
 import org.wdssii.datatypes.builders.Builder;
 import org.wdssii.datatypes.builders.BuilderFactory;
@@ -21,7 +21,7 @@ import org.wdssii.datatypes.builders.TestBuilder;
  */
 public class TestIndex extends Index {
 
-    private static Log log = LogFactory.getLog(TestIndex.class);
+    private static Logger log = LoggerFactory.getLogger(TestIndex.class);
 
     @Override
     public Index newInstance(URL path, URL full, TreeMap<String, String> params, Set<IndexRecordListener> listeners)

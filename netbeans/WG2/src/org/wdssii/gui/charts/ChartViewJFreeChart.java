@@ -1,15 +1,13 @@
 package org.wdssii.gui.charts;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 
 import javax.swing.event.MouseInputListener;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -27,7 +25,7 @@ import org.jfree.chart.panel.Overlay;
  */
 public class ChartViewJFreeChart extends ChartViewChart {
 
-    private static Log log = LogFactory.getLog(ChartViewJFreeChart.class);
+    private static Logger log = LoggerFactory.getLogger(ChartViewJFreeChart.class);
     /** The ChartPanel from JFreeChart */
     private ChartPanel myChartPanel = null;
     /** The chart that does all the work */

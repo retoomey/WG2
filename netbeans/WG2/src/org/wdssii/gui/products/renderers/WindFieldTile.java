@@ -14,8 +14,8 @@ import java.util.ArrayList;
 
 import javax.media.opengl.GL;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.WindField;
 import org.wdssii.datatypes.WindField.WindFieldDataPoint;
@@ -35,7 +35,7 @@ import org.wdssii.storage.Array1DfloatAsNodes;
  */
 public class WindFieldTile extends TileRenderer.Tile {
 
-    private static Log log = LogFactory.getLog(WindFieldTile.class);
+    private static Logger log = LoggerFactory.getLogger(WindFieldTile.class);
     protected int counter = 0;
     protected boolean tileCreated = false;
     protected boolean atMaxLevel = false;

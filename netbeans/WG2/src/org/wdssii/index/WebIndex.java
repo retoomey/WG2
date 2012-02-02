@@ -7,8 +7,8 @@ import java.util.TreeMap;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
 
 /**
@@ -19,7 +19,7 @@ import org.wdssii.core.DataUnavailableException;
  */
 public class WebIndex extends Index {
 
-    private static Log log = LogFactory.getLog(WebIndex.class);
+    private static Logger log = LoggerFactory.getLogger(WebIndex.class);
     private boolean initComplete = false;
     private final URL indexServicePath;
     private final URL indexDataPath;
@@ -43,7 +43,7 @@ public class WebIndex extends Index {
         lastReadSuccess = false;
         try {
             URL url = Index.appendQuery(indexServicePath, "lastRead=" + lastRead);
-            log.info(url);
+            log.info(url.toString());
             saxParser.parse(url.openStream(), new SAXIndexHandler(this) {
 
                 @Override

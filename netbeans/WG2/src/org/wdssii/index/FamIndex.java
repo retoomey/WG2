@@ -10,8 +10,8 @@ import java.util.zip.GZIPInputStream;
 
 import javax.xml.parsers.SAXParser;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
 import org.wdssii.index.fam.FamIndexHelper;
 
@@ -27,7 +27,7 @@ import org.wdssii.index.fam.FamIndexHelper;
  */
 public class FamIndex extends Index {
 
-    private static Log log = LogFactory.getLog(FamIndex.class);
+    private static Logger log = LoggerFactory.getLogger(FamIndex.class);
     private boolean initComplete = false;
     private final File indexDir;
     private final FamIndexHelper helper;

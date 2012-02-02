@@ -12,8 +12,8 @@ import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
@@ -42,7 +42,7 @@ import org.wdssii.gui.products.RadialSetReadout;
  */
 public class RadialSetRenderer extends ProductRenderer {
 
-    private static Log log = LogFactory.getLog(RadialSetRenderer.class);
+    private static Logger log = LoggerFactory.getLogger(RadialSetRenderer.class);
     /** We use vector (vector is synchronized for opengl thread and worker thread) */
     private Vector<Integer> myOffsets;
     /** Verts for the RadialSet */

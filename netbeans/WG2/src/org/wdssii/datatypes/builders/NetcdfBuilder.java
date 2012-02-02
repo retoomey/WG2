@@ -16,8 +16,8 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataType;
@@ -40,7 +40,7 @@ import ucar.nc2.Variable;
  */
 public class NetcdfBuilder extends Builder {
 
-    private static Log log = LogFactory.getLog(NetcdfBuilder.class);
+    private static Logger log = LoggerFactory.getLogger(NetcdfBuilder.class);
 
     /** Info snagged from a netcdf file.  Used by GUI to prefetch
      * Product, Choice and Time (selections) from our format netcdf files

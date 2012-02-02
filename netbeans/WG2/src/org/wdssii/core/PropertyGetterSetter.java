@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.util.StringUtil;
 
 /**
@@ -23,7 +23,7 @@ import org.wdssii.util.StringUtil;
  */
 public class PropertyGetterSetter {
 
-    private static Log log = LogFactory.getLog(PropertyGetterSetter.class);
+    private static Logger log = LoggerFactory.getLogger(PropertyGetterSetter.class);
 
     /**
      * Invoke any setter method on object if the corresponding property is found

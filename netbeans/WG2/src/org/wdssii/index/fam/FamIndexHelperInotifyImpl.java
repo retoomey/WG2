@@ -10,13 +10,13 @@ import net.contentobjects.jnotify.JNotify;
 import net.contentobjects.jnotify.JNotifyException;
 import net.contentobjects.jnotify.JNotifyListener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FamIndexHelperInotifyImpl implements FamIndexHelper,
         JNotifyListener {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private List<File> files = new ArrayList<File>();
     private int wd;
     private final FilenameFilter filenamePattern;

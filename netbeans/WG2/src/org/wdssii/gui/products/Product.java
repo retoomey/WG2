@@ -2,8 +2,8 @@ package org.wdssii.gui.products;
 
 import gov.nasa.worldwind.render.DrawContext;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -60,7 +60,7 @@ import org.wdssii.xml.Tag_colorMap;
  **/
 public class Product implements LRUCacheItem {
 
-    private static Log log = LogFactory.getLog(Product.class);
+    private static Logger log = LoggerFactory.getLogger(Product.class);
     // FIXME: Currently products will have only one possible product handler,
     // when we go to multiple product handler lists design will have to change
     // to allow for example more than one renderer per product

@@ -1,7 +1,7 @@
 package org.wdssii.gui.commands;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 //import org.eclipse.swt.SWT;
 //import org.eclipse.swt.widgets.FileDialog;
 //import org.eclipse.swt.widgets.Shell;
@@ -12,7 +12,7 @@ import org.apache.commons.logging.LogFactory;
 
 public class ChartSaveSnapshotCommand extends WdssiiCommand {
 
-    private static Log log = LogFactory.getLog(ChartSaveSnapshotCommand.class);
+    private static Logger log = LoggerFactory.getLogger(ChartSaveSnapshotCommand.class);
 
     /** Take snapshot of the current chart, saves as a png file using the JFreeChart library */
     @Override

@@ -3,8 +3,8 @@ package org.wdssii.gui.products.renderers;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
@@ -23,7 +23,7 @@ import org.wdssii.gui.products.Product;
 public class LatLonGridRenderer extends TileRenderer {
 
     @SuppressWarnings("unused")
-    private static Log log = LogFactory.getLog(LatLonGridRenderer.class);
+    private static Logger log = LoggerFactory.getLogger(LatLonGridRenderer.class);
 
     @Override
     public void initToProduct(DrawContext dc, Product aProduct) {

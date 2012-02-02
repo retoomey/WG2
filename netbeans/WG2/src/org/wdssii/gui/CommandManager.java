@@ -7,8 +7,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.commands.WdssiiCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
@@ -34,7 +34,7 @@ import org.wdssii.gui.views.WorldWindView;
 public class CommandManager implements Singleton {
 
     private static CommandManager instance = null;
-    private static Log log = LogFactory.getLog(CommandManager.class);
+    private static Logger log = LoggerFactory.getLogger(CommandManager.class);
     private VisualCollection myVisualCollection = new VisualCollection();
     public static String CommandPath = "org.wdssii.gui.commands.";
     private final Object myViewLock = new Object();

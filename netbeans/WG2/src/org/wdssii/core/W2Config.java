@@ -14,8 +14,8 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -37,7 +37,7 @@ import org.w3c.dom.Element;
  */
 public class W2Config {
 
-    private static final Log log = LogFactory.getLog(W2Config.class);
+    private static final Logger log = LoggerFactory.getLogger(W2Config.class);
     /** List of configuration strings.  These get converted to URLS
     after macro substitution of characters.
      */
@@ -45,7 +45,7 @@ public class W2Config {
 
     /** The timeout for trying to pull a URL off a remote web-server */
     private static final float WEB_TIMEOUT_SECS = .5f;
-    
+
     static {
         // For testing pulling over web w2config only....
         boolean useLocal = true;
@@ -64,11 +64,19 @@ public class W2Config {
                     addDir(location);
                 }
             }
+
+            // Use the 'home' directory of the user
             s = System.getProperty("user.home");
             if (addDir(s)) {
                 addDir(s + "/w2config");
                 addDir(s + "/WDSS2/w2config");
                 addDir(s + "/WDSS2/src/w2/w2config");
+            }
+
+            // Use the 'running' directory of the program/jar
+            s = System.getProperty("user.dir");
+            if (addDir(s)) {
+                addDir(s + "/w2config");
             }
 
             // This is for finding the checked in w2config within my compiled source tree..
@@ -78,10 +86,15 @@ public class W2Config {
 
                 // ---> filepath/WG2/build/classes/org/wdssii...
                 String bUrls = bUrl.toString();
-                bUrls = bUrls.replaceFirst("/build/classes/org/wdssii", "/w2config");
-                bUrl = new URL(bUrls);
-                // if this is a good url, it's working...so add it..
-                addPattern(bUrl.toString()+"/{1}");
+
+                // For the moment ignore stuff within jar, since it
+                // requires a different connection I think
+                if (!bUrls.startsWith("jar")) {
+                    bUrls = bUrls.replaceFirst("/build/classes/org/wdssii", "/w2config");
+                    bUrl = new URL(bUrls);
+                    // if this is a good url, it's working...so add it..
+                    addPattern(bUrl.toString() + "/{1}");
+                }
             } catch (Exception ee) {
                 // oh well don't care...we tried
             }
@@ -117,7 +130,6 @@ public class W2Config {
                         path = path + "/{1}";
                     }
                     addPattern(path);
-                    log.debug("Added w2config pattern: " + path);
                     return true;
                 } catch (MalformedURLException ex) {
                     // This shouldn't happen if the file exists....
@@ -130,6 +142,7 @@ public class W2Config {
 
     private static void addPattern(String pattern) {
         configPatterns.add(pattern);
+        log.debug("Added w2config pattern: " + pattern);
     }
 
     /**
@@ -186,21 +199,21 @@ public class W2Config {
                         // Set the timeout, don't want the display hanging
                         // trying to get a remote file.  Humm.  How to handle
                         // this properly?  Dialog?  FIXME?
-                        h.setConnectTimeout((int)(WEB_TIMEOUT_SECS * 1000.0f)); 
+                        h.setConnectTimeout((int) (WEB_TIMEOUT_SECS * 1000.0f));
                         h.setAllowUserInteraction(false);
                         h.setDoInput(false);
                         h.setDoOutput(false);
-                        
+
                         // ISPs and others redirect common errors to a 
                         // custom html page, which we would confuse as a valid
                         // data file.
                         h.setInstanceFollowRedirects(false);
-                        
+
                         // Don't read all the data at the URL...
                         h.setRequestMethod("HEAD");
                         int code = h.getResponseCode();
                         if (code != HttpURLConnection.HTTP_OK) {
-                            aURL = null;                            
+                            aURL = null;
                         }
                     }
                 }
@@ -212,6 +225,7 @@ public class W2Config {
         } catch (MalformedURLException ex) {
             aURL = null;
         }
+        log.debug("Tried URL " + s + " and got " + aURL);
         return aURL;
     }
 

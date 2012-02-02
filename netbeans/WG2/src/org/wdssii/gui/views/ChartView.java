@@ -12,8 +12,8 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JToggleButton;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.charts.*;
 import org.wdssii.gui.commands.LLHAreaCommand;
@@ -42,7 +42,7 @@ import org.wdssii.xml.wdssiiConfig.Tag_setup;
  */
 public class ChartView extends JThreadPanel implements CommandListener, ProductFilterFollowerView, ProductFollowerView, VolumeTypeFollowerView {
 
-    private static Log log = LogFactory.getLog(ChartView.class);
+    private static Logger log = LoggerFactory.getLogger(ChartView.class);
 // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
@@ -321,10 +321,8 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
     }
 
     private void setChart(ChartViewChart chart) {
-        System.out.println("SET CHART CALLED " + chart);
         if (chart instanceof VSliceChart) {
             VSliceChart v = (VSliceChart) (chart);
-            System.out.println("JFreeChart is " + v.myJFreeChart);
         }
         chart.setUseProductFilters(myUseProductFilters);
         chart.setUseVirtualVolume(myUseVirtualVolume);

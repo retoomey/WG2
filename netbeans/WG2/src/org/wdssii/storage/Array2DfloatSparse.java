@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /* ALPHA code....needs some work.
  * A 2D sparse float array in RAM
@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Array2DfloatSparse extends DataStorage implements Array2Dfloat {
 
-    private static Log log = LogFactory.getLog(Array2DfloatSparse.class);
+    private static Logger log = LoggerFactory.getLogger(Array2DfloatSparse.class);
     private static int counter = 0;
     private int myX;
     private int myY;

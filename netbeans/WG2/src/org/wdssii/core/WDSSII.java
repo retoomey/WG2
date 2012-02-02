@@ -6,8 +6,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.storage.DataManager;
 
 import ucar.nc2.util.DiskCache;
@@ -21,7 +21,7 @@ import ucar.nc2.util.DiskCache;
  */
 public class WDSSII {
 
-    private static Log log = LogFactory.getLog(WDSSII.class);
+    private static Logger log = LoggerFactory.getLogger(WDSSII.class);
     private static WDSSII singleton = new WDSSII();
 
     public static WDSSII getInstance() {

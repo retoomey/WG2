@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** An IndexCollection manages a collection of named Indexes for you.
  * Each index is wrapped with an IndexWatcher that is the actual listener.
@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 public abstract class IndexCollection {
 
     /** Log for this class */
-    private static Log log = LogFactory.getLog(IndexCollection.class);
+    private static Logger log = LoggerFactory.getLogger(IndexCollection.class);
 
     /** Do something when a new record comes in.  You need to implement this for
      * autoupdates

@@ -1,7 +1,7 @@
 package org.wdssii.storage;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *  a 3D array.  Only use this if you have the ram for it.
@@ -10,7 +10,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Array3DfloatRAM implements Array3Dfloat {
 
-    private static Log log = LogFactory.getLog(Array2DfloatRAM.class);
+    private static Logger log = LoggerFactory.getLogger(Array2DfloatRAM.class);
     private int myX;
     private int myY;
     private int myZ;

@@ -5,8 +5,8 @@ import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.storage.Array2Dfloat;
 import ucar.nc2.NetcdfFile;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.WindField;
 import org.wdssii.datatypes.WindField.WindFieldMemento;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
@@ -19,7 +19,7 @@ import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 public class WindFieldNetcdf extends DataTypeNetcdf {
 
     /** The log for errors */
-    private static Log log = LogFactory.getLog(RadialSetNetcdf.class);
+    private static Logger log = LoggerFactory.getLogger(RadialSetNetcdf.class);
 
     /** Try to create a LatLonGrid by reflection.  This is called from NetcdfBuilder by reflection	
      * @param ncfile	the Netcdf file to read from

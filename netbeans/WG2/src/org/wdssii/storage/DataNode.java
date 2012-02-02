@@ -9,8 +9,8 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.channels.FileChannel;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** A data node, a 'small' amount of data, usually representing a part of a larger 2D, 3D array of float data.
  * These nodes are cached to disk/moved in and out of ram on demand in an LRU queue controlled by DataManager.
@@ -25,7 +25,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class DataNode {
 
-    private static Log log = LogFactory.getLog(DataManager.class);  // use datamanager log?
+    private static Logger log = LoggerFactory.getLogger(DataManager.class);  // use datamanager log?
     /** The key representing this data tile.  Final */
     private final String myKey;
     /** Synchronization required for reading/writing/using */

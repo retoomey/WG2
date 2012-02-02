@@ -6,8 +6,8 @@ import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.LRUCache;
 
 /** The data manager will handle:
@@ -26,7 +26,7 @@ public class DataManager {
     /** The subdirectory we use to offload any data nodes from RAM */
     public final static String tempNodes = "datanodes";
     private static DataManager instance = null;
-    private static Log log = LogFactory.getLog(DataManager.class);
+    private static Logger log = LoggerFactory.getLogger(DataManager.class);
     private String myDiskLocation;
     private File myTempDir = null;
     

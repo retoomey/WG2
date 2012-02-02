@@ -10,8 +10,8 @@ import java.util.zip.GZIPInputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
 
 /**
@@ -23,7 +23,7 @@ import org.wdssii.core.DataUnavailableException;
  */
 public class XMLIndex extends Index {
 
-    private static Log log = LogFactory.getLog(XMLIndex.class);
+    private static Logger log = LoggerFactory.getLogger(XMLIndex.class);
     private boolean initComplete = false;
 
     @Override

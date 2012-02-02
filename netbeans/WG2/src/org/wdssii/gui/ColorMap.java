@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.xml.Tag_color;
 import org.wdssii.xml.Tag_colorBin;
@@ -26,7 +26,7 @@ import org.wdssii.xml.Tag_colorMap.Tag_Point;
  */
 public class ColorMap {
 
-    private static Log log = LogFactory.getLog(ColorMap.class);
+    private static Logger log = LoggerFactory.getLogger(ColorMap.class);
 
     /** Output object for color map queries.  You can pre-new this outside of loops
      * for speed.  Pass your object into routines

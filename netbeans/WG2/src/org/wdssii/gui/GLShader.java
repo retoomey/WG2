@@ -4,8 +4,8 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.media.opengl.GL;
 
@@ -20,7 +20,7 @@ import org.wdssii.gui.volumes.IsoBox;
  */
 public class GLShader {
 
-    private static Log log = LogFactory.getLog(GLShader.class);
+    private static Logger log = LoggerFactory.getLogger(GLShader.class);
 
     /** Just trying to compile a shader here...
      *  This has to be called while the GLContext is valid, either during the draw

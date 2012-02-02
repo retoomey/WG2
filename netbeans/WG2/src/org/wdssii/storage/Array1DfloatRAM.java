@@ -2,8 +2,8 @@ package org.wdssii.storage;
 
 import java.nio.FloatBuffer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Full 1D float array in RAM.  Not recommended since for massive radar data
@@ -15,7 +15,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Array1DfloatRAM implements Array1Dfloat {
 
-    private static Log log = LogFactory.getLog(Array1DfloatRAM.class);
+    private static Logger log = LoggerFactory.getLogger(Array1DfloatRAM.class);
     private int mySize;
     private float myBackground;
     private float[] myArray;

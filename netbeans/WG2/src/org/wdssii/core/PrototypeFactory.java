@@ -3,8 +3,8 @@ package org.wdssii.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -23,7 +23,7 @@ import org.w3c.dom.NodeList;
  */
 public class PrototypeFactory<X extends Object> {
 
-    private Log log = LogFactory.getLog(PrototypeFactory.class);
+    private Logger log = LoggerFactory.getLogger(PrototypeFactory.class);
     private Map<String, X> myMap = new HashMap<String, X>();
 
     /** Add the object for given name */
@@ -40,7 +40,7 @@ public class PrototypeFactory<X extends Object> {
                 theClass = (X) Class.forName(className).newInstance();
                 register(name, theClass);
             } catch (Exception e) {
-                log.error(e);
+                log.error(e.toString());
             }
         }
     }
@@ -71,7 +71,7 @@ public class PrototypeFactory<X extends Object> {
                 }
             }
         } catch (Exception e) {
-             log.error(e);
+             log.error(e.toString());
         }
     }
     }

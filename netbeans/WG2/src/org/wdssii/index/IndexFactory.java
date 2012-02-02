@@ -10,8 +10,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
 import org.wdssii.core.PrototypeFactory;
 
@@ -30,7 +30,7 @@ import org.wdssii.core.PrototypeFactory;
  */
 public abstract class IndexFactory {
 
-    private static Log log = LogFactory.getLog(IndexFactory.class);
+    private static Logger log = LoggerFactory.getLogger(IndexFactory.class);
     private static final PrototypeFactory<Index> myFactory;
 
     /** Create the factory from Index.xml in the xml, OR use

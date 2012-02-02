@@ -2,14 +2,14 @@ package org.wdssii.gui.volumes;
 
 import javax.media.opengl.GL;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.GLShader;
 
 /** Alpha beginnings of an IsoSurface ability.. */
 public class IsoBox {
 
-    private static Log log = LogFactory.getLog(IsoBox.class);
+    private static Logger log = LoggerFactory.getLogger(IsoBox.class);
     private int myProgramID = -1;
 
     public IsoBox() {

@@ -7,8 +7,8 @@ import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.render.DrawContext;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.gui.products.Product;
 
@@ -22,7 +22,7 @@ import org.wdssii.gui.products.Product;
 public class TileRenderer extends ProductRenderer {
 
     @SuppressWarnings("unused")
-    private static Log log = LogFactory.getLog(TileRenderer.class);
+    private static Logger log = LoggerFactory.getLogger(TileRenderer.class);
 
     public TileRenderer(boolean asBackgroundJob){
         super(asBackgroundJob);

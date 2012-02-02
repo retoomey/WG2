@@ -1,13 +1,11 @@
 package org.wdssii.datatypes;
 
-import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.wdssii.geom.Location;
 import org.wdssii.storage.Array2Dfloat;
-import org.wdssii.storage.Array2DfloatAsTiles;
 
 /**
  * 
@@ -20,7 +18,7 @@ import org.wdssii.storage.Array2DfloatAsTiles;
  */
 public class LatLonGrid extends DataType implements Table2DView {
 
-    private static Log log = LogFactory.getLog(LatLonGrid.class);
+    private static Logger log = LoggerFactory.getLogger(LatLonGrid.class);
     /** The change in lat distance per grid square */
     private final float deltaLat;
     

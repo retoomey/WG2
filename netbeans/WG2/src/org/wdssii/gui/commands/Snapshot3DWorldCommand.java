@@ -1,14 +1,14 @@
 package org.wdssii.gui.commands;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.views.WorldWindView;
 
 /** Called by name from WdssiiDynamic */
 public class Snapshot3DWorldCommand extends WdssiiCommand {
 
     @SuppressWarnings("unused")
-    private static Log log = LogFactory.getLog(Snapshot3DWorldCommand.class);
+    private static Logger log = LoggerFactory.getLogger(Snapshot3DWorldCommand.class);
 
     @Override
     public boolean execute() {

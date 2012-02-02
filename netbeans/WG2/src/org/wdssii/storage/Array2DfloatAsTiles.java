@@ -1,10 +1,6 @@
 package org.wdssii.storage;
 
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
 import java.nio.FloatBuffer;
-
-import org.wdssii.storage.DataNode;
 
 /**
  * Breaks a 2D array down into a grid where each DataManager node is a square

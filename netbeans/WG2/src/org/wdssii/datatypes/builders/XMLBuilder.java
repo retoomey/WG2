@@ -12,8 +12,8 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.builders.xml.ContoursXML;
@@ -31,7 +31,7 @@ import org.wdssii.xml.Tag_datatype;
  */
 public class XMLBuilder extends Builder {
 
-    private static Log log = LogFactory.getLog(XMLBuilder.class);
+    private static Logger log = LoggerFactory.getLogger(XMLBuilder.class);
 
     public static class XMLFileInfo extends BuilderFileInfo {
     }

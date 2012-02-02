@@ -1,7 +1,7 @@
 package org.wdssii.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * WdssiiJob is our class that acts as a wrapper to another job type, such as swt's Job or Netbean's AsyncGUIJob
@@ -22,7 +22,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class WdssiiJob {
 
-    private static Log log = LogFactory.getLog(WdssiiJob.class);
+    private static Logger log = LoggerFactory.getLogger(WdssiiJob.class);
     /** The factory used for all created jobs */
     private static WdssiiJobFactory myFactory = null;
     /** The GUI job runner for our job */

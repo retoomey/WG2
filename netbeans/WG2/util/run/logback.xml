@@ -1,0 +1,18 @@
+<!-- This logback configuration file is copied to the root directly of the WG2.jar file
+     It will be the debug file used by users
+-->
+<configuration>
+
+  <appender name="STDOUT"
+    class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <param name="Pattern"
+        value="WG2 %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
+    </layout>
+  </appender>
+
+  <root>
+    <level value="error" />
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>

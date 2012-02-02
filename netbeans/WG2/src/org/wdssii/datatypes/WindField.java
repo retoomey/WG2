@@ -1,8 +1,7 @@
 package org.wdssii.datatypes;
 
-//import java.util.Date;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.storage.Array2Dfloat;
 
@@ -14,7 +13,7 @@ import org.wdssii.storage.Array2Dfloat;
  */
 public class WindField extends DataType implements Table2DView {
 
-    private static Log log = LogFactory.getLog(LatLonGrid.class);
+    private static Logger log = LoggerFactory.getLogger(LatLonGrid.class);
 
     // Class passed in to pull back a value.
     public static class WindFieldDataPoint {

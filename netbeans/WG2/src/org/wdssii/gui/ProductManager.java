@@ -6,8 +6,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -45,7 +45,7 @@ import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
  */
 public class ProductManager implements Singleton {
 
-    private static Log log = LogFactory.getLog(ProductManager.class);
+    private static Logger log = LoggerFactory.getLogger(ProductManager.class);
     public static final String DEFAULTS = "defaults";
     private static ProductManager instance = null;
     final public static int MIN_CACHE_SIZE = 50;

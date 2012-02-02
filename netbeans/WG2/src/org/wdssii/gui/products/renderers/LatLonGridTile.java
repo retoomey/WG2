@@ -14,8 +14,8 @@ import java.util.ArrayList;
 
 import javax.media.opengl.GL;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataType;
@@ -35,7 +35,7 @@ import org.wdssii.storage.Array1DfloatAsNodes;
  */
 public class LatLonGridTile extends TileRenderer.Tile {
 
-    private static Log log = LogFactory.getLog(LatLonGridTile.class);
+    private static Logger log = LoggerFactory.getLogger(LatLonGridTile.class);
     protected int counter = 0;
     protected int mySize = 0;
     protected static boolean toggle = false;

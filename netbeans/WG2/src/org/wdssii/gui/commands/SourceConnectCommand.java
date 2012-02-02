@@ -1,7 +1,7 @@
 package org.wdssii.gui.commands;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.SourceManager;
@@ -9,7 +9,7 @@ import org.wdssii.gui.SourceManager.SourceCommand;
 
 public class SourceConnectCommand extends SourceCommand {
 
-    private static Log log = LogFactory.getLog(SourceConnectCommand.class);
+    private static Logger log = LoggerFactory.getLogger(SourceConnectCommand.class);
     /** Number of times to try a connection before giving up */
     // @todo this could be a preference
     public final static int NUMBER_OF_TRIES = 5;

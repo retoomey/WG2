@@ -1,7 +1,7 @@
 package org.wdssii.gui.charts;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.commands.ProductFollowCommand;
 
 /** A Chart that goes inside the ChartView.
@@ -28,7 +28,7 @@ import org.wdssii.gui.commands.ProductFollowCommand;
  */
 public class ChartViewChart {
 
-    private static Log log = LogFactory.getLog(ChartViewChart.class);
+    private static Logger log = LoggerFactory.getLogger(ChartViewChart.class);
 
     /** Update chart when needed (check should be done by chart) */
     public void updateChart() {

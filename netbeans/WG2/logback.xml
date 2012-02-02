@@ -1,0 +1,19 @@
+<!-- This logback configuration file is in the root WG2 folder and is
+     the one used when running in an IDE.  It is separate from the logback.xml
+     that is in the util/run folder
+-->
+<configuration>
+
+  <appender name="STDOUT"
+    class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <param name="Pattern"
+        value="WG2-IDE %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
+    </layout>
+  </appender>
+
+  <root>
+    <level value="debug" />
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>

@@ -31,6 +31,8 @@ import org.jfree.data.xy.XYZDataset;
 import org.jfree.ui.HorizontalAlignment;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.LLHAreaManager;
 import org.wdssii.gui.ProductManager;
@@ -46,6 +48,8 @@ import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.LLHAreaSlice;
 
 public class VSliceChart extends ChartViewJFreeChart {
+
+    private static Logger log = LoggerFactory.getLogger(VSliceChart.class);
 
     /** A NumberAxis that forces auto range (zoom out or menu picked) to be
      * the default height/range of the LLHAreaSlice we are following
@@ -107,12 +111,11 @@ public class VSliceChart extends ChartViewJFreeChart {
     private String myGISKey = "";
     private VSliceFixedGridPlot myPlot = null;
 
-
     public VSliceChart(String arg0, Font arg1, VSliceFixedGridPlot arg2, boolean arg3) {
 
-        myJFreeChart = new JFreeChart(arg0, arg1, arg2, arg3);    
+        myJFreeChart = new JFreeChart(arg0, arg1, arg2, arg3);
         myPlot = arg2;
-        myPlot.myText= new TextTitle("", new Font("Dialog", Font.PLAIN, 11));
+        myPlot.myText = new TextTitle("", new Font("Dialog", Font.PLAIN, 11));
         myPlot.myText.setPosition(RectangleEdge.BOTTOM);
         myPlot.myText.setHorizontalAlignment(HorizontalAlignment.RIGHT);
         myJFreeChart.addSubtitle(myPlot.myText);
@@ -147,6 +150,11 @@ public class VSliceChart extends ChartViewJFreeChart {
         // any product/volume information.
         LLHAreaSlice slice = getVSliceToPlot();
         if (slice == null) {
+            // If there isn't a 3D slice LLHArea object geometry to follow,
+            // clear us...
+            myPlot.setVolumeAndSlice(null, null, null);
+            myJFreeChart.setTitle("No slice in 3d window");
+            myJFreeChart.fireChartChanged();
             return;
         }   // No slice to follow, return..
         myPlot.setSlice(slice);
@@ -164,12 +172,12 @@ public class VSliceChart extends ChartViewJFreeChart {
             myPlot.myText.setText(slice.getGISLabel());
         }
         myGISKey = gisKey;
-            
+
         /** Get the volume we are following */
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(getUseProductKey(), getUseVirtualVolume());
-        if (volume == null) {
-            return;
-        }
+        // if (volume == null) {
+        //     return;
+        // }
 
         FilterList aList = null;
         String useKey = getUseProductKey();
@@ -178,18 +186,27 @@ public class VSliceChart extends ChartViewJFreeChart {
         ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
         if (phl != null) {
             ProductHandler tph = phl.getProductHandler(useKey);
+            Product p = null;
             if (tph != null) {
                 aList = tph.getFList();
+                p = tph.getProduct();
             }
-            Product p = tph.getProduct();
             if (p != null) {
                 titleKey = p.getProductInfoString(false);
+            } else {
+                titleKey = "No product";
             }
         }
-        if (aList == null) {
+        if ((volume == null) || (aList == null)) {
+            // If there isn't a valid data source, clear us out...
+            // clear us...
+            myPlot.setVolumeAndSlice(slice, null, null);
+            myJFreeChart.setTitle("No volume data");
+            myJFreeChart.fireChartChanged();
             return;
         }
 
+        /** Physical key of the Lat/Lon/Height location */
         String key = gisKey;
 
         /** Add volume key */
@@ -211,11 +228,9 @@ public class VSliceChart extends ChartViewJFreeChart {
         // if (keyDifferent) {
         //     System.out.println("VSLICE KEY CHANGE");
         // }
-
         myPlot.setVolumeAndSlice(slice, volume, aList);
         myJFreeChart.setTitle(titleKey);
         myJFreeChart.fireChartChanged();
-        //myJFreeChart.setTitle("Vertical Slice (F" + counter++ + ")");
     }
 
     /** Terrain XYZDataset is a JFreeChart dataset where we sample
@@ -225,6 +240,7 @@ public class VSliceChart extends ChartViewJFreeChart {
 
         /** Sample size of the terrain by range */
         public int sampleSize = 201;
+        private boolean showHeights;
         private double[] myHeights = new double[sampleSize];
         /** The full range of the terrain line */
         private double rangeKM;
@@ -233,8 +249,10 @@ public class VSliceChart extends ChartViewJFreeChart {
         /** The starting range location (left side) of range line */
         private double rangeLower;
 
-        // We dynamically resample the terrain data depending on
-        // zoom level....
+        /* We dynamically resample the terrain data depending on
+         * zoom level.  This is called with the current lat/lon of the
+         * chart so that the terrain can be resampled by zoom
+         */
         public void syncToRange(ValueAxis x,
                 double startLat,
                 double startLon,
@@ -256,6 +274,11 @@ public class VSliceChart extends ChartViewJFreeChart {
                 lat += deltaLat;
                 lon += deltaLon;
             }
+            showHeights = true;
+        }
+
+        public void clearRange() {
+            showHeights = false;
         }
 
         @Override
@@ -278,7 +301,11 @@ public class VSliceChart extends ChartViewJFreeChart {
 
         @Override
         public int getItemCount(int i) {
-            return sampleSize;
+            if (showHeights) {
+                return sampleSize;
+            } else {
+                return 0;
+            }
         }
 
         @Override
@@ -425,8 +452,8 @@ public class VSliceChart extends ChartViewJFreeChart {
                 subGrid.endLat = sLat + (rightKms * deltaLatPerKm);
                 subGrid.startLon = sLon + (leftKms * deltaLonPerKm);
                 subGrid.endLon = sLon + (rightKms * deltaLonPerKm);
-                String newKey = mySlice.getGISLabel(subGrid.startLat, subGrid.startLon, 
-                        subGrid.endLat, subGrid.endLon);             
+                String newKey = mySlice.getGISLabel(subGrid.startLat, subGrid.startLon,
+                        subGrid.endLat, subGrid.endLon);
                 myText.setText(newKey);
                 myTerrain.syncToRange(rangeAxis, subGrid.startLat,
                         subGrid.startLon,
@@ -479,6 +506,8 @@ public class VSliceChart extends ChartViewJFreeChart {
                                 RenderingHints.VALUE_ANTIALIAS_ON);
                     }
                 }
+            }else{
+                myTerrain.clearRange(); // No geometry to follow
             }
         }
 
@@ -627,7 +656,7 @@ public class VSliceChart extends ChartViewJFreeChart {
             // horizontal
             gd.drawLine(x + 5, myMouseY, x + w - 5, myMouseY);
             gd.setStroke(new BasicStroke(1));
-            
+
             // Draw readout text.
             if (myPlot != null) {
                 boolean haveData = myPlot.my2DSlice.isValid();
@@ -660,13 +689,13 @@ public class VSliceChart extends ChartViewJFreeChart {
 
                     gd.setColor(Color.WHITE);
                     float value = 0;
-                    int index = (myRow*numOfCols)+myCol;
-                    if (index < data.length){
+                    int index = (myRow * numOfCols) + myCol;
+                    if (index < data.length) {
                         value = data[index];
                     }
                     String out = String.format("%f at (%d, %d)", value, myRow, myCol);
                     gd.drawString(out, myMouseX, myMouseY);
-                    
+
                 }
             }
         }

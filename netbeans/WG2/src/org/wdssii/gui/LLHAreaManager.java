@@ -315,41 +315,6 @@ public class LLHAreaManager implements Singleton {
         return Arrays.asList(locations);
     }
 
-    /*
-    public void deleteSelectedVolume() {
-    System.out.println("Deleting selected volume");
-    if (mySelectedVolume != null) {
-    
-    // Selected volume's editor, etc..will be in the world....
-    //	WorldWindowGLCanvas world = getWorld(); // What if world is different now???
-    
-    // Remove the current selected volume editor and layer...
-    //	mySelectedVolume.editor.setArmed(false);
-    //	removeEditorFromLayers(world, mySelectedVolume.editor);
-    //	editorController.setEditor(null);
-    
-    int index = myHandlerList.indexOf(mySelectedVolume);
-    
-    LLHAreaLayer layer = getVolumeLayer();
-    layer.removeLLHArea(mySelectedVolume.airspace);
-    
-    myHandlerList.remove(mySelectedVolume);
-    mySelectedVolume = null;
-    
-    if (myHandlerList.size() > 0) {
-    
-    // Select the previous item in list, if any...
-    index = index - 1;
-    if (index < 0) {
-    index = 0;
-    }
-    selectVolume(myHandlerList.get(index));
-    } else {
-    updateEarthBall();
-    }
-    
-    }
-    }*/
     /** Get the volume that is currently selected (Has the controls) */
     public VolumeTableData getSelection() {
         return mySelectedVolume;
@@ -383,32 +348,6 @@ public class LLHAreaManager implements Singleton {
         }
         return theStuff;
         //   return this.airspaces;
-    }
-
-    /** Set if a LLHArea is visible or not */
-    @Deprecated
-    public void setVisibleVolume(String aName, boolean flag) {
-        for (VolumeTableData v : myHandlerList) {
-            if (v.keyName.equals(aName)) {
-                v.checked = flag;
-                v.airspace.setVisible(flag);
-                CommandManager.getInstance().getEarthBall().updateOnMinTime();
-                break;
-            }
-        }
-    }
-
-    /** Set if a LLHArea is in only mode or not */
-    @Deprecated
-    public void setOnlyMode(String aName, boolean flag) {
-        for (VolumeTableData v : myHandlerList) {
-            if (v.visibleName.equals(aName)) {
-                v.onlyMode = flag;
-                v.airspace.setOnly(flag);
-                CommandManager.getInstance().getEarthBall().updateOnMinTime();
-                break;
-            }
-        }
     }
 
     /** Set a collection of changes to a LLHArea */

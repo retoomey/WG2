@@ -21,6 +21,8 @@ public class VolumeSlice3DOutput {
     private Geometry vsliceFillIndex;       // indices for fill
     private Geometry vsliceVertexGeometry;  // position vertices
     public Geometry.CacheKey cacheKey;
+    private boolean haveVSliceData = false;
+    
     final int SIZE_OF_COLOR = 3; // 3 floats for a color
     final int SIZE_OF_VERTEX = 3; // xyz 3 floats for a vertex
     /** Storage for color vertices.  Only about 1/4 of these values are filled in, the
@@ -63,8 +65,6 @@ public class VolumeSlice3DOutput {
 
     /** Set up a gl color pointer with our color data */
     public void setupColorPointer(GL gl) {
-        // gl.glColorPointer(SIZE_OF_COLOR, GL.GL_FLOAT,0, myColorBuffer);
-
         gl.glColorPointer(SIZE_OF_COLOR, GL.GL_FLOAT, 0, myColorBuffer);
     }
 
@@ -101,6 +101,13 @@ public class VolumeSlice3DOutput {
         return this.vsliceFillIndex;
     }
 
+    public void setHaveVSliceData(boolean flag){
+        this.haveVSliceData = flag;
+    }
+    
+    public boolean hasVSliceData(){
+        return this.haveVSliceData;
+    }
     // @Override
     public long getSizeInBytes() {
         long sizeInBytes = 0L;

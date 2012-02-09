@@ -412,7 +412,7 @@ public class ProductsView extends JThreadPanel implements CommandListener {
                 ResultsTableData d = myResultsTableData.get(row);
                 switch (column) {
                     case 0: // Time
-                        return d.time;
+                        return d.timestamp;
                     case 1: // Choice
                         return d.subtype;
                     case 2: // Products

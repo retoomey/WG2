@@ -40,7 +40,6 @@ public class RadarInfo {
         public int top;
         public int width = 18;
         public int height = 18;
-        
         // Information gathered from radarcsv.txt
         public float latencySecs;
         public int unknown;
@@ -105,34 +104,34 @@ public class RadarInfo {
         }
 
         // Our legend.  FIXME: need text I think too
-        public Color getColor(){
+        public Color getColor() {
             // Color based on latency...
-            if (latencySecs <= 5*60){
+            if (latencySecs <= 5 * 60) {
                 return Color.GREEN;
             }
-            if (latencySecs <= 10*60){
+            if (latencySecs <= 10 * 60) {
                 return Color.YELLOW;
             }
-            if (latencySecs <= 30*60){
+            if (latencySecs <= 30 * 60) {
                 return Color.RED;
             }
-            if (latencySecs <= 60*60){
+            if (latencySecs <= 60 * 60) {
                 return new Color(139, 0, 204); // Deep purple
             }
-            if (latencySecs <= 8*60*60){
+            if (latencySecs <= 8 * 60 * 60) {
                 return new Color(223, 0, 255); // Psychedelic purple 
             }
             return Color.WHITE;
         }
-        
-        public int getVCP(){
+
+        public int getVCP() {
             return vcp;
         }
-        
-        public String getVCPString(){
+
+        public String getVCPString() {
             return String.valueOf(vcp);
         }
-        
+
         public boolean hitTest(int x, int y) {
             boolean hit = false;
             Rectangle2D r = getRect();
@@ -143,11 +142,11 @@ public class RadarInfo {
             }
             return hit;
         }
-        
-        public Rectangle2D getRect(){
-            int halfWidth = width/2;
-            int halfHeight = height/2;
-            Rectangle2D r = new Rectangle(left-halfWidth, top-halfHeight, width, height);
+
+        public Rectangle2D getRect() {
+            int halfWidth = width / 2;
+            int halfHeight = height / 2;
+            Rectangle2D r = new Rectangle(left - halfWidth, top - halfHeight, width, height);
             return r;
         }
     }
@@ -171,10 +170,10 @@ public class RadarInfo {
             InputStream a = bURL.openStream();
             processRadarCSV(a);
         } catch (Exception e) {
-           // Lots of exception catching and no action.  This is usually
-           // considered bad code, but the point of the GUI is to not freak
-           // out when things go bad.  We know that the radar info may be
-           // partial or incomplete based on web access, etc.
+            // Lots of exception catching and no action.  This is usually
+            // considered bad code, but the point of the GUI is to not freak
+            // out when things go bad.  We know that the radar info may be
+            // partial or incomplete based on web access, etc.
         }
     }
 
@@ -187,10 +186,10 @@ public class RadarInfo {
             // 73.415 18000 36.25 -86.56 KOHX 21 
             // latency, unknown, lat, lon, name, vcp
             String[] fields = inputLine.split(" ");
-            if (fields.length > 5){
+            if (fields.length > 5) {
                 String name = fields[4];
-                ARadarInfo info =  myRadarInfos.get(name);
-                if (info != null){
+                ARadarInfo info = myRadarInfos.get(name);
+                if (info != null) {
                     info.latencySecs = Float.parseFloat(fields[0]);
                     info.vcp = Integer.parseInt(fields[5]);
                 }
@@ -198,7 +197,7 @@ public class RadarInfo {
         }
         in.close();
     }
-    
+
     // Can read the page at :
     // CONUS_SHTML
     // Assumes:
@@ -212,67 +211,71 @@ public class RadarInfo {
     //  http://wdssii.nssl.noaa.gov/web/wdss2/products/radar/systems/vcp/radartable.csv
     // It would be nice if the radartable.csv file contained the left/top
     // or if we knew the exact lat/lon dimensions of the image...
-
     /** Process this tag as a document root.  Basically skip any information
      * until we get to our tag.  In STAX, the first event is not a start
      * tag typically.
      * @param p the stream to read from
-     * @return true if tag was found and processed
+     * @return number of found radar div tags
      */
-    private boolean processConusPage(XMLStreamReader p) {
-        boolean found = false;
-        
-        try{
-        boolean keepGoing = true;
-        while (keepGoing) {
-            try {
-                while (p.hasNext()) {
-                    int event = p.next();
-                    switch (event) {
-                        case XMLStreamConstants.START_ELEMENT: {
-                            String tag = p.getLocalName();
-                            // Found a div tag....
-                            if ("div".equals(tag)) {
+    private int processConusPage(XMLStreamReader p) {
+        int found = 0;
 
-                                ARadarInfo div = new ARadarInfo();
-                                // Get the div attributes...
-                                Map<String, String> m = new TreeMap<String, String>();
-                                processAttributes(p, m);
-                                div.id = (String) m.get("id");
-                                div.setStyle(m.get("style"));
+        try {
+            boolean keepGoing = true;
+            while (keepGoing) {
+                try {
+                    while (p.hasNext()) {
+                        int event = p.next();
+                        switch (event) {
+                            case XMLStreamConstants.START_ELEMENT: {
+                                String tag = p.getLocalName();
+                                // Found a div tag....
+                                if ("div".equals(tag)) {
 
-                                // Next tag should be '<a'...
-                                p.nextTag();
-                                tag = p.getLocalName();
-                                Map<String, String> m2 = new TreeMap<String, String>();
-                                processAttributes(p, m2);
-                                String radar = div.getRadarName((String) m2.get("href"));
+                                    ARadarInfo div = new ARadarInfo();
+                                    // Get the div attributes...
+                                    Map<String, String> m = new TreeMap<String, String>();
+                                    processAttributes(p, m);
+                                    div.id = (String) m.get("id");
 
-                                if (radar != null) {
+                                    // Kurt added div tags with images..these
+                                    // have no 'id' field
+                                    if (div.id != null) {
+                                        div.setStyle(m.get("style"));
 
-                                    // FIXME: mod instead of new always?
-                                    myRadarInfos.put(radar, div);
+                                        // Next tag should be '<a'...
+                                        p.nextTag();
+                                        tag = p.getLocalName();
+                                        Map<String, String> m2 = new TreeMap<String, String>();
+                                        processAttributes(p, m2);
+                                        String radar = div.getRadarName((String) m2.get("href"));
+
+                                        if (radar != null) {
+
+                                            // FIXME: mod instead of new always?
+                                            myRadarInfos.put(radar, div);
+                                        }
+                                        found++;
+                                    }
                                 }
-                                found = true;
                             }
                         }
                     }
-                }
-            } catch (XMLStreamException ex) {
-                // Ok, this can happen because HTML doesn't always have END TAGS.
-                // and isn't properly XHTML formated.  Fine, we only care about
-                // the <div> tags and the attributes anyway, so keep going...
-                try {
-                    if (!p.hasNext()) {
+                } catch (XMLStreamException ex) {
+                    // Ok, this can happen because HTML doesn't always have END TAGS.
+                    // and isn't properly XHTML formated.  Fine, we only care about
+                    // the <div> tags and the attributes anyway, so keep going...
+                    try {
+                        if (!p.hasNext()) {
+                            keepGoing = false;
+                        }
+                    } catch (Exception z) {
+                        // We're out of luck, end it..
                         keepGoing = false;
                     }
-                } catch (Exception z) {
-                    // We're out of luck, end it..
-                    keepGoing = false;
                 }
             }
-        }
-        }catch(Exception e){
+        } catch (Exception e) {
             // any exception just finish...keep what we got.
         }
         return found;

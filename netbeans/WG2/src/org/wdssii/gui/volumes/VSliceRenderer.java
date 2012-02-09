@@ -16,83 +16,79 @@ import org.wdssii.gui.products.VolumeSlice3DOutput;
  * @author Robert Toomey
  *
  */
-public class VSliceRenderer
-{
-    protected static final int ELEMENT = 1;
-    protected static final int VERTEX = 2;
-    protected static final int NORMAL = 3;
+public class VSliceRenderer {
 
     public VSliceRenderer() {
         super();
     }
 
     /** Special render our vslice */
-    public void drawVSlice(DrawContext dc, VolumeSlice3DOutput geom) {
+    public void drawVSlice(DrawContext dc, VolumeSlice3DOutput vslice) {
         // We don't use reference center with our vslice, helps with speed quite a bit.
 
         if (dc.isPickingMode()) {  // With picking mode, just fill us in with full square for picking.
-            drawGeometry(dc, geom.getFillIndexGeometry(), geom.getVertexGeometry());
+            drawGeometry(dc, vslice.getFillIndexGeometry(), vslice.getVertexGeometry());
         } else {
-            // Draw vslice geometry
-            drawVSliceGeometry(dc, geom);
+            GL gl = dc.getGL();
 
-            //	geom.getVSliceFillIndexGeometry(), geom.getVSliceVertexGeometry());		
+            gl.glShadeModel(GL.GL_FLAT);
+            gl.glDisable(GL.GL_CULL_FACE);
+            gl.glDisable(GL.GL_LIGHTING);
+
+            gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT
+                    | GL.GL_CLIENT_PIXEL_STORE_BIT);
+            gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+            gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+            gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
+
+            gl.glShadeModel(GL.GL_FLAT);
+            gl.glDisable(GL.GL_CULL_FACE);
+            gl.glDisable(GL.GL_LIGHTING);
+
+            if (vslice.hasVSliceData()) {
+                vslice.setupColorPointer(gl);
+                vslice.setupVertexPointer(gl);
+                vslice.drawElementBuffer(gl);
+            } else {
+                // Fill in with color (no vslice data, but still want something
+                // visible....
+                gl.glDisableClientState(GL.GL_COLOR_ARRAY);
+                dc.getGL().glColor4f(1.0f, 0.0f, 0.0f, 0.50f);
+                drawGeometry(dc, vslice.getFillIndexGeometry(), vslice.getVertexGeometry());
+            }
 
             // Border outline from superclass (How to color it?) FIXME: Make a subdivison based legend
-            //	dc.getGL().glColor3f(1.0f, 0.0f, 0.0f);
-            drawGeometry(dc, geom.getOutlineIndexGeometry(), geom.getVertexGeometry());
+            // drawGeometry(dc, vslice.getOutlineIndexGeometry(), vslice.getVertexGeometry());
+            gl.glPopClientAttrib();
         }
     }
 
-    public void drawVSliceGeometry(DrawContext dc, VolumeSlice3DOutput vslice) {
-        GL gl = dc.getGL();
-
-        gl.glEnableClientState(GL.GL_COLOR_ARRAY);
-        gl.glShadeModel(GL.GL_FLAT);
-        gl.glDisable(GL.GL_CULL_FACE);
-        gl.glDisable(GL.GL_LIGHTING);
-
-        vslice.setupColorPointer(gl);
-        vslice.setupVertexPointer(gl);
-        if (!dc.isPickingMode()) {
-            gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
-        }
-
-        vslice.drawElementBuffer(gl);
-
-        gl.glDisableClientState(GL.GL_COLOR_ARRAY);
-    }
-
-    public void drawGeometry(DrawContext dc, Geometry elementGeom, Geometry vertexGeom) {
+    private void drawGeometry(DrawContext dc, Geometry elementGeom, Geometry vertexGeom) {
         int mode, count, type;
         Buffer elementBuffer;
 
-        mode = elementGeom.getMode(ELEMENT);
-        count = elementGeom.getCount(ELEMENT);
-        type = elementGeom.getGLType(ELEMENT);
-        elementBuffer = elementGeom.getBuffer(ELEMENT);
+        mode = elementGeom.getMode(Geometry.ELEMENT);
+        count = elementGeom.getCount(Geometry.ELEMENT);
+        type = elementGeom.getGLType(Geometry.ELEMENT);
+        elementBuffer = elementGeom.getBuffer(Geometry.ELEMENT);
 
-        this.drawGeometry(dc, mode, count, type, elementBuffer, vertexGeom);
-    }
-
-    public void drawGeometry(DrawContext dc, int mode, int count, int type, Buffer elementBuffer, Geometry geom) {
         GL gl = dc.getGL();
 
         int minElementIndex, maxElementIndex;
         int size, glType, stride;
         Buffer vertexBuffer; //, normalBuffer;
 
-        size = geom.getSize(VERTEX);
-        glType = geom.getGLType(VERTEX);
-        stride = geom.getStride(VERTEX);
-        vertexBuffer = geom.getBuffer(VERTEX);
+        size = vertexGeom.getSize(Geometry.VERTEX);
+        glType = vertexGeom.getGLType(Geometry.VERTEX);
+        stride = vertexGeom.getStride(Geometry.VERTEX);
+        vertexBuffer = vertexGeom.getBuffer(Geometry.VERTEX);
         gl.glVertexPointer(size, glType, stride, vertexBuffer);
 
         // On some hardware, using glDrawRangeElements allows vertex data to be prefetched. We know the minimum and
         // maximum index values that are valid in elementBuffer (they are 0 and vertexCount-1), so it's harmless
         // to use this approach and allow the hardware to optimize.
         minElementIndex = 0;
-        maxElementIndex = geom.getCount(VERTEX) - 1;
+        maxElementIndex = vertexGeom.getCount(Geometry.VERTEX) - 1;
         gl.glDrawRangeElements(mode, minElementIndex, maxElementIndex, count, type, elementBuffer);
     }
 }

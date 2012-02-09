@@ -66,6 +66,8 @@ public class CONUSJPanel extends JPanel {
 
         @Override
         public void paintComponent(Graphics g) {
+            // Call super so background gets cleared where image isn't
+            super.paintComponent(g);  
             if (image != null) {
                 g.drawImage(image, 0, 0, null);
 

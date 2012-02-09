@@ -1,7 +1,6 @@
 package org.wdssii.gui.volumes;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -104,11 +103,16 @@ public class LLHArea extends AVListImpl implements Movable {
             return 100;  // Meters
         }
     }
-    // Hummm
+    
+    /** Is this LLHArea visible? */
     private boolean visible = true;
+
+    /** When selected do we allow others to show? */
     private boolean only = false;
+    
     /** Every LLHArea can follow a particular product */
     protected String myProductFollow = ProductHandlerList.TOP_PRODUCT;
+    
     /** Do we use virtual volume or regular one? */
     protected boolean myUseVirtualVolume = false;
     protected static final String SUBDIVISIONS = "Subdivisions";
@@ -117,8 +121,8 @@ public class LLHArea extends AVListImpl implements Movable {
     protected double lowerAltitude = 0.0;
     protected double upperAltitude = 1.0;
     private LatLon groundReference;
+    
     // Geometry computation and rendering support.
-    private LLHAreaRenderer renderer = new LLHAreaRenderer();
     private GeometryBuilder geometryBuilder = new GeometryBuilder();
 
     public LLHArea() {
@@ -258,26 +262,6 @@ public class LLHArea extends AVListImpl implements Movable {
         this.extents.clear(); // Doesn't hurt to remove all cached extents because re-creation is cheap
     }
 
-    public LLHAreaRenderer getRenderer() {
-        return this.renderer;
-    }
-
-    protected void setRenderer(LLHAreaRenderer renderer) {
-        this.renderer = renderer;
-    }
-
-    public void render(DrawContext dc) {
-        if (!this.isVisible()) {
-            return;
-        }
-
-        if (!this.isAirspaceVisible(dc)) {
-            return;
-        }
-
-        this.doRender(dc);
-    }
-
     public void renderGeometry(DrawContext dc, String drawStyle) {
         if (drawStyle == null) {
             String message = Logging.getMessage("nullValue.StringIsNull");
@@ -355,9 +339,9 @@ public class LLHArea extends AVListImpl implements Movable {
         this.geometryBuilder = gb;
     }
 
-    protected void doRender(DrawContext dc) {
-        renderer.renderNow(dc, Arrays.asList(this));
-    }
+   // protected void doRender(DrawContext dc) {
+   //    renderer.renderNow(dc, Arrays.asList(this));
+    //}
 
     protected void doRenderExtent(DrawContext dc) {
         Extent extent = this.getExtent(dc);

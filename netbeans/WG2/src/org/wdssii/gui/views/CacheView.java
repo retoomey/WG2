@@ -229,7 +229,7 @@ public class CacheView extends JThreadPanel implements CommandListener {
                 }
             }
         });
-        CommandManager.getInstance().registerView("cache", this);
+        CommandManager.getInstance().addListener("cache", this);
 
         // FIXME: Earth ball currently has to be created first or this
         // can't get the layer list...

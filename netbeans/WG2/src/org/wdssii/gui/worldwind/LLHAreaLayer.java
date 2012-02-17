@@ -1105,7 +1105,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         Position pos = wwd.getModel().getGlobe().computePositionFromPoint(pointOnLine);
         Position previousPos = wwd.getModel().getGlobe().computePositionFromPoint(previousPointOnLine);
         double elevationChange = previousPos.getElevation() - pos.getElevation();
-
+        elevationChange /= wwd.getSceneController().getDrawContext().getVerticalExaggeration();
+        
         double[] altitudes = this.getAirspace().getAltitudes();
 
         // Always keep control points above terran
@@ -1540,7 +1541,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         Position pos = wwd.getModel().getGlobe().computePositionFromPoint(pointOnLine);
         Position previousPos = wwd.getModel().getGlobe().computePositionFromPoint(previousPointOnLine);
         double elevationChange = previousPos.getElevation() - pos.getElevation();
-
+        elevationChange /= wwd.getSceneController().getDrawContext().getVerticalExaggeration();
+        
         int index = controlPoint.getAltitudeIndex();
 
         double[] altitudes = controlPoint.getAirspace().getAltitudes();

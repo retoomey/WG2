@@ -53,7 +53,7 @@ public class TableProductView extends JThreadPanel implements CommandListener {
         initComponents();
         initTable();
         updateDataTable();
-        CommandManager.getInstance().registerView(TableProductView.ID, this);
+        CommandManager.getInstance().addListener(TableProductView.ID, this);
         
     }
 

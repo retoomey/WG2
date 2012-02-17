@@ -63,7 +63,7 @@ public class ColorKeyView extends JThreadPanel implements CommandListener {
         initComponents();
         initTable();
         myRenderer.setColorMapRenderer(new ColorMapRenderer());
-        CommandManager.getInstance().registerView(ColorKeyView.ID, this);
+        CommandManager.getInstance().addListener(ColorKeyView.ID, this);
     }
 
     public void initTable() {

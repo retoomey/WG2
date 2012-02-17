@@ -388,7 +388,7 @@ public class SourcesView extends JThreadPanel implements CommandListener, CONUSJ
         jBookTabPane.addTab("CONUS", null, holder, "stuff");
         myCONUSPanel.addCONUSJPanelListener(this);
 
-        CommandManager.getInstance().registerView("Sources", this);
+        CommandManager.getInstance().addListener("Sources", this);
         updateListToCurrent();
         updateCurrentRadarInfo();
     }

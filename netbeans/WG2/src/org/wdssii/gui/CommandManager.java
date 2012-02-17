@@ -142,20 +142,20 @@ public class CommandManager implements Singleton {
         return instance;
     }
 
-    public void registerView(String name, CommandListener aView) {
+    public void addListener(String name, CommandListener aView) {
         synchronized (myViewLock) {
             myNamedViews.put(name, aView);
         }
     }
 
-    public void deregisterView(String name) {
+    public void removeListener(String name) {
         synchronized (myViewLock) {
             myNamedViews.put(name, null);
             myNamedViews.remove(name);
         }
     }
 
-    public CommandListener getNamedViewed(String name) {
+    public CommandListener getNamedCommandListener(String name) {
         synchronized (myViewLock) {
             return (myNamedViews.get(name));
         }
@@ -172,7 +172,7 @@ public class CommandManager implements Singleton {
     }
 
     public WorldWindView getEarthBall() {
-        return ((WorldWindView) getNamedViewed(WorldWindView.ID));
+        return ((WorldWindView) getNamedCommandListener(WorldWindView.ID));
     }
 
     // / Used by the Layers view to get the list of global worldwind layers from
@@ -283,7 +283,7 @@ public class CommandManager implements Singleton {
      * (myProductOrderedSet.getSimulationTime()); }
      */
     public void handleRecord(IndexRecord rec) {
-        CommandListener view = getNamedViewed(SourceManagerView.ID);
+        CommandListener view = getNamedCommandListener(SourceManagerView.ID);
         if (view instanceof SourceManagerView) {
             SourceManagerView smv = (SourceManagerView) (view);
             smv.update();  // Different thread
@@ -291,7 +291,7 @@ public class CommandManager implements Singleton {
     }
 
     public GridVisibleArea getVisibleGrid() {
-        CommandListener view = getNamedViewed(TableProductView.ID);
+        CommandListener view = getNamedCommandListener(TableProductView.ID);
         if (view instanceof TableProductView) {
             TableProductView table = (TableProductView) (view);
             return (table.getVisibleGrid());
@@ -315,7 +315,7 @@ public class CommandManager implements Singleton {
 
         // This is being called from the worldwind thread...not the SWT.
         // Any SWT update code must wrap within async..
-        CommandListener view = getNamedViewed(LLHAreaView.ID);
+        CommandListener view = getNamedCommandListener(LLHAreaView.ID);
         if (view != null) {
             //    LLHAreaView vv = (LLHAreaView) (view);
             //   vv.earthViewSelection(world, event);

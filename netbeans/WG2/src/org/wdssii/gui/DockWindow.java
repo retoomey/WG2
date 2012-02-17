@@ -109,7 +109,7 @@ public class DockWindow {
      * An array of the static views
      */
     private final Object viewLock = new Object();
-    private ArrayList<View> views = new ArrayList<View>();
+    private ArrayList<DockingWindow> views = new ArrayList<DockingWindow>();
     /**
      * Contains all the static views
      */
@@ -127,7 +127,7 @@ public class DockWindow {
     /**
      * The currently applied docking windows theme
      */
-    private DockingWindowsTheme currentTheme = new ShapedGradientDockingTheme();
+    private static DockingWindowsTheme currentTheme = new ShapedGradientDockingTheme();
 
     /**
      * A dynamically created view containing an id.
@@ -162,7 +162,7 @@ public class DockWindow {
      * In this properties object the modified property values for close buttons etc. are stored. This object is cleared
      * when the theme is changed.
      */
-    private RootWindowProperties properties = new RootWindowProperties();
+    private static RootWindowProperties properties = new RootWindowProperties();
     /**
      * Where the layouts are stored.
      */
@@ -252,22 +252,19 @@ public class DockWindow {
         return f;
     }
 
-    private View createViewByID(String shortName) {
-        View v = null;
+    private DockingWindow createViewByID(String shortName) {
+        DockingWindow v = null;
 
         WdssiiDockedViewFactory f = getFactoryFor(shortName);
         if (f != null) {
-            Icon i = f.getWindowIcon();
-            String title = f.getWindowTitle();
-            Component p = f.getNewComponent();
-            v = new View(title, i, p);
+            v = f.getNewDockingWindow();
             f.setDock(v);
         }
         return v;
     }
 
     private void addViewByID(String shortName) {
-        View v = createViewByID(shortName);
+        DockingWindow v = createViewByID(shortName);
         if (v != null) {
             synchronized (viewLock) {
                 views.add(v);
@@ -275,13 +272,13 @@ public class DockWindow {
         }
     }
 
-    private View getViewByID(String shortName) {
+    private DockingWindow getViewByID(String shortName) {
         WdssiiDockedViewFactory f = getFactoryFor(shortName);
-        View v = null;
+        DockingWindow v = null;
         if (f != null) {
             Object c = f.getDock();
-            if (c instanceof View) {
-                v = (View) (c);
+            if (c instanceof DockingWindow) {
+                v = (DockingWindow) (c);
             }
         }
         return v;
@@ -297,6 +294,115 @@ public class DockWindow {
         }
     }
 
+    public static RootWindow createARootWindow(){
+       
+       // RootWindowProperties properties = new RootWindowProperties();
+        RootWindow aWindow;
+        
+        ViewMap someViewMap = new ViewMap();
+        // FIXME: don't get this yet really....
+        // The mixed view map makes it easy to mix static and dynamic views inside the same root window
+        MixedViewHandler handler = new MixedViewHandler(someViewMap,
+                new ViewSerializer() {
+
+                    @Override
+                    public void writeView(View view,
+                            ObjectOutputStream out) throws IOException {
+                       // out.writeInt(((DynamicView) view).getId());
+                    }
+
+                    @Override
+                    public View readView(ObjectInputStream in)
+                            throws IOException {
+                        return null;
+                        //return getDynamicView(in.readInt());
+                    }
+                });
+       // if (WorldWindView.USE_HEAVYWEIGHT){
+        //    aWindow = DockingUtil.createHeavyweightSupportedRootWindow(someViewMap, handler, true);
+        //}else{
+            aWindow = DockingUtil.createRootWindow(someViewMap, handler,
+                true);
+       // }
+
+        // Set gradient theme. The theme properties object is the super object of our properties object, which
+        // means our property value settings will override the theme values
+        properties.addSuperObject(currentTheme.getRootWindowProperties());
+
+        // Our properties object is the super object of the root window properties object, so all property values of the
+        // theme and in our property object will be used by the root window
+        aWindow.getRootWindowProperties().addSuperObject(properties);
+
+        // Enable the bottom window bar
+        //aWindow.getWindowBar(Direction.DOWN).setEnabled(true);
+
+        // Add a listener which shows dialogs when a window is closing or closed.
+        aWindow.addListener(new DockingWindowAdapter() {
+
+            @Override
+            public void windowAdded(DockingWindow addedToWindow,
+                    DockingWindow addedWindow) {
+                // updateViews(addedWindow, true);
+
+                // If the added window is a floating window, then update it
+                if (addedWindow instanceof FloatingWindow) {
+                   // updateFloatingWindow((FloatingWindow) addedWindow);
+                }
+            }
+
+            @Override
+            public void windowRemoved(DockingWindow removedFromWindow,
+                    DockingWindow removedWindow) {
+                // updateViews(removedWindow, false);
+                // FIXME: we could delete the swing stuff, etc...here
+            }
+
+            @Override
+            public void windowClosing(DockingWindow window)
+                    throws OperationAbortedException {
+                // Confirm close operation
+                // if (JOptionPane.showConfirmDialog(frame,
+                //         "Really close window '" + window + "'?") != JOptionPane.YES_OPTION) {
+                //     throw new OperationAbortedException(
+                //             "Window close was aborted!");
+                // }
+            }
+
+            @Override
+            public void windowDocking(DockingWindow window)
+                    throws OperationAbortedException {
+                // Confirm dock operation
+                // if (JOptionPane.showConfirmDialog(frame,
+                //         "Really dock window '" + window + "'?") != JOptionPane.YES_OPTION) {
+                //     throw new OperationAbortedException(
+                //             "Window dock was aborted!");
+                // }
+            }
+
+            @Override
+            public void windowUndocking(DockingWindow window)
+                    throws OperationAbortedException {
+                // Confirm undock operation 
+                // if (JOptionPane.showConfirmDialog(frame,
+                //         "Really undock window '" + window + "'?") != JOptionPane.YES_OPTION) {
+                //     throw new OperationAbortedException(
+                //             "Window undock was aborted!");
+                // }
+            }
+        });
+
+        // Create the views
+        Icon i = null;
+        View v;
+
+        return aWindow;
+        // FIXME: Should hunt by reflection, auto handle this...
+        // For the moment creating ALL views...
+       
+        // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.
+        //rootWindow.addTabMouseButtonListener(DockingWindowActionMouseButtonListener.MIDDLE_BUTTON_CLOSE_LISTENER);
+ 
+    }
     /**
      * Creates the root window and the views.
      */
@@ -423,22 +529,22 @@ public class DockWindow {
 
         // Stick all views in one tab..except those explicited referenced
         // later
-        View[] v = views.toArray(new View[views.size()]);
+        DockingWindow[] v = views.toArray(new DockingWindow[views.size()]);
         TabWindow all = new TabWindow(v);
 
         // Special windows
-        View earth = getViewByID("WorldWindView");
-        View products = getViewByID("ProductsView");
-        View sources = getViewByID("SourcesView");
-        View layers = getViewByID("LayersView");
-        View nav = getViewByID("NavView");
-        View chart = getViewByID("ChartView");
-        View objects = getViewByID("LLHAreaView");
-        View jobs = getViewByID("JobsView");
-        View cache = getViewByID("CacheView");
+        DockingWindow earth = getViewByID("WorldWindView");
+        DockingWindow products = getViewByID("ProductsView");
+        DockingWindow sources = getViewByID("SourcesView");
+        DockingWindow layers = getViewByID("LayersView");
+        DockingWindow nav = getViewByID("NavView");
+        DockingWindow chart = getViewByID("ChartView");
+        DockingWindow objects = getViewByID("LLHAreaView");
+        DockingWindow jobs = getViewByID("JobsView");
+        DockingWindow cache = getViewByID("CacheView");
         
-        TabWindow debug = new TabWindow(new View[]{jobs, cache});
-        TabWindow sourceProducts = new TabWindow(new View[]{sources, products});
+        TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
+        TabWindow sourceProducts = new TabWindow(new DockingWindow[]{sources, products});
         sourceProducts.setSelectedTab(0);
 
         SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);

@@ -41,12 +41,12 @@ public class LLHAreaBoxFactory extends LLHAreaFactory {
         data.keyName = name;
         data.checked = true;
 
-        LLHAreaSlice poly = new LLHAreaSlice();
+        LLHArea poly = new LLHArea();
         poly.setAttributes(getDefaultAttributes());
         poly.setValue(AVKey.DISPLAY_NAME, name);
         poly.setAltitudes(0.0, 0.0);
         data.airspace = poly;
-        initializePolygon(wwd, poly, false);
+       // initializePolygon(wwd, poly, false);
 
         setName(name);
         return success;

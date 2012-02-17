@@ -23,6 +23,7 @@ import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
 import gov.nasa.worldwind.util.GeometryBuilder;
 import gov.nasa.worldwind.util.Logging;
 import javax.swing.JComponent;
+import javax.swing.JTextField;
 
 /** A root class for all of our volumes.  Common functionality will go here.
  * 
@@ -483,6 +484,16 @@ public class LLHArea extends AVListImpl implements Movable {
      * @param source 
      */
     public void activateGUI(JComponent source) {
+          
+        // Set the layout and add our controls
+        source.setLayout(new java.awt.BorderLayout());
+        JTextField t = new JTextField();
+        t.setText("No controls for this object");
+        t.setEditable(false);
+        source.add(t, java.awt.BorderLayout.CENTER);
+        source.doLayout();
+
+        updateGUI();
     }
 
     /** Update our current GUI controls */

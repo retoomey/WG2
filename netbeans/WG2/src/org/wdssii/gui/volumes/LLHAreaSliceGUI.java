@@ -12,6 +12,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import net.miginfocom.layout.LC;
+import net.miginfocom.layout.CC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.LLHAreaChangeCommand;
@@ -67,8 +68,13 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
 
     private void setupComponents() {
 
-        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-
+        /** Completely control the layout within the scrollpane.  Probably
+         * don't want to fill here, let the controls do default sizes
+         */
+        setLayout(new MigLayout(new LC(), null, null));
+        CC mid = new CC().growX().width("min:pref:");
+        
+        //"w min:pref:, growx");
         LLHAreaMemento m = myOwner.getMemento();
         double maxHeight = m.getMaxHeight();
         double minHeight = m.getMinHeight();
@@ -94,7 +100,7 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
                 1); // 1 meter step.  Changable units might be nice
         jMaxHeightKMS.setModel(model);
         add(new JLabel("Top"));
-        add(jMaxHeightKMS);
+        add(jMaxHeightKMS, mid);
         add(new JLabel("Meters"), "wrap");
 
         // Create min spinner
@@ -113,7 +119,7 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
                 1); // 1 Meter step
         jMinHeightKMS.setModel(model);
         add(new JLabel("Bottom"));
-        add(jMinHeightKMS);
+        add(jMinHeightKMS, mid);
         add(new JLabel("Meters"), "wrap");
 
         // Create left latitude spinner
@@ -132,7 +138,7 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
                 .1); // .11 degree step
         jLeftLatDegrees.setModel(model);
         add(new JLabel("LeftLat"));
-        add(jLeftLatDegrees);
+        add(jLeftLatDegrees, mid);
         add(new JLabel("Degrees"), "wrap");
 
         // Create left longitude spinner
@@ -151,7 +157,7 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
                 .1); // .1 degree step
         jLeftLonDegrees.setModel(model);
         add(new JLabel("LeftLon"));
-        add(jLeftLonDegrees);
+        add(jLeftLonDegrees, mid);
         add(new JLabel("Degrees"), "wrap");
 
         // Create right latitude spinner
@@ -170,7 +176,7 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
                 .1); // .11 degree step
         jRightLatDegrees.setModel(model);
         add(new JLabel("RightLat"));
-        add(jRightLatDegrees);
+        add(jRightLatDegrees, mid);
         add(new JLabel("Degrees"), "wrap");
 
         // Create right longitude spinner
@@ -189,7 +195,7 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
                 .1); // .1 degree step
         jRightLonDegrees.setModel(model);
         add(new JLabel("RightLon"));
-        add(jRightLonDegrees);
+        add(jRightLonDegrees, mid);
         add(new JLabel("Degrees"), "wrap");
 
     }

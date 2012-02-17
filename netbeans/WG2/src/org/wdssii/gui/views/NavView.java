@@ -278,7 +278,7 @@ public class NavView extends JThreadPanel implements CommandListener {
         // For box layout, have to align label center...
         jProductInfoLabel.setAlignmentX(LEFT_ALIGNMENT);
         
-        CommandManager.getInstance().registerView("Navigation", this);
+        CommandManager.getInstance().addListener("Navigation", this);
         updateNavButtons();
         updateProductList(null);
     }

@@ -184,7 +184,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         // FIXME: should probably make a preference for this that can be
         // toggled by user if it works correctly/incorrectly
         System.setProperty("sun.awt.noerasebackground", "true");
-        CommandManager.getInstance().registerView(ID, this);
+        CommandManager.getInstance().addListener(ID, this);
     }
 
     public final void createWG2Layers() {

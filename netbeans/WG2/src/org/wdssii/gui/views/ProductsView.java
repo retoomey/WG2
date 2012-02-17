@@ -1073,7 +1073,7 @@ public class ProductsView extends JThreadPanel implements CommandListener {
         initComponents();
         initTables();
         
-        CommandManager.getInstance().registerView("Products", this);
+        CommandManager.getInstance().addListener("Products", this);
     }
 
     private void initComponents() {

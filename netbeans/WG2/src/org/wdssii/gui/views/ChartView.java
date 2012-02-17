@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,11 +11,18 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import net.infonode.docking.DockingWindow;
+import net.infonode.docking.RootWindow;
+import net.infonode.docking.TabWindow;
+import net.infonode.docking.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.DockWindow;
 import org.wdssii.gui.charts.*;
 import org.wdssii.gui.commands.LLHAreaCommand;
 import org.wdssii.gui.commands.ProductCommand;
@@ -64,14 +72,49 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
 
     /** Our factory, called by reflection to populate menus, etc...*/
     public static class Factory extends WdssiiDockedViewFactory {
-
+        private static int counter = 1;
         public Factory() {
             super("Chart", "chart_bar.png");
         }
 
         @Override
+        public DockingWindow getNewDockingWindow() {
+
+            JPanel holder = new JPanel();
+            holder.setLayout(new BorderLayout());
+            
+            JTextField t = new JTextField();
+            t.setText("Testing Nested Docking Charts (in progress)");
+            holder.add(t, BorderLayout.NORTH);
+            
+            // -------------------------------------------------------------
+            // Create a root window (just a square that's hold views), it's
+            // not a view itself...all charts will dock to this
+            RootWindow root = DockWindow.createARootWindow();
+
+            Icon i = getWindowIcon();
+            String title = getWindowTitle();
+            Component p = getNewComponent();
+            
+            View v = new View(title + "-1", i, p);
+            p = getNewComponent();
+            View v2 = new View(title + "-2", i, p);
+
+            TabWindow stuff = new TabWindow(new DockingWindow[]{v, v2});
+            root.setWindow(stuff);
+            stuff.setSelectedTab(0);
+            // ------------------------------------------------------------
+            
+            holder.add(root, BorderLayout.CENTER); 
+            // Add it to a view for 'charts'
+            View topWindow = new View(title + "s", i, holder);
+           
+            return topWindow;
+        }
+
+        @Override
         public Component getNewComponent() {
-            return new ChartView();
+            return new ChartView("Chart-"+counter++);
         }
     }
     private JToggleButton jVirtualToggleButton;
@@ -97,7 +140,10 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
     public final String[] myInterps = new String[]{"None", "Experiment: Binomial I"};
     public int counter2 = 1;
 
-    public ChartView() {
+    private String myTitle;
+    
+    public ChartView(String title) {
+        myTitle = title;
         initComponents();
         initCharts();
 
@@ -160,7 +206,7 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
 
         // ---------------------------------------------------------
         // The product follow menu
-        test = SwingIconFactory.getIconByName("application_cascade.png");
+        test = SwingIconFactory.getIconByName("link.png");
         JwgDropDownButton b2 = new JwgDropDownButton(test) {
 
             @Override
@@ -174,6 +220,23 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
         };
         b2.setToolTipText("Choose product to follow");
         jToolBar1.add(b2);
+
+        // ---------------------------------------------------------
+        // The 3D object follow menu
+        test = SwingIconFactory.getIconByName("application_cascade.png");
+        JwgDropDownButton b3 = new JwgDropDownButton(test) {
+
+            @Override
+            public void generateMenu() {
+                // Because the list dynamically changes
+                //ProductFollowCommand f = new ProductFollowCommand();
+                //f.setTargetListener(ChartView.this);
+                //JPopupMenu menu = WdssiiCommand.getSwingMenuFor(f);
+                //setMenu(menu);
+            }
+        };
+        b3.setToolTipText("Choose 3D object to follow");
+        jToolBar1.add(b3);
 
     }
 
@@ -220,7 +283,7 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
 
     public final void initCharts() {
 
-        CommandManager.getInstance().registerView("ChartView", this);
+        CommandManager.getInstance().addListener(myTitle, this);
 
         // The command class handles the chart list for us.
         createChart(ChartSetTypeCommand.getFirstChartChoice());

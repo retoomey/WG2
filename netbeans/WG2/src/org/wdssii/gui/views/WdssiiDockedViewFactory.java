@@ -2,6 +2,8 @@ package org.wdssii.gui.views;
 
 import java.awt.Component;
 import javax.swing.Icon;
+import net.infonode.docking.DockingWindow;
+import net.infonode.docking.View;
 import org.wdssii.gui.swing.SwingIconFactory;
 
 /**
@@ -35,12 +37,12 @@ public abstract class WdssiiDockedViewFactory {
         myShortName = title;
         myIconName = icon;
     }
-    
+
     /** The key for this factory */
     public String getShortName() {
         return myShortName;
     }
-    
+
     /** The icon for this view */
     public Icon getWindowIcon() {
         Icon i = null;
@@ -79,6 +81,14 @@ public abstract class WdssiiDockedViewFactory {
 
     public Object getDock() {
         return myDock;
+    }
+
+    public DockingWindow getNewDockingWindow() {
+        Icon i = getWindowIcon();
+        String title = getWindowTitle();
+        Component p = getNewComponent();
+        View v = new View(title, i, p);
+        return v;
     }
 
     /** The wrapped component for the docking view */

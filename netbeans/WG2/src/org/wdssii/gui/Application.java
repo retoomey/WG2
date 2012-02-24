@@ -3,7 +3,6 @@ package org.wdssii.gui;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.util.StatusPrinter;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -12,9 +11,20 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.wdssii.core.W2Config;
 import org.wdssii.core.WDSSII;
 import org.wdssii.storage.DataManager;
+import org.geotools.data.FileDataStore;
+import org.geotools.data.FileDataStoreFinder;
+import org.geotools.data.simple.SimpleFeatureSource;
+//import org.geotools.map.FeatureLayer;
+//import org.geotools.map.Layer;
+//import org.geotools.map.MapContent;
+//import org.geotools.styling.SLD;
+//import org.geotools.styling.Style;
+//import org.geotools.swing.JMapFrame;
+//import org.geotools.swing.data.JFileDataStoreChooser;
+import org.wdssii.core.W2Config;
+import org.wdssii.gui.products.ProductHandlerList;
 
 /**
  * The Application...
@@ -43,14 +53,14 @@ public class Application {
     public static void main(String[] args) {
 
         String logmessage = initializeLogger();
-        
+
         final String arch = System.getProperty("os.arch");
         final String name = System.getProperty("os.name");
         final String bits = System.getProperty("sun.arch.data.model");
         final String userdir = System.getProperty("user.dir");
-        
-        log.info("WDSSII GUI VERSION 2.0 [{}, {}, ({} bit)]", new Object[]{ name, arch, bits});
-  
+
+        log.info("WDSSII GUI VERSION 2.0 [{}, {}, ({} bit)]", new Object[]{name, arch, bits});
+
         if (bits.equals("32")) {
             log.error("Sorry, currently no 64 bit support.\n  You really want to run this on a 64 bit OS");
             log.error("You may have 64 and 32 bit Java and be running the 32 version in your path");
@@ -66,7 +76,12 @@ public class Application {
         // native libraries will be found
 
         addNativeLibrariesOrDie(userdir);
-        
+
+        if (true) {
+            //testScripts();
+            testShapeFileRender();
+        }
+
         Application a = new Application();
         a.start();
     }
@@ -88,8 +103,8 @@ public class Application {
      *     IDE folder where I have a debug logback.xml by default.
      */
     public static String initializeLogger() {
-        String message=null;
-        
+        String message = null;
+
         ILoggerFactory ilog = LoggerFactory.getILoggerFactory();
         if (ilog instanceof LoggerContext) {
             LoggerContext context = (LoggerContext) ilog;
@@ -116,7 +131,7 @@ public class Application {
                     context.reset();
                     configurator.doConfigure(dir);
                     message = "Logback configuration file " + dir;
-                }else{
+                } else {
                     message = "Couldn't find logback configuration file, default logging is on";
                 }
             } catch (JoranException je) {
@@ -164,5 +179,34 @@ public class Application {
         final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
         newPaths[newPaths.length - 1] = pathToAdd;
         usrPathsField.set(null, newPaths);
+    }
+
+    public static void testShapeFileRender() {
+        URL u = W2Config.getURL("shapefiles/usa/ok/okcnty.shp");
+        
+        try {
+            FileDataStore store = FileDataStoreFinder.getDataStore(u);
+            SimpleFeatureSource featureSource = store.getFeatureSource();
+            // FeatureSource is ShapefileFeatureLocking...
+
+            // a hack for now to draw map over products.  Next step is full
+            // map gui and display refactor
+            ProductHandlerList.myTestMap = new MapRenderer(featureSource);
+
+            //CachingFeatureSource cache = new CachingFeatureSource(featureSource);
+
+            // Create a map content and add our shapefile to it
+           // MapContent map = new MapContent();
+           // map.setTitle("Quickstart");
+
+            //Style style = SLD.createSimpleStyle(featureSource.getSchema());
+            //Layer layer = new FeatureLayer(featureSource, style);
+            //map.addLayer(layer);
+
+            // Now display the map
+            //JMapFrame.showMap(map);
+        } catch (Exception e) {
+            log.error("Got exception trying to use GeoTools. " + e.toString());
+        }
     }
 }

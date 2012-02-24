@@ -19,6 +19,7 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.CommandManager.NavigationAction;
 import org.wdssii.gui.CommandManager.NavigationMessage;
+import org.wdssii.gui.MapRenderer;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
@@ -44,6 +45,8 @@ import org.wdssii.index.IndexRecord;
  */
 public class ProductHandlerList {
 
+    public static MapRenderer myTestMap = null;
+    
     @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(ProductHandlerList.class);
     /** Key used to request the current top product */
@@ -400,6 +403,12 @@ public class ProductHandlerList {
             if (current.wouldDraw(this)) {
                 current.draw(dc);
             }
+        }
+        
+        // HACK draw a 'map'
+        if (myTestMap != null){
+            myTestMap.setupIfNeeded(dc);
+            myTestMap.draw(dc);
         }
     }
     

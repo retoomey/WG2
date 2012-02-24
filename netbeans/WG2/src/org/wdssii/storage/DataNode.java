@@ -108,7 +108,11 @@ public class DataNode {
                     log.error("Size is " + mySize);
                 }
             } else {
-                log.error("Can't set value on unloaded tile " + myKey + ", might be load on RAM");
+                if (!myLoaded){
+                    log.error("Can't set value on unloaded tile:" + myKey + ".  Out of memory?");
+                }else{
+                    log.error("Out of bounds. "+index+"> "+mySize+" on tile "+myKey);
+                }
                 // FIXME: notify DataManager, try to get more RAM? 
             }
         }

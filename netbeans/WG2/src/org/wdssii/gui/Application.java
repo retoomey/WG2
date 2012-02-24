@@ -16,19 +16,12 @@ import org.wdssii.storage.DataManager;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
-//import org.geotools.map.FeatureLayer;
-//import org.geotools.map.Layer;
-//import org.geotools.map.MapContent;
-//import org.geotools.styling.SLD;
-//import org.geotools.styling.Style;
-//import org.geotools.swing.JMapFrame;
-//import org.geotools.swing.data.JFileDataStoreChooser;
 import org.wdssii.core.W2Config;
 import org.wdssii.gui.products.ProductHandlerList;
 
 /**
  * The Application...
- * 
+ *
  * @author Robert Toomey
  */
 public class Application {
@@ -71,6 +64,17 @@ public class Application {
         if (logmessage != null) {
             log.info(logmessage);
         }
+            
+        // initialize geotools to whatever sf4j bound too.  Bleh a commons
+        // subclass wrapper logging to Sl4fj that may be bound to commons..rofl. 
+        // Or logback, or log4j...We're using logback right now.
+        try {
+            org.geotools.util.logging.Logging.GEOTOOLS.setLoggerFactory(
+                    "org.geotools.util.logging.Slf4jLoggerFactory");
+        } catch (Exception e) {
+            log.error("Couldn't bind GEOTOOLS logger system to ours " + e.toString());
+        }
+        
         // Use the user directory (where we are running) to dynamically
         // add the OS information to the path.  This is where all of our
         // native libraries will be found
@@ -86,21 +90,20 @@ public class Application {
         a.start();
     }
 
-    /** Initialize the logback system.  If we're bound to it.
-     * 
-     * If SLF4J is bound to logback in the current environment, then
-     * we manually assign the logback.xml file.  If deployed as a jar,
-     * we put the logback.xml in the same directory.  I don't want it
-     * inside the jar so that it can easily be modified for debugging
-     * without having to know how to get it in/out of the jar.  Jars
-     * assume the classpath is only the jar typically by default.
-     * 
-     * So basically:
-     * 1.  For deployment there is a user.dir such as "WG2-timestamp"
-     *     and the logback.xml file will be in this folder with the 
-     *     deployed jar.
-     * 2.  For development in the IDE the user.dir will be the root
-     *     IDE folder where I have a debug logback.xml by default.
+    /**
+     * Initialize the logback system. If we're bound to it.
+     *
+     * If SLF4J is bound to logback in the current environment, then we manually
+     * assign the logback.xml file. If deployed as a jar, we put the logback.xml
+     * in the same directory. I don't want it inside the jar so that it can
+     * easily be modified for debugging without having to know how to get it
+     * in/out of the jar. Jars assume the classpath is only the jar typically by
+     * default.
+     *
+     * So basically: 1. For deployment there is a user.dir such as
+     * "WG2-timestamp" and the logback.xml file will be in this folder with the
+     * deployed jar. 2. For development in the IDE the user.dir will be the root
+     * IDE folder where I have a debug logback.xml by default.
      */
     public static String initializeLogger() {
         String message = null;
@@ -183,7 +186,7 @@ public class Application {
 
     public static void testShapeFileRender() {
         URL u = W2Config.getURL("shapefiles/usa/ok/okcnty.shp");
-        
+
         try {
             FileDataStore store = FileDataStoreFinder.getDataStore(u);
             SimpleFeatureSource featureSource = store.getFeatureSource();
@@ -196,8 +199,8 @@ public class Application {
             //CachingFeatureSource cache = new CachingFeatureSource(featureSource);
 
             // Create a map content and add our shapefile to it
-           // MapContent map = new MapContent();
-           // map.setTitle("Quickstart");
+            // MapContent map = new MapContent();
+            // map.setTitle("Quickstart");
 
             //Style style = SLD.createSimpleStyle(featureSource.getSchema());
             //Layer layer = new FeatureLayer(featureSource, style);

@@ -5,19 +5,12 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.net.URL;
 import java.util.Arrays;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.wdssii.core.WDSSII;
 import org.wdssii.storage.DataManager;
-import org.geotools.data.FileDataStore;
-import org.geotools.data.FileDataStoreFinder;
-import org.geotools.data.simple.SimpleFeatureSource;
-import org.wdssii.core.W2Config;
-import org.wdssii.gui.products.ProductHandlerList;
 
 /**
  * The Application...
@@ -80,11 +73,6 @@ public class Application {
         // native libraries will be found
 
         addNativeLibrariesOrDie(userdir);
-
-        if (true) {
-            //testScripts();
-            testShapeFileRender();
-        }
 
         Application a = new Application();
         a.start();
@@ -182,34 +170,5 @@ public class Application {
         final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
         newPaths[newPaths.length - 1] = pathToAdd;
         usrPathsField.set(null, newPaths);
-    }
-
-    public static void testShapeFileRender() {
-        URL u = W2Config.getURL("shapefiles/usa/ok/okcnty.shp");
-
-        try {
-            FileDataStore store = FileDataStoreFinder.getDataStore(u);
-            SimpleFeatureSource featureSource = store.getFeatureSource();
-            // FeatureSource is ShapefileFeatureLocking...
-
-            // a hack for now to draw map over products.  Next step is full
-            // map gui and display refactor
-            ProductHandlerList.myTestMap = new MapRenderer(featureSource);
-
-            //CachingFeatureSource cache = new CachingFeatureSource(featureSource);
-
-            // Create a map content and add our shapefile to it
-            // MapContent map = new MapContent();
-            // map.setTitle("Quickstart");
-
-            //Style style = SLD.createSimpleStyle(featureSource.getSchema());
-            //Layer layer = new FeatureLayer(featureSource, style);
-            //map.addLayer(layer);
-
-            // Now display the map
-            //JMapFrame.showMap(map);
-        } catch (Exception e) {
-            log.error("Got exception trying to use GeoTools. " + e.toString());
-        }
     }
 }

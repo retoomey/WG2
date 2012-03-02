@@ -1,11 +1,7 @@
 package org.wdssii.gui.animators;
 
 import java.util.ArrayList;
-
 import org.wdssii.gui.GUISetting;
-import org.wdssii.gui.LLHAreaManager;
-import org.wdssii.gui.LLHAreaManager.VolumeTableData;
-import org.wdssii.gui.volumes.LLHAreaSlice;
 
 public class Mover3D extends Animator {
 
@@ -33,6 +29,7 @@ public class Mover3D extends Animator {
     @Override
     public int animate() {
 
+        /*
         // Get top slice....obviously we need GUI choices here
         LLHAreaSlice slice = null;
         ArrayList<VolumeTableData> test = LLHAreaManager.getInstance().getVolumes();
@@ -56,6 +53,8 @@ public class Mover3D extends Animator {
             slice.setAltitudes(a[0], a[1]);
 
         }
+        * 
+        */
         return 100; // new min dwell in MS
     }
 

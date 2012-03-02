@@ -1,25 +1,30 @@
 package org.wdssii.gui;
 
-import net.infonode.docking.*;
-import net.infonode.docking.mouse.DockingWindowActionMouseButtonListener;
-import net.infonode.docking.properties.RootWindowProperties;
-import net.infonode.docking.theme.*;
-import net.infonode.docking.util.*;
-import net.infonode.gui.laf.InfoNodeLookAndFeel;
-import net.infonode.util.Direction;
-
-import javax.swing.*;
-
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.swing.*;
+import net.infonode.docking.*;
+import net.infonode.docking.mouse.DockingWindowActionMouseButtonListener;
+import net.infonode.docking.properties.RootWindowProperties;
+import net.infonode.docking.theme.*;
+import net.infonode.docking.util.DockingUtil;
+import net.infonode.docking.util.MixedViewHandler;
+import net.infonode.docking.util.PropertiesUtil;
+import net.infonode.docking.util.ViewMap;
+import net.infonode.gui.laf.InfoNodeLookAndFeel;
 import net.infonode.gui.laf.InfoNodeLookAndFeelTheme;
+import net.infonode.util.Direction;
 import org.wdssii.gui.views.WdssiiDockedViewFactory;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.storage.DataManager;
@@ -506,18 +511,16 @@ public class DockWindow {
         // For the moment creating ALL views...
         addViewByID("WorldWindView");
         addViewByID("NavView");
-        addViewByID("JobsView");
+      
+        addViewByID("DebugView");
         addViewByID("SourcesView");
+        
         addViewByID("ProductsView");
         addViewByID("LayersView");
-        addViewByID("ColorKeyView");
         addViewByID("TableProductView");
         addViewByID("ChartView");
-        addViewByID("LLHAreaView");
-        // Disable for now since this does nothing yet
-        // addViewByID("ProductGroupView");
-        addViewByID("CacheView");
-
+        addViewByID("FeaturesView");
+        
         // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.
         rootWindow.addTabMouseButtonListener(DockingWindowActionMouseButtonListener.MIDDLE_BUTTON_CLOSE_LISTENER);
     }
@@ -539,17 +542,16 @@ public class DockWindow {
         DockingWindow layers = getViewByID("LayersView");
         DockingWindow nav = getViewByID("NavView");
         DockingWindow chart = getViewByID("ChartView");
-        DockingWindow objects = getViewByID("LLHAreaView");
-        DockingWindow jobs = getViewByID("JobsView");
-        DockingWindow cache = getViewByID("CacheView");
+        DockingWindow debug = getViewByID("DebugView");
+        DockingWindow features = getViewByID("FeaturesView");
         
-        TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
-        TabWindow sourceProducts = new TabWindow(new DockingWindow[]{sources, products});
+       // TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
+        TabWindow sourceProducts = new TabWindow(new DockingWindow[]{sources, products, features});
         sourceProducts.setSelectedTab(0);
 
-        SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
+       // SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
 
-        TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart3D, debug, all});
+        TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart, debug, all});
         rootWindow.setWindow(
                 new SplitWindow(true, 0.5f,
                 new SplitWindow(false, 0.7f, earth, nav), stuff));

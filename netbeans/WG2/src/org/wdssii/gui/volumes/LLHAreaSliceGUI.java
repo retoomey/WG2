@@ -6,16 +6,15 @@
  */
 package org.wdssii.gui.volumes;
 
-import javax.swing.JLabel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import net.miginfocom.layout.LC;
 import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.commands.LLHAreaChangeCommand;
+import org.wdssii.gui.commands.FeatureChangeCommand;
+import org.wdssii.gui.features.FeatureGUI;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.volumes.LLHArea.LLHAreaMemento;
 import org.wdssii.gui.volumes.LLHAreaSlice.LLHAreaSliceMemento;
 
@@ -30,7 +29,7 @@ import org.wdssii.gui.volumes.LLHAreaSlice.LLHAreaSliceMemento;
  * 
  * @author Robert Toomey
  */
-public class LLHAreaSliceGUI extends javax.swing.JPanel {
+public class LLHAreaSliceGUI extends javax.swing.JPanel implements FeatureGUI {
 
     /** The VSlice object in 3D window we're linked to */
     private final LLHAreaSlice myOwner;
@@ -56,6 +55,7 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
     }
 
     /** General update call */
+    @Override
     public void updateGUI() {
         LLHAreaSliceMemento m = myOwner.getMemento();
         jMaxHeightKMS.setValue(m.getMaxHeight());
@@ -64,6 +64,18 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
         jLeftLonDegrees.setValue(m.getLeftLonDegrees());
         jRightLatDegrees.setValue(m.getRightLatDegrees());
         jRightLonDegrees.setValue(m.getRightLonDegrees());
+    }
+    
+    @Override
+    public void activateGUI(JComponent parent){             
+        parent.setLayout(new java.awt.BorderLayout());
+        parent.add(this, java.awt.BorderLayout.CENTER);
+        doLayout();     
+    }
+    
+    @Override
+    public void deactivateGUI(JComponent parent){
+        parent.remove(this);
     }
 
     private void setupComponents() {
@@ -204,9 +216,10 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
     private void jMaxHeightKMSStateChanged(ChangeEvent evt) {
         double value = (Double) jMaxHeightKMS.getValue();
         LLHAreaMemento m = myOwner.getMemento();
+        LLHAreaFeature f = myOwner.getFeature();
         if (m.getMaxHeight() != value) {
             m.setMaxHeight(value);
-            LLHAreaChangeCommand c = new LLHAreaChangeCommand(myOwner, m);
+            FeatureChangeCommand c = new FeatureChangeCommand(f, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
     }
@@ -215,9 +228,10 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
     private void jMinHeightKMSStateChanged(ChangeEvent evt) {
         double value = (Double) jMinHeightKMS.getValue();
         LLHAreaMemento m = myOwner.getMemento();
+        LLHAreaFeature f = myOwner.getFeature();
         if (m.getMinHeight() != value) {
             m.setMinHeight(value);
-            LLHAreaChangeCommand c = new LLHAreaChangeCommand(myOwner, m);
+            FeatureChangeCommand c = new FeatureChangeCommand(f, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
     }
@@ -226,9 +240,10 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
     private void jLeftLatDegreesStateChanged(ChangeEvent evt) {
         double value = (Double) jLeftLatDegrees.getValue();
         LLHAreaSliceMemento m = myOwner.getMemento();
+        LLHAreaFeature f = myOwner.getFeature();
         if (m.getLeftLatDegrees() != value) {
             m.setLeftLatDegrees(value);
-            LLHAreaChangeCommand c = new LLHAreaChangeCommand(myOwner, m);
+            FeatureChangeCommand c = new FeatureChangeCommand(f, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
     }
@@ -237,9 +252,10 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
     private void jLeftLonDegreesStateChanged(ChangeEvent evt) {
         double value = (Double) jLeftLonDegrees.getValue();
         LLHAreaSliceMemento m = myOwner.getMemento();
+        LLHAreaFeature f = myOwner.getFeature();
         if (m.getLeftLonDegrees() != value) {
             m.setLeftLonDegrees(value);
-            LLHAreaChangeCommand c = new LLHAreaChangeCommand(myOwner, m);
+            FeatureChangeCommand c = new FeatureChangeCommand(f, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
     }
@@ -248,9 +264,10 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
     private void jRightLatDegreesStateChanged(ChangeEvent evt) {
         double value = (Double) jRightLatDegrees.getValue();
         LLHAreaSliceMemento m = myOwner.getMemento();
+        LLHAreaFeature f = myOwner.getFeature();
         if (m.getRightLatDegrees() != value) {
             m.setRightLatDegrees(value);
-            LLHAreaChangeCommand c = new LLHAreaChangeCommand(myOwner, m);
+            FeatureChangeCommand c = new FeatureChangeCommand(f, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
     }
@@ -259,9 +276,10 @@ public class LLHAreaSliceGUI extends javax.swing.JPanel {
     private void jRightLonDegreesStateChanged(ChangeEvent evt) {
         double value = (Double) jRightLonDegrees.getValue();
         LLHAreaSliceMemento m = myOwner.getMemento();
+        LLHAreaFeature f = myOwner.getFeature();
         if (m.getRightLonDegrees() != value) {
             m.setRightLonDegrees(value);
-            LLHAreaChangeCommand c = new LLHAreaChangeCommand(myOwner, m);
+            FeatureChangeCommand c = new FeatureChangeCommand(f, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
     }

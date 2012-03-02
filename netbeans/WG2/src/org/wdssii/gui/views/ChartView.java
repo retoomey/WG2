@@ -6,15 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import javax.swing.AbstractButton;
-import javax.swing.ButtonGroup;
-import javax.swing.Icon;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextField;
-import javax.swing.JToggleButton;
+import javax.swing.*;
 import net.infonode.docking.DockingWindow;
 import net.infonode.docking.RootWindow;
 import net.infonode.docking.TabWindow;
@@ -23,17 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.DockWindow;
-import org.wdssii.gui.charts.*;
-import org.wdssii.gui.commands.LLHAreaCommand;
-import org.wdssii.gui.commands.ProductCommand;
+import org.wdssii.gui.SingletonManager;
+import org.wdssii.gui.charts.ChartViewChart;
+import org.wdssii.gui.charts.VSliceChart;
 import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
 import org.wdssii.gui.commands.ProductToggleFilterCommand.ProductFilterFollowerView;
-import org.wdssii.gui.commands.VolumeSetTypeCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
-import org.wdssii.gui.SingletonManager;
-import org.wdssii.gui.commands.ChartSetTypeCommand;
-import org.wdssii.gui.commands.ProductFollowCommand;
-import org.wdssii.gui.commands.WdssiiCommand;
+import org.wdssii.gui.commands.*;
 import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.volumes.RadialSetVolume;
 import org.wdssii.gui.swing.JThreadPanel;
@@ -61,7 +49,7 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
         updateGUI(); // load, delete, etc..
     }
 
-    public void LLHAreaCommandUpdate(LLHAreaCommand command) {
+    public void FeatureCommandUpdate(FeatureCommand command) {
         updateGUI();
     }
     // Update when we toggle virtual/regular volume button

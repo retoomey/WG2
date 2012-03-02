@@ -3,14 +3,14 @@ package org.wdssii.gui;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
-import javax.media.opengl.GL;
-
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
+import java.awt.Color;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import javax.media.opengl.GL;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
+import org.wdssii.gui.features.MapFeature.MapMemento;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array1DfloatAsNodes;
 
@@ -50,8 +51,7 @@ public class MapRenderer {
     public MapRenderer(SimpleFeatureSource f) {
         mySource = f;
     }
-    /** Do we render inside a background job? */
-   // private boolean myAsBackgroundJob = false;
+    
     /** The worker job if we are threading */
     private backgroundRender myWorker = null;
     /** Volatile because renderer job creates the data in one thread, but drawn in another.
@@ -104,10 +104,14 @@ public class MapRenderer {
     }
 
     /** Draw the product in the current dc */
-    public void draw(DrawContext dc) {
+    public void draw(DrawContext dc, MapMemento m) {
         if (isCreated() && (polygonData != null)) {
             GL gl = dc.getGL();
-
+            Color line = m.getLineColor();
+            final float r = line.getRed()/255.0f;
+            final float g = line.getGreen()/255.0f;
+            final float b = line.getBlue()/255.0f;
+            final float a = line.getAlpha()/255.0f;
             boolean attribsPushed = false;
             try {
                 Object lock1 = polygonData.getBufferLock();
@@ -117,7 +121,8 @@ public class MapRenderer {
                             | GL.GL_COLOR_BUFFER_BIT
                             | GL.GL_ENABLE_BIT
                             | GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT
-                            | GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT);
+                            | GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT
+                            | GL.GL_LINE_BIT);
 
                     gl.glDisable(GL.GL_LIGHTING);
                     gl.glDisable(GL.GL_TEXTURE_2D);
@@ -132,7 +137,8 @@ public class MapRenderer {
 
                     // Only render if there is data to render
                     if ((z != null) && (z.capacity() > 0)) {
-                        gl.glColor4d(1.0, 1.0, 1.0, 1.0);
+                        gl.glColor4f(r, g, b, a);
+                        gl.glLineWidth(m.getLineThickness());
                         gl.glVertexPointer(3, GL.GL_FLOAT, 0, z.rewind());
                         int size = myOffsets.size();
                         if (size > 1) {

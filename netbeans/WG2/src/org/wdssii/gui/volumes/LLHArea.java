@@ -1,19 +1,8 @@
 package org.wdssii.gui.volumes;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import org.wdssii.gui.products.ProductHandlerList;
-
 import gov.nasa.worldwind.Movable;
 import gov.nasa.worldwind.avlist.AVListImpl;
-import gov.nasa.worldwind.geom.Cylinder;
-import gov.nasa.worldwind.geom.Extent;
-import gov.nasa.worldwind.geom.LatLon;
-import gov.nasa.worldwind.geom.Position;
-import gov.nasa.worldwind.geom.Sphere;
-import gov.nasa.worldwind.geom.Vec4;
+import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.render.Renderable;
@@ -22,32 +11,33 @@ import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
 import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
 import gov.nasa.worldwind.util.GeometryBuilder;
 import gov.nasa.worldwind.util.Logging;
-import javax.swing.JComponent;
-import javax.swing.JTextField;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.products.ProductHandlerList;
 
-/** A root class for all of our volumes.  Common functionality will go here.
- * 
+/**
+ * A root class for all of our volumes. Common functionality will go here.
+ *
  * @author Robert Toomey
- * */
+ *
+ */
 public class LLHArea extends AVListImpl implements Movable {
 
-    /** Change to pass onto the LLHArea.  All fields common to
-    LLHArea are here
+    /**
+     * Change to pass onto the LLHArea. All fields common to LLHArea are here
      */
-    public static class LLHAreaMemento {
+    public static class LLHAreaMemento extends FeatureMemento {
 
-        public boolean visible;
-        public boolean useVisible = false;  // Hummm either flags or set on creation
-        public boolean only;
-        public boolean useOnly = false;
         private double maxHeight;
         private boolean useMaxHeight = false;
         private double minHeight;
         private boolean useMinHeight = false;
 
         public LLHAreaMemento(LLHArea a) {
-            visible = a.visible;
-            only = a.only;
+            super(a.visible, a.only);
             maxHeight = a.upperAltitude;
             minHeight = a.lowerAltitude;
         }
@@ -104,17 +94,26 @@ public class LLHArea extends AVListImpl implements Movable {
             return 100;  // Meters
         }
     }
-    
-    /** Is this LLHArea visible? */
+    /**
+     * The feature we belong to. All 3D objects such as slice, box, stick, etc.
+     * will belong to the LLHAreaFeature group
+     */
+    private LLHAreaFeature myFeature;
+    /**
+     * Is this LLHArea visible?
+     */
     private boolean visible = true;
-
-    /** When selected do we allow others to show? */
+    /**
+     * When selected do we allow others to show?
+     */
     private boolean only = false;
-    
-    /** Every LLHArea can follow a particular product */
+    /**
+     * Every LLHArea can follow a particular product
+     */
     protected String myProductFollow = ProductHandlerList.TOP_PRODUCT;
-    
-    /** Do we use virtual volume or regular one? */
+    /**
+     * Do we use virtual volume or regular one?
+     */
     protected boolean myUseVirtualVolume = false;
     protected static final String SUBDIVISIONS = "Subdivisions";
     protected static final String VERTICAL_EXAGGERATION = "VerticalExaggeration";
@@ -122,26 +121,35 @@ public class LLHArea extends AVListImpl implements Movable {
     protected double lowerAltitude = 0.0;
     protected double upperAltitude = 1.0;
     private LatLon groundReference;
-    
     // Geometry computation and rendering support.
     private GeometryBuilder geometryBuilder = new GeometryBuilder();
 
-    public LLHArea() {
+    public LLHArea(LLHAreaFeature f) {
         this(new BasicAirspaceAttributes());
+        myFeature = f;
     }
 
-    /** Get the memento for this class */
+    public LLHAreaFeature getFeature() {
+        return myFeature;
+    }
+
+    /**
+     * Get the memento for this class
+     */
     public LLHAreaMemento getMemento() {
-        return new LLHAreaMemento(this);     
+        return new LLHAreaMemento(this);
     }
 
-    public void setFromMemento(LLHAreaMemento l) {
-        if (l.useVisible) {
-            setVisible(l.visible);
+    /** Called by the Feature to change us */
+    public void setFromMemento(FeatureMemento f) {
+        visible = f.getVisible();
+        only = f.getOnly();
+        if (f instanceof LLHAreaMemento){
+            setFromMemento((LLHAreaMemento)(f));
         }
-        if (l.useOnly) {
-            setOnly(l.only);
-        }
+    }
+
+    protected void setFromMemento(LLHAreaMemento l) {
         if (l.useMaxHeight) {
             setAltitudes(lowerAltitude, l.maxHeight);
         }
@@ -171,7 +179,7 @@ public class LLHArea extends AVListImpl implements Movable {
     }
     protected HashMap<Globe, ExtentInfo> extents = new HashMap<Globe, ExtentInfo>(2); // usually only 1, but few at most
 
-    public LLHArea(AirspaceAttributes attributes) {
+    private LLHArea(AirspaceAttributes attributes) {
         if (attributes == null) {
             String message = "nullValue.AirspaceAttributesIsNull";
             Logging.logger().severe(message);
@@ -340,10 +348,9 @@ public class LLHArea extends AVListImpl implements Movable {
         this.geometryBuilder = gb;
     }
 
-   // protected void doRender(DrawContext dc) {
-   //    renderer.renderNow(dc, Arrays.asList(this));
+    // protected void doRender(DrawContext dc) {
+    //    renderer.renderNow(dc, Arrays.asList(this));
     //}
-
     protected void doRenderExtent(DrawContext dc) {
         Extent extent = this.getExtent(dc);
         if (extent != null && extent instanceof Renderable) {
@@ -457,46 +464,31 @@ public class LLHArea extends AVListImpl implements Movable {
         return null;
     }
 
-    /** Set the product that we follow in the display */
+    /**
+     * Set the product that we follow in the display
+     */
     public void setProductFollow(String f) {
         myProductFollow = f;
     }
 
-    /** Get the product that we follow in the display */
+    /**
+     * Get the product that we follow in the display
+     */
     public String getProductFollow() {
         return myProductFollow;
     }
 
-    /** Set if we use a virtual or regular volume */
+    /**
+     * Set if we use a virtual or regular volume
+     */
     public void setUseVirtualVolume(boolean current) {
         myUseVirtualVolume = current;
     }
 
-    /** Get if we use a virtual or regular volume */
+    /**
+     * Get if we use a virtual or regular volume
+     */
     public boolean getUseVirtualVolume() {
         return myUseVirtualVolume;
-    }
-
-    /** Activate our GUI within the given JComponent.  The JComponent is
-     * assumed empty.  We should assign the layout we want to it.  The
-     * caller is trusting us to handle this properly. 
-     * 
-     * @param source 
-     */
-    public void activateGUI(JComponent source) {
-          
-        // Set the layout and add our controls
-        source.setLayout(new java.awt.BorderLayout());
-        JTextField t = new JTextField();
-        t.setText("No controls for this object");
-        t.setEditable(false);
-        source.add(t, java.awt.BorderLayout.CENTER);
-        source.doLayout();
-
-        updateGUI();
-    }
-
-    /** Update our current GUI controls */
-    public void updateGUI() {
     }
 }

@@ -1,25 +1,14 @@
 package org.wdssii.gui.charts;
 
 import gov.nasa.worldwind.geom.LatLon;
-
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Paint;
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
-import org.jfree.chart.plot.CrosshairState;
-import org.jfree.chart.plot.Plot;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.PlotRenderingInfo;
-import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.plot.*;
 import org.jfree.chart.renderer.GrayPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
@@ -31,16 +20,16 @@ import org.jfree.data.general.DatasetGroup;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.LLHAreaManager;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.CommandManager.NavigationMessage;
-import org.wdssii.gui.LLHAreaManager.VolumeTableData;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSlice;
 
 public class TimeTrendChart extends ChartViewJFreeChart {
@@ -264,7 +253,6 @@ public class TimeTrendChart extends ChartViewJFreeChart {
     // We use this so that we only update when the vslice CHANGES.
     // VSlices keep a counter of each time they recreate the vslice 'grid' of colors.
     private int myIterationCount = -1;
-    private VSlicePlot myPlot = null;
     private VSliceChartRenderer myRenderer = null;
     /** The XAxis for the vslice showing range */
     //private NumberAxis myXAxis = null;
@@ -288,15 +276,14 @@ public class TimeTrendChart extends ChartViewJFreeChart {
     public LLHAreaSlice getVSliceToPlot() {
         // -------------------------------------------------------------------------
         // Hack snag the current slice and product...
-        // Hack for now....we grab first 3d object in our LLHAreaManager
+        // Hack for now....we grab first 3d object in our FeatureList
         LLHAreaSlice slice = null;
-        ArrayList<VolumeTableData> test = LLHAreaManager.getInstance().getVolumes();
-        if (test != null) {
-            if (test.size() > 0) {
-                VolumeTableData data = test.get(0);
-                if (data.airspace instanceof LLHAreaSlice) {
-                    slice = (LLHAreaSlice) data.airspace;
-                }
+        LLHAreaFeature f = (LLHAreaFeature) FeatureList.theFeatures.getFirstFeature(LLHAreaFeature.class);
+        
+        if (f != null){
+            LLHArea area = f.getLLHArea(); 
+            if (area instanceof LLHAreaSlice){
+                slice = (LLHAreaSlice) (area);
             }
         }
         return slice;

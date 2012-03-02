@@ -1,13 +1,14 @@
 package org.wdssii.gui.volumes;
 
-import java.awt.Color;
-
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.render.Material;
 import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
 import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
-
-import org.wdssii.gui.LLHAreaManager.VolumeTableData;
+import java.awt.Color;
+import javax.swing.JComponent;
+import org.wdssii.gui.features.Feature.FeatureTableInfo;
+import org.wdssii.gui.features.FeatureGUI;
+import org.wdssii.gui.features.LLHAreaFeature;
 
 /** The root class for creating a LLHArea.  This creates the drawing part and the editor part for a slice, box, stick, etc. 
  * Slices are used for VSlices in the display, Boxes for isosurfaces, Sticks for time height trends...and future stuff.
@@ -35,8 +36,13 @@ public abstract class LLHAreaFactory {
     public abstract String getFactoryNameDisplay();
 
     /** Create an airspace and airspace editor in the given world */
-    public abstract boolean create(WorldWindow wwd, VolumeTableData data);
+    public abstract boolean create(WorldWindow wwd, LLHAreaFeature f, FeatureTableInfo info);
 
+    /** Create a GUI for an LLHArea */
+    public FeatureGUI createGUI(LLHArea a, JComponent parent){
+        return null;
+    }
+    
     /** Get the displayed name of this object */
     //public String getName(){ return myName; }
     /** Set the displayed name of this object */

@@ -19,7 +19,8 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.CommandManager.NavigationAction;
 import org.wdssii.gui.CommandManager.NavigationMessage;
-import org.wdssii.gui.MapRenderer;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
@@ -44,8 +45,6 @@ import org.wdssii.index.IndexRecord;
  *         Nav wm.getProductHandlerList().navigationMessage();
  */
 public class ProductHandlerList {
-
-    public static MapRenderer myTestMap = null;
     
     @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(ProductHandlerList.class);
@@ -406,10 +405,7 @@ public class ProductHandlerList {
         }
         
         // HACK draw a 'map'
-        if (myTestMap != null){
-            myTestMap.setupIfNeeded(dc);
-            myTestMap.draw(dc);
-        }
+        FeatureList.theFeatures.renderFeatureGroup(dc, MapFeature.MapGroup);
     }
     
     // Pick support for product handlers.

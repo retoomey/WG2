@@ -1,10 +1,7 @@
 package org.wdssii.gui;
 
-import java.io.InputStream;
-
 import java.net.URL;
 import org.wdssii.core.W2Config;
-import org.wdssii.gui.util.FileUtil;
 import org.wdssii.xml.wdssiiConfig.Tag_setup;
 
 /**
@@ -28,7 +25,7 @@ public class SingletonManager {
     private static SingletonManager instance = null;
     private static boolean notCreated = true;
     // Don't let it be read while it's reading...
-    private Object wdssiiReadLock = new Object();
+    private final Object wdssiiReadLock = new Object();
     private Tag_setup theWdssiiXML;
 
     private SingletonManager() {
@@ -82,9 +79,6 @@ public class SingletonManager {
             if (!(caller instanceof SourceManager)) {
                 SourceManager.getInstance();
             }
-            if (!(caller instanceof LLHAreaManager)) {
-                LLHAreaManager.getInstance();
-            }
 
             // Here is where we control code order.  A singleton should do any 'work'
             // within it's singletonManagerCallback routine.  At this time, all
@@ -98,7 +92,6 @@ public class SingletonManager {
             ProductManager.getInstance().singletonManagerCallback();
             CommandManager.getInstance().singletonManagerCallback();
             SourceManager.getInstance().singletonManagerCallback();
-            LLHAreaManager.getInstance().singletonManagerCallback();
 
         }
     }

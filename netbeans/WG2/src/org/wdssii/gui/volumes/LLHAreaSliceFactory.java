@@ -3,17 +3,14 @@ package org.wdssii.gui.volumes;
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.examples.util.ShapeUtils;
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.LatLon;
-import gov.nasa.worldwind.geom.Matrix;
-import gov.nasa.worldwind.geom.Position;
-import gov.nasa.worldwind.geom.Vec4;
+import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
-
 import java.util.Arrays;
 import java.util.List;
-
-import org.wdssii.gui.LLHAreaManager.VolumeTableData;
+import javax.swing.JComponent;
+import org.wdssii.gui.features.Feature.FeatureTableInfo;
+import org.wdssii.gui.features.FeatureGUI;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.worldwind.WorldwindUtil;
 
 /** Factory which creates a 'slice'.  Two lat/lon points and a fixed height range between them*/
@@ -28,25 +25,36 @@ public class LLHAreaSliceFactory extends LLHAreaFactory {
     }
 
     @Override
-    public boolean create(WorldWindow wwd, VolumeTableData data) {
+    public boolean create(WorldWindow wwd, LLHAreaFeature f, FeatureTableInfo data) {
 
         boolean success = true;
 
         // Create the visible object in world window
         String name = "Slice" + String.valueOf(counter++);
+        
         data.visibleName = name;
         data.keyName = name;
-        data.checked = true;
+        data.visible = true;
 
-        LLHAreaSlice poly = new LLHAreaSlice();
+        LLHAreaSlice poly = new LLHAreaSlice(f);       
         poly.setAttributes(getDefaultAttributes());
         poly.setValue(AVKey.DISPLAY_NAME, name);
         poly.setAltitudes(0.0, 0.0);
-        data.airspace = poly;
+        data.created = poly;
         initializePolygon(wwd, poly, false);
 
         setName(name);
         return success;
+    }
+    
+    @Override
+    public FeatureGUI createGUI(LLHArea a, JComponent parent){
+        if (a instanceof LLHAreaSlice){
+            LLHAreaSlice slice = (LLHAreaSlice)(a);
+            LLHAreaSliceGUI gui = new LLHAreaSliceGUI(slice);          
+            return gui;
+        }
+        return super.createGUI(a, parent);
     }
 
     /** Initialize a new polygon (VSlice) FIXME: should be factory method */

@@ -1,64 +1,49 @@
 package org.wdssii.gui.worldwind;
 
-import java.awt.Point;
-import java.nio.Buffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.media.opengl.GL;
-import javax.swing.event.EventListenerList;
-
-import org.wdssii.gui.LLHAreaManager;
-import org.wdssii.gui.LLHAreaManager.VolumeTableData;
-import org.wdssii.gui.volumes.BasicLLHAreaControlPoint;
-import org.wdssii.gui.volumes.BasicLLHAreaControlPointRenderer;
-import org.wdssii.gui.volumes.LLHArea;
-import org.wdssii.gui.volumes.LLHAreaControlPoint;
-import org.wdssii.gui.volumes.LLHAreaControlPointRenderer;
-import org.wdssii.gui.volumes.LLHAreaEditEvent;
-import org.wdssii.gui.volumes.LLHAreaEditListener;
-import org.wdssii.gui.volumes.LLHAreaSlice;
-
 import gov.nasa.worldwind.Locatable;
 import gov.nasa.worldwind.Movable;
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.WorldWindow;
+import gov.nasa.worldwind.geom.*;
+import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.layers.AbstractLayer;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.pick.PickSupport;
-import gov.nasa.worldwind.render.*;
+import gov.nasa.worldwind.render.DrawContext;
+import gov.nasa.worldwind.render.Material;
+import gov.nasa.worldwind.render.OrderedRenderable;
 import gov.nasa.worldwind.render.airspaces.Geometry;
 import gov.nasa.worldwind.render.airspaces.editor.AirspaceEditorUtil;
 import gov.nasa.worldwind.util.Logging;
 import gov.nasa.worldwind.util.PerformanceStatistic;
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Extent;
-import gov.nasa.worldwind.geom.Intersection;
-import gov.nasa.worldwind.geom.LatLon;
-import gov.nasa.worldwind.geom.Line;
-import gov.nasa.worldwind.geom.Position;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.Globe;
+import java.awt.Point;
+import java.nio.Buffer;
+import java.util.*;
+import javax.media.opengl.GL;
+import javax.swing.event.EventListenerList;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.volumes.*;
 
 /**
- * A layer for all of our LLHArea collection, this handles editing a 'list' of objects.
- * A lot of this code came from Airspace work in the WorldWind library, but at the time it was
- * changing too fast and was missing features we needed for vslice and isosurfaces, so it was
- * ported and modified.
- * -- Merged editor layer and drawing layer (simpler for our purposes)
- * 
+ * A layer for all of our LLHArea collection, this handles editing a 'list' of
+ * objects. A lot of this code came from Airspace work in the WorldWind library,
+ * but at the time it was changing too fast and was missing features we needed
+ * for vslice and isosurfaces, so it was ported and modified. -- Merged editor
+ * layer and drawing layer (simpler for our purposes)
+ *
  * @author Robert Toomey
  * @author dcollins
- * 
- * Merged Editor ability into this class, since we have a single 'selected' object that is the currently edited one.
+ *
+ * Merged Editor ability into this class, since we have a single 'selected'
+ * object that is the currently edited one.
  */
 public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
     public static final String DRAW_STYLE_FILL = "Airspace.DrawStyleFill";
     public static final String DRAW_STYLE_OUTLINE = "Airspace.DrawStyleOutline";
-    private final java.util.Collection<LLHArea> myLLHAreas = new java.util.concurrent.ConcurrentLinkedQueue<LLHArea>();
+    // private final java.util.Collection<LLHArea> myLLHAreas = new java.util.concurrent.ConcurrentLinkedQueue<LLHArea>();
     private static final String EXT_BLEND_FUNC_SEPARATE_STRING = "GL_EXT_blend_func_separate";
     protected static final int ELEMENT = 1;
     protected static final int VERTEX = 2;
@@ -112,7 +97,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     /**
-     * Creates a new <code>Airspace</code> with an empty collection of Airspaces.
+     * Creates a new
+     * <code>Airspace</code> with an empty collection of Airspaces.
      */
     public LLHAreaLayer() {
         this.enableAntialiasing = false;
@@ -136,41 +122,39 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     /**
-     * Add an LLHArea to our managed collection
-     */
-    public void addLLHArea(LLHArea a) {
-        myLLHAreas.add(a);
-    }
-
-    /**
-     * Removes an LLHArea from our managed collection
-     */
-    public void removeLLHArea(LLHArea a) {
-        myLLHAreas.remove(a);
-    }
-
-    public void clearLLHAreas() {
-        if (this.myLLHAreas != null && this.myLLHAreas.size() > 0) {
-            this.myLLHAreas.clear();
-        }
-    }
-
-    /**
-     * Returns the Iterable of currently active Airspaces.
-     * If the caller has specified a custom Iterable via {@link #setAirspaces}, this will returns a reference
-     * to that Iterable. If the caller passed <code>setAirspaces</code> a null parameter,
-     * or if <code>setAirspaces</code> has not been called, this returns a view of this layer's internal
-     * collection of Airspaces.
+     * Returns the Iterable of currently active Airspaces. If the caller has
+     * specified a custom Iterable via {@link #setAirspaces}, this will returns
+     * a reference to that Iterable. If the caller passed
+     * <code>setAirspaces</code> a null parameter, or if
+     * <code>setAirspaces</code> has not been called, this returns a view of
+     * this layer's internal collection of Airspaces.
      *
      * @return Iterable of currently active Airspaces.
      */
     private Iterable<LLHArea> getActiveAirspaces() {
-        return LLHAreaManager.getInstance().getDrawnVolumes();
-        //   return this.airspaces;
+        
+        // Fixme: We'll make a FeatureLayer that takes a group...
+        Collection<LLHArea> theStuff = new ArrayList<LLHArea>();
+
+        List<Feature> list = FeatureList.theFeatures.getActiveFeatureGroup("3D");
+        Iterator<Feature> i = list.iterator();
+        while (i.hasNext()) {
+            Feature f = i.next();
+            if (f instanceof LLHAreaFeature) {
+                LLHAreaFeature l = (LLHAreaFeature) (f);
+                LLHArea a = l.getLLHArea();
+                if (a != null) {
+                    theStuff.add(a);
+                }
+            }
+        }
+        return theStuff;
     }
 
     @Override
-    /** The 'pick' mode, draw just outlines for opengl picking */
+    /**
+     * The 'pick' mode, draw just outlines for opengl picking
+     */
     protected void doPick(DrawContext dc, java.awt.Point pickPoint) {
         // Draw the volumes themselves
         //pickOrdered(dc, getActiveAirspaces(), pickPoint, this);
@@ -391,7 +375,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         }
 
         protected void draw(DrawContext dc, PickSupport pickSupport) {
-            LLHAreaLayer renderer = this.getRenderer();
+            //LLHAreaLayer renderer = this.getRenderer();
             renderer.drawOrderedAirspace(dc, this, pickSupport);
         }
     }
@@ -1106,12 +1090,12 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         Position previousPos = wwd.getModel().getGlobe().computePositionFromPoint(previousPointOnLine);
         double elevationChange = previousPos.getElevation() - pos.getElevation();
         elevationChange /= wwd.getSceneController().getDrawContext().getVerticalExaggeration();
-        
+
         double[] altitudes = this.getAirspace().getAltitudes();
 
         // Always keep control points above terran
         // Note that this trims entire vertical movement
-       if (altitudes[LOWER_ALTITUDE] + elevationChange < 0.0) {
+        if (altitudes[LOWER_ALTITUDE] + elevationChange < 0.0) {
             elevationChange = 0.0 - altitudes[LOWER_ALTITUDE];
         }
         altitudes[LOWER_ALTITUDE] += elevationChange;
@@ -1122,15 +1106,15 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         this.fireAirspaceMoved(new LLHAreaEditEvent(wwd, airspace, this));
     }
 
-    public void pinAltitudes(double[] altitudes){
-         if (altitudes[LOWER_ALTITUDE] < 0.0) {
+    public void pinAltitudes(double[] altitudes) {
+        if (altitudes[LOWER_ALTITUDE] < 0.0) {
             altitudes[LOWER_ALTITUDE] = 0.0;
-        }  
-         if(altitudes[UPPER_ALTITUDE] < 0.001){
-             altitudes[UPPER_ALTITUDE] = 0.001;
-         }
+        }
+        if (altitudes[UPPER_ALTITUDE] < 0.001) {
+            altitudes[UPPER_ALTITUDE] = 0.001;
+        }
     }
-    
+
     public static Vec4 nearestPointOnLine(Line source, Line target) {
         // Compute the points on each ray that are closest to one another.
         // Taken from "Mathematics for 3D Game Programming..." by Eric Lengyel, Section 4.1.2.
@@ -1178,11 +1162,20 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
     public LLHArea getAirspace() {
         LLHArea ap = null;
-        VolumeTableData d = LLHAreaManager.getInstance().getSelection();
-        if (d != null) {
-            ap = d.airspace;
+
+        Feature f = FeatureList.theFeatures.getSelected(LLHAreaFeature.LLHAreaGroup);
+        if (f != null) {
+            LLHAreaFeature l = (LLHAreaFeature) (f);
+            ap = l.getLLHArea();
         }
+        /*
+         * GOOP VolumeTableData d = LLHAreaManager.getInstance().getSelection();
+         * if (d != null) { ap = d.airspace; }
+         *
+         */
         return ap;
+
+
         //return this.getSlice();
     }
 
@@ -1200,22 +1193,48 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //**************************************************************//
     protected void assembleControlPoints(DrawContext dc) {
         // If selection isn't visible, don't show control points....
-        VolumeTableData d = LLHAreaManager.getInstance().getSelection();
-        if ((d == null) || (!d.checked)) {
+
+        Feature f = FeatureList.theFeatures.getSelected(LLHAreaFeature.LLHAreaGroup);
+        if ((f == null) || (!f.getVisible())) {
             return;
         }
 
-        if (this.getSlice() == null) {
+        /**
+         * Get selected already checked type for LLHAreaFeature
+         */
+        LLHAreaFeature l = (LLHAreaFeature) (f);
+        LLHArea area = l.getLLHArea();
+
+        if (area == null) {
             return;
         }
 
-        int numLocations = this.getSlice().getLocations().size();
+        if (area instanceof LLHAreaSlice) {  // Why do this?
+            LLHAreaSlice s = (LLHAreaSlice) (area);
+            int numLocations = s.getLocations().size();
 
-        for (int locationIndex = 0; locationIndex < numLocations; locationIndex++) {
-            this.addPolygonControlPoint(dc, locationIndex, LOWER_ALTITUDE);
-            // Add the upper altitude control points.
-            this.addPolygonControlPoint(dc, locationIndex, UPPER_ALTITUDE);
+            for (int locationIndex = 0; locationIndex < numLocations; locationIndex++) {
+                this.addPolygonControlPoint(dc, locationIndex, LOWER_ALTITUDE);
+                // Add the upper altitude control points.
+                this.addPolygonControlPoint(dc, locationIndex, UPPER_ALTITUDE);
+            }
+
         }
+
+        /*
+         * VolumeTableData d = LLHAreaManager.getInstance().getSelection(); if
+         * ((d == null) || (!d.checked)) { return; }
+         *
+         * if (this.getSlice() == null) { return; }
+         *
+         * int numLocations = this.getSlice().getLocations().size();
+         *
+         * for (int locationIndex = 0; locationIndex < numLocations;
+         * locationIndex++) { this.addPolygonControlPoint(dc, locationIndex,
+         * LOWER_ALTITUDE); // Add the upper altitude control points.
+         * this.addPolygonControlPoint(dc, locationIndex, UPPER_ALTITUDE); }
+         *
+         */
     }
 
     protected void addPolygonControlPoint(DrawContext dc, int locationIndex, int altitudeIndex) {
@@ -1223,7 +1242,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         double altitude = this.getSlice().getAltitudes()[altitudeIndex];
 
         double vert = dc.getVerticalExaggeration();
-        Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude*vert);
+        Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude * vert);
         LLHAreaControlPoint controlPoint =
                 new BasicLLHAreaControlPoint(this, this.getSlice(), locationIndex, altitudeIndex, point);
 
@@ -1475,14 +1494,16 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
     protected void doRemoveControlPoint(WorldWindow wwd, LLHAreaControlPoint controlPoint) {
         // +++ Don't allow delete
-    	/*if (false){ // Robert Toomey
-        int index = controlPoint.getLocationIndex();
-        List<LatLon> newLocationList = new ArrayList<LatLon>(this.getSlice().getLocations());
-        newLocationList.remove(index);
-        this.getSlice().setLocations(newLocationList);
-        
-        this.fireControlPointRemoved(new LLHAreaEditEvent(wwd, controlPoint.getAirspace(), this, controlPoint));
-        }*/
+    	/*
+         * if (false){ // Robert Toomey int index =
+         * controlPoint.getLocationIndex(); List<LatLon> newLocationList = new
+         * ArrayList<LatLon>(this.getSlice().getLocations());
+         * newLocationList.remove(index);
+         * this.getSlice().setLocations(newLocationList);
+         *
+         * this.fireControlPointRemoved(new LLHAreaEditEvent(wwd,
+         * controlPoint.getAirspace(), this, controlPoint)); }
+         */
     }
 
     protected void doMoveControlPoint(WorldWindow wwd, LLHAreaControlPoint controlPoint,
@@ -1542,7 +1563,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         Position previousPos = wwd.getModel().getGlobe().computePositionFromPoint(previousPointOnLine);
         double elevationChange = previousPos.getElevation() - pos.getElevation();
         elevationChange /= wwd.getSceneController().getDrawContext().getVerticalExaggeration();
-        
+
         int index = controlPoint.getAltitudeIndex();
 
         double[] altitudes = controlPoint.getAirspace().getAltitudes();
@@ -1561,7 +1582,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
         altitudes[index] += elevationChange;
         pinAltitudes(altitudes);
-        
+
         controlPoint.getAirspace().setAltitudes(altitudes[LOWER_ALTITUDE], altitudes[UPPER_ALTITUDE]);
 
         LLHAreaEditEvent editEvent = new LLHAreaEditEvent(wwd, controlPoint.getAirspace(), this, controlPoint);

@@ -1,12 +1,10 @@
 package org.wdssii.gui.charts;
 
 import gov.nasa.worldwind.geom.LatLon;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.ListIterator;
-
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -29,13 +27,13 @@ import org.jfree.ui.RectangleEdge;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.LLHAreaManager;
-import org.wdssii.gui.LLHAreaManager.VolumeTableData;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.products.ProductHandlerList;
+import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSlice;
 
 /** A chart that displays the data value of a product in its Y axis, and a
@@ -372,15 +370,14 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
     public LLHAreaSlice getVSliceToPlot() {
         // -------------------------------------------------------------------------
         // Hack snag the current slice and product...
-        // Hack for now....we grab first 3d object in our LLHAreaManager
+        // Hack for now....we grab first 3d object in our FeatureList
         LLHAreaSlice slice = null;
-        ArrayList<VolumeTableData> test = LLHAreaManager.getInstance().getVolumes();
-        if (test != null) {
-            if (test.size() > 0) {
-                VolumeTableData data = test.get(0);
-                if (data.airspace instanceof LLHAreaSlice) {
-                    slice = (LLHAreaSlice) data.airspace;
-                }
+        LLHAreaFeature f = (LLHAreaFeature) FeatureList.theFeatures.getFirstFeature(LLHAreaFeature.class);
+        
+        if (f != null){
+            LLHArea area = f.getLLHArea(); 
+            if (area instanceof LLHAreaSlice){
+                slice = (LLHAreaSlice) (area);
             }
         }
         return slice;

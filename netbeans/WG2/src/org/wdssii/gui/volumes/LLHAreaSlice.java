@@ -3,25 +3,20 @@ package org.wdssii.gui.volumes;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
-import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
-import gov.nasa.worldwind.util.*;
-
+import gov.nasa.worldwind.util.GeometryBuilder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import javax.media.opengl.GL;
-
-import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.commands.LLHAreaCommand;
-import org.wdssii.gui.products.FilterList;
-import org.wdssii.gui.products.ProductHandler;
-import org.wdssii.gui.products.ProductHandlerList;
-import org.wdssii.gui.products.volumes.ProductVolume;
-import org.wdssii.gui.products.VolumeSlice3DOutput;
-import org.wdssii.gui.products.VolumeSliceInput;
-
-import java.util.*;
-import javax.swing.JComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.commands.FeatureCommand;
+import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.products.*;
+import org.wdssii.gui.products.volumes.ProductVolume;
 
 /**
  * A copy of worldwind Polygon, with modifications to allow us to render the vslice
@@ -116,7 +111,6 @@ public class LLHAreaSlice extends LLHArea {
     private ProductVolume myVolumeProduct = null;
     private VolumeSlice3DOutput myGeometry = new VolumeSlice3DOutput();
     private String myCacheKey = "";
-    private LLHAreaSliceGUI myControls = null;
 
     /** Get the memento for this class */
     @Override
@@ -126,17 +120,15 @@ public class LLHAreaSlice extends LLHArea {
 
     @Override
     public void setFromMemento(LLHAreaMemento l) {
+        super.setFromMemento(l);
         if (l instanceof LLHAreaSliceMemento) {
             LLHAreaSliceMemento ls = (LLHAreaSliceMemento) (l);
             setFromMemento(ls);
-        } else {
-            super.setFromMemento(l);
         }
     }
 
     /** Not overridden */
-    public void setFromMemento(LLHAreaSliceMemento l) {
-        super.setFromMemento(l);
+    protected void setFromMemento(LLHAreaSliceMemento l) {
 
         boolean updateLocations = false;
         LatLon newLeft = myLeftLocation;
@@ -215,13 +207,8 @@ public class LLHAreaSlice extends LLHArea {
         return topHeight - bottomHeight;
     }
 
-    public LLHAreaSlice(AirspaceAttributes attributes) {
-        super(attributes);
-        ProductVolume volume = ProductManager.getCurrentVolumeProduct(myProductFollow, getUseVirtualVolume());
-        myVolumeProduct = volume;
-    }
-
-    public LLHAreaSlice() {
+    public LLHAreaSlice(LLHAreaFeature f) {
+        super(f);
         ProductVolume volume = ProductManager.getCurrentVolumeProduct(myProductFollow, getUseVirtualVolume());
         myVolumeProduct = volume;
     }
@@ -474,7 +461,7 @@ public class LLHAreaSlice extends LLHArea {
         this.makeVSlice(dc, locations, edgeFlags, myGeometry);
 
         // Fire changed event?  Is this enough?
-        CommandManager.getInstance().executeCommand(new LLHAreaCommand(), true);
+        CommandManager.getInstance().executeCommand(new FeatureCommand(), true);
         return myGeometry;
     }
 
@@ -788,31 +775,6 @@ public class LLHAreaSlice extends LLHArea {
             pos = vertexPos + 2 * (count - 1);
             indices[index++] = pos;
             indices[index] = pos + 1;
-        }
-    }
-
-    @Override
-    public void activateGUI(JComponent source) {
-        // Create the controls only if they don't already exist.
-        // FIXME: maybe some caching among common types?  We probably won't
-        // have more than 5-10 3D volume objects per display, so for now
-        // we have a unique set of controls per vslice.
-        if (myControls == null) {
-            myControls = new LLHAreaSliceGUI(this);
-        }
-
-        // Set the layout and add our controls
-        source.setLayout(new java.awt.BorderLayout());
-        source.add(myControls, java.awt.BorderLayout.CENTER);
-        myControls.doLayout();
-
-        updateGUI();
-    }
-
-    @Override
-    public void updateGUI() {
-        if (myControls != null) {
-            myControls.updateGUI();
         }
     }
 }

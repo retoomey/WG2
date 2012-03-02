@@ -3,20 +3,18 @@ package org.wdssii.gui.volumes;
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.event.InputHandler;
 import gov.nasa.worldwind.pick.PickedObjectList;
-
 import java.awt.Cursor;
 import java.awt.Point;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.LLHAreaManager;
-import org.wdssii.gui.commands.LLHAreaSelectCommand;
+import org.wdssii.gui.commands.FeatureSelectCommand;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 
 /** This handles the mouse/key events for an LLHAreaLayer.
@@ -34,7 +32,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
     private final LLHAreaLayer volumeLayer;
     // Current selection and device state.
     private Point mousePoint;
-    private LLHArea activeLLHArea;
+    private LLHAreaFeature activeLLHArea;
     private LLHAreaControlPoint activeControlPoint;
     // Action/Cursor pairings.
     private Map<String, Cursor> actionCursorMap = new HashMap<String, Cursor>();
@@ -112,20 +110,34 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         this.activeControlPoint = controlPoint;
     }
 
-    protected LLHArea getActiveAirspace() {
+    protected LLHAreaFeature getActiveAirspace() {
         return activeLLHArea;
     }
 
-    protected void setActiveAirspace(LLHArea airspace) {
+    protected void setActiveAirspace(LLHAreaFeature airspace) {
         this.activeLLHArea = airspace;
     }
 
     /** Picked object as an LLHArea */
-    protected LLHArea asLLHArea(Object obj) {
+    protected LLHAreaFeature asLLHAreaFeature(Object obj) {
         if (!(obj instanceof LLHArea)) {
             return null;
         }
-        return (LLHArea) obj;
+        
+        // Bleh! hack this for moment
+        List<Feature> fl = FeatureList.theFeatures.getFeatures();
+        Iterator<Feature> iter = fl.iterator();
+        while(iter.hasNext()){
+            Feature f = iter.next();
+            if (f instanceof LLHAreaFeature){
+                LLHAreaFeature a= (LLHAreaFeature)(f);
+                LLHArea area = a.getLLHArea();
+                if (area == obj){
+                    return a;
+                }
+            }
+        }
+        return null;
     }
 
     /** Picked object as a LLHAreaControlPoint */
@@ -244,9 +256,10 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
 
         // If mouse pressed over a LLHArea, we own them all so select it...
         Object obj = this.getTopPickedObject();
-        LLHArea topAirspace = this.asLLHArea(obj);
+                        
+        LLHAreaFeature topAirspace = this.asLLHAreaFeature(obj);
         if (topAirspace != null) {
-            LLHAreaSelectCommand c = new LLHAreaSelectCommand(topAirspace);
+            FeatureSelectCommand c = new FeatureSelectCommand(topAirspace);
             CommandManager.getInstance().executeCommand(c, true);
         }
 
@@ -400,7 +413,8 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
         }
     }
 
-    protected void handleLLHAreaDragged(LLHArea area, MouseEvent e, Point lastMousePoint) {
+    protected void handleLLHAreaDragged(LLHAreaFeature f, MouseEvent e, Point lastMousePoint) {
+        LLHArea area = f.getLLHArea();
         if (e.isShiftDown()) {
             this.setActiveAction(MOVE_AIRSPACE_VERTICALLY);
             this.getLLHAreaLayer().moveAirspaceVertically(this.getWorldWindow(), area, e.getPoint(), lastMousePoint);
@@ -454,7 +468,7 @@ public class LLHAreaLayerController implements KeyListener, MouseListener, Mouse
 
     protected String getPotentialActionFor(InputEvent e) {
         Object obj = this.getTopPickedObject();
-        LLHArea area = this.asLLHArea(obj);
+        LLHAreaFeature area = this.asLLHAreaFeature(obj);
         LLHAreaControlPoint topControlPoint = this.asLLHAreaControlPoint(obj);
 
         if (e.isAltDown()) {

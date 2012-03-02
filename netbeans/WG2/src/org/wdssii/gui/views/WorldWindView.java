@@ -39,10 +39,14 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
+import org.wdssii.gui.commands.FeatureCreateCommand;
 import org.wdssii.gui.commands.Snapshot3DWorldCommand;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.renderers.ProductRenderer;
+import org.wdssii.gui.volumes.LLHAreaLayerController;
 import org.wdssii.gui.worldwind.ColorKeyLayer;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.gui.worldwind.ProductLayer;
@@ -185,6 +189,14 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         // toggled by user if it works correctly/incorrectly
         System.setProperty("sun.awt.noerasebackground", "true");
         CommandManager.getInstance().addListener(ID, this);
+        
+        // Hack add a starting slice...
+        LLHAreaFeature A = new LLHAreaFeature();
+        boolean success = A.createLLHArea("Slice");
+        if (success){
+            FeatureList.theFeatures.addFeature(A);
+        }
+
     }
 
     public final void createWG2Layers() {
@@ -198,7 +210,9 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         myVolumeLayer = new LLHAreaLayer();
         myVolumeLayer.setName("3D Objects");
         theLayers.add(myVolumeLayer);
-
+        // Controller adds listeners to world which keeps reference
+        LLHAreaLayerController c = new LLHAreaLayerController(myWorld, myVolumeLayer); 
+        
         /** The color key and wg2 overlay layer */
         theLayers.add(new ColorKeyLayer());
 
@@ -206,7 +220,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         ViewControlsLayer viewControlsLayer = new ViewControlsLayer();
         theLayers.add(viewControlsLayer);
         this.getWwd().addSelectListener(new ViewControlsSelectListener(this.getWwd(), viewControlsLayer));
-
+      
     }
 
     public void takeDialogSnapshot() {

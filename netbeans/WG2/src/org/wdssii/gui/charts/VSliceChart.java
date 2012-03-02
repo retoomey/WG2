@@ -3,15 +3,9 @@ package org.wdssii.gui.charts;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.globes.ElevationModel;
 import gov.nasa.worldwind.globes.Globe;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -34,17 +28,13 @@ import org.jfree.ui.RectangleInsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.LLHAreaManager;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.LLHAreaManager.VolumeTableData;
-import org.wdssii.gui.products.FilterList;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductHandler;
-import org.wdssii.gui.products.ProductHandlerList;
-import org.wdssii.gui.products.VolumeSliceInput;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.products.*;
 import org.wdssii.gui.products.volumes.ProductVolume;
-import org.wdssii.gui.products.VolumeSlice2DOutput;
 import org.wdssii.gui.views.WorldWindView;
+import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSlice;
 
 public class VSliceChart extends ChartViewJFreeChart {
@@ -125,15 +115,14 @@ public class VSliceChart extends ChartViewJFreeChart {
     public LLHAreaSlice getVSliceToPlot() {
         // -------------------------------------------------------------------------
         // Hack snag the current slice and product...
-        // Hack for now....we grab first 3d object in our LLHAreaManager
+        // Hack for now....we grab first 3d object in our FeatureList
         LLHAreaSlice slice = null;
-        ArrayList<VolumeTableData> test = LLHAreaManager.getInstance().getVolumes();
-        if (test != null) {
-            if (test.size() > 0) {
-                VolumeTableData data = test.get(0);
-                if (data.airspace instanceof LLHAreaSlice) {
-                    slice = (LLHAreaSlice) data.airspace;
-                }
+        LLHAreaFeature f = (LLHAreaFeature) FeatureList.theFeatures.getFirstFeature(LLHAreaFeature.class);
+        
+        if (f != null){
+            LLHArea area = f.getLLHArea(); 
+            if (area instanceof LLHAreaSlice){
+                slice = (LLHAreaSlice) (area);
             }
         }
         return slice;

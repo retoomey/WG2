@@ -1,27 +1,22 @@
 package org.wdssii.gui;
 
+import gov.nasa.worldwind.layers.LayerList;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.commands.WdssiiCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductHandler;
-import org.wdssii.gui.views.CacheView;
-import org.wdssii.gui.views.LLHAreaView;
+import org.wdssii.gui.views.CommandListener;
 import org.wdssii.gui.views.SourceManagerView;
 import org.wdssii.gui.views.TableProductView;
-import org.wdssii.gui.views.CommandListener;
-import org.wdssii.index.IndexRecord;
-import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
-import gov.nasa.worldwind.event.SelectEvent;
-import gov.nasa.worldwind.layers.LayerList;
 import org.wdssii.gui.views.WorldWindView;
+import org.wdssii.index.IndexRecord;
 
 /**
  * ActionListeners are similar to a peer-to-peer network, this is a central
@@ -302,23 +297,6 @@ public class CommandManager implements Singleton {
     public void hackWindField(Product aProduct) {
         if (getEarthBall() != null) {
             getEarthBall().loadProduct(aProduct);
-        }
-    }
-
-    // Called from earth view to send a worldwind select event message to all views interested.
-    // For the moment, just the volume view..needs to be generalized for other views
-    // such as annotationsd
-    @Deprecated
-    public void earthViewSelectionEvent(WorldWindowGLCanvas world, SelectEvent event) {
-        // TODO uncouple knowledge of VolumeView (probably need to subclass viewpart to make
-        // a special event handling view or object)
-
-        // This is being called from the worldwind thread...not the SWT.
-        // Any SWT update code must wrap within async..
-        CommandListener view = getNamedCommandListener(LLHAreaView.ID);
-        if (view != null) {
-            //    LLHAreaView vv = (LLHAreaView) (view);
-            //   vv.earthViewSelection(world, event);
         }
     }
 

@@ -128,7 +128,7 @@ public class SourcesView extends JThreadPanel implements CommandListener, CONUSJ
         public boolean accept(File f) {
             String t = f.getName().toLowerCase();
             // FIXME: need to get these from the Builders
-            return (t.endsWith(".netcdf") || (t.endsWith(".netcdf.gz"))
+            return (f.isDirectory() || t.endsWith(".netcdf") || (t.endsWith(".netcdf.gz"))
                     || (t.endsWith(".xml")) || (t.endsWith(".xml.gz")));
         }
 
@@ -851,8 +851,6 @@ public class SourcesView extends JThreadPanel implements CommandListener, CONUSJ
 
         int returnVal = chooser.showOpenDialog(null);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            // pickedFile = chooser.getSelectedFile().getName();
-            pickedFile = chooser.getSelectedFile().getAbsolutePath();
             File f = chooser.getSelectedFile();
             try {
                 pickedFile = f.toURI().toURL().toString();

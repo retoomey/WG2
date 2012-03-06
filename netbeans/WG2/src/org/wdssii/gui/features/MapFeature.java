@@ -29,7 +29,7 @@ public class MapFeature extends Feature {
         private boolean useLineThickness = false;
         private Color lineColor = Color.WHITE;
         private boolean useLineColor = false;
-        
+
         public MapMemento(MapMemento m) {
             super(m);
             linethickness = m.linethickness;
@@ -46,7 +46,7 @@ public class MapFeature extends Feature {
             if (m.useLineThickness) {
                 linethickness = m.linethickness;
             }
-            if (m.useLineColor){
+            if (m.useLineColor) {
                 lineColor = m.lineColor;
             }
         }
@@ -65,17 +65,16 @@ public class MapFeature extends Feature {
             linethickness = l;
             useLineThickness = true;
         }
-        
-        public Color getLineColor(){
+
+        public Color getLineColor() {
             return lineColor;
         }
-        
-        public void setLineColor(Color c){
+
+        public void setLineColor(Color c) {
             lineColor = c;
             useLineColor = true;
         }
     }
-    
     private static Logger log = LoggerFactory.getLogger(MapFeature.class);
     public static final String MapGroup = "MAPS";
     /**
@@ -92,8 +91,29 @@ public class MapFeature extends Feature {
      */
     public MapFeature(String source) {
         super(MapGroup, new MapMemento(true, false, 2));
+        URL u = W2Config.getURL(source);
+        loadURL(u, source);
+    }
+
+    /**
+     * The state we use for drawing the map.
+     */
+    public MapFeature(URL u) {
+        super(MapGroup, new MapMemento(true, false, 2));
+        String source = "bad url";
+        if (u != null) {
+            source = u.toString();
+        }
+        loadURL(u, source);
+    }
+
+    /**
+     *
+     * @param u the URL we have to try to load from
+     * @param source the original source string we tried to look up URL for
+     */
+    protected final void loadURL(URL u, String source) {
         try {
-            URL u = W2Config.getURL(source);
             if (u != null) {
                 FileDataStore store = FileDataStoreFinder.getDataStore(u);
                 SimpleFeatureSource featureSource = store.getFeatureSource();
@@ -132,7 +152,9 @@ public class MapFeature extends Feature {
 
     @Override
     public void setMemento(FeatureMemento f) {
-        /** Handle map mementos */
+        /**
+         * Handle map mementos
+         */
         if (f instanceof MapMemento) {
             MapMemento mm = (MapMemento) (f);
             ((MapMemento) getMemento()).syncToMemento(mm);

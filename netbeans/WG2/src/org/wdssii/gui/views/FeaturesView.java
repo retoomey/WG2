@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
@@ -16,10 +17,12 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.MapGUI;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
@@ -428,7 +431,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
             }
         });
         jEditToolBar.add(jNewVSliceButton);
-        
+
         jNewMapButton.setFocusable(false);
         jNewMapButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jNewMapButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -461,6 +464,13 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         // LLHAreaCreateCommand doit = new LLHAreaCreateCommand("Slice");
         // CommandManager.getInstance().executeCommand(doit, true);
+        // Hack for now allow adding of a shp file...gonna need more
+        // generic interface for adding features...
+        URL newMap = MapGUI.doSingleMapOpenDialog();
+        if (newMap != null) {
+            Feature testOne = new MapFeature(newMap);
+            FeatureList.theFeatures.addFeature(testOne);
+        }
         updateGUI();
     }
 

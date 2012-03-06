@@ -3,9 +3,13 @@ package org.wdssii.gui;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
@@ -127,5 +131,42 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
             CommandManager.getInstance().executeCommand(c, true);
         }
 
+    }
+
+    /**
+     * Load an individual file into the ManualLoadIndex
+     */
+    public static URL doSingleMapOpenDialog() {
+
+        URL pickedFile = null;
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new FileFilter() {
+
+            @Override
+            public boolean accept(File f) {
+                String t = f.getName().toLowerCase();
+                // FIXME: need to get these from the Builders
+                return (f.isDirectory() || t.endsWith(".shp"));
+            }
+
+            @Override
+            public String getDescription() {
+                return "ESRI Shapefile";
+            }
+        });
+        chooser.setDialogTitle("Add single map");
+        // rcp chooiser.setFilterPath("D:/") ?
+
+        int returnVal = chooser.showOpenDialog(null);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File f = chooser.getSelectedFile();
+            try {
+                pickedFile = f.toURI().toURL();
+            } catch (MalformedURLException ex) {
+                // We assume that chooser knows not to return
+                // malformed urls...
+            }
+        }
+        return pickedFile;
     }
 }

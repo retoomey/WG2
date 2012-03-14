@@ -12,6 +12,14 @@ import java.nio.FloatBuffer;
  */
 public interface Array1Dfloat {
 
+    /** Begin a batch (>1) of set/get.  This allows array to optimize caching
+     */
+    void begin();
+    
+    /** End a batch (>1) of set/get.  This allows array to optimize caching
+     */
+    void end();
+    
     /** Get a value from given x and y */
     float get(int x);
 

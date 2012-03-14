@@ -259,7 +259,10 @@ public class CacheView extends JThreadPanel implements CommandListener {
         garbageButton.setToolTipText("Force a java garbage collection");
         jToolBar1.add(garbageButton);
         add(jToolBar1, new CC().dockNorth());
-
+        JButton tileClearButton = new JButton("TClear");
+        tileClearButton.setToolTipText("Clear tiles");
+        jToolBar1.add(tileClearButton);
+        
         // Create the infomation label
         myLabel = new JLabel();
         myLabel.setText("No cache information");
@@ -311,6 +314,14 @@ public class CacheView extends JThreadPanel implements CommandListener {
             public void actionPerformed(ActionEvent e) {
                System.gc();
                updateGUI();
+            }
+        });
+        
+        tileClearButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                DataManager.getInstance().purgeAllTiles();
             }
         });
     }

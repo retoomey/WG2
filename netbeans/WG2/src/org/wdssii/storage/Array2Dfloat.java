@@ -35,4 +35,15 @@ public interface Array2Dfloat {
      * this method 'may' copy, but probably shouldn't.  Return null
      * if you can't implement this */
     Array1Dfloat getRow(int i);
+    
+    /** begin row ordered for a mass get/set of data.  Allows array to
+     * optimize sub-tile loading.  This should expect a looped call with 
+     * row ordered calls.  X before Y.
+     */
+    public void beginRowOrdered();
+    
+    /** being row orderer for a mass get/set of data.  Allows array to
+     * optimize sub-tile loading
+     */
+    public void endRowOrdered();
 }

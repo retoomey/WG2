@@ -1,58 +1,86 @@
 package org.wdssii.core;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.TreeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- *  Stores a Least Recently Used Cache where access makes it less likely
- * to be deleted.  Generic...for something like 'Float' the cache key is the
- * toString function.  More complicated objects can interface LRUCacheItem
- * to return the cache key.
- * 
- * FIXME: not sure the cache key even needed really...the object should be
+ *   Stores a Least Recently Used Cache where access makes it less likely to be
+ * deleted. Generic...for something like 'Float' the cache key is the toString
+ * function. More complicated objects can interface LRUCacheItem to return the
+ * cache key.
+ *
+ *  FIXME: not sure the cache key even needed really...the object should be
  * enough..
- * 
- * The cache uses a stack, where the 0th item is the oldest, n-1 the newest.
- * 
- * @author Robert Toomey
+ *
+ *  The cache uses a stack, where the 0th item is the oldest, n-1 the newest.
+ *
+ *  @author Robert Toomey
  */
-public class LRUCache<T> {
+public class LRUCache<T extends LRUCache.LRUCacheItem> {
+    private static Logger log = LoggerFactory.getLogger(LRUCache.class);
 
-    /** Return the key used to look up this item, all 'T' objects should
+    /**
+     * Return the key used to look up this item, all 'T' objects should
      * implement this, otherwise we'll use toString
      */
     public static interface LRUCacheItem {
 
         public String getCacheKey();
+        
+        /** Called on the item when it is trimmed out from the LRU cache */
+        public void trimmed();
     }
 
-    /** Interface to return true for all objects in cache wanting
-     * to be deleted
+    /**
+     * Interface to return true for all objects in cache wanting to be deleted
      */
     public static interface LRUTrimComparator<T> {
 
         public boolean shouldDelete(T test);
     }
-    /** The lock for dealing with myLRUCache and myLRUStack */
-    private final Object myLRULock = new Object();
-    /** The lookup map from a 'key' to the object wanted */
-    private TreeMap<String, T> myLRUCache = new TreeMap<String, T>();
-    /** The LRU stack of objects */
-    private ArrayList<T> myLRUStack = new ArrayList<T>();
-    
-    /** The smallest setting for the cache size */
-    private int myMinCacheSize = 50;
-    
-    /** The largest setting for the cache size */
-    private int myMaxCacheSize = 500;
-    
-    /** The current full size of the cache.  Could have fewer than this
-     * many items in the cache
+    /**
+     * The lock for dealing with myLRUCache and myLRUStack
      */
-    private int myCacheSize = 200;
+    private final Object myLRULock = new Object();
+    /**
+     * The lookup map from a 'key' to the object wanted
+     */
+    private TreeMap<String, T> myLRUCache = new TreeMap<String, T>();
+    /**
+     * The LRU stack of objects
+     */
+    private ArrayList<T> myLRUStack = new ArrayList<T>();
+    /**
+     * The smallest setting for the cache size
+     */
+    private int myMinCacheSize;
+    /**
+     * The largest setting for the cache size
+     */
+    private int myMaxCacheSize;
+    /**
+     * The current full size of the cache. Could have fewer than this many items
+     * in the cache
+     */
+    private int myCacheSize;
 
-    /** Get an item given a key.  Getting an item MOVES it up in the LRU stack,
-    as it has been referenced and is now more important than older entries
+    //public LRUCache()
+    //{
+    //    this(50, 200, 500);
+    //}
+    
+    public LRUCache(int min, int current, int max){
+        myMinCacheSize = min;
+        myMaxCacheSize = max;
+        myCacheSize = current;
+    }
+    
+    /**
+     * Get an item given a key. Getting an item MOVES it up in the LRU stack, as
+     * it has been referenced and is now more important than older entries
      */
     public T get(String key) {
         T theThing = null;
@@ -63,9 +91,26 @@ public class LRUCache<T> {
         return theThing;
     }
 
-    /** Get an item by given index i. 
-     * @param i
-     * @return item at i or null
+    /**
+     * Get an item given a key and remove it from our management
+     */
+    public T pop(String key) {
+        T theThing;
+        synchronized (myLRULock) {
+            theThing = myLRUCache.get(key);
+            if (theThing != null) {
+                myLRUStack.remove(theThing);
+                myLRUCache.remove(key);
+            }
+        }
+        return theThing;
+    }
+
+    /**
+     * Get an item by given index i.
+     *
+     *  @param i
+     *  @return item at i or null
      */
     public T get(int i) {
         synchronized (myLRULock) {
@@ -76,10 +121,12 @@ public class LRUCache<T> {
         return null;
     }
 
-    /** Make a copy of the current stack.  Used by GUI for synchronized
-    access to our T objects.  Note that the individual T objects if modified
-    will cause sync issues, but the whole point of a cache to to keep sets
-    of repeated non-modified objects*/
+    /**
+     * Make a copy of the current stack. Used by GUI for synchronized access to
+     * our T objects. Note that the individual T objects if modified will cause
+     * sync issues, but the whole point of a cache to to keep sets of repeated
+     * non-modified objects
+     */
     public ArrayList<T> getStackCopy() {
         ArrayList<T> aList = null;
         synchronized (myLRULock) {  // Make sure not changing while copied
@@ -94,22 +141,27 @@ public class LRUCache<T> {
         trimCache(myCacheSize - 1);
         synchronized (myLRULock) {
             myLRUCache.put(key, putMe);
+           // log.error("-------> KEY "+key);
             myLRUStack.add(putMe);
         }
     }
 
-    /** Kinda defeats the point, but get an object without raising it within
-     * the LRU stack....normally you would just call get
-     * @param key
-     * @return 
+    /**
+     * Kinda defeats the point, but get an object without raising it within the
+     * LRU stack....normally you would just call get
+     *
+     *  @param key
+     *  @return
      */
     public T getWithoutRaising(String key) {
         return myLRUCache.get(key);
     }
 
-    /** Remove an item from the stack and raise it to the top.  This makes
-     * it the newest item and last to be deleted
-     * @param raiseMe 
+    /**
+     * Remove an item from the stack and raise it to the top. This makes it the
+     * newest item and last to be deleted
+     *
+     *  @param raiseMe
      */
     private void raiseToTop(T raiseMe) {
         if (raiseMe != null) {
@@ -120,21 +172,31 @@ public class LRUCache<T> {
         }
     }
 
-    /** Clear all entries from the cache */
+    /**
+     * Clear all entries from the cache
+     */
     public void clear() {
         synchronized (myLRULock) {
+            /** Let old tile objects clear out */
+            Iterator<T> i = myLRUStack.iterator();
+            while(i.hasNext()){
+                T aT = i.next();
+                aT.trimmed();
+            }
             myLRUCache.clear();
             myLRUStack.clear();
         }
     }
 
-    /** Set the minimum size of the cache.  This is the size we trim too */
+    /**
+     * Set the minimum size of the cache. This is the size we trim too
+     */
     public void setMinCacheSize(int min) {
         myMinCacheSize = min;
         if (myMaxCacheSize < myMinCacheSize) {
             myMaxCacheSize = myMinCacheSize;
         }
-        if (myCacheSize < myMinCacheSize){
+        if (myCacheSize < myMinCacheSize) {
             setCacheSize(myMinCacheSize);
         }
     }
@@ -144,12 +206,14 @@ public class LRUCache<T> {
         if (myMinCacheSize > myMaxCacheSize) {
             myMinCacheSize = myMaxCacheSize;
         }
-        if (myCacheSize > myMaxCacheSize){
+        if (myCacheSize > myMaxCacheSize) {
             setCacheSize(myMaxCacheSize);
         }
     }
 
-    /** Set the current size of the cache */
+    /**
+     * Set the current size of the cache
+     */
     public void setCacheSize(int size) {
         if ((size >= myMinCacheSize) && (size <= myMaxCacheSize)) {
             myCacheSize = size;
@@ -157,30 +221,34 @@ public class LRUCache<T> {
         }
     }
 
-    /** Get the current cache size */
+    /**
+     * Get the current cache size
+     */
     public int getCacheSize() {
         return myCacheSize;
     }
 
-    /** Get the current filled cache size */
+    /**
+     * Get the current filled cache size
+     */
     public int getCacheFilledSize() {
         synchronized (myLRULock) {
             return myLRUStack.size();
         }
     }
 
-    /** Get the cache key for a cached item. */
+    /**
+     * Get the cache key for a cached item.
+     */
     private String getCacheKey(T forMe) {
         String key;
-        if (forMe instanceof LRUCacheItem) {
-            key = ((LRUCacheItem) forMe).getCacheKey();
-        } else {
-            key = forMe.toString();
-        }
+        key = forMe.getCacheKey();
         return key;
     }
 
-    /** Trim cache down to the MIN_CACHE_SIZE */
+    /**
+     * Trim cache down to the MIN_CACHE_SIZE
+     */
     public void trimCache(int toSize) {
 
         // Don't trim less than zero
@@ -196,6 +264,7 @@ public class LRUCache<T> {
                         myLRUStack.remove(0);
                         String key = getCacheKey(oldest);
                         myLRUCache.remove(key);
+                        oldest.trimmed();
                     } else {
                         break;
                     }
@@ -206,7 +275,9 @@ public class LRUCache<T> {
         }
     }
 
-    /** Trim all objects matching a LRUTrimComparator */
+    /**
+     * Trim all objects matching a LRUTrimComparator
+     */
     public int trimCacheMatching(LRUTrimComparator<T> compare) {
         int removed = 0;
         try {

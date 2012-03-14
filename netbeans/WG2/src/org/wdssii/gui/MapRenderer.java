@@ -8,6 +8,7 @@ import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import javax.media.opengl.GL;
@@ -21,55 +22,66 @@ import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.gui.features.MapFeature.MapMemento;
+import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.Array1Dfloat;
-import org.wdssii.storage.Array1DfloatAsNodes;
 
 /**
  *
- * @author Robert Toomey
- * 
- * Uses geotools to create/render a shapefile map in a worldwind window.
+ *   @author Robert Toomey
+ *
+ *   Uses geotools to create/render a shapefile map in a worldwind window.
  * Currently only looking at JTS MultiPolygon (Polygon) objects and creating
- * line strips from them.
- * @todo Add other types, clean up code, etc...
- * 
+ * line strips from them. @todo Add other types, clean up code, etc...
+ *
  */
 public class MapRenderer {
 
     private static Logger log = LoggerFactory.getLogger(MapRenderer.class);
-    
-    /** Offset array, one per Polygon */
+    /**
+     *  Offset array, one per Polygon
+     */
     private ArrayList<Integer> myOffsets;
-    /** Verts for the map.  Single for now (monster maps may fail) */
+    /**
+     *  Verts for the map. Single for now (monster maps may fail)
+     */
     protected Array1Dfloat polygonData;
-    
-    /** The feature we use from GeoTools */
+    /**
+     *  The feature we use from GeoTools
+     */
     private SimpleFeatureSource mySource;
-    
     private boolean tryToLoad = true;
 
     public MapRenderer(SimpleFeatureSource f) {
         mySource = f;
     }
-    
-    /** The worker job if we are threading */
+    /**
+     *  The worker job if we are threading
+     */
     private backgroundRender myWorker = null;
-    /** Volatile because renderer job creates the data in one thread, but drawn in another.
-     * myCreated set to true by worker thread after the buffers are created (draw allowed)
+    /**
+     *  Volatile because renderer job creates the data in one thread, but drawn
+     * in another. myCreated set to true by worker thread after the buffers are
+     * created (draw allowed)
      */
     private volatile boolean myCreated = false;
 
-    /** Is this map fully created? */
+    /**
+     *  Is this map fully created?
+     */
     public synchronized boolean isCreated() {
         return myCreated;
     }
 
-    /** Get if this map if fully created */
+    /**
+     *  Get if this map if fully created
+     */
     public synchronized void setIsCreated() {
         myCreated = true;
     }
 
-    /** Job for creating in the background any rendering */
+    /**
+     *  Job for creating in the background any rendering
+     */
     public class backgroundRender extends WdssiiJob {
 
         public DrawContext dc;
@@ -103,15 +115,17 @@ public class MapRenderer {
         }
     }
 
-    /** Draw the product in the current dc */
+    /**
+     *  Draw the product in the current dc
+     */
     public void draw(DrawContext dc, MapMemento m) {
         if (isCreated() && (polygonData != null)) {
             GL gl = dc.getGL();
             Color line = m.getLineColor();
-            final float r = line.getRed()/255.0f;
-            final float g = line.getGreen()/255.0f;
-            final float b = line.getBlue()/255.0f;
-            final float a = line.getAlpha()/255.0f;
+            final float r = line.getRed() / 255.0f;
+            final float g = line.getGreen() / 255.0f;
+            final float b = line.getBlue() / 255.0f;
+            final float a = line.getAlpha() / 255.0f;
             boolean attribsPushed = false;
             try {
                 Object lock1 = polygonData.getBufferLock();
@@ -165,95 +179,105 @@ public class MapRenderer {
         }
     }
 
-    /** Pick an object in the current dc at point */
+    /**
+     *  Pick an object in the current dc at point
+     */
     public void doPick(DrawContext dc, java.awt.Point pickPoint) {
     }
 
-    /** Do the work of generating the OpenGL stuff */
+    /**
+     *  Do the work of generating the OpenGL stuff
+     */
     public WdssiiJobStatus createForMap(DrawContext dc, SimpleFeatureSource s, WdssiiJobMonitor monitor) {
 
         Globe myGlobe = dc.getGlobe();
         myOffsets = new ArrayList<Integer>();
         myOffsets.add(0);  // Just one for now
         int idx = 0;
-        MultiPolygon m = null;
+        MultiPolygon m;
+        SimpleFeatureCollection stuff;
+
+        // Try to load the feature
         try {
-            SimpleFeatureCollection stuff = s.getFeatures();
-
-            // Counter pass.  See how much memory we need....
-            int multiPolyPointCount = 0;
-            SimpleFeatureIterator i = stuff.features();
-            while (i.hasNext()) {
-                SimpleFeature f = i.next();
-                Object geo = f.getDefaultGeometry();
-
-                // JTS polygon format
-                if (geo instanceof MultiPolygon) {
-                    m = (MultiPolygon) (geo);
-                    int subGeometryCount = m.getNumGeometries();
-                    for (int sg = 0; sg < subGeometryCount; sg++) {
-                        Object o1 = m.getGeometryN(sg);
-
-                        // Render each polygon of a multipoly as its
-                        // own line strip or polygon in opengl.
-                        if (o1 instanceof Polygon) {
-                            Polygon poly = (Polygon) (o1);
-                            poly.getNumPoints();
-                            multiPolyPointCount += m.getNumPoints();
-                        }
-                    }
-                }
-            }
-
-            // Allocate memory...
-            polygonData = new Array1DfloatAsNodes(multiPolyPointCount * 3, 0.0f);
-
-            // Creation pass
-            i = stuff.features();
-            int actualCount = 0;
-            while (i.hasNext()) {
-                SimpleFeature f = i.next();
-                Object geo = f.getDefaultGeometry();
-                if (geo instanceof MultiPolygon) {
-                    m = (MultiPolygon) (geo);
-
-                    int subGeometryCount = m.getNumGeometries();
-                    for (int sg = 0; sg < subGeometryCount; sg++) {
-                        Object o1 = m.getGeometryN(sg);
-
-                        // Render each polygon of a multipoly as its
-                        // own line strip or polygon in opengl.
-                        if (o1 instanceof Polygon) {
-                            Polygon poly = (Polygon) (o1);
-
-
-                            Coordinate[] coorArray = poly.getCoordinates();
-                            for (int p = 0; p < coorArray.length; p++) {
-                                Coordinate C = coorArray[p];
-                                double lat = C.y;
-                                double lon = C.x;
-                                Vec4 point = myGlobe.computePointFromPosition(
-                                        Angle.fromDegrees(lat),
-                                        Angle.fromDegrees(lon),
-                                        0 * 1000); // Fix me... have line maps follow terrain height?
-                                polygonData.set(idx++, (float) point.x);
-                                polygonData.set(idx++, (float) point.y);
-                                polygonData.set(idx++, (float) point.z);
-                                actualCount++;
-                            }
-                            myOffsets.add(idx);
-
-                        }
-                    }
-
-                }
-                myCreated = true;
-            }
-            log.debug("Map points allocated/actual" + multiPolyPointCount + ", " + actualCount);
-
-        } catch (Exception e) {
-            log.error("Exception creating map first pass " + e.toString());
+            stuff = s.getFeatures();
+        } catch (IOException ex) {
+            log.error("Can't crete map " + ex.toString());
+            return WdssiiJobStatus.OK_STATUS;
         }
+
+        // Counter pass.  See how much memory we need....
+        int multiPolyPointCount = 0;
+        SimpleFeatureIterator i = stuff.features();
+        while (i.hasNext()) {
+            SimpleFeature f = i.next();
+            Object geo = f.getDefaultGeometry();
+
+            // JTS polygon format
+            if (geo instanceof MultiPolygon) {
+                m = (MultiPolygon) (geo);
+                int subGeometryCount = m.getNumGeometries();
+                for (int sg = 0; sg < subGeometryCount; sg++) {
+                    Object o1 = m.getGeometryN(sg);
+
+                    // Render each polygon of a multipoly as its
+                    // own line strip or polygon in opengl.
+                    if (o1 instanceof Polygon) {
+                        Polygon poly = (Polygon) (o1);
+                        poly.getNumPoints();
+                        multiPolyPointCount += m.getNumPoints();
+                    }
+                }
+            }
+        }
+
+        // Allocate memory...
+        polygonData = new Array1DOpenGL(multiPolyPointCount * 3, 0.0f);
+
+        // Creation pass
+        i = stuff.features();
+        int actualCount = 0;
+
+        polygonData.begin();
+        while (i.hasNext()) {
+            SimpleFeature f = i.next();
+            Object geo = f.getDefaultGeometry();
+            if (geo instanceof MultiPolygon) {
+                m = (MultiPolygon) (geo);
+
+                int subGeometryCount = m.getNumGeometries();
+                for (int sg = 0; sg < subGeometryCount; sg++) {
+                    Object o1 = m.getGeometryN(sg);
+
+                    // Render each polygon of a multipoly as its
+                    // own line strip or polygon in opengl.
+                    if (o1 instanceof Polygon) {
+                        Polygon poly = (Polygon) (o1);
+
+
+                        Coordinate[] coorArray = poly.getCoordinates();
+                        for (int p = 0; p < coorArray.length; p++) {
+                            Coordinate C = coorArray[p];
+                            double lat = C.y;
+                            double lon = C.x;
+                            Vec4 point = myGlobe.computePointFromPosition(
+                                    Angle.fromDegrees(lat),
+                                    Angle.fromDegrees(lon),
+                                    0 * 1000); // Fix me... have line maps follow terrain height?
+                            polygonData.set(idx++, (float) point.x);
+                            polygonData.set(idx++, (float) point.y);
+                            polygonData.set(idx++, (float) point.z);
+                            actualCount++;
+                        }
+                        myOffsets.add(idx);
+
+                    }
+                }
+
+            }
+            myCreated = true;
+        }
+        polygonData.end();
+        log.debug("Map points allocated/actual" + multiPolyPointCount + ", " + actualCount);
 
         return WdssiiJobStatus.OK_STATUS;
     }

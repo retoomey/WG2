@@ -1,60 +1,60 @@
 package org.wdssii.gui.products.renderers;
 
-import java.awt.Point;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.util.Vector;
-
-import javax.media.opengl.GL;
-
+import com.sun.opengl.util.BufferUtil;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
-
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.util.Vector;
+import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
+import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialSet;
 import org.wdssii.datatypes.RadialSet.RadialSetQuery;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.products.*;
+import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.Array1Dfloat;
-import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.util.RadialUtil;
 
-import com.sun.opengl.util.BufferUtil;
-import java.awt.Rectangle;
-import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
-import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
-import org.wdssii.gui.products.ColorMapFloatOutput;
-import org.wdssii.gui.products.FilterList;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductReadout;
-import org.wdssii.gui.products.RadialSetReadout;
-
-/** Renders a RadialSet
- * 
- * @author Robert Toomey
+/**
+ * Renders a RadialSet
+ *
+ *  @author Robert Toomey
  *
  */
 public class RadialSetRenderer extends ProductRenderer {
 
     private static Logger log = LoggerFactory.getLogger(RadialSetRenderer.class);
-    /** We use vector (vector is synchronized for opengl thread and worker thread) */
+    /**
+     * We use vector (vector is synchronized for opengl thread and worker
+     * thread)
+     */
     private Vector<Integer> myOffsets;
-    /** Verts for the RadialSet */
-    protected Array1Dfloat verts;
-    /** Cooresponding colors */
-    protected Array1Dfloat colors;
-    /** Colors as readout information */
-    protected Array1Dfloat readout;
-
+    /**
+     * Verts for the RadialSet
+     */
+    protected Array1DOpenGL verts;
+    /**
+     * Cooresponding colors
+     */
+    protected Array1DOpenGL colors;
+    /**
+     * Colors as readout information
+     */
+    protected Array1DOpenGL readout;
     protected int updateCounter = 0;
 
-    public RadialSetRenderer(){
+    public RadialSetRenderer() {
         super(true);
     }
 
@@ -125,6 +125,7 @@ public class RadialSetRenderer extends ProductRenderer {
                     maxGateCount = numGates;
                 }
 
+                values.begin();
                 for (int j = 0; j < numGates; j++) {
                     //double value = values[j];
                     float value = values.get(j);
@@ -133,7 +134,7 @@ public class RadialSetRenderer extends ProductRenderer {
                     // if (value < -90000) { // needs to be missing value
                     // FIXME
 						/*
-                     * if (value == DataType.MissingData){ value = 20; }
+                     *  if (value == DataType.MissingData){ value = 20; }
                      */
                     if (value == DataType.MissingData) {
                         needNewStrip = true;
@@ -147,6 +148,7 @@ public class RadialSetRenderer extends ProductRenderer {
                         needNewStrip = false;
                     }
                 }
+                values.end();
             }
             // --------------End counter loop
 
@@ -154,13 +156,19 @@ public class RadialSetRenderer extends ProductRenderer {
             Globe myGlobe = dc.getGlobe(); // FIXME: says may be null???
 
             // The opengl thread can draw anytime..
-            verts = new Array1DfloatAsNodes(counter, 0.0f);   // FIXME: could 'combine' both into one array I think...
-            colors = new Array1DfloatAsNodes(ccounter / 4, 0.0f); // use one 'float' per color...
+            verts = new Array1DOpenGL(counter, 0.0f);   // FIXME: could 'combine' both into one array I think...
+            colors = new Array1DOpenGL(ccounter / 4, 0.0f); // use one 'float' per color...
 
             // READOUT
-            readout = new Array1DfloatAsNodes(ccounter / 4, 0.0f);  // use one 'float' per color...
+            readout = new Array1DOpenGL(ccounter / 4, 0.0f);  // use one 'float' per color...
 
             myOffsets = new Vector<Integer>();
+
+            // Start a batch 'set'.  This allows internal array to optimize loading
+            verts.begin();
+            colors.begin();
+            readout.begin();
+
             // colors.rewind(); // do I need this?
 
             // Once buffers exist and myOffsets exists, we 'turn on' the drawing thread:
@@ -270,7 +278,7 @@ public class RadialSetRenderer extends ProductRenderer {
                     float value = values.get(j);
 
                     /*
-                     * if (value == DataType.MissingData){ value = 20; }
+                     *  if (value == DataType.MissingData){ value = 20; }
                      */
                     //aColorMap.fillColor(out, value);
 
@@ -363,10 +371,10 @@ public class RadialSetRenderer extends ProductRenderer {
                 }
 
                 updateCounter++;
-                if (updateCounter > 1) {
+                if (updateCounter > 10) {            
                     CommandManager.getInstance().updateDuringRender();  // These queue up anyway 
                     //Thread.sleep(50);
-                    updateCounter = 0;
+                    updateCounter = 0;                  
                 }
 
             }
@@ -380,14 +388,20 @@ public class RadialSetRenderer extends ProductRenderer {
         // System.out.println("RADIAL SET SECONDS " + seconds + " for "
         // + counter);
 
+        verts.end();
+        colors.end();
+        readout.end();
+
         // System.out.println("********Ending radial set creation");
         CommandManager.getInstance().updateDuringRender();  // Humm..different thread...
+
         setIsCreated();
         return WdssiiJobStatus.OK_STATUS;
     }
 
-    /** Experimental readout using drawing to get it..lol 
-     * FIXME: generalize this ability for all products
+    /**
+     * Experimental readout using drawing to get it..lol FIXME: generalize this
+     * ability for all products
      */
     @Override
     public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
@@ -406,7 +420,7 @@ public class RadialSetRenderer extends ProductRenderer {
             // The GLDrawable height isn't always the height of the VISIBLE
             // opengl window.  When using a lightweight widget it's usually
             // bigger.  Heavyweight you could just use the dc.getDrawableHeight
-            int fullH = (int) (view.getHeight()); ;
+            int fullH = (int) (view.getHeight());;
             int y = fullH - p.y - 1;  // Invert Y for openGL...
 
             int boxWidth = 1;
@@ -464,10 +478,9 @@ public class RadialSetRenderer extends ProductRenderer {
 
     /**
      * 
-     * @param dc
-     *            Draw context in opengl for drawing our radial set
+     *  @param dc Draw context in opengl for drawing our radial set
      */
-    public void drawData(DrawContext dc, boolean readoutMode) { 
+    public void drawData(DrawContext dc, boolean readoutMode) {
         if (isCreated() && (verts != null) && (colors != null)) {
             GL gl = dc.getGL();
 
@@ -507,7 +520,7 @@ public class RadialSetRenderer extends ProductRenderer {
                         FloatBuffer c = readoutMode ? readout.getRawBuffer() : colors.getRawBuffer();
 
                         // Only render if there is data to render
-                        if ((z!= null)&& (z.capacity() > 0)) {
+                        if ((z != null) && (z.capacity() > 0)) {
                             gl.glVertexPointer(3, GL.GL_FLOAT, 0, z.rewind());
 
                             // Isn't this color kinda wasteful really?  We have 4 floats per color,
@@ -544,8 +557,7 @@ public class RadialSetRenderer extends ProductRenderer {
 
     /**
      * 
-     * @param dc
-     *            Draw context in opengl for drawing our radial set
+     *  @param dc Draw context in opengl for drawing our radial set
      */
     @Override
     public void draw(DrawContext dc) {
@@ -554,6 +566,6 @@ public class RadialSetRenderer extends ProductRenderer {
 
     @Override
     public boolean canOverlayOtherData() {
-       return false;
+        return false;
     }
 }

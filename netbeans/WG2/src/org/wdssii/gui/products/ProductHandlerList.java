@@ -21,6 +21,7 @@ import org.wdssii.gui.CommandManager.NavigationAction;
 import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.MapFeature;
+import org.wdssii.gui.features.PolarGridFeature;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
@@ -404,8 +405,10 @@ public class ProductHandlerList {
             }
         }
         
-        // HACK draw a 'map'
+        // HACK draw a 'map' and polar grid.  Will have to move this
+        // to actually layers
         FeatureList.theFeatures.renderFeatureGroup(dc, MapFeature.MapGroup);
+        FeatureList.theFeatures.renderFeatureGroup(dc, PolarGridFeature.PolarGridGroup);
     }
     
     // Pick support for product handlers.

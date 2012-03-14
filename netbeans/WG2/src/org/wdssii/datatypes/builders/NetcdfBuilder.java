@@ -1,8 +1,8 @@
 package org.wdssii.datatypes.builders;
 
 /**
- * @author lakshman
- * 
+ *  @author lakshman
+ *
  */
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,16 +34,17 @@ import ucar.nc2.Variable;
 
 /**
  * 
- * Reads a local/remote netcdf file (gzipped or not) and builds a DataType
- * 
- * @author Lakshman
+ *  Reads a local/remote netcdf file (gzipped or not) and builds a DataType
+ *
+ *  @author Lakshman
  */
 public class NetcdfBuilder extends Builder {
 
     private static Logger log = LoggerFactory.getLogger(NetcdfBuilder.class);
 
-    /** Info snagged from a netcdf file.  Used by GUI to prefetch
-     * Product, Choice and Time (selections) from our format netcdf files
+    /**
+     * Info snagged from a netcdf file. Used by GUI to prefetch Product, Choice
+     * and Time (selections) from our format netcdf files
      */
     public static class NetcdfFileInfo extends BuilderFileInfo {
     }
@@ -52,7 +53,9 @@ public class NetcdfBuilder extends Builder {
         super("netcdf");
     }
 
-    /** Here's where we do the work of building a DataType */
+    /**
+     * Here's where we do the work of building a DataType
+     */
     @Override
     public DataType createDataType(IndexRecord rec, WdssiiJobMonitor m) {
         URL url = rec.getDataLocationURL(this);
@@ -63,12 +66,14 @@ public class NetcdfBuilder extends Builder {
         return createDataTypeFromURL(url, m);
     }
 
-    /** pass in the file name and obtain an object back. */
+    /**
+     * pass in the file name and obtain an object back.
+     */
     public DataType createDataTypeFromURL(URL aURL, WdssiiJobMonitor m) {
 
         if (m != null) {
             m.beginTask("NetcdfBuilder", WdssiiJobMonitor.UNKNOWN);
-            m.subTask("Reading "+aURL.toString());
+            m.subTask("Reading " + aURL.toString());
         }
 
         File theFile;
@@ -91,7 +96,9 @@ public class NetcdfBuilder extends Builder {
 
     }
 
-    /** Download/Copy a URL to a local temp File object */
+    /**
+     * Download/Copy a URL to a local temp File object
+     */
     private File downloadURLToTempFile(URL aURL, WdssiiJobMonitor m) {
         File localFile = null;
         String path = "";
@@ -197,13 +204,14 @@ public class NetcdfBuilder extends Builder {
         return obj;
     }
 
-    /** Use to get the attributes that describe the product, choice
-     * and time of one of our wdssii format files...
-     * 
-     * @param path 
+    /**
+     * Use to get the attributes that describe the product, choice and time of
+     * one of our wdssii format files...
+     *
+     *  @param path
      */
     public static NetcdfFileInfo getBuilderFileInfo(URL aURL) {
-        
+
         // Currently this is only called for a local file from the GUI,
         // so we assume that:
         String text = aURL.toString();
@@ -211,7 +219,7 @@ public class NetcdfBuilder extends Builder {
         // Now get the file from the URL
         File aFile = Builder.getFileFromURL(aURL);
         String path = aFile.getAbsolutePath();
-            
+
         NetcdfFileInfo info = new NetcdfFileInfo();
         NetcdfFile ncfile = null;
 
@@ -295,8 +303,9 @@ public class NetcdfBuilder extends Builder {
         if (optional != null) {
             optional.beginArray2D();
         }
-        for (int i = 0; i < num_radials; ++i) {
-            for (int j = 0; j < num_gates; ++j) {
+        values.beginRowOrdered();
+        for (int j = 0; j < num_gates; ++j) {
+            for (int i = 0; i < num_radials; ++i) {
                 gate_index.set(i, j);
                 float value = gate_values.getFloat(gate_index);
                 values.set(i, j, value);
@@ -305,6 +314,7 @@ public class NetcdfBuilder extends Builder {
                 }
             }
         }
+        values.endRowOrdered();
         return values;
     }
 
@@ -361,10 +371,12 @@ public class NetcdfBuilder extends Builder {
         return values;
     }
 
-    /** Handle params to URL for a netcdf index record.
-     * @param rec
-     * @param params
-     * @return 
+    /**
+     * Handle params to URL for a netcdf index record.
+     *
+     *  @param rec
+     *  @param params
+     *  @return
      */
     @Override
     public URL createURLForRecord(IndexRecord rec, String[] params) {

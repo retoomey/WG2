@@ -17,9 +17,13 @@ public class Location {
         init(lat, lon, ht);
     }
 
-    public void init(double lat, double lon, double ht) {
-        this.lat = lat;
-        this.lon = lon;
+    public final void init(double lat, double lon, double ht) {
+       
+        /** Force lat in range -90 to 89 */
+        this.lat = (mod(lat+90, 180))-90;
+        
+        /** Force lon in range -180 to 179 */
+        this.lon = (mod(lon+180, 360))-180.0;
         this.ht = ht;
 
         // Contours has location objects with height 0
@@ -29,7 +33,16 @@ public class Location {
        // }
 
     }
-
+    
+    /** True modulus */
+    private double mod(double x, double y) {
+        double result = x % y;
+        if (result < 0) {
+            result += y;
+        }
+        return result;
+    }
+    
     public double getLatitude() {
         return lat;
     }

@@ -1,5 +1,8 @@
 package org.wdssii.gui.features;
 
+import java.awt.Color;
+import java.util.TreeMap;
+
 /**
  * Used by commands/GUI to send changes to a Feature
  * 
@@ -12,6 +15,9 @@ public class FeatureMemento {
     private boolean only;
     private boolean useOnly = false;
 
+    private TreeMap<String, Object> myProperties = new TreeMap<String, Object>();
+    private final String V = "visible";
+    
     /** Create a full copy of another mememto */
     public FeatureMemento(FeatureMemento m){
         visible = m.visible;
@@ -37,7 +43,11 @@ public class FeatureMemento {
     }
 
     public boolean getVisible() {
-       return visible;
+      // return visible;
+        setProperty(V, visible);
+       // Boolean test = getProperty(V);
+        //Integer shouldBeError = getProperty(V);
+        return visible;
     }
 
     public void setVisible(boolean f) {
@@ -53,4 +63,20 @@ public class FeatureMemento {
         only = f;
         useOnly = true;
     }
+    
+    public void setProperty(String key, Object stuff){
+        myProperties.put(key, stuff);
+        // creating NEW is the issue...
+        // how to deep copy for example generically?
+
+    }
+    
+   /* public <T> T getProperty(String key){
+       // T newOne = (T) c.newInstance();
+        try{
+            return (T) myProperties.get(key);
+        }catch(ClassCastException e){
+            return null;
+        }
+    }*/
 }

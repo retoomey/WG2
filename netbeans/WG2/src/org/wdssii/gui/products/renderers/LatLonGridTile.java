@@ -22,9 +22,11 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.renderers.TileRenderer.Tile;
+import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array1DfloatAsNodes;
 
@@ -44,9 +46,9 @@ public class LatLonGridTile extends TileRenderer.Tile {
     /** The sector this tile represents */
     protected Sector mySector;
     /** The vertex points to render */
-    protected Array1Dfloat verts = null;
+    protected Array1DOpenGL verts = null;
     /** The colors for the vertexes */
-    protected Array1Dfloat colors = null;
+    protected Array1DOpenGL colors = null;
     /** The row number in the level, used for reference */
     private final int myRow;
     /** The col number in the level, used for reference */
@@ -75,9 +77,12 @@ public class LatLonGridTile extends TileRenderer.Tile {
 
         Globe g = dc.getGlobe();
 
-        verts = new Array1DfloatAsNodes(vertCounter, 0.0f);
-        colors = new Array1DfloatAsNodes(colorCounter, 0.0f);
+        verts = new Array1DOpenGL(vertCounter, 0.0f);
+        colors = new Array1DOpenGL(colorCounter, 0.0f);
 
+        verts.begin();
+        colors.begin();
+        
         Angle minLat = mySector.getMinLatitude();
         Angle maxLat = mySector.getMaxLatitude();
         Angle minLong = mySector.getMinLongitude();
@@ -192,7 +197,10 @@ public class LatLonGridTile extends TileRenderer.Tile {
             }
             currentLat += deltaLat;
         }
+        verts.end();
+        colors.end();
         setTileCreated();
+        CommandManager.getInstance().updateDuringRender();
     }
 
     /** Background create tile information.... */

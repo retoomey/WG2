@@ -19,10 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.MapGUI;
 import org.wdssii.gui.commands.*;
-import org.wdssii.gui.features.Feature;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.features.MapFeature;
+import org.wdssii.gui.features.*;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
@@ -68,6 +65,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
     private Feature myLastSelectedFeature = null;
     private javax.swing.JButton jNewMapButton;
     private javax.swing.JButton jNewVSliceButton;
+    private javax.swing.JButton jNewPolarGridButton;
     private JPanel jFeatureGUIPanel;
     private javax.swing.JToolBar jEditToolBar;
     private javax.swing.JScrollPane jObjectScrollPane;
@@ -405,6 +403,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         jEditToolBar = new javax.swing.JToolBar();
         jNewVSliceButton = new javax.swing.JButton("+Slice");
         jNewMapButton = new javax.swing.JButton("+Map");
+        jNewPolarGridButton = new javax.swing.JButton("+PolarGrid");
         jFeatureGUIPanel = new JPanel();
         jObjectScrollPane = new JScrollPane();
         jControlScrollPane = new JScrollPane();
@@ -432,6 +431,18 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         });
         jEditToolBar.add(jNewVSliceButton);
 
+        jNewPolarGridButton.setFocusable(false);
+        jNewPolarGridButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jNewPolarGridButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jNewPolarGridButton.addActionListener(new java.awt.event.ActionListener() {
+
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jPolarGridButtonActionPerformed(evt);
+            }
+        });
+        jEditToolBar.add(jNewPolarGridButton);
+
         jNewMapButton.setFocusable(false);
         jNewMapButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jNewMapButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -443,7 +454,6 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
             }
         });
         jEditToolBar.add(jNewMapButton);
-
 
         add(jEditToolBar, java.awt.BorderLayout.NORTH);
 
@@ -478,5 +488,12 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         FeatureCreateCommand doit = new FeatureCreateCommand("VSlice");
         CommandManager.getInstance().executeCommand(doit, true);
         //FeatureList.theFeatures.addFeature(new LLHAreaFeature(0));
+    }
+    
+     private void jPolarGridButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        // FIXME: need to generize the feature create command...
+         PolarGridFeature pg = new PolarGridFeature();
+         FeatureList.theFeatures.addFeature(pg);
+         updateGUI();
     }
 }

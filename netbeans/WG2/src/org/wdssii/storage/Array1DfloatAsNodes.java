@@ -2,8 +2,6 @@ package org.wdssii.storage;
 
 import java.nio.FloatBuffer;
 
-import org.wdssii.storage.DataNode;
-
 /** Stores 1D arrays as nodes for the DataManager.
  * 
  * Currently stores entire array into a 'single' node.  It will have to
@@ -79,5 +77,13 @@ public class Array1DfloatAsNodes extends DataStorage implements Array1Dfloat {
     public Object getBufferLock() {
         DataNode tile = DataManager.getInstance().getTile(myKey, mySize, myBackground);
         return tile.getReadLock();
+    }
+
+    @Override
+    public void begin() {
+    }
+
+    @Override
+    public void end() {
     }
 }

@@ -55,7 +55,7 @@ public class ProductManager implements Singleton {
     TreeMap<String, ProductDataInfo> myProductInfo = new TreeMap<String, ProductDataInfo>();
     ProductDataInfo myDefaults = new ProductDataInfo();
     /** The cache for Product objects */
-    LRUCache<Product> myProductCache = new LRUCache<Product>();
+    LRUCache<Product> myProductCache = new LRUCache<Product>(MIN_CACHE_SIZE, 200, MAX_CACHE_SIZE);
     /** A map of names to ProductHandlerLists */
     private ArrayList<ProductHandlerList> myProductGroups = new ArrayList<ProductHandlerList>();
     /** Current selected group */
@@ -65,8 +65,8 @@ public class ProductManager implements Singleton {
         myProductGroups.add(new ProductHandlerList("data1", "Data1"));
         myProductGroups.add(new ProductHandlerList("data2", "Data2"));
         selectKey("data1");
-        myProductCache.setMinCacheSize(MIN_CACHE_SIZE);
-        myProductCache.setMaxCacheSize(MAX_CACHE_SIZE);
+       // myProductCache.setMinCacheSize(MIN_CACHE_SIZE);
+      //  myProductCache.setMaxCacheSize(MAX_CACHE_SIZE);
     }
 
     public void selectKey(String key) {

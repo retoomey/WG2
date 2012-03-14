@@ -212,6 +212,11 @@ public class Product implements LRUCacheItem {
     public String getCacheKey() {
         return myCacheKey;
     }
+    
+    @Override
+    public void trimmed() {
+        
+    }
 
     /** Return the list of records for looping when this product is selected.
      * Typically this is the latest(n) time records at our subtype.  Count is the 

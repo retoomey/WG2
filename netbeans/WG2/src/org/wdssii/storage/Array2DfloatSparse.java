@@ -27,6 +27,16 @@ public class Array2DfloatSparse extends DataStorage implements Array2Dfloat {
     private int myY;
     private float myBackground;
 
+    @Override
+    public void beginRowOrdered() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void endRowOrdered() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     /** Each 'node' is sorted in its dimension by the 'myIndex' value,
      * this makes lookup for each dimension a binary search
      * @author Robert Toomey

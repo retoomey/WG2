@@ -1,7 +1,6 @@
 package org.wdssii.storage;
 
 import java.nio.FloatBuffer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +23,16 @@ public class Array2DfloatRAM implements Array2Dfloat {
     private float myBackground;
     private float[][] myArray;
     private boolean myValid = false;
+
+    @Override
+    public void beginRowOrdered() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void endRowOrdered() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
     /** Not to be implemented directly, this class wraps a column in the 2D float array */
     private static class Array1DfloatRAMCOLUMN implements Array1Dfloat {
@@ -69,6 +78,14 @@ public class Array2DfloatRAM implements Array2Dfloat {
         public Object getBufferLock() {
             // TODO Auto-generated method stub
             return null;
+        }
+
+        @Override
+        public void begin() {
+        }
+
+        @Override
+        public void end() {
         }
     }
 
@@ -116,6 +133,14 @@ public class Array2DfloatRAM implements Array2Dfloat {
         public Object getBufferLock() {
             // TODO Auto-generated method stub
             return null;
+        }
+
+        @Override
+        public void begin() {
+        }
+
+        @Override
+        public void end() {
         }
     }
 

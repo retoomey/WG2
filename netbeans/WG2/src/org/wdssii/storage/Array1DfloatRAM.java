@@ -65,4 +65,12 @@ public class Array1DfloatRAM implements Array1Dfloat {
         // TODO Auto-generated method stub
         return null;
     }
+
+    @Override
+    public void begin() {
+    }
+
+    @Override
+    public void end() {
+    }
 }

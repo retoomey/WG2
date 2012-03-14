@@ -24,7 +24,7 @@ public class LatLonGrid extends DataType implements Table2DView {
      */
     private final float deltaLat;
     /**
-     * The change in lon distance per grid squart
+     * The change in lon distance per grid square
      */
     private final float deltaLon;
     /**
@@ -32,6 +32,11 @@ public class LatLonGrid extends DataType implements Table2DView {
      */
     private Array2Dfloat values;
 
+    /** The 'thickness' in KM of the LatLonGrid plane.  Used for
+     * volumes.  Basically it's the equivalent of RadialSet's beamwidth.
+     */
+    private float myThicknessKms = .10f;
+    
     public static class LatLonGridMemento extends DataTypeMemento {
 
         /**
@@ -233,10 +238,18 @@ public class LatLonGrid extends DataType implements Table2DView {
 
         // We can query by a Location only...
         if (haveLocation) {
-            q.outDataValue = getValue(q.inLocation);
+            float v = getValue(q.inLocation);          
+             if (q.inUseHeight) {
+                 
+                 // Thickness test of plane
+                 double h_diff = this.originLocation.getHeightKms()-q.inLocation.getHeightKms();
+                 if (Math.abs(h_diff) > myThicknessKms) {
+                     v = MissingData;
+                 }
+             }
+             q.outDataValue = v;
+        } else {
+            q.outDataValue = MissingData;
         }
-        q.outDataValue = MissingData;
-
-        return;
     }
 }

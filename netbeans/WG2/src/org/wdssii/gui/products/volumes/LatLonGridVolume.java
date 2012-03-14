@@ -2,6 +2,8 @@ package org.wdssii.gui.products.volumes;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.datatypes.LatLonGrid.LatLonGridQuery;
@@ -19,6 +21,8 @@ import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
  *
  */
 public class LatLonGridVolume extends IndexRecordVolume {
+    
+    private static Logger log = LoggerFactory.getLogger(LatLonGridVolume.class);
 
     // Synchronize access to these...
     private final Object myProductLock = new Object();
@@ -63,6 +67,7 @@ public class LatLonGridVolume extends IndexRecordVolume {
             //System.out.println("Init volume called... we have "+myRadials.size()+" products ready ");
             //myRecords = newRecords;
         }
+       // log.debug("VOLUME COUNT IS "+p.size());
     }
 
     /**
@@ -115,6 +120,7 @@ public class LatLonGridVolume extends IndexRecordVolume {
 
         LatLonGridQuery q = new LatLonGridQuery();
         q.inLocation = loc;
+        q.inUseHeight = true;
         // Testing interpolation ability (alpha experiment)
         // This tells query to return a distance from closest point...
         // for each of the Lat, Lon, Height 'axis'

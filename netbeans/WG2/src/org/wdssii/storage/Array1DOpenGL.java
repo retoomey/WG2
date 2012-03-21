@@ -14,17 +14,17 @@ import java.nio.FloatBuffer;
  */
 public class Array1DOpenGL extends DataStorage implements Array1Dfloat {
 
+    /** The length of our data */
     private int mySize;
+    
+    /** The default background value of data */
     private float myBackground;
+    
     /**
-     *  The key for this node
+     *  The key for this node.  We only have 'one' for now...
+     * FIXME:  Make us handle arrays that are larger than max OpenGL range?
      */
-    private final String myKey;
-    /**
-     *  Every time we create one, we give it a unique number
-     */
-    private static int counter = 0;
-    private final Object syncCounter = new Object();
+    private final int myKey;
     
     /** The tile we are holding and working with.  Just easier to hold onto
      * it temporarily if we are doing lots of set calls
@@ -33,12 +33,7 @@ public class Array1DOpenGL extends DataStorage implements Array1Dfloat {
 
     public Array1DOpenGL(int aSize, float backgroundValue) {
         mySize = aSize;
-        // Just in case we create from different threads
-        synchronized(syncCounter){
-            counter++;
-            myKey = "Array1DG" + "s" + counter;
-        }
-       
+        myKey = DataManager.getInstance().getNewTileKey();
         myBackground = backgroundValue;
     }
 

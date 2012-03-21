@@ -16,6 +16,9 @@ import org.wdssii.core.LRUCache;
  *  This works at a raw data level, not DataType or Products or anything, at
  * least for now the purpose is to allow access to massive numbers of floats.
  *DataManager
+ * 
+ * DataManager keeps a key counter of integer for tiles.
+ * 
  *  @author Robert Toomey
  *
  */
@@ -29,6 +32,13 @@ public class DataManager {
     private static Logger log = LoggerFactory.getLogger(DataManager.class);
     private String myDiskLocation;
     private File myTempDir = null;
+    /** Our counter for returning id values for cache items
+     * We start at 'min' value of int and rise....in theory if we roll over
+     * it might confuse the system if by chance we're storing that full
+     * number of tiles.
+     */
+    private final Object myCounterSync = new Object();
+    private int myCounter = Integer.MIN_VALUE;
     /**
      * Number of nodes we try to hold in RAM (RAM cache size) The LRUCache will
      * hold this many objects
@@ -38,7 +48,7 @@ public class DataManager {
     /**
      * The cache for DataNode objects
      */
-    LRUCache<DataNode> myRAMCache = new LRUCache<DataNode>(
+    LRUCache<Integer, DataNode> myRAMCache = new LRUCache<Integer, DataNode>(
             50, myRAMCacheNodeMaxCount, 500);
     /**
      * Number of bytes allocated by program
@@ -68,6 +78,30 @@ public class DataManager {
         log.info("DataManager temp is " + myTempDir.getAbsolutePath());
         // We create a 'datacache' array...
 
+    }
+
+    /** Get a single new  key for our LRU cache */
+    public int getNewTileKey() {
+        return getNewTileKeyRange(1);
+    }
+
+    /** Return the base of a range of tiles.  So if a data structure could
+     * have say 1000 tiles, it passes in 1000 and we return the base and add
+     * 1000.
+     * 
+     * Note this is cheap, just a counter.  Tiles are lazy created later, this
+     * just reserves a key for them.
+     * 
+     * @param needed number of tiles needed
+     * @return 
+     */
+    public int getNewTileKeyRange(int needed) {
+        int base;
+        synchronized (myCounterSync) {
+            base = myCounter;
+            myCounter += needed;
+            return base;
+        }
     }
 
     /**
@@ -217,71 +251,56 @@ public class DataManager {
     public static long hitCount = 0;
     public static long printCount = 0;
 
-    public DataNode popTile(String key, int firstSize, float background) {
+    public DataNode popTile(int key, int firstSize, float background) {
         DataNode theTile = null;
-        if (key != null) {
 
-            theTile = myRAMCache.pop(key);
+        theTile = myRAMCache.pop(key);
 
-            // Tile not in cache, create it and add it to cache
-            if (theTile == null) {
-
-                theTile = new DataNode(key, firstSize, background);
-                boolean success = ((theTile != null) && (theTile.loadNodeIntoRAM()));
-                //if (success) {
-                //    // theTile.setCacheKey() constructor
-
-                //    myCache.put(key, theTile);
-                    // CommandManager.getInstance().cacheManagerNotify();
-                //} else {
-                //    log.error("Wasn't able to create/load a tile");
-                //}
-                // Tile already found in cache
-                //log.debug("POP TILE "+theTile);
-            } else {
-               // log.debug("Cache hit POP "+theTile);
-            }
+        // Tile not in cache, create it and add it to cache
+        if (theTile == null) {
+            theTile = new DataNode(key, firstSize, background);
+            theTile.loadNodeIntoRAM();
+        } else {
+            // log.debug("Cache hit POP "+theTile);
         }
         return (theTile);
     }
-    
-    public void pushTile(String key, DataNode tile){
-        if (tile != null){
+
+    public void pushTile(int key, DataNode tile) {
+        if (tile != null) {
             myRAMCache.put(key, tile);
             //log.debug("PUSH TILE "+tile);
         }
     }
 
-    public DataNode getTile(String key, int firstSize, float background) {
+    public DataNode getTile(int key, int firstSize, float background) {
 
         DataNode theTile = null;
-        if (key != null) {
+        theTile = myRAMCache.get(key);
 
-            theTile = myRAMCache.get(key);
+        // Tile not in cache, create it and add it to cache
+        if (theTile == null) {
 
-            // Tile not in cache, create it and add it to cache
-            if (theTile == null) {
-
-                theTile = new DataNode(key, firstSize, background);
-                boolean success = ((theTile != null) && (theTile.loadNodeIntoRAM()));
-                if (success) {
-                    // theTile.setCacheKey() constructor
-                    log.debug("Tile RAM Loaded: "+theTile.getCacheKey()+ " read: "+success);
-                    myRAMCache.put(key, theTile);
-                    // CommandManager.getInstance().cacheManagerNotify();
-                } else {
-                    log.error("Wasn't able to create/load a tile");
-                }
-                // Tile already found in cache
+            theTile = new DataNode(key, firstSize, background);
+            boolean success = ((theTile != null) && (theTile.loadNodeIntoRAM()));
+            if (success) {
+                // theTile.setCacheKey() constructor
+                log.debug("Tile RAM Loaded: " + theTile.getCacheKey() + " read: " + success);
+                myRAMCache.put(key, theTile);
+                // CommandManager.getInstance().cacheManagerNotify();
             } else {
-                hitCount++;
-               // log.debug("Tile RAM HIT: "+theTile.getCacheKey());
+                log.error("Wasn't able to create/load a tile");
             }
-            getCount++;
+            // Tile already found in cache
+        } else {
+            hitCount++;
+            // log.debug("Tile RAM HIT: "+theTile.getCacheKey());
         }
+        getCount++;
+        // }
         if (printCount++ > 100) {
             printCount = 0;
-        //    log.debug("Current tile stats: " + getCount + " with " + hitCount + " --> " + hitCount / getCount);
+            //    log.debug("Current tile stats: " + getCount + " with " + hitCount + " --> " + hitCount / getCount);
         }
         return (theTile);
     }
@@ -290,32 +309,17 @@ public class DataManager {
         //myCurrentData.put(storage, memoryGuess);
     }
 
-    
     /** Notification that tile was dropped from the LRUCache */
-    public void tileWasTrimmed(DataNode tile){
-        boolean success = tile.purgeNodeFromRAM();
-        log.debug("Tile RAM Trimmed: "+tile.getCacheKey()+ " written : "+success);
+    public void tileWasTrimmed(DataNode tile) {
+        tile.purgeNodeFromRAM();
+        // log.debug("Tile RAM Trimmed: "+tile.getCacheKey()+ " new write? : "+success);
     }
-    
-    
+
     /** Used for debugging...causes purge of all RAM tiles and forces them
      * written to disk...
      */
-    public void purgeAllTiles(){
+    public void purgeAllTiles() {
         log.debug("Tile PURGING ALL FROM RAM ");
         myRAMCache.clear();
     }
-    /*
-     * public void printData() {
-     *
-     * //Iterator<Entry<DataStorage, Integer>> i =
-     * myCurrentData.entrySet().iterator(); //	while(i.hasNext()){ //
-     * Entry<DataStorage, Integer> item = i.next(); //	log.info("DATA OBJECT
-     * "+item.getKey()+" size: "+item.getValue()); //} synchronized
-     * (myCacheLock) { log.info("cache size is " + myLRUStack.size());
-     * Iterator<DataNode> i = myLRUStack.iterator(); while (i.hasNext()) {
-     * DataNode t = i.next(); log.info("Tile key:" + t.key()); } }
-     * //log.info(arg0) }
-     *
-     */
 }

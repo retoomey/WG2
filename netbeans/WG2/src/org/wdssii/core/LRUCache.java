@@ -8,27 +8,24 @@ import org.slf4j.LoggerFactory;
 
 /**
  *   Stores a Least Recently Used Cache where access makes it less likely to be
- * deleted. Generic...for something like 'Float' the cache key is the toString
- * function. More complicated objects can interface LRUCacheItem to return the
- * cache key.
+ * deleted.
  *
- *  FIXME: not sure the cache key even needed really...the object should be
- * enough..
+ * The LRUCache uses a unique key to reference each item.
  *
  *  The cache uses a stack, where the 0th item is the oldest, n-1 the newest.
  *
  *  @author Robert Toomey
  */
-public class LRUCache<T extends LRUCache.LRUCacheItem> {
+public class LRUCache<K extends Comparable, T extends LRUCache.LRUCacheItem> {
     private static Logger log = LoggerFactory.getLogger(LRUCache.class);
 
     /**
      * Return the key used to look up this item, all 'T' objects should
      * implement this, otherwise we'll use toString
      */
-    public static interface LRUCacheItem {
+    public static interface LRUCacheItem<K extends Comparable> {
 
-        public String getCacheKey();
+        public K getCacheKey();
         
         /** Called on the item when it is trimmed out from the LRU cache */
         public void trimmed();
@@ -48,7 +45,7 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
     /**
      * The lookup map from a 'key' to the object wanted
      */
-    private TreeMap<String, T> myLRUCache = new TreeMap<String, T>();
+    private TreeMap<K, T> myLRUCache = new TreeMap<K, T>();
     /**
      * The LRU stack of objects
      */
@@ -66,11 +63,6 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
      * in the cache
      */
     private int myCacheSize;
-
-    //public LRUCache()
-    //{
-    //    this(50, 200, 500);
-    //}
     
     public LRUCache(int min, int current, int max){
         myMinCacheSize = min;
@@ -82,7 +74,7 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
      * Get an item given a key. Getting an item MOVES it up in the LRU stack, as
      * it has been referenced and is now more important than older entries
      */
-    public T get(String key) {
+    public T get(K key) {
         T theThing = null;
         synchronized (myLRULock) {
             theThing = myLRUCache.get(key);
@@ -94,7 +86,7 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
     /**
      * Get an item given a key and remove it from our management
      */
-    public T pop(String key) {
+    public T pop(K key) {
         T theThing;
         synchronized (myLRULock) {
             theThing = myLRUCache.get(key);
@@ -112,7 +104,7 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
      *  @param i
      *  @return item at i or null
      */
-    public T get(int i) {
+    public T getStackItemNumber(int i) {
         synchronized (myLRULock) {
             if (i < myLRUStack.size()) {
                 return myLRUStack.get(i);
@@ -135,7 +127,7 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
         return aList;
     }
 
-    public void put(String key, T putMe) {
+    public void put(K key, T putMe) {
 
         // Make room for the item if needed..
         trimCache(myCacheSize - 1);
@@ -153,7 +145,7 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
      *  @param key
      *  @return
      */
-    public T getWithoutRaising(String key) {
+    public T getWithoutRaising(K key) {
         return myLRUCache.get(key);
     }
 
@@ -240,9 +232,9 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
     /**
      * Get the cache key for a cached item.
      */
-    private String getCacheKey(T forMe) {
-        String key;
-        key = forMe.getCacheKey();
+    private K getCacheKey(T forMe) {
+        K key;
+        key = (K)(forMe.getCacheKey());
         return key;
     }
 
@@ -262,7 +254,7 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
                     if (myLRUStack.size() > toSize) {
                         T oldest = myLRUStack.get(0); // Oldest
                         myLRUStack.remove(0);
-                        String key = getCacheKey(oldest);
+                        K key = getCacheKey(oldest);
                         myLRUCache.remove(key);
                         oldest.trimmed();
                     } else {
@@ -271,7 +263,7 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Exception purging cache element " + e.toString());
+            log.error("Exception purging cache element " + e.toString());
         }
     }
 
@@ -293,7 +285,7 @@ public class LRUCache<T extends LRUCache.LRUCacheItem> {
                 myLRUStack.removeAll(toDelete);
             }
         } catch (Exception e) {
-            System.out.println("Exception purging cache for index " + e.toString());
+            log.error("Exception purging cache for index " + e.toString());
         }
         return removed;
     }

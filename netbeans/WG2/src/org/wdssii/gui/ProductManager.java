@@ -55,7 +55,7 @@ public class ProductManager implements Singleton {
     TreeMap<String, ProductDataInfo> myProductInfo = new TreeMap<String, ProductDataInfo>();
     ProductDataInfo myDefaults = new ProductDataInfo();
     /** The cache for Product objects */
-    LRUCache<Product> myProductCache = new LRUCache<Product>(MIN_CACHE_SIZE, 200, MAX_CACHE_SIZE);
+    LRUCache<String, Product> myProductCache = new LRUCache<String, Product>(MIN_CACHE_SIZE, 200, MAX_CACHE_SIZE);
     /** A map of names to ProductHandlerLists */
     private ArrayList<ProductHandlerList> myProductGroups = new ArrayList<ProductHandlerList>();
     /** Current selected group */
@@ -729,9 +729,9 @@ public class ProductManager implements Singleton {
     }
     
     /** GUI uses to pull current stack item.  We'll probably need to synchronize later. */
-    public Product getProductAt(int i){
-        return myProductCache.get(i);
-    }
+   // public Product getProductAt(int i){
+   //     return myProductCache.get(i);
+   // }
 
     // Internal create product method
     private Product makeProduct(String anIndex, IndexRecord init) {

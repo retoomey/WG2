@@ -32,7 +32,7 @@ public class DataNode implements LRUCacheItem {
     /**
      *     The key representing this data tile. Final
      */
-    private final String myKey;
+    private final int myKey;
     /**
      *     Synchronization required for reading/writing/using
      */
@@ -69,14 +69,10 @@ public class DataNode implements LRUCacheItem {
     /**
      *     Create a data tile with given key name
      */
-    public DataNode(String key, int firstSize, float background) {
+    public DataNode(int key, int firstSize, float background) {
         myKey = key;
         mySize = firstSize;
         myBackground = background;
-    }
-
-    public String key() {
-        return myKey;
     }
 
     public void setBackground(float b) {
@@ -232,7 +228,7 @@ public class DataNode implements LRUCacheItem {
      */
     private String getBaseFilePath() {
         String path = DataManager.getInstance().getTempDirName(DataManager.tempNodes);
-        path += "/" + key() + ".data";
+        path += "/" + getCacheKey() + ".data";
         return path;
     }
 
@@ -340,11 +336,6 @@ public class DataNode implements LRUCacheItem {
         }
     }
 
-    @Override
-    public String getCacheKey() {
-        return myKey;
-    }
-
     /**
      *     Called by LRUCache when we are trimmed from the LRU. This DataManager LRU
      * is for tiles currently in RAM. So we need to purge our stuff to disk
@@ -352,5 +343,10 @@ public class DataNode implements LRUCacheItem {
     @Override
     public void trimmed() {
         DataManager.getInstance().tileWasTrimmed(this);
+    }
+
+    @Override
+    public Comparable getCacheKey() {
+        return myKey;
     }
 }

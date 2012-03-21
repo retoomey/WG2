@@ -18,15 +18,21 @@ public class Array1DfloatAsNodes extends DataStorage implements Array1Dfloat {
 
     private int mySize;
     private float myBackground;
+    
     /** The key for this node */
-    private final String myKey;
+    private final int myKey;
+    
+    /** The file key for this node */
+    private final String myFileKey;
+    
     /** Every time we create one, we give it a unique number */
     private static int counter = 1;
 
     public Array1DfloatAsNodes(int aSize, float backgroundValue) {
         counter++;
         mySize = aSize;
-        myKey = "Array1D" + "s" + counter;
+        myFileKey = "Array1D" + "s" + counter;
+        myKey = DataManager.getInstance().getNewTileKey();
         myBackground = backgroundValue;
 
         // Node size based off DataManager node size.

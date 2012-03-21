@@ -26,12 +26,12 @@ public class Array2DfloatRAM implements Array2Dfloat {
 
     @Override
     public void beginRowOrdered() {
-        throw new UnsupportedOperationException("Not supported yet.");
+       // throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void endRowOrdered() {
-        throw new UnsupportedOperationException("Not supported yet.");
+       // throw new UnsupportedOperationException("Not supported yet.");
     }
 
     /** Not to be implemented directly, this class wraps a column in the 2D float array */

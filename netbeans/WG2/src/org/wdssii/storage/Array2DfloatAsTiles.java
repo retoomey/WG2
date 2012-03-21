@@ -23,13 +23,16 @@ import org.slf4j.LoggerFactory;
 public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
 
     private static Logger log = LoggerFactory.getLogger(Array2DfloatAsTiles.class);
-    private int myX;
-    private int myY;
+    /** The full number of possible x values in floats */
+    private final int myX;
+    /** The full number of possible y values in floats */
+    private final int myY;
+    /** The number of possible tiles in the X */
+    private final int myNumberX;
+    /** The number of possible tiles in the Y */
+    private final int myNumberY;
+    /** The default background of the array */
     private float myBackground;
-    /**
-     *  The 'root' for all tiles for this data structure
-     */
-    private final String myTileRoot;
     /**
      *  The 'side' of a 2D tile, which we will set to sqrt of the DataManager
      * tile size
@@ -39,25 +42,18 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
      *  The 'side' squared
      */
     private final int mySideSquared;
-    /**
-     *  Every time we create one, we give it a unique number
-     */
-    private static int counter = 0;
+    /** A pre-loaded row of tiles for mass 'set' calls.  Speeds up loading */
     private ArrayList<DataNode> myWorkingTiles = null;
     private int myCurrentOrderedRow = 0;
-    private static final Object myCounterSync = new Object();
-    
+    /** The base key for our tiles */
+    private int myKeyBase;
+
     // Initializer block...Shared by all constructors, called before constructors
     {
-        // Unique id for Array
-        synchronized(myCounterSync){
-            counter++;
-            myTileRoot = "Array2D" + counter;
-        }
-       
         // Tile size based off DataManager node size
-        int tileSize = DataManager.getInstance().getRecommendedNodeSize();
-        mySide = (int) Math.floor(Math.sqrt(tileSize));
+        // int tileSize = DataManager.getInstance().getRecommendedNodeSize();
+        // mySide = (int) Math.floor(Math.sqrt(tileSize));
+        mySide = 200; // 256 data values a side...
         mySideSquared = mySide * mySide;
     }
 
@@ -80,8 +76,9 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
         int tilesPerRow = (myX / mySide) + 1;  // +1 so 375/100 ==> 3 +1 = 4 tiles
         ArrayList<DataNode> theTiles = new ArrayList<DataNode>();
         for (int x = 0; x < tilesPerRow; x++) {
-            final String key = myTileRoot + "x" + x + "y" + tileRow;
-            DataNode tile = DataManager.getInstance().popTile(key, mySideSquared, myBackground);
+            // final String key = myTileRoot + "x" + x + "y" + tileRow;
+            final int theKey = myKeyBase + (tileRow * myNumberX) + x;
+            DataNode tile = DataManager.getInstance().popTile(theKey, mySideSquared, myBackground);
             theTiles.add(tile);
         }
         return theTiles;
@@ -92,7 +89,7 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
             Iterator<DataNode> i = myWorkingTiles.iterator();
             while (i.hasNext()) {
                 DataNode tile = i.next();
-                DataManager.getInstance().pushTile(tile.getCacheKey(), tile);
+                DataManager.getInstance().pushTile((Integer) tile.getCacheKey(), tile);
             }
             myWorkingTiles = null;
         }
@@ -208,6 +205,14 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
         myX = x;
         myY = y;
         myBackground = backgroundValue;
+
+        /** figure out the max number of tiles for 2D grid */
+        myNumberX = (x / mySide) + 1;  // Ex: 375/100 = 3 --> 3+1 = 4 100 width tiles
+        myNumberY = (y / mySide) + 1;
+
+        /** ..and reserve keys for them */
+        myKeyBase = DataManager.getInstance().getNewTileKeyRange(myNumberX * myNumberY);
+
         // That's it.  Tiles will be created on demand as needed during set/get...
     }
 
@@ -216,10 +221,12 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
 
         // Here we have the CPU and IO hit (the speed cost we pay to save RAM)
         // This code duplicates with set "inline"
+        // This is pretty slow since it does math everytime
         final int tileX = x / mySide;
         final int tileY = y / mySide;
-        final String key = myTileRoot + "x" + tileX + "y" + tileY;
-        DataNode tile = DataManager.getInstance().getTile(key, mySideSquared, myBackground);
+        final int theKey = myKeyBase + (tileY * myNumberX) + tileX;
+        DataNode tile = DataManager.getInstance().getTile(theKey, mySideSquared, myBackground);
+
         final int localX = x - (mySide * tileX);
         final int localY = y - (mySide * tileY);
         final int at = (localY * mySide) + localX;  // 'x' order
@@ -260,10 +267,8 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
 
             // Here we have the CPU and IO hit (the speed cost we pay to save RAM)
             // This code duplicates with get "inline"
-            // int tileX = x / mySide;
-            // int tileY = y / mySide;
-            String key = myTileRoot + "x" + tileX + "y" + tileY;
-            DataNode tile = DataManager.getInstance().getTile(key, mySideSquared, myBackground);
+            final int theKey = myKeyBase + (tileY * myNumberX) + tileX;
+            DataNode tile = DataManager.getInstance().getTile(theKey, mySideSquared, myBackground);
             int localX = x - (mySide * tileX);
             int localY = y - (mySide * tileY);
             int at = (localY * mySide) + localX;  // 'x' order

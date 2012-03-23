@@ -11,7 +11,6 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.core.LRUCache.LRUCacheItem;
 
 /**
  *     A data node, a 'small' amount of data, usually representing a part of a
@@ -26,7 +25,7 @@ import org.wdssii.core.LRUCache.LRUCacheItem;
  *      FIXME: Add sparse ability?
  *
  */
-public class DataNode implements LRUCacheItem {
+public class DataNode  {
 
     private static Logger log = LoggerFactory.getLogger(DataManager.class);  // use datamanager log?
     /**
@@ -336,16 +335,7 @@ public class DataNode implements LRUCacheItem {
         }
     }
 
-    /**
-     *     Called by LRUCache when we are trimmed from the LRU. This DataManager LRU
-     * is for tiles currently in RAM. So we need to purge our stuff to disk
-     */
-    @Override
-    public void trimmed() {
-        DataManager.getInstance().tileWasTrimmed(this);
-    }
 
-    @Override
     public Comparable getCacheKey() {
         return myKey;
     }

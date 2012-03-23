@@ -22,7 +22,6 @@ import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.gui.CommandManager.NavigationMessage;
-import org.wdssii.core.LRUCache.LRUCacheItem;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.products.renderers.ProductRenderer;
@@ -58,7 +57,7 @@ import org.wdssii.xml.Tag_colorMap;
  *
  * @author Robert Toomey
  **/
-public class Product implements LRUCacheItem {
+public class Product {
 
     private static Logger log = LoggerFactory.getLogger(Product.class);
     // FIXME: Currently products will have only one possible product handler,
@@ -208,14 +207,8 @@ public class Product implements LRUCacheItem {
         myCacheKey = cacheKey;
     }
 
-    @Override
     public String getCacheKey() {
         return myCacheKey;
-    }
-    
-    @Override
-    public void trimmed() {
-        
     }
 
     /** Return the list of records for looping when this product is selected.

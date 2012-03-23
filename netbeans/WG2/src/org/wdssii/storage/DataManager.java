@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.LRUCache;
+import org.wdssii.core.LRUCache.LRUCacheListener;
 
 /**
  * The data manager will handle: Loading/Offloading data from disk to ram...
@@ -22,7 +23,7 @@ import org.wdssii.core.LRUCache;
  *  @author Robert Toomey
  *
  */
-public class DataManager {
+public class DataManager implements LRUCacheListener<DataNode> {
 
     /**
      * The subdirectory we use to offload any data nodes from RAM
@@ -63,6 +64,8 @@ public class DataManager {
      */
     private long myFailedAllocatedBytes = 0;
 
+    private boolean myAddListener = true;
+    
     private DataManager() {
         // Exists only to defeat instantiation.
         // FIXME: make GUI able to change this....
@@ -77,7 +80,7 @@ public class DataManager {
         System.setProperty("java.io.tmpdir", myTempDir.getAbsolutePath());
         log.info("DataManager temp is " + myTempDir.getAbsolutePath());
         // We create a 'datacache' array...
-
+       
     }
 
     /** Get a single new  key for our LRU cache */
@@ -252,7 +255,7 @@ public class DataManager {
     public static long printCount = 0;
 
     public DataNode popTile(int key, int firstSize, float background) {
-        DataNode theTile = null;
+        DataNode theTile;
 
         theTile = myRAMCache.pop(key);
 
@@ -268,6 +271,10 @@ public class DataManager {
 
     public void pushTile(int key, DataNode tile) {
         if (tile != null) {
+            if (myAddListener){  // Add listener on first push....
+                 myRAMCache.addListener(this);
+                 myAddListener = false;
+            }
             myRAMCache.put(key, tile);
             //log.debug("PUSH TILE "+tile);
         }
@@ -275,7 +282,7 @@ public class DataManager {
 
     public DataNode getTile(int key, int firstSize, float background) {
 
-        DataNode theTile = null;
+        DataNode theTile;
         theTile = myRAMCache.get(key);
 
         // Tile not in cache, create it and add it to cache
@@ -309,17 +316,21 @@ public class DataManager {
         //myCurrentData.put(storage, memoryGuess);
     }
 
-    /** Notification that tile was dropped from the LRUCache */
-    public void tileWasTrimmed(DataNode tile) {
-        tile.purgeNodeFromRAM();
-        // log.debug("Tile RAM Trimmed: "+tile.getCacheKey()+ " new write? : "+success);
-    }
-
     /** Used for debugging...causes purge of all RAM tiles and forces them
      * written to disk...
      */
     public void purgeAllTiles() {
         log.debug("Tile PURGING ALL FROM RAM ");
         myRAMCache.clear();
+    }
+    
+    
+    /**
+     *     Called by LRUCache when we are trimmed from the LRU. This DataManager LRU
+     * is for tiles currently in RAM. So we need to purge our stuff to disk
+     */
+    @Override
+    public void trimmed(DataNode o) {
+         o.purgeNodeFromRAM();
     }
 }

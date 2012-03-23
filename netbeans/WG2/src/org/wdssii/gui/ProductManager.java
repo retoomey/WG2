@@ -133,7 +133,7 @@ public class ProductManager implements Singleton {
         myProductOrderedSet.navigationAction(nav);
     }
 
-    /** Compare a product to a given indexKey, if it matchs, remove from cache */
+    /** Compare a product to a given indexKey, if it matches, remove from cache */
     private static class IndexKeyComparator<T> implements LRUTrimComparator<T> {
 
         String indexKey;

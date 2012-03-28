@@ -128,29 +128,31 @@ public class RadialSet extends DataType implements Table2DView {
     protected final void createAzimuthSearch() {
         // This assumes no two radials have the same end angle, even if they do,
         // should still work, just indeterminate which of the 2 radials you'll get
-        angleToRadial = new float[radials.length];
-        azimuthRadials = Arrays.copyOf(radials, radials.length);
+        if (radials != null && (radials.length > 0)) {
+            angleToRadial = new float[radials.length];
+            azimuthRadials = Arrays.copyOf(radials, radials.length);
 
-        // Sort the azimuth radials by end angle...
-        Arrays.sort(azimuthRadials, new Comparator<Radial>() {
+            // Sort the azimuth radials by end angle...
+            Arrays.sort(azimuthRadials, new Comparator<Radial>() {
 
-            @Override
-            public int compare(Radial o1, Radial o2) {
-                double u1 = o1.getEndAzimuthDegs();
-                double u2 = o2.getEndAzimuthDegs();
-                if (u1 < u2) {
-                    return -1;
+                @Override
+                public int compare(Radial o1, Radial o2) {
+                    double u1 = o1.getEndAzimuthDegs();
+                    double u2 = o2.getEndAzimuthDegs();
+                    if (u1 < u2) {
+                        return -1;
+                    }
+                    if (u1 > u2) {
+                        return 1;
+                    }
+                    return 0;
                 }
-                if (u1 > u2) {
-                    return 1;
-                }
-                return 0;
+            });
+
+            // Create the angle list from the sorted radials...
+            for (int i = 0; i < angleToRadial.length; i++) {
+                angleToRadial[i] = azimuthRadials[i].getEndAzimuthDegs();
             }
-        });
-
-        // Create the angle list from the sorted radials...
-        for (int i = 0; i < angleToRadial.length; i++) {
-            angleToRadial[i] = azimuthRadials[i].getEndAzimuthDegs();
         }
     }
 
@@ -170,16 +172,16 @@ public class RadialSet extends DataType implements Table2DView {
     public float getElevationRads() {
         return elevRads;
     }
-    
-    public float getElevationSin(){
+
+    public float getElevationSin() {
         return sinElevation;
     }
-    
-    public float getElevationCos(){
+
+    public float getElevationCos() {
         return cosElevation;
     }
-    
-    public float getElevationTan(){
+
+    public float getElevationTan() {
         return tanElevation;
     }
 
@@ -242,7 +244,11 @@ public class RadialSet extends DataType implements Table2DView {
     }
 
     public int getNumRadials() {
-        return radials.length;
+        if (radials != null) {
+            return radials.length;
+        } else {
+            return 0;
+        }
     }
 
     public Location getRadarLocation() {
@@ -406,7 +412,7 @@ public class RadialSet extends DataType implements Table2DView {
                 double elev_diff = a.elevDegs - elevDegs;
 
                 // We want the interpolation weight (for bi/tri-linear)
-                if (q.inNeedInterpolationWeight) {             
+                if (q.inNeedInterpolationWeight) {
                     // FIXME: math could be cached in a for speed in volumes
 
                     /* Math for height calculation....
@@ -478,90 +484,92 @@ public class RadialSet extends DataType implements Table2DView {
                     q.outInRange = false;
                     if (!q.inNeedInterpolationWeight) {
                         q.outDataValue = MissingData;
-                         return;
-                     }
+                        return;
+                    }
                 }
             }
 
             // Search radials by end azimuth
-            int index = Arrays.binarySearch(angleToRadial, (float) a.azimuthDegs);
-            int radialIndex = (index < 0) ? -(index + 1) : index;
+            if (radials != null) {
+                int index = Arrays.binarySearch(angleToRadial, (float) a.azimuthDegs);
+                int radialIndex = (index < 0) ? -(index + 1) : index;
 
-            if ((radialIndex >= 0) && (radialIndex < angleToRadial.length)) { // within all radial end values
-                Radial candidate = azimuthRadials[radialIndex];
-                q.outHitRadialNumber = candidate.getIndex();
-                q.outInAzimuth = candidate.contains((float) a.azimuthDegs);
+                if ((radialIndex >= 0) && (radialIndex < angleToRadial.length)) { // within all radial end values
+                    Radial candidate = azimuthRadials[radialIndex];
+                    q.outHitRadialNumber = candidate.getIndex();
+                    q.outInAzimuth = candidate.contains((float) a.azimuthDegs);
 
-                final double gate = (a.range - this.getRangeToFirstGateKms()) / candidate.getGateWidthKms();
-                final int gateNumber = (int) Math.floor(gate);
-                q.outHitGateNumber = gateNumber;
-                
-                // Is the query within range for this Radial?  Range is up to the last piece of available data.
-                Array1Dfloat gates = candidate.getValues();
-                q.outInRange = (gateNumber >= 0) && (gateNumber < gates.size());
- 
-                // Valid data must be in azimuth and range...? Note for vslice this will make black gaps in azimuth
-                //if ((q.outInAzimuth) && (q.outInRange)){
-                if (q.outInRange) {
-                  /* Experiment, playing with range interpolation to see how it looks...
-                    float dataCore = gates.get(gateNumber);
-                    q.outDataValue = dataCore;
-                   
-                    if (DataType.isRealDataValue(q.outDataValue)){
-                    if (q.inNeedInterpolationWeight) {
+                    final double gate = (a.range - this.getRangeToFirstGateKms()) / candidate.getGateWidthKms();
+                    final int gateNumber = (int) Math.floor(gate);
+                    q.outHitGateNumber = gateNumber;
+
+                    // Is the query within range for this Radial?  Range is up to the last piece of available data.
+                    Array1Dfloat gates = candidate.getValues();
+                    q.outInRange = (gateNumber >= 0) && (gateNumber < gates.size());
+
+                    // Valid data must be in azimuth and range...? Note for vslice this will make black gaps in azimuth
+                    //if ((q.outInAzimuth) && (q.outInRange)){
+                    if (q.outInRange) {
+                        /* Experiment, playing with range interpolation to see how it looks...
+                        float dataCore = gates.get(gateNumber);
+                        q.outDataValue = dataCore;
+                        
+                        if (DataType.isRealDataValue(q.outDataValue)){
+                        if (q.inNeedInterpolationWeight) {
                         double weight1 = gate - gateNumber; // .5 = center, 0 floor, 1 to
                         q.outDataValue = dataCore;
                         if (weight1 >= .5) {
-                            if (gateNumber + 1 < gates.size()) {
-                                float dataUp1 = gates.get(gateNumber + 1);
-                                if (DataType.isRealDataValue(dataUp1)){
-                                // at weight == 1, 50% up, 50% core   0
-                                // at weight = .5, 0% up, 100% core.  .5
-                                // y2 = 1
-                                // y1 = .5
-                                // y = weight1
-                                // R1 core
-                                // R2 .5*dataUp1;
-
-                                float i1 = (float) ((1 - weight1) / .5) * dataCore;
-                                //float i2 = (float) (((weight1 - .5) / .5) * (.5 * dataUp1));
-                                float i2 = (float) (((weight1 - .5) / .5) * (dataUp1));
-                                q.outDataValue = i1 + i2;
-                                //q.outDataValue = 1000;
-                                return;
-                                }
-                            } else {
-                              //  q.outDataValue = dataCore;
-                                return;
-                            }
-                        } else {
-                            if (gateNumber - 1 > 0) {
-                                float dataDown = gates.get(gateNumber - 1);
-                                 if (DataType.isRealDataValue(dataDown)){
-                                // y2 = .5
-                                // y1 = 0
-                                // y = weight1
-                                // R2 core
-                                // R1 .5*dataDown;
-
-                                float i1 = (float) (((.5 - weight1) / .5) * (.5 * dataDown));
-                                float i2 = (float) (((weight1) / .5) * (dataCore));
-                               // q.outDataValue = i1 + i2;
-                               
-                                return;
-                                 }
-                            } else {
-                               // q.outDataValue = dataCore;
-                                return;
-                            }
-
+                        if (gateNumber + 1 < gates.size()) {
+                        float dataUp1 = gates.get(gateNumber + 1);
+                        if (DataType.isRealDataValue(dataUp1)){
+                        // at weight == 1, 50% up, 50% core   0
+                        // at weight = .5, 0% up, 100% core.  .5
+                        // y2 = 1
+                        // y1 = .5
+                        // y = weight1
+                        // R1 core
+                        // R2 .5*dataUp1;
+                        
+                        float i1 = (float) ((1 - weight1) / .5) * dataCore;
+                        //float i2 = (float) (((weight1 - .5) / .5) * (.5 * dataUp1));
+                        float i2 = (float) (((weight1 - .5) / .5) * (dataUp1));
+                        q.outDataValue = i1 + i2;
+                        //q.outDataValue = 1000;
+                        return;
                         }
-                    } 
+                        } else {
+                        //  q.outDataValue = dataCore;
+                        return;
+                        }
+                        } else {
+                        if (gateNumber - 1 > 0) {
+                        float dataDown = gates.get(gateNumber - 1);
+                        if (DataType.isRealDataValue(dataDown)){
+                        // y2 = .5
+                        // y1 = 0
+                        // y = weight1
+                        // R2 core
+                        // R1 .5*dataDown;
+                        
+                        float i1 = (float) (((.5 - weight1) / .5) * (.5 * dataDown));
+                        float i2 = (float) (((weight1) / .5) * (dataCore));
+                        // q.outDataValue = i1 + i2;
+                        
+                        return;
+                        }
+                        } else {
+                        // q.outDataValue = dataCore;
+                        return;
+                        }
+                        
+                        }
+                        } 
+                        }
+                        }else{
+                         */
+                        q.outDataValue = gates.get(gateNumber);
+                        return;
                     }
-                }else{
-                    */
-                    q.outDataValue = gates.get(gateNumber);
-                    return;
                 }
             }
         }
@@ -575,11 +583,13 @@ public class RadialSet extends DataType implements Table2DView {
      */
     public ArrayList<Float> createSRMDeltas(float speedMS, float dirDegrees) {
         ArrayList<Float> srmDeltas = new ArrayList<Float>();
-        for (Radial r : azimuthRadials) {
-            float aglRadians = (float) Math.toRadians((r.getMidAzimuthDegs() - dirDegrees));
-            float vr = (float) (Math.cos(aglRadians) * speedMS);
-            vr = ((int) (vr * 2.0f + 0.5f)) * 0.5f;
-            srmDeltas.add(vr);
+        if (azimuthRadials != null) {
+            for (Radial r : azimuthRadials) {
+                float aglRadians = (float) Math.toRadians((r.getMidAzimuthDegs() - dirDegrees));
+                float vr = (float) (Math.cos(aglRadians) * speedMS);
+                vr = ((int) (vr * 2.0f + 0.5f)) * 0.5f;
+                srmDeltas.add(vr);
+            }
         }
         return srmDeltas;
     }
@@ -628,7 +638,7 @@ public class RadialSet extends DataType implements Table2DView {
     }
 
     @Override
-    public boolean getCellValue(int row, int col, CellQuery output){
+    public boolean getCellValue(int row, int col, CellQuery output) {
         float value = 0;
         Radial r = getRadial((col));
         if (r != null) {
@@ -637,7 +647,7 @@ public class RadialSet extends DataType implements Table2DView {
                 value = r.getValue((count - row - 1));
             }
         }
-        output.value = value; 
+        output.value = value;
         return true;
     }
 

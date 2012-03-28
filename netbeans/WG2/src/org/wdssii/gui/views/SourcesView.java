@@ -128,8 +128,10 @@ public class SourcesView extends JThreadPanel implements CommandListener, CONUSJ
         public boolean accept(File f) {
             String t = f.getName().toLowerCase();
             // FIXME: need to get these from the Builders
-            return (f.isDirectory() || t.endsWith(".netcdf") || (t.endsWith(".netcdf.gz"))
-                    || (t.endsWith(".xml")) || (t.endsWith(".xml.gz")));
+            return (f.isDirectory() 
+                    || t.endsWith(".netcdf") || t.endsWith(".nc") || t.endsWith(".netcdf.gz")
+                    || t.endsWith(".xml") || t.endsWith(".xml.gz")
+                    );
         }
 
         @Override
@@ -688,7 +690,7 @@ public class SourcesView extends JThreadPanel implements CommandListener, CONUSJ
         // Ok we'll get it from the builder I think....
         String[] params = null;
         String s = aURL.toString().toLowerCase();
-        if (s.endsWith(".netcdf") || s.endsWith(".netcdf.gz")) {
+        if (s.endsWith(".netcdf") || s.endsWith(".nc") || s.endsWith(".netcdf.gz")) {
             params = new String[]{"netcdf", "", product, choice, ""};
         } else if (s.endsWith(".xml") || s.endsWith(".xml.gz")) {
             // Params 0 are of this form for a regular index:

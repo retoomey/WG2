@@ -10,7 +10,6 @@ import org.wdssii.geom.CVector;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array2Dfloat;
 import ucar.ma2.Array;
-import ucar.ma2.Index;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import org.slf4j.Logger;
@@ -113,15 +112,23 @@ public class RadialSetNetcdf extends DataTypeNetcdf {
                 }
 
                 r.radials = new Radial[num_radials];
-                Index radial_index = az_values.getIndex();
+                //Index radial_index = az_values.getIndex();
                 for (int i = 0; i < num_radials; ++i) {
-                    radial_index.set(i);
-                    float az = az_values.getFloat(radial_index);
-                    float bw = bw_values.getFloat(radial_index);
-                    float as = (as_values == null) ? bw : as_values.getFloat(radial_index);
-                    float gw = gw_values.getFloat(radial_index) / 1000; // meters to kms
-                    float ny = (ny_values == null) ? nyquist : ny_values.getFloat(radial_index);
+                   // radial_index.set(i);
+                   // float az = az_values.getFloat(radial_index);
+                   // float bw = bw_values.getFloat(radial_index);
+                   // float as = (as_values == null) ? bw : as_values.getFloat(radial_index);
+                   // float gw = gw_values.getFloat(radial_index) / 1000; // meters to kms
+                   // float ny = (ny_values == null) ? nyquist : ny_values.getFloat(radial_index);
 
+                    //radial_index.set(i);
+                    float az = az_values.getFloat(i);
+                    float bw = bw_values.getFloat(i);
+                    float as = (as_values == null) ? bw : as_values.getFloat(i);
+                    float gw = gw_values.getFloat(i) / 1000; // meters to kms
+                    float ny = (ny_values == null) ? nyquist : ny_values.getFloat(i);
+
+                    
                     // This wraps around the column of the 2D array, _not_ a copy
                     Array1Dfloat col = values.getCol(i);
                     if (col != null) {

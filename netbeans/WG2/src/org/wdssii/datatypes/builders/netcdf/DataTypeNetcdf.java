@@ -12,6 +12,7 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.util.StringUtil;
+import ucar.nc2.Attribute;
 
 /**
  * Root class for building a DataType from Netcdf data.
@@ -39,28 +40,36 @@ public abstract class DataTypeNetcdf {
      * @param ncfile 
      */
     public void fillNetcdfFileInfo(NetcdfFile ncfile, NetcdfFileInfo info) {
-        try {
-            info.TypeName = ncfile.findGlobalAttribute("TypeName").getStringValue();
-        } catch (Exception e) {
-            info.TypeName = "Missing";
-        }
+        info.TypeName = getDatatypeNameFromNetcdf(ncfile);
         info.Time = getTimeFromNetcdf(ncfile);
+    }
+
+    /** Return the DataType of this netcdf file */
+    public String getDatatypeNameFromNetcdf(NetcdfFile ncfile){
+        String typeName;
+        Attribute a = ncfile.findGlobalAttribute("TypeName");
+        if (a == null){
+            typeName = "Missing";
+        }else{
+            typeName = a.getStringValue();
+        }
+        return typeName;
     }
     
     /** Read the Time and FractionalTime attributes from a netcdf file */
     public Date getTimeFromNetcdf(NetcdfFile ncfile) {
         Date dt;
         long tm = 0;
-        try{
-             tm = ncfile.findGlobalAttribute("Time").getNumericValue().longValue();
-        }catch(Exception e2){
+        try {
+            tm = ncfile.findGlobalAttribute("Time").getNumericValue().longValue();
+        } catch (Exception e2) {
             // No time attribute or wrong format, use current time
             log.warn("Missing Time attribute in netcdf file, using current time");
             dt = new Date();
             return dt;
         }
         long tm_long = 1000 * tm;
-        
+
         // Try to get fractional part as well
         try {
             double ftm = ncfile.findGlobalAttribute("FractionalTime").getNumericValue().doubleValue();
@@ -71,49 +80,50 @@ public abstract class DataTypeNetcdf {
         return dt;
     }
 
-    /** Fill a memento from netcdf data. */
-    public void fillFromNetcdf(DataTypeMemento m, NetcdfFile ncfile, boolean sparse) {
-        String typeName = "DataType";
+    public Location getLocationFromNetcdf(NetcdfFile ncfile) {
         Location loc = null; // FIXME: defaults if netcdf fails?
-        Date dt = null;
-
-        // These are the shared attributes that are gathered from a netcdf
-        // file for any subclass of DataType.  Note that this never has to be
-        // called.
         try {
-            typeName = ncfile.findGlobalAttribute("TypeName").getStringValue();
-
             // location and time
             double lat = ncfile.findGlobalAttribute("Latitude").getNumericValue().doubleValue();
             double lon = ncfile.findGlobalAttribute("Longitude").getNumericValue().doubleValue();
             double ht = ncfile.findGlobalAttribute("Height").getNumericValue().doubleValue();
             loc = new Location(lat, lon, ht / 1000);
-
-            dt = getTimeFromNetcdf(ncfile);
-
         } catch (Exception e) {
-            log.warn("Couldn't read in location/time/type shared attibutes from netcdf file", e);
-        } finally {
-            m.originLocation = loc;
-            m.startTime = dt;
-            m.typeName = typeName;
+            log.warn("Couldn't read in location from netcdf file", e);
         }
 
-        // The global list of attributes directly from the netcdf
+        return loc;
+    }
+
+    /** Our attributes in a WDSSII style file, not in regular netcdf */
+    public Map<String, String> getWGAttributes(NetcdfFile ncfile){
+         // The global list of attributes directly from the netcdf
         Map<String, String> attr = new HashMap<String, String>();
-        try {
-            List<String> attrNames = StringUtil.split(ncfile.findGlobalAttribute("attributes").getStringValue());
+        
+        Attribute a = ncfile.findGlobalAttribute("attributes");
+        if (a != null){
+            List<String> attrNames = StringUtil.split(a.getStringValue());
             for (int i = 0; i < attrNames.size(); ++i) {
                 String name = attrNames.get(i);
-                if (name.equals("") == false) {
-                    String val = ncfile.findGlobalAttribute(name + "-value").getStringValue();
-                    attr.put(name, val);
+                if (!name.isEmpty()){
+                    Attribute v = ncfile.findGlobalAttribute(name + "-value");
+                    if (v != null){
+                        String val = v.getStringValue();
+                        attr.put(name, val);
+                    }else{
+                        log.warn ("Wdssii netcdf file had attribute "+name+" that was missing value");
+                    }
                 }
             }
-        } catch (Exception e) {
-            // If attr fails, just keep what we have so far
-            log.warn("While extracting attributes.", e);
         }
-        m.attriNameToValue = attr;
+        return attr;
+    }
+    /** Fill a memento from netcdf data. */
+    public void fillFromNetcdf(DataTypeMemento m, NetcdfFile ncfile, boolean sparse) {
+        
+        m.typeName = getDatatypeNameFromNetcdf(ncfile);
+        m.originLocation = getLocationFromNetcdf(ncfile);
+        m.startTime = getTimeFromNetcdf(ncfile);
+        m.attriNameToValue = getWGAttributes(ncfile);
     }
 }

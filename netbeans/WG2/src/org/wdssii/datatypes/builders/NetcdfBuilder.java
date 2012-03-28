@@ -22,6 +22,7 @@ import org.wdssii.core.DataUnavailableException;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
+import org.wdssii.datatypes.builders.netcdf.CFRadialNetcdf;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.storage.Array2Dfloat;
 import org.wdssii.storage.Array2DfloatAsTiles;
@@ -29,6 +30,7 @@ import org.wdssii.storage.DataManager;
 
 import ucar.ma2.Array;
 import ucar.ma2.Index;
+import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -146,33 +148,43 @@ public class NetcdfBuilder extends Builder {
             log.info("Opening " + path + " for reading");
             ncfile = NetcdfFile.open(path);
 
+              // First type to get the 'DataType' field from the netcdf, we use this
+            // to look for a constructor to call
+            Attribute a = ncfile.findGlobalAttribute("DataType");
+            if (a == null){
+                a = ncfile.findGlobalAttribute("Conventions");
+                if (a != null){
+                    String t = a.getStringValue();
+                    if (t.startsWith("CF/Radial")){
+                           CFRadialNetcdf cfr = new CFRadialNetcdf();
+                          
+                           return cfr.createFromNetcdf(ncfile, false);
+                     }
+                }
+            }
+            
             // First type to get the 'DataType' field from the netcdf, we use this
             // to look for a constructor to call
             String dataType = "DataType";
             try {
                 dataType = ncfile.findGlobalAttribute("DataType").getStringValue();
-            } catch (Exception e) {
-                // Exception ok..we'll just create a DataType with nothing in
-                // it for the GUI??
-                // FIXME: not 100% sure on this yet
-            }
+                          
+                // Any DataType with 'Sparse' in it gets sent to the class without the sparse:
+                // "SparseRadialSet" --> "RadialSet"
+                // "SparseWindField" --> "WindField"
+                boolean sparse = false;
+                if (dataType.contains("Sparse")) {
+                    String oldName = dataType;
+                    dataType = dataType.replaceFirst("Sparse", ""); // "SparseRadialSet" handled by "RadialSet"
+                    sparse = true;
+                    log.info("Replaced class name " + oldName + " with class name " + dataType);
+                }
 
-            // Any DataType with 'Sparse' in it gets sent to the class without the sparse:
-            // "SparseRadialSet" --> "RadialSet"
-            // "SparseWindField" --> "WindField"
-            boolean sparse = false;
-            if (dataType.contains("Sparse")) {
-                String oldName = dataType;
-                dataType = dataType.replaceFirst("Sparse", ""); // "SparseRadialSet" handled by "RadialSet"
-                sparse = true;
-                log.info("Replaced class name " + oldName + " with class name " + dataType);
-            }
+                // Create class from reflection.  Note this will create a 'RadialSetNetcdf',
+                // 'LatLonGridNetcdf', 'WindfieldNetcdf', etc. based on DataType from netcdf file
+                String createByName = "org.wdssii.datatypes.builders.netcdf." + dataType + "Netcdf";
+                Class<?> aClass = null;
 
-            // Create class from reflection.  Note this will create a 'RadialSetNetcdf',
-            // 'LatLonGridNetcdf', 'WindfieldNetcdf', etc. based on DataType from netcdf file
-            String createByName = "org.wdssii.datatypes.builders.netcdf." + dataType + "Netcdf";
-            Class<?> aClass = null;
-            try {
                 m.subTask("Creating " + dataType);
                 aClass = Class.forName(createByName);
                 Class<?>[] argTypes = new Class[]{NetcdfFile.class, boolean.class};
@@ -184,9 +196,9 @@ public class NetcdfBuilder extends Builder {
                 Method aMethod = aClass.getMethod("createFromNetcdf", argTypes);
                 obj = (DataType) aMethod.invoke(classInstance, args);
             } catch (Exception e) {
-                System.out.println("ERROR " + createByName + ", " + e.toString());
-                log.warn("Couldn't create object by name '"
-                        + createByName + "' because " + e.toString());
+               // System.out.println("ERROR " + createByName + ", " + e.toString());
+               // log.warn("Couldn't create object by name '"
+               //         + createByName + "' because " + e.toString());
             } finally {
                 // FIXME: Probably will create a "NetcdfDataType" object for the display
                 // so it can still display unknown netcdf data for debugging purposes
@@ -226,14 +238,7 @@ public class NetcdfBuilder extends Builder {
         try {
             ncfile = NetcdfFile.open(path);
 
-            // First type to get the 'DataType' field from the netcdf, we use this
-            // to look for a constructor to call
-            try {
-                info.DataType = ncfile.findGlobalAttribute("DataType").getStringValue();
-            } catch (Exception e) {
-                info.DataType = "Missing";
-            }
-
+          
             // Any DataType with 'Sparse' in it gets sent to the class without the sparse:
             // "SparseRadialSet" --> "RadialSet"
             // "SparseWindField" --> "WindField"

@@ -87,6 +87,6 @@ public abstract class DataFilter {
 
     /** Simple wdssii command firing for filter change event */
     public void fireFilterChangedEvent() {
-        CommandManager.getInstance().executeCommand(new ProductChangeCommand.ProductFilterCommand(), true);
+      //  CommandManager.getInstance().executeCommand(new ProductChangeCommand.ProductFilterCommand(), true);
     }
 }

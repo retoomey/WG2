@@ -1,10 +1,7 @@
 package org.wdssii.gui.commands;
 
 import java.util.Date;
-
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.products.ProductHandlerList;
 
 /** Command that loads a product into the display
  * @author Robert Toomey
@@ -41,14 +38,12 @@ public class ProductLoadCommand extends ProductCommand {
     @Override
     public boolean execute() {
         switch (myCaller) {  // FIXME: subclass or not?
-            case FROM_RECORD_PICKER: {
-                ProductHandlerList h = ProductManager.getInstance().getProductOrderedSet();
-                h.recordPickerSelectedProduct(myIndexKey, myDataType, mySubType, myTime);
+            case FROM_RECORD_PICKER: {          
+                ProductManager.getInstance().recordPickerSelectedProduct(myIndexKey, myDataType, mySubType, myTime);
             }
             break;
             case FROM_TIME_LOOPER: {
-                ProductHandlerList h = ProductManager.getInstance().getProductOrderedSet();
-                h.recordPickerSelectedProduct(myIndexKey, myDataType, mySubType, myTime);
+                ProductManager.getInstance().recordPickerSelectedProduct(myIndexKey, myDataType, mySubType, myTime);
             }
             break;
             default:

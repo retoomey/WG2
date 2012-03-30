@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.commands.WdssiiCommand;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductHandler;
 import org.wdssii.gui.views.CommandListener;
 import org.wdssii.gui.views.SourceManagerView;
 import org.wdssii.gui.views.TableProductView;
@@ -55,74 +54,6 @@ public class CommandManager implements Singleton {
         LatestBase, // Virtual volume base
         SyncCurrent
         // The 'current' centered record
-    }
-
-    // FIXME: remove this into command objects....
-    // Think this is already partially done
-    public class NavigationAction {
-
-        protected NavigationMessage myMessage;
-        protected boolean myRedraw = true; // For now all nav actions redraw the
-        // world
-        protected Product myRecord = null;
-
-        public NavigationAction(NavigationMessage message) {
-
-            myMessage = message;
-        }
-
-        public NavigationMessage message() {
-            return myMessage;
-        }
-
-        public boolean redraw() {
-            return myRedraw;
-        }
-
-        public Product record() {
-            return myRecord;
-        }
-
-        @Override
-        public String toString() {
-            String theString;
-            switch (myMessage) {
-                case PreviousSubType:
-                    theString = "Previous SubType";
-                    break;
-                case NextSubType:
-                    theString = "Next SubType";
-                    break;
-                case PreviousTime:
-                    theString = "Previous Time";
-                    break;
-                case NextTime:
-                    theString = "Next Time";
-                    break;
-                case LatestTime:
-                    theString = "Latest Time";
-                    break;
-                case PreviousLowestSubType:
-                    theString = "BASE";
-                    break;
-                case LatestUp:
-                    theString = "VirtualUp";
-                    break;
-                case LatestDown:
-                    theString = "VirtualDown";
-                    break;
-                case LatestBase:
-                    theString = "VirtualBase";
-                    break;
-                case SyncCurrent:
-                    theString = "Sync";
-                    break;
-                default:
-                    theString = "Unknown navigation message";
-                    break;
-            }
-            return theString;
-        }
     }
 
     private CommandManager() {
@@ -187,30 +118,6 @@ public class CommandManager implements Singleton {
         getEarthBall().setLayerEnabled(name, flag);
     }
 
-    /*
-     * // called by nav when selecting a product handler public void
-     * selectProductHandler(ProductHandler h) { if (h != null){
-     * 
-     * // called from myProductOrderedSet.selectProductHandler(h); if
-     * (myTableView != null){ // FIXME: eventually table will have a 'select'
-     * myTableView.update(); } getEarthBall().loadProduct(h.getProduct()); }
-     * myNavView.update(); getEarthBall().updateOnMinTime(); // redraw on update // +++
-     * anything that cares
-     * 
-     */
-    public void setProductHandlerVisible(ProductHandler h, boolean flag) {
-        h.setIsVisible(flag);
-
-        // This should be a command actually...
-        //WdssiiView view = getNamedViewed(NavView.ID);
-        // if (view instanceof NavView) {
-        //    NavView nav = (NavView) (view);
-        //     nav.updateGUI(null);
-        //}
-
-        getEarthBall().updateOnMinTime();
-    }
-
     public void cacheManagerNotify() {
       /*  WdssiiView view = getNamedViewed(CacheView.ID);
         if (view instanceof CacheView) {
@@ -219,24 +126,6 @@ public class CommandManager implements Singleton {
         }
          * 
          */
-    }
-
-    // All the 'move' commands and the 'load' record
-    public void navigationMessage(NavigationMessage message) {
-        NavigationAction nav = new NavigationAction(message);
-
-        ProductManager.getInstance().navigationAction(nav);
-        // myProductOrderedSet.navigationAction(nav);
-        if (nav.redraw()) {
-            getEarthBall().updateOnMinTime();
-        }
-
-        // This should be a command actually
-        //WdssiiView view = getNamedViewed(NavView.ID);
-        //if (view instanceof NavView) {
-        //    NavView navView = (NavView) (view);
-        //    navView.update();
-        // }
     }
 
     @Override

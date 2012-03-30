@@ -14,6 +14,12 @@ import org.slf4j.LoggerFactory;
 public class FeatureList {
 
     private static Logger log = LoggerFactory.getLogger(FeatureList.class);
+    
+    /** A simple filter to return boolean for mass actions such as deletion */
+    public static interface FeatureFilter{
+        boolean matches(Feature f);
+    }
+    
     /**
      * A single feature list for entire display, because I only have one window
      * at the moment.....
@@ -27,11 +33,20 @@ public class FeatureList {
      * The top selected Feature of all groups
      */
     private Feature myTopSelectedFeature = null;
+    /**
+     * We keep the 'stamp' which is hidden/made in the wdssii core
+     */
+    protected String mySimulationTimeStamp = "No time set";
+    /**
+     * The current 'time' this feature list is at, any feature can be time
+     * dependent. Products are, for example
+     */
+    protected Date mySimulationTime;
 
     static {
-        Feature testOne = new MapFeature("shapefiles/usa/ok/okcnty.shp");
+        Feature testOne = new MapFeature(theFeatures, "shapefiles/usa/ok/okcnty.shp");
         theFeatures.addFeature(testOne);
-        Feature testTwo = new MapFeature("shapefiles/usa/tx/txcnty.shp");
+        Feature testTwo = new MapFeature(theFeatures, "shapefiles/usa/tx/txcnty.shp");
         theFeatures.addFeature(testTwo);
     }
     /**
@@ -43,29 +58,6 @@ public class FeatureList {
     public FeatureList() {
     }
 
-    public void addFeature(Feature f) {
-        myFeatures.add(f);
-        setSelected(f);  // When created, select it
-    }
-
-    public void removeFeature(String key) {
-        Feature f = getFeature(key);
-        if (f != null) {
-            removeFeature(f);
-        }
-    }
-
-    public Feature getFeature(String key) {
-        Iterator<Feature> i = myFeatures.iterator();
-        while (i.hasNext()) {
-            Feature f = i.next();
-            if (f.getKey().equals(key)) {
-                return f;
-            }
-        }
-        return null;
-    }
-
     public void setMemento(String key, FeatureMemento m) {
         Feature f = getFeature(key);
         if (f != null) {
@@ -73,6 +65,27 @@ public class FeatureList {
         }
     }
 
+    /**
+     * Add a new Feature to our list
+     */
+    public void addFeature(Feature f) {
+        myFeatures.add(f);
+        setSelected(f);  // When created, select it
+    }
+
+    /**
+     * Remove a Feature from our list
+     */
+    public void removeFeature(String key) {
+        Feature f = getFeature(key);
+        if (f != null) {
+            removeFeature(f);
+        }
+    }
+
+    /**
+     * Remove a Feature by object
+     */
     public void removeFeature(Feature f) {
         if (f != null) {
 
@@ -90,7 +103,37 @@ public class FeatureList {
             }
         }
     }
+    
+    /** Remove all features matching given filter */
+    public void removeFeatures(FeatureFilter filter){
+        ArrayList<Feature> toDelete = new ArrayList<Feature>();
+        for(Feature f:myFeatures){
+            if (filter.matches(f)){
+                toDelete.add(f);
+            }
+        }
+        for(Feature f:toDelete){
+            removeFeature(f);  // safest, might be slow
+        }
+    }
 
+    /**
+     * Get a Feature matching a given key
+     */
+    public Feature getFeature(String key) {
+        Iterator<Feature> i = myFeatures.iterator();
+        while (i.hasNext()) {
+            Feature f = i.next();
+            if (f.getKey().equals(key)) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get the selected Feature of a given group
+     */
     public Feature getSelected(String g) {
         Feature have = mySelections.get(g);
         return have;
@@ -103,10 +146,22 @@ public class FeatureList {
      * @param f the Feature to select in its group
      */
     public void setSelected(Feature f) {
+        myTopSelectedFeature = f;
+
         if (f != null) {
             mySelections.put(f.getFeatureGroup(), f);
+            myFeatures.remove(f);
+            myFeatures.add(f);
+            f.wasSelected();
         }
-        myTopSelectedFeature = f;
+    }
+
+    public void setDrawLast(Feature f) {
+        if (f != null) {
+            // Make sure this selected object draws last and over all others
+            myFeatures.remove(f);
+            myFeatures.add(f);
+        }
     }
 
     /**
@@ -121,8 +176,7 @@ public class FeatureList {
     }
 
     /**
-     * Selected this key for group FIXME: This is assuming no two Features can
-     * have same key
+     * Selected this key for group
      */
     public void setSelected(String key) {
         Iterator<Feature> i = myFeatures.iterator();
@@ -207,5 +261,46 @@ public class FeatureList {
         }
 
         return holder;
+    }
+
+    public <T> ArrayList<T> getFeatureGroup(Class c) {
+        ArrayList<T> holder = new ArrayList<T>();
+        Iterator<Feature> iter = myFeatures.iterator();
+        while (iter.hasNext()) {
+            Feature f = iter.next();
+            if (f.getClass() == c) {  // Humm subclass won't work, right?
+                holder.add((T) f);
+            }
+        }
+        return holder;
+    }
+
+    /**
+     * Get the simulation time of this FeatureList
+     */
+    public Date getSimulationTime() {
+        return mySimulationTime;
+    }
+
+    public void setSimulationTime(Date d) {
+        mySimulationTime = d;
+    }
+
+    /**
+     * Get the simulation timestamp string of this FeatureList
+     */
+    public String getSimulationTimeStamp() {
+        return mySimulationTimeStamp;
+    }
+
+    public void setSimulationTimeStamp(String s) {
+        mySimulationTimeStamp = s;
+    }
+
+    /**
+     * Get the string displayed by the GUI on our status
+     */
+    public String getGUIInfoString() {
+        return mySimulationTimeStamp;
     }
 }

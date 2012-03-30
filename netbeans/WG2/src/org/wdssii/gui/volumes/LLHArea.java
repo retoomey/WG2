@@ -14,9 +14,9 @@ import gov.nasa.worldwind.util.Logging;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LLHAreaFeature;
-import org.wdssii.gui.products.ProductHandlerList;
 
 /**
  * A root class for all of our volumes. Common functionality will go here.
@@ -110,7 +110,7 @@ public class LLHArea extends AVListImpl implements Movable {
     /**
      * Every LLHArea can follow a particular product
      */
-    protected String myProductFollow = ProductHandlerList.TOP_PRODUCT;
+    protected String myProductFollow = ProductManager.TOP_PRODUCT;
     /**
      * Do we use virtual volume or regular one?
      */

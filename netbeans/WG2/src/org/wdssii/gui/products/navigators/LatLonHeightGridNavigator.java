@@ -65,7 +65,7 @@ public class LatLonHeightGridNavigator extends ProductNavigator {
                     if (myCurrentH >= total) {
                         myCurrentH = 0;
                         // flip to next product time
-                        ProductManager.getInstance().getProductOrderedSet().navigate(
+                        ProductManager.getInstance().navigate(
                                 NavigationMessage.NextTime);
                     }
                 }
@@ -114,7 +114,7 @@ public class LatLonHeightGridNavigator extends ProductNavigator {
                     if (myCurrentH < 0) {
                         myCurrentH = total - 1;
                         // flip to next product time
-                        ProductManager.getInstance().getProductOrderedSet().navigate(
+                        ProductManager.getInstance().navigate(
                                 NavigationMessage.PreviousTime);
                     }
                 }

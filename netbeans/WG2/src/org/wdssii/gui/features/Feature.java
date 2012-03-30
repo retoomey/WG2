@@ -15,7 +15,6 @@ import javax.swing.JTextField;
  */
 public class Feature {
 
-
     /**
      * Used to get information back from a Feature factory to put into the
      * standard GUI table
@@ -33,9 +32,12 @@ public class Feature {
      * Our feature group
      */
     private final String myFeatureGroup;
+    /**
+     * Our feature list we belong too
+     */
+    private final FeatureList myFeatureList;
     
     private FeatureMemento mySettings = new FeatureMemento(true, false);
-    
     /**
      * What is our name?
      */
@@ -49,21 +51,29 @@ public class Feature {
      */
     private String myMessage = "";
 
-    public Feature(String g) {
-        myFeatureGroup = g;
-        mySettings = new FeatureMemento(true, false);
+    /** Create a feature with a default memento */
+    public Feature(FeatureList f, String g) {
+        this(f,g,new FeatureMemento(true, false));
     }
-    
-    /** Typically called by subclass to add an enhanced memento with
-     * more settings in it.
+
+    /**
+     * Typically called by subclass to add an enhanced memento with more
+     * settings in it.
+     *
      * @param g The group we're in
      * @param settings Memento from subclass
      */
-    public Feature(String g, FeatureMemento settings){
+    public Feature(FeatureList f, String g, FeatureMemento settings) {
+        myFeatureList = f;
         myFeatureGroup = g;
         mySettings = settings;
     }
 
+    /** All features belong to a FeatureList */
+    public FeatureList list(){
+        return myFeatureList;
+    }
+    
     /**
      * Get our feature group
      */
@@ -77,17 +87,21 @@ public class Feature {
         }
     }
 
-    /** Get a new memento copy of our settings.  This is for modifying and
-     * sending back to us to change a setting
-     * @return 
+    /**
+     * Get a new memento copy of our settings. This is for modifying and sending
+     * back to us to change a setting
+     *
+     * @return
      */
     public FeatureMemento getNewMemento() {
         FeatureMemento m = new FeatureMemento(mySettings);
         return m;
     }
-    
-    /** Get our actual settings */
-    public FeatureMemento getMemento(){
+
+    /**
+     * Get our actual settings
+     */
+    public FeatureMemento getMemento() {
         return mySettings;
     }
 
@@ -161,12 +175,25 @@ public class Feature {
         myMessage = n;
     }
 
+    /** Sent from list to let us know we were selected */
+    public void wasSelected(){
+        
+    }
+    
     /**
      * Render a feature
      */
     public void render(DrawContext dc) {
     }
 
+    /** Would this feature render?  This may be different than is visible or not,
+     * for example a product might be 'visible' but won't draw because it is
+     * too old in time
+     */
+    public boolean wouldRender(){
+        return getVisible();  // Default is visible manual setting
+    }
+    
     public void setupFeatureGUI(JComponent source) {
 
         // Set the layout and add our controls

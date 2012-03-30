@@ -211,7 +211,7 @@ public class IndexRecordVolume extends ProductVolume {
                             + newRecord.getTimeStamp();
 
                     // Date current = myRecord.getTime(); // FIXME: sim time
-                    Date current = ProductManager.getInstance().getProductOrderedSet().getSimulationTime();
+                    Date current = ProductManager.getInstance().getSimulationTime();
                     if (current.compareTo(aDate) == 0) {
                         enabled = false;
                         label = "Synced";

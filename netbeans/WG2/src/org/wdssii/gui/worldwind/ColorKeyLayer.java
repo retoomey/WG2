@@ -156,7 +156,7 @@ public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
         if (aText == null) {  // Only create once for speed.  We draw a LOT
             aText = new TextRenderer(Font.decode("Arial-PLAIN-12"), true, true);
         }
-        String time = ProductManager.getInstance().getProductOrderedSet().getSimulationTimeStamp();
+        String time = ProductManager.getInstance().getSimulationTimeStamp();
         if (time == null) {
             time = "No products yet";
         }

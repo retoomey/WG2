@@ -25,9 +25,8 @@ import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductHandler;
-import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSlice;
@@ -298,14 +297,8 @@ public class TimeTrendChart extends ChartViewJFreeChart {
 
         // On update, pull top product (for now)
         // FIXME: This should be a util
-        Product p = null;
-        ProductHandlerList current = ProductManager.getInstance().getProductOrderedSet();
-        if (current != null) {
-            ProductHandler h = current.getTopProductHandler();
-            if (h != null) {
-                p = h.getProduct();
-            }
-        }
+        
+        Product p = ProductManager.getInstance().getTopProduct();      
 
         // If we found a product, we can do the slice range.....
         // We snag 10 products in time...

@@ -76,7 +76,7 @@ public class TimeLooper extends Animator {
         String indexKey = null;
         String name = "None";
 
-        Product prod = ProductManager.getInstance().getCurrentTopProduct();
+        Product prod = ProductManager.getInstance().getTopProduct();
         int myFrames = 0;
         if (prod != null) {
             VisualCollection v = CommandManager.getInstance().getVisualCollection();

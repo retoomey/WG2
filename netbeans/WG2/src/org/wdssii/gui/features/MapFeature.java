@@ -89,8 +89,8 @@ public class MapFeature extends Feature {
     /**
      * The state we use for drawing the map.
      */
-    public MapFeature(String source) {
-        super(MapGroup, new MapMemento(true, false, 2));
+    public MapFeature(FeatureList f, String source) {
+        super(f, MapGroup, new MapMemento(true, false, 2));
         URL u = W2Config.getURL(source);
         loadURL(u, source);
     }
@@ -98,8 +98,8 @@ public class MapFeature extends Feature {
     /**
      * The state we use for drawing the map.
      */
-    public MapFeature(URL u) {
-        super(MapGroup, new MapMemento(true, false, 2));
+    public MapFeature(FeatureList f, URL u) {
+        super(f, MapGroup, new MapMemento(true, false, 2));
         String source = "bad url";
         if (u != null) {
             source = u.toString();

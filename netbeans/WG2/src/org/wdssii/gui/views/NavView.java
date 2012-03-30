@@ -5,17 +5,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
+import java.util.*;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
@@ -25,24 +16,15 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.SourceManager.SourceCommand;
-import org.wdssii.gui.commands.AnimateCommand;
-import org.wdssii.gui.commands.ProductChangeCommand.ProductOnlyCommand;
-import org.wdssii.gui.commands.ProductChangeCommand.ProductVisibleCommand;
-import org.wdssii.gui.commands.ProductCommand;
-import org.wdssii.gui.commands.ProductDeleteCommand;
-import org.wdssii.gui.commands.ProductSelectCommand;
-import org.wdssii.gui.commands.WdssiiCommand;
+import org.wdssii.gui.commands.*;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductButtonStatus;
-import org.wdssii.gui.products.ProductHandler;
-import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.navigators.ProductNavigator;
-import org.wdssii.gui.swing.JThreadPanel;
-import org.wdssii.gui.swing.RowEntryTable;
-import org.wdssii.gui.swing.RowEntryTableModel;
-import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
-import org.wdssii.gui.swing.SimplerJButton;
-import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.gui.swing.*;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
@@ -57,6 +39,10 @@ public class NavView extends JThreadPanel implements CommandListener {
         updateGUI(command);
     }
 
+    public void FeatureCommandUpdate(FeatureCommand command) {
+        updateGUI(command);
+    }
+
     //public void ProductSelectCommandUpdate(ProductSelectCommand command) {
     //    updateGUI(command);
     //}
@@ -67,13 +53,13 @@ public class NavView extends JThreadPanel implements CommandListener {
     public void AnimateCommandUpdate(AnimateCommand command) {
         updateGUI(command);
     }
-    
     private static final int myGridRows = 4;
     private static final int myGridCols = 4;
     private static final int myGridCount = myGridRows * myGridCols;
     private ArrayList<NavButton> myNavControls = new ArrayList<NavButton>();
     private RowEntryTable jProductsListTable;
-    /** The product list shows the list of products in the window
+    /**
+     * The product list shows the list of products in the window
      */
     private ProductsListTableModel myProductsListTableModel;
     private JLabel jProductInfoLabel;
@@ -84,23 +70,35 @@ public class NavView extends JThreadPanel implements CommandListener {
     @Override
     public void updateInSwingThread(Object command) {
         WdssiiCommand w = null;
-        updateContentDescription();
-        updateNavButtons();
+
+        // Update the navigation button array
+        ArrayList<ProductFeature> l = getProductFeatures();
+        ProductFeature top =
+                (ProductFeature) FeatureList.theFeatures.getSelected(ProductFeature.ProductGroup);
+
+        updateContentDescription(l, top);
+        updateNavButtons(l, top);
         updateProductList(w);
     }
 
-    /** Our factory, called by reflection to populate menus, etc...*/
+    /**
+     * Our factory, called by reflection to populate menus, etc...
+     */
     public static class Factory extends WdssiiDockedViewFactory {
+
         public Factory() {
-             super("Navigator", "eye.png");   
+            super("Navigator", "eye.png");
         }
+
         @Override
-        public Component getNewComponent(){
+        public Component getNewComponent() {
             return new NavView();
         }
     }
-    
-    /** Storage for the current product list */
+
+    /**
+     * Storage for the current product list
+     */
     private static class ProductsTableData {
 
         public String visibleName; // Name shown in list
@@ -130,10 +128,14 @@ public class NavView extends JThreadPanel implements CommandListener {
         }
     }
 
-    /** Our custom renderer for our product view table */
+    /**
+     * Our custom renderer for our product view table
+     */
     private static class ProductTableCellRenderer extends WG2TableCellRenderer {
 
-        /** A shared JCheckBox for rendering every check box in the list */
+        /**
+         * A shared JCheckBox for rendering every check box in the list
+         */
         private JCheckBox checkbox = new JCheckBox();
 
         @Override
@@ -186,7 +188,9 @@ public class NavView extends JThreadPanel implements CommandListener {
         }
     }
 
-    /** Our special class for drawing the grid controls */
+    /**
+     * Our special class for drawing the grid controls
+     */
     public static class NavButton extends SimplerJButton {
 
         private int myGridIndex;
@@ -235,7 +239,7 @@ public class NavView extends JThreadPanel implements CommandListener {
                 setText(p.getButtonText());
                 setToolTipText(p.getToolTip());
                 setEnabled(p.getValidRecord());
-                Color background = null;
+                Color background;
                 if (p.getUseColor()) {
                     background = new Color(p.getRed(), p.getGreen(), p.getBlue());
                     // FIXME: maybe should be contrasting color instead...
@@ -277,24 +281,24 @@ public class NavView extends JThreadPanel implements CommandListener {
 
         // For box layout, have to align label center...
         jProductInfoLabel.setAlignmentX(LEFT_ALIGNMENT);
-        
+
         CommandManager.getInstance().addListener("Navigation", this);
-        updateNavButtons();
+        updateNavButtons(null, null);
         updateProductList(null);
     }
 
     private void initButtonGrid() {
         jNavPanel.setLayout(new MigLayout("fill, wrap 4", "", ""));
-        
+
         // We want a fixed size for buttons so they don't jitter as 
         NavButton sizer = new NavButton("00:00:00  ", 0);
         Dimension pref = sizer.getPreferredSize();
-        sizer = null;
-        
+        sizer = null;  // Make sure it's gone...
+
         for (int i = 0; i < myGridCount; i++) {
             NavButton b = new NavButton("Test" + i, i);
             b.setPreferredSize(pref);
-            b.setMinimumSize(pref); 
+            b.setMinimumSize(pref);
             //  b.setBackground(Color.red);
             if (i == 0) {
                 b.setVisible(false);
@@ -356,54 +360,36 @@ public class NavView extends JThreadPanel implements CommandListener {
             }
         });
 
-        /** Add the mouse listener that handles clicking in any cell of our
+        /**
+         * Add the mouse listener that handles clicking in any cell of our
          * custom Layer table
          */
         /*
-        jProductsListTable.addMouseListener(new MouseAdapter() {
-        
-        @Override
-        public void mouseClicked(MouseEvent e) {
-        // You actually want the single AND the double clicks so
-        // that you always toggle even if they are clicking fast,
-        // so we don't check click count.
-        if (e.getComponent().isEnabled()
-        && e.getButton() == MouseEvent.BUTTON2) {
-        // updateProductList();
-        return;
-        }
-        if (e.getComponent().isEnabled()
-        && e.getButton() == MouseEvent.BUTTON1// && e.getClickCount() == 1//) {
-        Point p = e.getPoint();
-        int row = myTable.rowAtPoint(p);
-        int column = myTable.columnAtPoint(p);
-        
-        if ((row > -1) && (column > -1)) {
-        int orgColumn = myTable.convertColumnIndexToModel(column);
-        int orgRow = myTable.convertRowIndexToModel(row);
-        Object stuff = myModel.getValueAt(orgRow, orgColumn);
-        if (stuff instanceof ProductsTableData) {
-        ProductsTableData entry = (ProductsTableData) (stuff);
-        
-        switch (orgColumn) {
-        case ProductsListTableModel.NAV_VISIBLE: {
-        ProductVisibleCommand c = new ProductVisibleCommand(entry.keyName, !entry.checked);
-        CommandManager.getInstance().executeCommand(c, true);
-        }
-        break;
-        case ProductsListTableModel.NAV_ONLY: {
-        ProductOnlyCommand c = new ProductOnlyCommand(entry.keyName, !entry.onlyMode);
-        CommandManager.getInstance().executeCommand(c, true);
-        }
-        break;
-        default:
-        break;
-        }
-        }
-        }
-        }
-        }
-        });
+         * jProductsListTable.addMouseListener(new MouseAdapter() {
+         *
+         * @Override public void mouseClicked(MouseEvent e) { // You actually
+         * want the single AND the double clicks so // that you always toggle
+         * even if they are clicking fast, // so we don't check click count. if
+         * (e.getComponent().isEnabled() && e.getButton() == MouseEvent.BUTTON2)
+         * { // updateProductList(); return; } if (e.getComponent().isEnabled()
+         * && e.getButton() == MouseEvent.BUTTON1// && e.getClickCount() == 1//)
+         * { Point p = e.getPoint(); int row = myTable.rowAtPoint(p); int column
+         * = myTable.columnAtPoint(p);
+         *
+         * if ((row > -1) && (column > -1)) { int orgColumn =
+         * myTable.convertColumnIndexToModel(column); int orgRow =
+         * myTable.convertRowIndexToModel(row); Object stuff =
+         * myModel.getValueAt(orgRow, orgColumn); if (stuff instanceof
+         * ProductsTableData) { ProductsTableData entry = (ProductsTableData)
+         * (stuff);
+         *
+         * switch (orgColumn) { case ProductsListTableModel.NAV_VISIBLE: {
+         * ProductVisibleCommand c = new ProductVisibleCommand(entry.keyName,
+         * !entry.checked); CommandManager.getInstance().executeCommand(c,
+         * true); } break; case ProductsListTableModel.NAV_ONLY: {
+         * ProductOnlyCommand c = new ProductOnlyCommand(entry.keyName,
+         * !entry.onlyMode); CommandManager.getInstance().executeCommand(c,
+         * true); } break; default: break; } } } } } });
          */
         jProductsListTable.addMouseListener(new RowEntryTableMouseAdapter(jProductsListTable, myModel) {
 
@@ -454,13 +440,23 @@ public class NavView extends JThreadPanel implements CommandListener {
 
                     switch (orgColumn) {
                         case ProductsListTableModel.NAV_VISIBLE: {
-                            ProductVisibleCommand c = new ProductVisibleCommand(entry.keyName, !entry.checked);
-                            CommandManager.getInstance().executeCommand(c, true);
+                            Feature f = ProductManager.getInstance().getNamedFeature(entry.keyName);
+                            if (f != null) {
+                                FeatureMemento m = f.getNewMemento();
+                                m.setVisible(!entry.checked);
+                                FeatureChangeCommand c = new FeatureChangeCommand(entry.keyName, m);
+                                CommandManager.getInstance().executeCommand(c, true);
+                            }
                         }
                         break;
                         case ProductsListTableModel.NAV_ONLY: {
-                            ProductOnlyCommand c = new ProductOnlyCommand(entry.keyName, !entry.onlyMode);
-                            CommandManager.getInstance().executeCommand(c, true);
+                            Feature f = ProductManager.getInstance().getNamedFeature(entry.keyName);
+                            if (f != null) {
+                                FeatureMemento m = f.getNewMemento();
+                                m.setOnly(!entry.onlyMode);
+                                FeatureChangeCommand c = new FeatureChangeCommand(entry.keyName, m);
+                                CommandManager.getInstance().executeCommand(c, true);
+                            }
                         }
                         break;
                         default:
@@ -473,10 +469,14 @@ public class NavView extends JThreadPanel implements CommandListener {
         setUpSortingColumns();
     }
 
-    /** Set up sorting columns if wanted */
+    /**
+     * Set up sorting columns if wanted
+     */
     private void setUpSortingColumns() {
 
-        /** Set the sorters for each column */
+        /**
+         * Set the sorters for each column
+         */
         TableRowSorter<ProductsListTableModel> sorter =
                 new TableRowSorter<ProductsListTableModel>(myProductsListTableModel);
         jProductsListTable.setRowSorter(sorter);
@@ -574,17 +574,32 @@ public class NavView extends JThreadPanel implements CommandListener {
         jProductsListTable.getRowSorter().toggleSortOrder(ProductsListTableModel.NAV_NAME);
     }
 
-    /** Get our product handler list.  For now at least,  this is global */
-    private ProductHandlerList getProductHandlerList() {
-        ProductManager m = ProductManager.getInstance();
-        ProductHandlerList p = m.getProductOrderedSet();
-        return p;
+    /**
+     * Get our product handler list. For now at least, this is global
+     */
+    private ArrayList<ProductFeature> getProductFeatures() {
+
+        List<ProductFeature> forg = ProductManager.getInstance().getProductFeatures();   
+        ArrayList<ProductFeature> f = new ArrayList<ProductFeature>(forg);
+        // Sort a copy of this list....might be better to keep a sorted list within
+        // the FeatureList...we'll see how much this gets 'hit'
+        Collections.sort(f,
+                new Comparator<ProductFeature>() {
+
+                    @Override
+                    public int compare(ProductFeature o1, ProductFeature o2) {
+                        return (o1.getKey().compareTo(o2.getKey()));
+                    }
+                });
+        return f;
     }
 
-    /** Regenerate the list of products in the navigator */
+    /**
+     * Regenerate the list of products in the navigator
+     */
     private void updateProductList(WdssiiCommand command) {
 
-        ProductHandlerList p = getProductHandlerList();
+        ArrayList<ProductFeature> p = getProductFeatures();
 
         if (p != null) {
             ArrayList<ProductsTableData> sortedList = null;
@@ -593,14 +608,16 @@ public class NavView extends JThreadPanel implements CommandListener {
 
             // Create a new list only if not from a selection command
             sortedList = new ArrayList<ProductsTableData>();
-            Iterator<ProductHandler> iter = p.getIterator();
+            Iterator<ProductFeature> iter = p.iterator();
+            ProductFeature top =
+                    (ProductFeature) FeatureList.theFeatures.getSelected(ProductFeature.ProductGroup);
             while (iter.hasNext()) {
-                ProductHandler h = iter.next();
+                ProductFeature h = iter.next();
 
                 ProductsTableData theData = new ProductsTableData();
                 theData.visibleName = h.getListName();
                 theData.keyName = h.getKey();
-                theData.checked = h.getIsVisible();
+                theData.checked = h.getVisible();
                 theData.onlyMode = h.getOnlyMode();
                 theData.type = h.getProductType();
                 theData.timeStamp = h.getTimeStamp();
@@ -608,7 +625,7 @@ public class NavView extends JThreadPanel implements CommandListener {
                 theData.message = h.getMessage();
                 sortedList.add(theData);
 
-                if (p.getTopProductHandler() == h) {
+                if (h == top) {
                     select = currentLine;
                 }
                 currentLine++;
@@ -633,16 +650,13 @@ public class NavView extends JThreadPanel implements CommandListener {
         }
     }
 
-    private Product updateNavButtons() {
+    private Product updateNavButtons(ArrayList<ProductFeature> l, ProductFeature top) {
 
-        // Update the navigation button array
-        ProductHandlerList l = getProductHandlerList();
-        ProductHandler h = l.getTopProductHandler();
         Product d = null;
         ProductNavigator n = null;
-        if (h != null) {
-            d = h.getProduct();
-            n = h.getNavigator();
+        if (top != null) {
+            d = top.getProduct();
+            n = top.getNavigator();
         }
 
         // Update the button grid to the current ProductNavigator
@@ -665,13 +679,10 @@ public class NavView extends JThreadPanel implements CommandListener {
         return d;
     }
 
-    private void updateContentDescription() {
-        ProductManager m = ProductManager.getInstance();
-        ProductHandlerList l = m.getProductOrderedSet();
-        ProductHandler h = l.getTopProductHandler();
+    private void updateContentDescription(ArrayList<ProductFeature> l, ProductFeature top) {
         Product d = null;
-        if (h != null) {
-            d = h.getProduct();
+        if (top != null) {
+            d = top.getProduct();
         }
         String text;
         if (d == null) {
@@ -697,7 +708,7 @@ public class NavView extends JThreadPanel implements CommandListener {
             if (myProductsListTableModel != null) {
                 ProductsTableData d = myProductsListTableModel.getDataForRow(dataRow);
                 if (d != null) {
-                    ProductSelectCommand c = new ProductSelectCommand(d.keyName);
+                    FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
                     CommandManager.getInstance().executeCommand(c, true);
                 }
             }

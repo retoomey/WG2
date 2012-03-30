@@ -20,7 +20,7 @@ public class FeatureCreateCommand extends FeatureCommand {
     public boolean execute() {
 
         // For the moment just 'first' factory or slice....
-        LLHAreaFeature A = new LLHAreaFeature();
+        LLHAreaFeature A = new LLHAreaFeature(FeatureList.theFeatures);
         boolean success = A.createLLHArea("Slice");
         if (success){
             FeatureList.theFeatures.addFeature(A);

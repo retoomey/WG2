@@ -1,13 +1,8 @@
 package org.wdssii.gui.commands;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-
+import java.util.*;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.products.ProductHandler;
-import org.wdssii.gui.products.ProductHandlerList;
+import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.views.CommandListener;
 
 /** Command to follow a particular product, such as in a chart where it is watching the top product or
@@ -39,12 +34,14 @@ public class ProductFollowCommand extends ProductCommand {
 
         // Go through products, get a sorted string list...
         ProductManager m = ProductManager.getInstance();
-        ProductHandlerList p = m.getProductOrderedSet();
-        Iterator<ProductHandler> iter = p.getIterator();
+        //ProductHandlerList p = m.getProductOrderedSet();
+        List<ProductFeature> p = m.getProductFeatures();
+        
+        Iterator<ProductFeature> iter = p.iterator();
         ArrayList<CommandOption> theList = new ArrayList<CommandOption>();
         int currentLine = 0;
         while (iter.hasNext()) {
-            ProductHandler h = iter.next();
+            ProductFeature h = iter.next();
             theList.add(new CommandOption(h.getListName(), h.getKey()));
             currentLine++;
         }
@@ -55,7 +52,7 @@ public class ProductFollowCommand extends ProductCommand {
                 return o1.visibleText.compareTo(o2.visibleText);
             }
         });
-        theList.add(0, new CommandOption(top, ProductHandlerList.TOP_PRODUCT));
+        theList.add(0, new CommandOption(top, ProductManager.TOP_PRODUCT));
 
         return theList;
     }
@@ -71,7 +68,7 @@ public class ProductFollowCommand extends ProductCommand {
             }
         }
         if (choice == null) {
-            choice = ProductHandlerList.TOP_PRODUCT;
+            choice = ProductManager.TOP_PRODUCT;
         }
         return choice;
     }

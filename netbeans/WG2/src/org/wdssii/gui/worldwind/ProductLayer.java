@@ -1,12 +1,13 @@
 package org.wdssii.gui.worldwind;
 
 import gov.nasa.worldwind.layers.AbstractLayer;
-import gov.nasa.worldwind.layers.RenderableLayer;
-import gov.nasa.worldwind.render.*;
-
+import gov.nasa.worldwind.render.DrawContext;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.MapFeature;
+import org.wdssii.gui.features.PolarGridFeature;
+import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductHandlerList;
 
 /**
  * @author Robert Toomey
@@ -40,15 +41,22 @@ public class ProductLayer extends AbstractLayer implements WWCategoryLayer {
     @Override
     public void doRender(DrawContext dc) {
         // Get the current product list
-        ProductHandlerList list = ProductManager.getInstance().getProductOrderedSet();
-        list.draw(dc);
+        FeatureList f = ProductManager.getInstance().getFeatureList();
+        f.renderFeatureGroup(dc, ProductFeature.ProductGroup);
+        
+        // For now....
+        f.renderFeatureGroup(dc, MapFeature.MapGroup);
+        f.renderFeatureGroup(dc, PolarGridFeature.PolarGridGroup);
+       
     }
     
     @Override
     public void doPick(DrawContext dc, java.awt.Point pickPoint)
     {
-        ProductHandlerList list = ProductManager.getInstance().getProductOrderedSet();
-        list.doPick(dc, pickPoint);
+        //List<ProductFeature> list = ProductManager.getInstance().getProductFeatures();
+        //for(ProductFeature p:list){
+           // p.doPick(dc, pickPoint);
+        //}
     }
 
     @Override

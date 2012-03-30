@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.DockWindow;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.SingletonManager;
 import org.wdssii.gui.charts.ChartViewChart;
 import org.wdssii.gui.charts.VSliceChart;
@@ -22,7 +23,6 @@ import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
 import org.wdssii.gui.commands.ProductToggleFilterCommand.ProductFilterFollowerView;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.commands.*;
-import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.volumes.RadialSetVolume;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.JwgDropDownButton;
@@ -116,7 +116,7 @@ public class ChartView extends JThreadPanel implements CommandListener, ProductF
     /** The current chart GUI controls, they change as chart type is selected */
     private JComponent myCurrentChartControls = null;
     /** The current choice in the drop down follow product menu */
-    private String myCurrentProductFollow = ProductHandlerList.TOP_PRODUCT;
+    private String myCurrentProductFollow = ProductManager.TOP_PRODUCT;
     JComponent myParent = null;
     /** The chart we are currently displaying */
     ChartViewChart myChart = null;

@@ -6,12 +6,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
@@ -41,9 +44,14 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         updateGUI(command);
     }
 
+    public void ProductCommandUpdate(ProductCommand command) {
+        updateGUI(command);
+    }
+
     @Override
     public void updateInSwingThread(Object command) {
         updateTable();
+        jInfoLabel.setText(FeatureList.theFeatures.getGUIInfoString());
     }
 
     /**
@@ -70,6 +78,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
     private javax.swing.JToolBar jEditToolBar;
     private javax.swing.JScrollPane jObjectScrollPane;
     private javax.swing.JScrollPane jControlScrollPane;
+    private javax.swing.JLabel jInfoLabel;
 
     /**
      * Storage for displaying the current feature list
@@ -340,7 +349,26 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         /**
          * Static for now...
          */
-        List<Feature> f = flist.getFeatures();
+        List<Feature> forg = flist.getFeatures();
+        ArrayList<Feature> f = new ArrayList<Feature>(forg);
+        // Sort this list....might be better to keep a sorted list within
+        // the FeatureList...we'll see how much this gets 'hit'
+        Collections.sort(f,
+                new Comparator<Feature>() {
+
+                    @Override
+                    public int compare(Feature o1, Feature o2) {
+                        String k1 = o1.getFeatureGroup();
+                        String k2 = o2.getFeatureGroup();
+                        if (k1.equals(ProductFeature.ProductGroup)){ k1 = "0"; }
+                        if (k2.equals(ProductFeature.ProductGroup)){ k2 = "0"; }
+                        int c = k1.compareTo(k2);
+                        if (c == 0) { // same group, sort by key name...
+                            c = o1.getKey().compareTo(o2.getKey());
+                        }
+                        return c;
+                    }
+                });
 
         int currentLine = 0;
         int select = -1;
@@ -400,6 +428,8 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 
     private void initComponents() {
 
+        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+
         jEditToolBar = new javax.swing.JToolBar();
         jNewVSliceButton = new javax.swing.JButton("+Slice");
         jNewMapButton = new javax.swing.JButton("+Map");
@@ -409,13 +439,12 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         jControlScrollPane = new JScrollPane();
         jControlScrollPane.add(jFeatureGUIPanel);
         jFeatureGUIPanel.setLayout(new MigLayout(new LC().insetsAll("3"), null, null));
+        jInfoLabel = new JLabel("---");
 
         JSplitPane northSouth = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 jObjectScrollPane, jControlScrollPane);
         northSouth.setResizeWeight(.50);
         jControlScrollPane.setViewportView(jFeatureGUIPanel);
-
-        setLayout(new java.awt.BorderLayout());
 
         jEditToolBar.setRollover(true);
 
@@ -455,11 +484,11 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         });
         jEditToolBar.add(jNewMapButton);
 
-        add(jEditToolBar, java.awt.BorderLayout.NORTH);
-
         setEmptyControls();
 
-        add(northSouth, java.awt.BorderLayout.CENTER);
+        add(jEditToolBar, new CC().dockNorth());
+        add(jInfoLabel, new CC().dockNorth().growX());
+        add(northSouth, new CC().growX().growY());
     }
 
     private void setEmptyControls() {
@@ -478,7 +507,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         // generic interface for adding features...
         URL newMap = MapGUI.doSingleMapOpenDialog();
         if (newMap != null) {
-            Feature testOne = new MapFeature(newMap);
+            Feature testOne = new MapFeature(FeatureList.theFeatures, newMap);
             FeatureList.theFeatures.addFeature(testOne);
         }
         updateGUI();
@@ -489,11 +518,11 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         CommandManager.getInstance().executeCommand(doit, true);
         //FeatureList.theFeatures.addFeature(new LLHAreaFeature(0));
     }
-    
-     private void jPolarGridButtonActionPerformed(java.awt.event.ActionEvent evt) {
+
+    private void jPolarGridButtonActionPerformed(java.awt.event.ActionEvent evt) {
         // FIXME: need to generize the feature create command...
-         PolarGridFeature pg = new PolarGridFeature();
-         FeatureList.theFeatures.addFeature(pg);
-         updateGUI();
+        PolarGridFeature pg = new PolarGridFeature(FeatureList.theFeatures);
+        FeatureList.theFeatures.addFeature(pg);
+        updateGUI();
     }
 }

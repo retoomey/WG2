@@ -6,7 +6,7 @@ import org.wdssii.gui.views.CommandListener;
  * The chart view and LLHArea views use this for which volume to follow
  * @author Robert Toomey
  */
-public class ProductToggleFilterCommand extends ProductChangeCommand {
+public class ProductToggleFilterCommand extends ProductCommand {
 
     /** Interface for a view following a use filter toggle */
     public static interface ProductFilterFollowerView extends CommandListener {

@@ -41,8 +41,8 @@ public class LLHAreaFeature extends Feature {
      */
     private LLHArea myLLHArea;
 
-    public LLHAreaFeature() {
-        super(LLHAreaGroup);
+    public LLHAreaFeature(FeatureList f) {
+        super(f, LLHAreaGroup);
     }
 
     public boolean createLLHArea(String factory) {

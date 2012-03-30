@@ -31,8 +31,6 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductHandler;
-import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSlice;
 
@@ -170,7 +168,6 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
 
         // Get the products
         Product p = null;
-        ProductHandlerList current = ProductManager.getInstance().getProductOrderedSet();
 
         // If we found a product, we can do the slice range.....
         LLHAreaSlice slice = getVSliceToPlot();
@@ -207,16 +204,16 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
             //XYSeriesCollection xyseriescollection = new XYSeriesCollection();
 
             // Reverse iterator for draw list.  We plot in reverse order of the drawing...
-            ListIterator<ProductHandler> iter = current.getDrawIterator();
-            while (iter.hasNext()) {
-                iter.next();  // Move to end of list.
-            }
+           // ListIterator<ProductHandler> iter = current.getDrawIterator();
+           // while (iter.hasNext()) {
+           //     iter.next();  // Move to end of list.
+           // }
 
             // We should probably have a 'create series' object that takes a list of products?
             // While it may be slower, it will be easier to manage and subclass in the future
             int count = 0;
 
-            ArrayList<rangeAxisInfo> newAxisList = new ArrayList<rangeAxisInfo>();
+  /*          ArrayList<rangeAxisInfo> newAxisList = new ArrayList<rangeAxisInfo>();
 
             while (iter.hasPrevious()) {
                 ProductHandler h = iter.previous();
@@ -292,7 +289,7 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
             //	plot.setDataset(0, xyseriescollection);
             updatePlotToAxis(newAxisList);
 
-
+*/
         }
     }
 

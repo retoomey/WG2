@@ -4,21 +4,10 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import javax.swing.JCheckBox;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
@@ -223,56 +212,7 @@ public class ProductGroupView extends JPanel {
     }
     
     public void updateTable() {
-        ArrayList<ProductHandlerList> v = ProductManager.getInstance().getGroupList();
-      //  VolumeTableData s = LLHAreaManager.getInstance().getSelection();
-        int currentLine = 0;
-        int select = -1;
-     //   LLHArea selectedArea = null;
-        ArrayList<DataGroupTableData> newList = new ArrayList<DataGroupTableData>();
-        for (ProductHandlerList d : v) {
-            DataGroupTableData d2 = new DataGroupTableData();
-            d2.visibleName = d.getVisibleName();
-            d2.keyName = d.getKey();
-            newList.add(d2);
-           // if (s == d) {
-           //     select = currentLine;
-           //     selectedArea = d.airspace;
-            //}
-            currentLine++;
-        }
-        myDataGroupTableModel.setDataTypes(newList);
-        myDataGroupTableModel.fireTableDataChanged();
-
-        if (select > -1) {
-            select = jObjects3DListTable.convertRowIndexToView(select);
-
-            // This of course fires an event, which calls jProductsListTableValueChanged
-            // which would send a command which would do this again in an
-            // infinite loop.  So we have a flag.  We don't use isAdjusting
-            // because it still fires and event when you set it false
-            myDataGroupTableModel.setRebuilding(true);
-            jObjects3DListTable.setRowSelectionInterval(select, select);
-
-         //   if (myLastSelected != selectedArea) {
-         //       jRootControlPanel.removeAll();
-         //       selectedArea.activateGUI(jRootControlPanel);
-         //       jControlsToolBar.validate();
-         //       jControlsToolBar.repaint();
-          //      myLastSelected = selectedArea;
-         //   } else {
-          //      selectedArea.updateGUI();
-          //  }
-
-            myDataGroupTableModel.setRebuilding(false);
-
-        } else {
-            // Remove GUI
-         //   jRootControlPanel.removeAll();
-          //  jControlsToolBar.validate();
-         //   jControlsToolBar.repaint();
-         //   myLastSelected = null;
-        }
-        jObjects3DListTable.repaint();
+      
     }
 
     /** Set up sorting columns if wanted */

@@ -2,10 +2,9 @@ package org.wdssii.gui;
 
 import gov.nasa.worldwind.event.PositionEvent;
 import java.awt.Color;
+import java.awt.Point;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.TreeMap;
-
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -13,35 +12,34 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.wdssii.core.ConfigurationException;
 import org.wdssii.core.LRUCache;
+import org.wdssii.core.LRUCache.LRUTrimComparator;
 import org.wdssii.core.W2Config;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.builders.BuilderFactory;
-import org.wdssii.core.LRUCache.LRUTrimComparator;
-import org.wdssii.gui.CommandManager.NavigationAction;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureList.FeatureFilter;
+import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductHandler;
-import org.wdssii.gui.products.ProductHandlerList;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.views.WorldWindView;
+import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
-import org.wdssii.xml.Tag_color;
-import org.wdssii.xml.Tag_colorBin;
-import org.wdssii.xml.Tag_colorDatabase;
-import org.wdssii.xml.Tag_colorDef;
-import org.wdssii.xml.Tag_colorMap;
+import org.wdssii.xml.*;
 import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
 
 /**
- * --Maintains a set of color maps by product name (color map cache FIXME: Move to generic cache)
- * --Maintains the product 'info', colors, etc. Singleton
- * --Maintains the product factory creating the default product for an IndexRecord
- * --Maintains the product LRU cache (FIXME: Move to generic cache)
+ * --Maintains a set of color maps by product name (color map cache FIXME: Move
+ * to generic cache) --Maintains the product 'info', colors, etc. Singleton
+ * --Maintains the product factory creating the default product for an
+ * IndexRecord --Maintains the product LRU cache (FIXME: Move to generic cache)
  * --Maintains the product chart factory list
- * 
+ *
  * @author Robert Toomey
- * 
+ *
  */
 public class ProductManager implements Singleton {
 
@@ -51,89 +49,235 @@ public class ProductManager implements Singleton {
     final public static int MIN_CACHE_SIZE = 50;
     final public static int MAX_CACHE_SIZE = 500;
     private Tag_colorDatabase myColorDefs = new Tag_colorDatabase();
-    /** A static database of information about products */
+    public static final String TOP_PRODUCT = "TOP_PRODUCT_____";
+    /**
+     * A static database of information about products
+     */
     TreeMap<String, ProductDataInfo> myProductInfo = new TreeMap<String, ProductDataInfo>();
     ProductDataInfo myDefaults = new ProductDataInfo();
-    /** The cache for Product objects */
+    /**
+     * The cache for Product objects
+     */
     LRUCache<String, Product> myProductCache = new LRUCache<String, Product>(MIN_CACHE_SIZE, 200, MAX_CACHE_SIZE);
-    /** A map of names to ProductHandlerLists */
-    private ArrayList<ProductHandlerList> myProductGroups = new ArrayList<ProductHandlerList>();
-    /** Current selected group */
-    ProductHandlerList myProductOrderedSet;
 
-    {
-        myProductGroups.add(new ProductHandlerList("data1", "Data1"));
-        myProductGroups.add(new ProductHandlerList("data2", "Data2"));
-        selectKey("data1");
-       // myProductCache.setMinCacheSize(MIN_CACHE_SIZE);
-      //  myProductCache.setMaxCacheSize(MAX_CACHE_SIZE);
+    // Feature convenience?
+    /**
+     * Wrapper to get list of ProductFeatures. Currently only one . This should
+     * take a key eventually
+     */
+    public List<ProductFeature> getProductFeatures() {
+        FeatureList flist = FeatureList.theFeatures;
+        List<ProductFeature> forg = flist.getFeatureGroup(ProductFeature.class);
+        return forg;
     }
 
-    public void selectKey(String key) {
-        ProductHandlerList found = getGroupForKey(key);
-        myProductOrderedSet = found;
+    public FeatureList getFeatureList() {
+        return FeatureList.theFeatures;
     }
 
-    private ProductHandlerList getGroupForKey(String key) {
-        ProductHandlerList found = null;
-        for (ProductHandlerList l : myProductGroups) {
-            if (l.getKey().equals(key)) {
-                found = l;
-                break;
+    public Feature getNamedFeature(String key) {
+        Feature f = FeatureList.theFeatures.getFeature(key);
+        return f;
+    }
+
+    public ProductFeature getProductFeature(String key) {
+
+        ProductFeature pf = null;
+        Feature f = FeatureList.theFeatures.getFeature(key);
+        if (f instanceof ProductFeature) {
+            pf = (ProductFeature) (f);
+        }
+
+        // We can use the key 'TOP_PRODUCT' to always get the top product
+        if (pf == null) {
+            if (TOP_PRODUCT.compareTo(key) == 0) {
+                pf = getTopProductFeature();
             }
         }
-        return found;
+
+        return pf;
+    }
+
+    public ProductFeature getTopProductFeature() {
+
+        ProductFeature pf = null;
+        Feature f = FeatureList.theFeatures.getSelected(ProductFeature.ProductGroup);
+        if (f instanceof ProductFeature) {
+            pf = (ProductFeature) (f);
+        }
+        return pf;
+    }
+
+    public Date getSimulationTime() {
+        return FeatureList.theFeatures.getSimulationTime();
+    }
+
+    public String getSimulationTimeStamp() {
+        return FeatureList.theFeatures.getSimulationTimeStamp();
+    }
+
+    public void deleteSelectedProduct() {
+        log.error("Need to implement deleteSelectedProduct");
+    }
+
+    /** Simple Product delete filter based on index key */
+    private static class ProductDeleteFilter implements FeatureFilter {
+
+        private String theKey;
+
+        public ProductDeleteFilter(String k){
+            theKey = k;
+        }
+        
+        @Override
+        public boolean matches(Feature f) {
+            boolean remove = false;
+            if (f instanceof ProductFeature) {
+                ProductFeature pf = (ProductFeature) (f);
+                Product p = pf.getProduct();
+                if (p != null) {
+                    String key = p.getIndexKey();
+                    remove = (theKey.compareTo(key) == 0);
+                }
+            }
+            return remove;
+        }
+    }
+
+    // Called from ProductDeleteCommand (with a source filter parameter)
+    public void deleteProductsMatchingSource(String toDelete) {
+        log.info("Delete product matching source " + toDelete);
+        log.error("Need to implement delete products matching source");
+        ProductDeleteFilter filter = new ProductDeleteFilter(toDelete);
+        FeatureList.theFeatures.removeFeatures(filter);
+    }
+
+    public void deleteProduct(String key) {
+        FeatureList.theFeatures.removeFeature(key);
+    }
+
+    /**
+     * Navigate usually called by the navigation buttons. A button has been
+     * clicked, load next product, sync, etc..
+     */
+    public void navigate(CommandManager.NavigationMessage message) {
+
+        Product p = getTopProduct();
+        if (p == null) {
+            log.warn("Can't move from a null record, no reference");
+        } else {
+            Product aProduct = p.getProduct(message);
+            ProductFeature pf = loadProduct(aProduct);
+
+            if (pf != null) {
+                selectProductFeature(pf);
+                pf.timeNavigateTo();
+            }
+        }
+    }
+
+    /**
+     * Called by the ProductLoadCommand from the index record picker
+     *
+     * @param aProduct
+     */
+    public void recordPickerSelectedProduct(String indexName, String datatype, String subtype, Date time) {
+
+        FeatureList toAdd = FeatureList.theFeatures;
+        // ----------------------------------------------------------------
+        // Try to create default product from selections.
+        SourceManager manager = SourceManager.getInstance();
+        HistoricalIndex anIndex = SourceManager.getIndexByName(indexName);
+
+        if (anIndex == null) {
+            log.error("Index null, cannot create new product");
+            return;
+        }
+
+        IndexRecord aRecord = anIndex.getRecord(datatype, subtype, time);
+        if (aRecord == null) {
+            log.error("Record is null, cannot create new product");
+            return;
+        }
+        aRecord.setSourceName(manager.getIndexName(anIndex));
+        String productCacheKey = Product.createCacheKey(indexName, aRecord);
+        Product aProduct = ProductManager.CreateProduct(productCacheKey, indexName, aRecord);
+
+        // ----------------------------------------------------------------
+        // Load product into our list, creating a handler for it
+        ProductFeature pf = loadProduct(aProduct);
+        if (pf != null) {
+            selectProductFeature(pf);
+            pf.timeNavigateTo();
+        }
     }
 
     // called by ColorKeyLayer to get the current color map...
     public ColorMap getCurrentColorMap() {
-        return (myProductOrderedSet.getCurrentColorMap());
+        List<ProductFeature> l = getProductFeatures();
+        for (ProductFeature current : l) {
+            if (current.wouldRender()) {
+                // Just the first color map for now at least
+                return (current.getProduct().getColorMap());
+            }
+        }
+        return null;
     }
 
-    /** Get the current selected product handler list */
-    public ProductHandlerList getProductOrderedSet() {
-        return myProductOrderedSet;
-    }
-
-    /** Used by group view to show the stuff */
-    public ArrayList<ProductHandlerList> getGroupList() {
-        return myProductGroups;
-    }
-
+    /**
+     * Get the current selected product handler list
+     */
+    ////public ProductHandlerList getProductOrderedSet() {
+    //    return myProductOrderedSet;
+    //}
     public FilterList getFilterList(String product) {
         FilterList aList = null;
-        if (myProductOrderedSet != null) {
-            ProductHandler tph = myProductOrderedSet.getProductHandler(product);
-            if (tph != null) {
-                aList = tph.getFList();
-            }
+        Product aProduct = null;
+        ProductFeature pf = this.getProductFeature(product);
+        if (pf != null) {
+            aList = pf.getFList();
         }
         return aList;
     }
 
     // Called to get the top product in the display
     public Product getTopProduct() {
+
+
         Product aProduct = null;
-        ProductHandlerList list = getProductOrderedSet();
-        if (list != null) {
-            ProductHandler h = list.getTopProductHandler();
-            if (h != null) {
-                aProduct = h.getProduct();
-            }
+        ProductFeature pf = getTopProductFeature();
+        if (pf != null) {
+            aProduct = pf.getProduct();
         }
         return aProduct;
     }
 
-    /** Currently called by ReadoutStatusBar to get the text for readout */
+    /**
+     * Currently called by ReadoutStatusBar to get the text for readout
+     */
     public String getReadout(PositionEvent event) {
-        return (myProductOrderedSet.getReadout(event));
+
+        String readout = "None";
+        Product current = getTopProduct();
+        if (current != null) {
+            //Position p = event.getPosition();
+            Point point = event.getScreenPoint();
+            readout = String.format("(%d, %d)", point.x, point.y);
+            WorldWindView earth = CommandManager.getInstance().getEarthBall();
+            if (earth != null) {
+                earth.getColor(point.x, point.y);
+            }
+            //readout = current.getReadout(p.getLatitude().getDegrees(),
+            //		p.getLongitude().getDegrees(), 
+            //		p.getHeight().get);
+        }
+
+        return readout;
     }
 
-    public void navigationAction(NavigationAction nav) {
-        myProductOrderedSet.navigationAction(nav);
-    }
-
-    /** Compare a product to a given indexKey, if it matches, remove from cache */
+    /**
+     * Compare a product to a given indexKey, if it matches, remove from cache
+     */
     private static class IndexKeyComparator<T> implements LRUTrimComparator<T> {
 
         String indexKey;
@@ -156,7 +300,9 @@ public class ProductManager implements Singleton {
     }
     // Product charts	
 
-    /** Set the size of the product cache */
+    /**
+     * Set the size of the product cache
+     */
     public void setCacheSize(int size) {
         myProductCache.setCacheSize(size);
         int aSize = myProductCache.getCacheSize();
@@ -165,21 +311,27 @@ public class ProductManager implements Singleton {
         CommandManager.getInstance().cacheManagerNotify(); // added product it changed
     }
 
-    /** Get the size of the product cache */
+    /**
+     * Get the size of the product cache
+     */
     public int getCacheSize() {
         return myProductCache.getCacheSize();
     }
-    
-    /** Get the number of items in the cache */
+
+    /**
+     * Get the number of items in the cache
+     */
     public int getCacheFilledSize() {
         return myProductCache.getCacheFilledSize();
     }
-    
-    public ArrayList<Product> getCurrentCacheList(){
-         return myProductCache.getStackCopy();
+
+    public ArrayList<Product> getCurrentCacheList() {
+        return myProductCache.getStackCopy();
     }
 
-    /** Trim all products from cache matching a given index key */
+    /**
+     * Trim all products from cache matching a given index key
+     */
     public int trimCacheMatchingIndexKey(String indexKey) {
 
         IndexKeyComparator<Product> c = new IndexKeyComparator<Product>(indexKey);
@@ -188,10 +340,10 @@ public class ProductManager implements Singleton {
 
     /**
      * Database node which holds information for a data type by name
-     * 
+     *
      * @author Robert Toomey FIXME: separate class file? It's static-inner so
-     *         this only affects namespace, however this class is meaningless
-     *         without the manager.
+     * this only affects namespace, however this class is meaningless without
+     * the manager.
      */
     public static class ProductDataInfo {
 
@@ -200,48 +352,52 @@ public class ProductManager implements Singleton {
         // color (not set)
         private boolean myVisibleInList = true;
         private String myListName = DEFAULTS;
-        
-        /** The current color map for this product */
+        /**
+         * The current color map for this product
+         */
         private ColorMap myColorMap = null;
-        
-        /** Set to true if we have tried to load the xml files for this type,
+        /**
+         * Set to true if we have tried to load the xml files for this type,
          * such as the colormap.xml or iconconfig.xml
          */
         private boolean myLoadedXML = false;
-        
-        /** Time window for this product.  If outside time of window minus
-         * this date value, product is considered too old to display
+        /**
+         * Time window for this product. If outside time of window minus this
+         * date value, product is considered too old to display
          */
         private long myTimeWindowSeconds = 350;  // 5 min default
-        
         // We have two main xml formats for Products.  One is the 
         // <colormap> for float based data to color lookup.  The other
         // is the icon configuration file <iconSetConfig>.  For the moment
         // not going to bother with separate classes for this.
         private Tag_colorMap myColorMapTag = null;
         private Tag_iconSetConfig myIconSetConfig = null;
-
         private URL colorMapURL;
         private URL iconSetConfigURL;
-        
-        /** Debug flag for forcing generated maps always */
+        /**
+         * Debug flag for forcing generated maps always
+         */
         private static boolean forceGenerated = false;
-        
-        public URL getCurrentColorMapURL(){
+
+        public URL getCurrentColorMapURL() {
             return colorMapURL;
         }
-        
-        public URL getCurrentIconSetURL(){
+
+        public URL getCurrentIconSetURL() {
             return iconSetConfigURL;
         }
-        
-        /** Load any xml files that pertain to this particular product */
+
+        /**
+         * Load any xml files that pertain to this particular product
+         */
         public void loadProductXMLFiles(boolean force) {
 
-            if (force){ myLoadedXML = false; }
-            if (myLoadedXML == false){
+            if (force) {
+                myLoadedXML = false;
+            }
+            if (myLoadedXML == false) {
                 loadIconSetConfigFromXML();
-                if (!forceGenerated){
+                if (!forceGenerated) {
                     loadColorMapFromXML();
                 }
                 myLoadedXML = true;
@@ -259,11 +415,11 @@ public class ProductManager implements Singleton {
                 myColorMapTag = tag;
                 ColorMap aColorMap = new ColorMap();
                 aColorMap.initFromTag(tag, ProductTextFormatter.DEFAULT_FORMATTER);
-                myColorMap = aColorMap;       
+                myColorMap = aColorMap;
             }
         }
-        
-       /**
+
+        /**
          * Force load an icon configuration file
          */
         private void loadIconSetConfigFromXML() {
@@ -272,19 +428,19 @@ public class ProductManager implements Singleton {
             Tag_iconSetConfig tag = new Tag_iconSetConfig();
             if (tag.processAsRoot(u)) {
                 myIconSetConfig = tag;
-                
+
                 // We are going to use the color map of the polygon for 
                 // the moment.  The color of the polygon fill is the key.
-                try{  // since any subtag might be null.  We have no map then
+                try {  // since any subtag might be null.  We have no map then
                     Tag_colorMap c = tag.polygonTextConfig.polygonConfig.colorMap;
                     ColorMap aColorMap = new ColorMap();
                     aColorMap.initFromTag(c, ProductTextFormatter.DEFAULT_FORMATTER);
-                    myColorMap = aColorMap;      
+                    myColorMap = aColorMap;
                     myColorMapTag = c;
-                }catch(Exception e){
+                } catch (Exception e) {
                     // Any of it null, etc..ignore it...
-                }finally{
-                   // null/missing tag
+                } finally {
+                    // null/missing tag
                 }
             }
         }
@@ -332,17 +488,21 @@ public class ProductManager implements Singleton {
             myListName = name;
         }
 
-        /** Return if loaded.  Some stuff like the color key layer will
-         * check this so that it doesn't cause a thrash load of EVERY colormap
-         * by calling getColorMap
-         * @return 
+        /**
+         * Return if loaded. Some stuff like the color key layer will check this
+         * so that it doesn't cause a thrash load of EVERY colormap by calling
+         * getColorMap
+         *
+         * @return
          */
-        public boolean isLoaded(){
+        public boolean isLoaded() {
             return myLoadedXML;
         }
-        
-        /** Get color map.  Will attempt to load the color map if not
-         * already loaded
+
+        /**
+         * Get color map. Will attempt to load the color map if not already
+         * loaded
+         *
          * @return the ColorMap, or null
          */
         public ColorMap getColorMap() {
@@ -353,23 +513,22 @@ public class ProductManager implements Singleton {
         public void setColorMap(ColorMap theColorMap) {
             myColorMap = theColorMap;
         }
-        
-        public Tag_iconSetConfig getIconSetConfig(){
+
+        public Tag_iconSetConfig getIconSetConfig() {
             loadProductXMLFiles(false);
             return myIconSetConfig;
         }
-        
-        public long getTimeWindowSeconds(){
+
+        public long getTimeWindowSeconds() {
             return myTimeWindowSeconds;
-        }     
+        }
     }
 
     /**
      * SAME FUNCTION AS ColorMap (xml util class) FIXME parse the text of a
      * color number field into an integer value
-     * 
-     * @param textOfNumber
-     *            the raw text of number, such as 0xFF or 45
+     *
+     * @param textOfNumber the raw text of number, such as 0xFF or 45
      */
     protected static int parseColorValue(String textOfNumber) {
         int value = 255;
@@ -389,9 +548,9 @@ public class ProductManager implements Singleton {
     /**
      * Parse a 'data' line in the xml. If ProductDataInfo is null, fill in our
      * default settings, otherwise fill the ProductDataInfo
-     * 
+     *
      * FIXME: redo this for stax, clean up xml format as well...
-     * 
+     *
      * @param fillMe
      * @param aProductXML
      */
@@ -488,8 +647,7 @@ public class ProductManager implements Singleton {
     }
 
     /**
-     * @param name
-     *            the name of the color map to return such as 'Reflectivity'
+     * @param name the name of the color map to return such as 'Reflectivity'
      * @return the color map
      */
     public ColorMap getColorMap(String name) {
@@ -497,7 +655,9 @@ public class ProductManager implements Singleton {
         return d.getColorMap();
     }
 
-    /** Store a new colormap, with option to force store it over an old one.
+    /**
+     * Store a new colormap, with option to force store it over an old one.
+     *
      * @param colorMapName
      * @param map
      * @param force
@@ -635,7 +795,8 @@ public class ProductManager implements Singleton {
         }
     }
 
-    /** Modify a Tag_colorMap, enhancing color names with actually color
+    /**
+     * Modify a Tag_colorMap, enhancing color names with actually color
      * information from the color database.
      */
     public void updateNamesToColors(Tag_colorMap map) {
@@ -664,7 +825,9 @@ public class ProductManager implements Singleton {
         }
     }
 
-    /** Return named color from database, fallback to pure white */
+    /**
+     * Return named color from database, fallback to pure white
+     */
     public Color getNamedColor(String name) {
         Color c = null;
         boolean success = false;
@@ -727,12 +890,14 @@ public class ProductManager implements Singleton {
         }
         return (theProduct);
     }
-    
-    /** GUI uses to pull current stack item.  We'll probably need to synchronize later. */
-   // public Product getProductAt(int i){
-   //     return myProductCache.get(i);
-   // }
 
+    /**
+     * GUI uses to pull current stack item. We'll probably need to synchronize
+     * later.
+     */
+    // public Product getProductAt(int i){
+    //     return myProductCache.get(i);
+    // }
     // Internal create product method
     private Product makeProduct(String anIndex, IndexRecord init) {
         Product p = null;
@@ -754,18 +919,17 @@ public class ProductManager implements Singleton {
         CommandManager.getInstance().cacheManagerNotify(); // added product it changed
     }
 
-    /** Get the current volume of the top selected product in the product selector
+    /**
+     * Get the current volume of the top selected product in the product
+     * selector
      */
     public static ProductVolume getCurrentVolumeProduct(boolean virtual) {
-        ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
         ProductVolume volume = null;
-        if (phl != null) {
-            ProductHandler tph = phl.getTopProductHandler();
-            if (tph != null) {
-                Product product = tph.getProduct();
-                if (product != null) {
-                    volume = product.getProductVolume(virtual);
-                }
+        ProductFeature pf = ProductManager.getInstance().getTopProductFeature();
+        if (pf != null) {
+            Product p = pf.getProduct();
+            if (p != null) {
+                volume = p.getProductVolume(virtual);
             }
         }
         // Use a 'fake' volume is null...
@@ -775,18 +939,28 @@ public class ProductManager implements Singleton {
         return volume;
     }
 
-    /** Get the current volume of the top selected product in the product selector
+    /**
+     * Get the current volume of the top selected product in the product
+     * selector
      */
     public static ProductVolume getCurrentVolumeProduct(String key, boolean virtual) {
-        ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
+        /*
+         * ProductHandlerList phl =
+         * ProductManager.getInstance().getProductOrderedSet(); ProductVolume
+         * volume = null; if (phl != null) { ProductHandler tph =
+         * phl.getProductHandler(key); if (tph != null) { Product product =
+         * tph.getProduct(); if (product != null) { volume =
+         * product.getProductVolume(virtual); } } } // Use a 'fake' volume is
+         * null... if (volume == null) { volume = new ProductVolume(); // steal
+         * the root class for now. } return volume;
+         *
+         */
         ProductVolume volume = null;
-        if (phl != null) {
-            ProductHandler tph = phl.getProductHandler(key);
-            if (tph != null) {
-                Product product = tph.getProduct();
-                if (product != null) {
-                    volume = product.getProductVolume(virtual);
-                }
+        ProductFeature pf = ProductManager.getInstance().getProductFeature(key);
+        if (pf != null) {
+            Product p = pf.getProduct();
+            if (p != null) {
+                volume = p.getProductVolume(virtual);
             }
         }
         // Use a 'fake' volume is null...
@@ -794,39 +968,64 @@ public class ProductManager implements Singleton {
             volume = new ProductVolume(); // steal the root class for now.
         }
         return volume;
+
     }
 
-    /** Get the current volume of the top selected product in the product selector
-     * this is for testing only, might go away....
+    /**
+     * We check each product handler we currently have to see if any of them can
+     * handle this product. Otherwise, we ask the product to create a new
+     * instance of the handler for it. This gets added to our set and popped to
+     * top This is a generic load without gui updates.
+     *
+     * @param aProduct
      */
-    public static ProductVolume getCurrentVolumeProduct(int i, boolean virtual) {
-        ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
-        ProductVolume volume = null;
-        if (phl != null) {
-            ProductHandler tph = phl.getProductHandlerNumber(i);
-            if (tph != null) {
-                Product product = tph.getProduct();
-                if (product != null) {
-                    volume = product.getProductVolume(virtual);
-                }
+    public ProductFeature loadProduct(Product aProduct) {
+        if (aProduct == null) {
+            return null;
+        }
+
+        FeatureList toAdd = FeatureList.theFeatures;
+
+        boolean found = false;
+        ArrayList<ProductFeature> list = toAdd.getFeatureGroup(ProductFeature.class);
+
+        Iterator<ProductFeature> iter = list.iterator();
+        ProductFeature theHandler = null;
+
+        while (iter.hasNext()) {
+            ProductFeature current = iter.next();
+            if (current.canHandleThisProduct(aProduct)) {
+                theHandler = current;
+                found = true;
+                break;
             }
         }
-        // Use a 'fake' volume is null...
-        if (volume == null) {
-            volume = new ProductVolume(); // steal the root class for now.
+
+        if (!found) {
+            ProductFeature newOne = new ProductFeature(toAdd, aProduct);
+            toAdd.addFeature(newOne);
+            theHandler = newOne;
+            log.debug("Created NEW ProductFeature for product");
         }
-        return volume;
+
+        // Move handler to this product
+        theHandler.setProduct(aProduct);
+        return theHandler;
     }
 
-    /** Get the latest N records */
-    public Product getCurrentTopProduct() {
+    /**
+     * Called from a ProductSelectCommand
+     */
+    public void selectProductFeature(String key) {
+        selectProductFeature(getProductFeature(key));
+    }
 
-        ProductHandlerList p = getProductOrderedSet();
-        ProductHandler ph = p.getTopProductHandler();
-        Product prod = null;
-        if (ph != null) {
-            prod = ph.getProduct();
-        }
-        return prod;
+    public void selectProductFeature(ProductFeature theSelection) {
+
+        // Move to 'top' visually
+        FeatureList.theFeatures.setDrawLast(theSelection);
+
+        // Select the item in lists
+        FeatureList.theFeatures.setSelected(theSelection);
     }
 }

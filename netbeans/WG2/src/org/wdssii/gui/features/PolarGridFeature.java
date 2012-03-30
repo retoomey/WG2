@@ -86,8 +86,8 @@ public class PolarGridFeature extends Feature {
     /**
      * The state we use for drawing the polar grid.
      */
-    public PolarGridFeature() {
-        super(PolarGridGroup, new PolarGridMemento(true, false, 2));
+    public PolarGridFeature(FeatureList f) {
+        super(f, PolarGridGroup, new PolarGridMemento(true, false, 2));
         myRenderer = new PolarGridRenderer();
         String name = "Circle"+counter++;
         setName(name);

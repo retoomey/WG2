@@ -1,38 +1,31 @@
 package org.wdssii.gui.products;
 
 import gov.nasa.worldwind.render.DrawContext;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.TreeMap;
-
-import org.wdssii.geom.Location;
-import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.SourceManager;
+import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
+import org.wdssii.geom.Location;
+import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.CommandManager.NavigationMessage;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
+import org.wdssii.gui.SourceManager;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.products.volumes.IndexRecordVolume;
 import org.wdssii.gui.products.volumes.ProductVolume;
-
+import org.wdssii.index.HistoricalIndex.Direction;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.index.IndexSubType;
-import org.wdssii.index.VolumeRecord;
-import org.wdssii.index.HistoricalIndex.Direction;
 import org.wdssii.index.IndexSubType.SubtypeType;
+import org.wdssii.index.VolumeRecord;
 import org.wdssii.xml.Tag_colorMap;
 
 /** Product is a holder for everything that can possibly be done for a particular
@@ -63,7 +56,9 @@ public class Product {
     // FIXME: Currently products will have only one possible product handler,
     // when we go to multiple product handler lists design will have to change
     // to allow for example more than one renderer per product
-    protected ProductHandler myProductHandler = null;
+    //protected ProductHandler myProductHandler = null;
+    public FilterList myCurrentFList = null;
+    
     // Helper class paths.  These are created by name from the DataType, thus
     // a RadialSetNavigator will be created (if there) for a RadialSet, etc.
     private final String RENDERER_CLASSPATH = "org.wdssii.gui.products.renderers";
@@ -151,20 +146,26 @@ public class Product {
         // FIXME: no overlap for now...will need a visual helper object...
         return true;
     }
-
-    // FIXME: some sort of visual helper object or put into renderer?
-    public boolean spaceAvailable(ProductHandlerList list) {
+    
+    /** Thie function requires render order to be changed depending on selection,
+     * the selected object must be drawn after the others.. bleh... FIXME?
+     * @param f
+     * @return 
+     */
+     // FIXME: some sort of visual helper object or put into renderer?
+    public boolean spaceAvailable(FeatureList f) {
         // Look through the list of products for other radial sets
         // Iterate through the drawing product list...
         // if find a visible radial set AFTER us in list..we can't draw
         // or it will conflict...(Remember last in list draws on top)
-        Iterator<ProductHandler> iter = list.getDrawIterator();
+        List<ProductFeature> list = f.getFeatureGroup(ProductFeature.class);
+        Iterator<ProductFeature> iter = list.iterator();
         boolean foundUs = false;
         boolean spaceIsAllOurs = true;
         String mySource = getIndexKey();
         // String outString = "";
         while (iter.hasNext()) {
-            ProductHandler h = iter.next();
+            ProductFeature h = iter.next();
             Product p = h.getProduct();
             if (p != null) {
                 if (p == this) {
@@ -173,7 +174,7 @@ public class Product {
                     foundUs = true;
                 } else {
                     if (mySource == null) {
-                        System.out.println("***** my source is NULL?????");
+                        log.error("source is null on product..????");
                     }
                     ProductRenderer pr = p.getRenderer();
                     boolean canOverlay = false;
@@ -184,7 +185,7 @@ public class Product {
                             && // We're in the list (so this draws after us)
                             // FIXME: or do we want the ACTUAL would be showing function instead?
                             // For instance if h is out of time window, do we want to draw?
-                            (h.getIsVisible()) && // This product is not hidden by user
+                            (h.getVisible()) && // This product is not hidden by user
                             (!canOverlay)
                             && (p.getIndexKey().compareTo(mySource) == 0)) // Source
                     // name
@@ -202,6 +203,7 @@ public class Product {
         // }
         return spaceIsAllOurs;
     }
+
 
     public void setCacheKey(String cacheKey) {
         myCacheKey = cacheKey;
@@ -445,7 +447,8 @@ public class Product {
 
     /** Used by classes instead of color map */
     public FilterList getFilterList() {
-        return myProductHandler.getFList();
+        //return myProductHandler.getFList();
+        return myCurrentFList;
     }
 
     /** Generate a color map based on data values.  This is currently used when
@@ -543,12 +546,7 @@ public class Product {
 
         return newClass;
     }
-
-    public ProductHandler getNewProductHandler(ProductHandlerList aList) {
-        return new ProductHandler(aList, this); // Default is the 'base' handler that
-        // just hides/shows
-    }
-
+    
     // FIXME: readout object, not a string
     public String getReadout(double latDegree, double lonDegree, double height) {
         return "?";

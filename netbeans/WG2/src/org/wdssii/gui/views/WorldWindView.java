@@ -191,7 +191,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         CommandManager.getInstance().addListener(ID, this);
         
         // Hack add a starting slice...
-        LLHAreaFeature A = new LLHAreaFeature();
+        LLHAreaFeature A = new LLHAreaFeature(FeatureList.theFeatures);
         boolean success = A.createLLHArea("Slice");
         if (success){
             FeatureList.theFeatures.addFeature(A);

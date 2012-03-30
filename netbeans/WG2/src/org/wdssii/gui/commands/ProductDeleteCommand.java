@@ -1,7 +1,6 @@
 package org.wdssii.gui.commands;
 
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.products.ProductHandlerList;
 
 /** Called by name from WdssiiDynamic
  * @author Robert Toomey
@@ -23,17 +22,17 @@ public class ProductDeleteCommand extends ProductCommand {
     @Override
     public boolean execute() {
         
-        ProductHandlerList theList = ProductManager.getInstance().getProductOrderedSet();
-        if (theList != null) {
+        //ProductHandlerList theList = ProductManager.getInstance().getProductOrderedSet();
+        //if (theList != null) {
             
             if (myFilterName != null) {
                //clearFromHandlerList(myFilterName);
-               theList.deleteProductsMatchingSource(myFilterName);
+               ProductManager.getInstance().deleteProductsMatchingSource(myFilterName);
             } else if (myHandlerKey != null){
-               theList.deleteProduct(myHandlerKey);
+               ProductManager.getInstance().deleteProduct(myHandlerKey);
             }
              // theList.deleteSelectedProduct();
-        }
+       // }
         return true;
     }
 }

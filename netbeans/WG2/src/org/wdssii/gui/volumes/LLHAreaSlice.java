@@ -15,7 +15,10 @@ import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.FeatureCommand;
 import org.wdssii.gui.features.LLHAreaFeature;
-import org.wdssii.gui.products.*;
+import org.wdssii.gui.features.ProductFeature;
+import org.wdssii.gui.products.FilterList;
+import org.wdssii.gui.products.VolumeSlice3DOutput;
+import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.products.volumes.ProductVolume;
 
 /**
@@ -642,12 +645,9 @@ public class LLHAreaSlice extends LLHArea {
 
         // Get the filter list and the record object
         FilterList aList = null;
-        ProductHandlerList phl = ProductManager.getInstance().getProductOrderedSet();
-        if (phl != null) {
-            ProductHandler tph = phl.getTopProductHandler();
-            if (tph != null) {
-                aList = tph.getFList();
-            }
+        ProductFeature pf = ProductManager.getInstance().getTopProductFeature();   
+        if (pf != null) {
+            aList = pf.getFList();
         }
 
         if (aList == null) {

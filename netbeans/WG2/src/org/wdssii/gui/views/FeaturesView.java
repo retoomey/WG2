@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -14,12 +15,17 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import net.infonode.docking.*;
+import net.infonode.docking.properties.DockingWindowProperties;
+import net.infonode.docking.properties.ViewProperties;
+import net.infonode.docking.properties.ViewTitleBarProperties;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.DockWindow;
 import org.wdssii.gui.MapGUI;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.features.*;
@@ -59,13 +65,74 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
      */
     public static class Factory extends WdssiiDockedViewFactory {
 
+        /**
+         * Create a sub-bock for gui controls, or a split pane
+         */
+        public static final boolean myDockControls = true;
+
         public Factory() {
             super("Features", "brick_add.png");
         }
 
         @Override
         public Component getNewComponent() {
-            return new FeaturesView();
+
+            // return the thing that is docked....
+            // This is actually not called since we bypass getNewDockingWindow
+            return new FeaturesView(myDockControls);
+        }
+
+        @Override
+        public DockingWindow getNewDockingWindow() {
+            if (!myDockControls) {
+                // Get a single non-docked FeatureView component
+                return super.getNewDockingWindow();
+            } else {
+                Icon i = getWindowIcon();
+                String title = getWindowTitle();
+
+                FeaturesView f = new FeaturesView(myDockControls);
+
+                // Create a RootWindow in the view.  Anything added to this
+                // will be movable.
+                RootWindow root = DockWindow.createARootWindow();
+                View topWindow = new View(title, i, root);
+
+                // Inside the root window we'll add two views...
+                View controls = new View("Controls", i, f.getControlComponent());
+                View select = new View("Selection", i, f);
+
+                // The select is our 'root', so make it non-dragable.  Basically
+                // the main view will be the actual holder for this.  By making it a view,
+                // we allow the other view to be docked above it, etc..
+                ViewProperties vp = select.getViewProperties();
+                ViewTitleBarProperties tp = vp.getViewTitleBarProperties();
+                tp.setVisible(false);
+
+                // Since menu allows changing, make a new window properties
+                DockingWindowProperties org = controls.getWindowProperties();
+                org.setCloseEnabled(false);
+                org.setMaximizeEnabled(false);
+                org.setMinimizeEnabled(false);
+
+                SplitWindow w = new SplitWindow(false, select, controls);
+                root.setWindow(w);
+
+                // Add a 'close' listener to our internal root so that if the
+                // control window is closed we redock instead.. (we could close
+                // it but we'll need some control to get it back then)
+                // Add a listener which shows dialogs when a window is closing or closed.
+                root.addListener(new DockingWindowAdapter() {
+
+                    @Override
+                    public void windowClosing(DockingWindow window)
+                            throws OperationAbortedException {
+                        window.dock();
+                    }
+                });
+
+                return topWindow;
+            }
         }
     }
     private FeatureListTableModel myFeatureListTableModel;
@@ -158,7 +225,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
                         info = e.group;
                         break;
                     default:
-                        info = Integer.toString(trueCol) + "," + col;
+                        info = "";
                         break;
                 }
 
@@ -171,9 +238,8 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         }
     }
 
-    public FeaturesView() {
-        initComponents();
-        initTable();
+    public FeaturesView(boolean dockControls) {
+        initComponents(dockControls);
 
         CommandManager.getInstance().addListener(FeaturesView.ID, this);
     }
@@ -192,15 +258,16 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         FeatureListTableCellRenderer p = new FeatureListTableCellRenderer();
         jObjects3DListTable.setDefaultRenderer(FeatureListTableData.class, p);
 
-        JCheckBox aBox = new JCheckBox();
-        Dimension d = aBox.getMinimumSize();
-
         int count = myTable.getColumnCount();
         TableColumnModel cm = myTable.getColumnModel();
+        JCheckBox aBox = new JCheckBox();
+        Dimension d = aBox.getMinimumSize();
+        IconHeaderRenderer r = new IconHeaderRenderer();
+
         for (int i = 0; i < count; i++) {
             TableColumn col = cm.getColumn(i);
             // Make all headers draw the same to be consistent.
-            col.setHeaderRenderer(new IconHeaderRenderer());
+            col.setHeaderRenderer(r);
             switch (i) {
                 case FeatureListTableModel.OBJ_VISIBLE: {
                     IconHeaderInfo info = new IconHeaderInfo("layervisible.png");
@@ -360,8 +427,12 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
                     public int compare(Feature o1, Feature o2) {
                         String k1 = o1.getFeatureGroup();
                         String k2 = o2.getFeatureGroup();
-                        if (k1.equals(ProductFeature.ProductGroup)){ k1 = "0"; }
-                        if (k2.equals(ProductFeature.ProductGroup)){ k2 = "0"; }
+                        if (k1.equals(ProductFeature.ProductGroup)) {
+                            k1 = "0";
+                        }
+                        if (k2.equals(ProductFeature.ProductGroup)) {
+                            k2 = "0";
+                        }
                         int c = k1.compareTo(k2);
                         if (c == 0) { // same group, sort by key name...
                             c = o1.getKey().compareTo(o2.getKey());
@@ -426,26 +497,31 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         jObjects3DListTable.repaint();
     }
 
-    private void initComponents() {
+    private JComponent initFeatureControlGUI() {
+        jFeatureGUIPanel = new JPanel();
+        jControlScrollPane = new JScrollPane();
+        jControlScrollPane.setViewportView(jFeatureGUIPanel);
+        jFeatureGUIPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        setEmptyControls();
+        return jControlScrollPane;
+    }
 
-        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+    /**
+     * The part of the GUI that deals with selection of a individual feature
+     */
+    private JComponent initFeatureSelectGUI() {
 
+        jObjectScrollPane = new JScrollPane();
+        jInfoLabel = new JLabel("---");
+        return jObjectScrollPane;
+    }
+
+    private JToolBar initToolBar() {
         jEditToolBar = new javax.swing.JToolBar();
+        jEditToolBar.setFloatable(false);
         jNewVSliceButton = new javax.swing.JButton("+Slice");
         jNewMapButton = new javax.swing.JButton("+Map");
         jNewPolarGridButton = new javax.swing.JButton("+PolarGrid");
-        jFeatureGUIPanel = new JPanel();
-        jObjectScrollPane = new JScrollPane();
-        jControlScrollPane = new JScrollPane();
-        jControlScrollPane.add(jFeatureGUIPanel);
-        jFeatureGUIPanel.setLayout(new MigLayout(new LC().insetsAll("3"), null, null));
-        jInfoLabel = new JLabel("---");
-
-        JSplitPane northSouth = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                jObjectScrollPane, jControlScrollPane);
-        northSouth.setResizeWeight(.50);
-        jControlScrollPane.setViewportView(jFeatureGUIPanel);
-
         jEditToolBar.setRollover(true);
 
         jNewVSliceButton.setFocusable(false);
@@ -483,12 +559,46 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
             }
         });
         jEditToolBar.add(jNewMapButton);
+        return jEditToolBar;
+    }
 
-        setEmptyControls();
+    private void initComponents(boolean dockControls) {
 
-        add(jEditToolBar, new CC().dockNorth());
+        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        jInfoLabel = new JLabel("---");
+        JComponent controls = initFeatureControlGUI();
+        JComponent selection = initFeatureSelectGUI();
+        JComponent toolbar = initToolBar();
+        JComponent rootComponent;
+        if (!dockControls) {
+            JSplitPane s = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                    selection, controls);
+            s.setResizeWeight(.50);
+            rootComponent = s;
+        } else {
+            rootComponent = jObjectScrollPane;
+            jObjectScrollPane.setBorder(null);
+        }
+
+        add(toolbar, new CC().dockNorth());
         add(jInfoLabel, new CC().dockNorth().growX());
-        add(northSouth, new CC().growX().growY());
+        add(rootComponent, new CC().growX().growY());
+        // growX().growY());
+
+        // to size correct, init table last, nope not it
+        initTable();
+    }
+
+    public JComponent getControlComponent() {
+        return jControlScrollPane;
+    }
+
+    public JComponent getToolBar() {
+        return jEditToolBar;
+    }
+
+    public JComponent getInfoLabel() {
+        return jInfoLabel;
     }
 
     private void setEmptyControls() {

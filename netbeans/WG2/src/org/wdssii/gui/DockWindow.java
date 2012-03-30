@@ -30,32 +30,38 @@ import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.storage.DataManager;
 
 /**
- * The main GUI window.  This handles the main menu items as well as the
- * docking wrappers for each of our views.
- * 
+ * The main GUI window. This handles the main menu items as well as the docking
+ * wrappers for each of our views.
+ *
  * @author Robert Toomey
  */
 public class DockWindow {
 
-    /** Default main window title string */
+    /**
+     * Default main window title string
+     */
     final String WINDOWTITLE = "WDSSII GUI 2.0";
-    
-    /** Color themes for infonode */
+    /**
+     * Color themes for infonode
+     */
     final InfoNodeLookAndFeelTheme[] myColorThemes;
-    
-    /** Infonode window style themes */
+    /**
+     * Infonode window style themes
+     */
     final DockingWindowsTheme[] myWindowThemes;
-    
-    /** init long stuff... */
+
+    /**
+     * init long stuff...
+     */
     {
         InfoNodeLookAndFeelTheme w1 =
                 new InfoNodeLookAndFeelTheme("WDSSII DarkBlueGrey Theme",
-                new Color(110, 120, 150),  // Control color
-                new Color(0, 170, 0),      // primary control color
-                new Color(80, 80, 80),      // Background color
-                Color.WHITE,                // Text color
-                new Color(0, 170, 0),       // selected textbackground color
-                Color.WHITE,                // selected text color
+                new Color(110, 120, 150), // Control color
+                new Color(0, 170, 0), // primary control color
+                new Color(80, 80, 80), // Background color
+                Color.WHITE, // Text color
+                new Color(0, 170, 0), // selected textbackground color
+                Color.WHITE, // selected text color
                 0.8);
 
         InfoNodeLookAndFeelTheme w2 =
@@ -64,11 +70,11 @@ public class DockWindow {
                 new Color(0, 0, 255),
                 Color.WHITE,
                 Color.BLACK,
-                Color.WHITE,               // selected textbackground color
-                Color.BLACK,               // selected text color
+                Color.WHITE, // selected textbackground color
+                Color.BLACK, // selected text color
                 0.8);
         myColorThemes = new InfoNodeLookAndFeelTheme[]{w1, w2};
-        
+
         myWindowThemes = new DockingWindowsTheme[]{
             new DefaultDockingTheme(),
             new LookAndFeelDockingTheme(),
@@ -119,7 +125,9 @@ public class DockWindow {
      * Contains all the static views
      */
     private ViewMap viewMap = new ViewMap();
-    /** Helper factories for getting view info */
+    /**
+     * Helper factories for getting view info
+     */
     private Map<String, WdssiiDockedViewFactory> myFactory = new TreeMap<String, WdssiiDockedViewFactory>();
     /**
      * The view menu items
@@ -144,10 +152,10 @@ public class DockWindow {
         /**
          * Constructor.
          *
-         * @param title     the view title
-         * @param icon      the view icon
+         * @param title the view title
+         * @param icon the view icon
          * @param component the view component
-         * @param id        the view id
+         * @param id the view id
          */
         DynamicView(String title, Icon icon, Component component, int id) {
             super(title, icon, component);
@@ -164,8 +172,8 @@ public class DockWindow {
         }
     }
     /**
-     * In this properties object the modified property values for close buttons etc. are stored. This object is cleared
-     * when the theme is changed.
+     * In this properties object the modified property values for close buttons
+     * etc. are stored. This object is cleared when the theme is changed.
      */
     private static RootWindowProperties properties = new RootWindowProperties();
     /**
@@ -173,7 +181,8 @@ public class DockWindow {
      */
     private byte[][] layouts = new byte[3][];
     /**
-     * Menu item for enabling/disabling adding of a menu bar and a status label to all new floating windows.
+     * Menu item for enabling/disabling adding of a menu bar and a status label
+     * to all new floating windows.
      */
     // private JCheckBoxMenuItem enableMenuAndStatusLabelMenuItem = new JCheckBoxMenuItem(
     //         "Add Menu Bar and Status Label to all New Floating Windows",
@@ -205,7 +214,8 @@ public class DockWindow {
     }
 
     /**
-     * Returns a dynamic view with specified id, reusing an existing view if possible.
+     * Returns a dynamic view with specified id, reusing an existing view if
+     * possible.
      *
      * @param id the dynamic view id
      * @return the dynamic view
@@ -236,7 +246,9 @@ public class DockWindow {
         return id;
     }
 
-    /** Create a factory for given class shortname */
+    /**
+     * Create a factory for given class shortname
+     */
     private WdssiiDockedViewFactory getFactoryFor(String shortName) {
         WdssiiDockedViewFactory f = null;
         f = myFactory.get(shortName);
@@ -299,11 +311,15 @@ public class DockWindow {
         }
     }
 
-    public static RootWindow createARootWindow(){
-       
-       // RootWindowProperties properties = new RootWindowProperties();
+    /**
+     * Create a root window for internal docking within a view
+     */
+   
+    public static RootWindow createARootWindow() {
+
+        RootWindowProperties override = new RootWindowProperties();
         RootWindow aWindow;
-        
+
         ViewMap someViewMap = new ViewMap();
         // FIXME: don't get this yet really....
         // The mixed view map makes it easy to mix static and dynamic views inside the same root window
@@ -313,7 +329,7 @@ public class DockWindow {
                     @Override
                     public void writeView(View view,
                             ObjectOutputStream out) throws IOException {
-                       // out.writeInt(((DynamicView) view).getId());
+                        // out.writeInt(((DynamicView) view).getId());
                     }
 
                     @Override
@@ -323,91 +339,16 @@ public class DockWindow {
                         //return getDynamicView(in.readInt());
                     }
                 });
-       // if (WorldWindView.USE_HEAVYWEIGHT){
-        //    aWindow = DockingUtil.createHeavyweightSupportedRootWindow(someViewMap, handler, true);
-        //}else{
-            aWindow = DockingUtil.createRootWindow(someViewMap, handler,
+
+        aWindow = DockingUtil.createRootWindow(someViewMap, handler,
                 true);
-       // }
 
-        // Set gradient theme. The theme properties object is the super object of our properties object, which
-        // means our property value settings will override the theme values
-        properties.addSuperObject(currentTheme.getRootWindowProperties());
-
-        // Our properties object is the super object of the root window properties object, so all property values of the
-        // theme and in our property object will be used by the root window
+        // Default to the properties global
         aWindow.getRootWindowProperties().addSuperObject(properties);
 
-        // Enable the bottom window bar
-        //aWindow.getWindowBar(Direction.DOWN).setEnabled(true);
-
-        // Add a listener which shows dialogs when a window is closing or closed.
-        aWindow.addListener(new DockingWindowAdapter() {
-
-            @Override
-            public void windowAdded(DockingWindow addedToWindow,
-                    DockingWindow addedWindow) {
-                // updateViews(addedWindow, true);
-
-                // If the added window is a floating window, then update it
-                if (addedWindow instanceof FloatingWindow) {
-                   // updateFloatingWindow((FloatingWindow) addedWindow);
-                }
-            }
-
-            @Override
-            public void windowRemoved(DockingWindow removedFromWindow,
-                    DockingWindow removedWindow) {
-                // updateViews(removedWindow, false);
-                // FIXME: we could delete the swing stuff, etc...here
-            }
-
-            @Override
-            public void windowClosing(DockingWindow window)
-                    throws OperationAbortedException {
-                // Confirm close operation
-                // if (JOptionPane.showConfirmDialog(frame,
-                //         "Really close window '" + window + "'?") != JOptionPane.YES_OPTION) {
-                //     throw new OperationAbortedException(
-                //             "Window close was aborted!");
-                // }
-            }
-
-            @Override
-            public void windowDocking(DockingWindow window)
-                    throws OperationAbortedException {
-                // Confirm dock operation
-                // if (JOptionPane.showConfirmDialog(frame,
-                //         "Really dock window '" + window + "'?") != JOptionPane.YES_OPTION) {
-                //     throw new OperationAbortedException(
-                //             "Window dock was aborted!");
-                // }
-            }
-
-            @Override
-            public void windowUndocking(DockingWindow window)
-                    throws OperationAbortedException {
-                // Confirm undock operation 
-                // if (JOptionPane.showConfirmDialog(frame,
-                //         "Really undock window '" + window + "'?") != JOptionPane.YES_OPTION) {
-                //     throw new OperationAbortedException(
-                //             "Window undock was aborted!");
-                // }
-            }
-        });
-
-        // Create the views
-        Icon i = null;
-        View v;
-
         return aWindow;
-        // FIXME: Should hunt by reflection, auto handle this...
-        // For the moment creating ALL views...
-       
-        // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.
-        //rootWindow.addTabMouseButtonListener(DockingWindowActionMouseButtonListener.MIDDLE_BUTTON_CLOSE_LISTENER);
- 
     }
+
     /**
      * Creates the root window and the views.
      */
@@ -430,11 +371,11 @@ public class DockWindow {
                         return getDynamicView(in.readInt());
                     }
                 });
-        if (WorldWindView.USE_HEAVYWEIGHT){
+        if (WorldWindView.USE_HEAVYWEIGHT) {
             rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, handler, true);
-        }else{
+        } else {
             rootWindow = DockingUtil.createRootWindow(viewMap, handler,
-                true);
+                    true);
         }
 
         // Set gradient theme. The theme properties object is the super object of our properties object, which
@@ -511,16 +452,17 @@ public class DockWindow {
         // For the moment creating ALL views...
         addViewByID("WorldWindView");
         addViewByID("NavView");
-      
+
         addViewByID("DebugView");
-        addViewByID("SourcesView");
-        
+        addViewByID("IndexView");
+       // addViewByID("SourcesView");
+
         addViewByID("ProductsView");
         addViewByID("LayersView");
         addViewByID("TableProductView");
         addViewByID("ChartView");
         addViewByID("FeaturesView");
-        
+
         // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.
         rootWindow.addTabMouseButtonListener(DockingWindowActionMouseButtonListener.MIDDLE_BUTTON_CLOSE_LISTENER);
     }
@@ -538,18 +480,19 @@ public class DockWindow {
         // Special windows
         DockingWindow earth = getViewByID("WorldWindView");
         DockingWindow products = getViewByID("ProductsView");
-        DockingWindow sources = getViewByID("SourcesView");
+        DockingWindow index = getViewByID("IndexView");
+       // DockingWindow sources = getViewByID("SourcesView");
         DockingWindow layers = getViewByID("LayersView");
         DockingWindow nav = getViewByID("NavView");
         DockingWindow chart = getViewByID("ChartView");
         DockingWindow debug = getViewByID("DebugView");
         DockingWindow features = getViewByID("FeaturesView");
-        
-       // TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
-        TabWindow sourceProducts = new TabWindow(new DockingWindow[]{sources, products, features});
+
+        // TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
+        TabWindow sourceProducts = new TabWindow(new DockingWindow[]{index, products, features});
         sourceProducts.setSelectedTab(0);
 
-       // SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
+        // SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
 
         TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart, debug, all});
         rootWindow.setWindow(
@@ -557,12 +500,11 @@ public class DockWindow {
                 new SplitWindow(false, 0.7f, earth, nav), stuff));
         stuff.setSelectedTab(0);
 
-        /* WindowBar windowBar = rootWindow.getWindowBar(Direction.DOWN);
-        while (windowBar.getChildWindowCount() > 0) {
-        windowBar.getChildWindow(0).close();
-        }
-        windowBar.addTab(layers);
-         * 
+        /*
+         * WindowBar windowBar = rootWindow.getWindowBar(Direction.DOWN); while
+         * (windowBar.getChildWindowCount() > 0) {
+         * windowBar.getChildWindow(0).close(); } windowBar.addTab(layers);
+         *
          */
     }
 
@@ -630,17 +572,14 @@ public class DockWindow {
             });
             toolBar.add(newOne);
         }
-        /*new JToolBar();
-        JLabel label = new JLabel("Drag New View");
-        toolBar.add(label);
-        new DockingWindowDragSource(label,
-        new DockingWindowDraggerProvider() {
-        
-        public DockingWindowDragger getDragger(
-        MouseEvent mouseEvent) {
-        return getDynamicView(getDynamicViewId()).startDrag(rootWindow);
-        }
-        });
+        /*
+         * new JToolBar(); JLabel label = new JLabel("Drag New View");
+         * toolBar.add(label); new DockingWindowDragSource(label, new
+         * DockingWindowDraggerProvider() {
+         *
+         * public DockingWindowDragger getDragger( MouseEvent mouseEvent) {
+         * return getDynamicView(getDynamicViewId()).startDrag(rootWindow); }
+         * });
          */
         return toolBar;
     }
@@ -649,7 +588,7 @@ public class DockWindow {
      * Creates the frame menu bar.
      *
      * FIXME: Could generate this from xml...
-     * 
+     *
      * @return the menu bar
      */
     private JMenuBar createMenuBar() {
@@ -672,87 +611,54 @@ public class DockWindow {
      * @return the layout menu
      */
     /*
-    private JMenu createLayoutMenu() {
-    JMenu layoutMenu = new JMenu("Layout");
-    
-    layoutMenu.add("Default Layout").addActionListener(
-    new ActionListener() {
-    
-    public void actionPerformed(ActionEvent e) {
-    setDefaultLayout();
-    }
-    });
-    
-    layoutMenu.addSeparator();
-    
-    for (int i = 0; i < layouts.length; i++) {
-    final int j = i;
-    
-    layoutMenu.add("Save Layout " + i).addActionListener(
-    new ActionListener() {
-    
-    public void actionPerformed(ActionEvent e) {
-    try {
-    // Save the layout in a byte array
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    ObjectOutputStream out = new ObjectOutputStream(
-    bos);
-    rootWindow.write(out, false);
-    out.close();
-    layouts[j] = bos.toByteArray();
-    } catch (IOException e1) {
-    throw new RuntimeException(e1);
-    }
-    }
-    });
-    }
-    
-    layoutMenu.addSeparator();
-    
-    for (int i = 0; i < layouts.length; i++) {
-    final int j = i;
-    
-    layoutMenu.add("Load Layout " + j).addActionListener(
-    new ActionListener() {
-    
-    public void actionPerformed(ActionEvent e) {
-    SwingUtilities.invokeLater(new Runnable() {
-    
-    public void run() {
-    if (layouts[j] != null) {
-    try {
-    // Load the layout from a byte array
-    ObjectInputStream in = new ObjectInputStream(
-    new ByteArrayInputStream(
-    layouts[j]));
-    rootWindow.read(in, true);
-    in.close();
-    } catch (IOException e1) {
-    throw new RuntimeException(
-    e1);
-    }
-    }
-    }
-    });
-    }
-    });
-    }
-    
-    layoutMenu.addSeparator();
-    
-    layoutMenu.add("Show Window Layout Frame").addActionListener(
-    new ActionListener() {
-    
-    public void actionPerformed(ActionEvent e) {
-    DeveloperUtil.createWindowLayoutFrame(
-    "Root Window Layout as Java Pseudo-like Code",
-    rootWindow).setVisible(true);
-    }
-    });
-    return layoutMenu;
-    }
+     * private JMenu createLayoutMenu() { JMenu layoutMenu = new
+     * JMenu("Layout");
+     *
+     * layoutMenu.add("Default Layout").addActionListener( new ActionListener()
+     * {
+     *
+     * public void actionPerformed(ActionEvent e) { setDefaultLayout(); } });
+     *
+     * layoutMenu.addSeparator();
+     *
+     * for (int i = 0; i < layouts.length; i++) { final int j = i;
+     *
+     * layoutMenu.add("Save Layout " + i).addActionListener( new
+     * ActionListener() {
+     *
+     * public void actionPerformed(ActionEvent e) { try { // Save the layout in
+     * a byte array ByteArrayOutputStream bos = new ByteArrayOutputStream();
+     * ObjectOutputStream out = new ObjectOutputStream( bos);
+     * rootWindow.write(out, false); out.close(); layouts[j] =
+     * bos.toByteArray(); } catch (IOException e1) { throw new
+     * RuntimeException(e1); } } }); }
+     *
+     * layoutMenu.addSeparator();
+     *
+     * for (int i = 0; i < layouts.length; i++) { final int j = i;
+     *
+     * layoutMenu.add("Load Layout " + j).addActionListener( new
+     * ActionListener() {
+     *
+     * public void actionPerformed(ActionEvent e) {
+     * SwingUtilities.invokeLater(new Runnable() {
+     *
+     * public void run() { if (layouts[j] != null) { try { // Load the layout
+     * from a byte array ObjectInputStream in = new ObjectInputStream( new
+     * ByteArrayInputStream( layouts[j])); rootWindow.read(in, true);
+     * in.close(); } catch (IOException e1) { throw new RuntimeException( e1); }
+     * } } }); } }); }
+     *
+     * layoutMenu.addSeparator();
+     *
+     * layoutMenu.add("Show Window Layout Frame").addActionListener( new
+     * ActionListener() {
+     *
+     * public void actionPerformed(ActionEvent e) {
+     * DeveloperUtil.createWindowLayoutFrame( "Root Window Layout as Java
+     * Pseudo-like Code", rootWindow).setVisible(true); } }); return layoutMenu;
+     * }
      */
-
     /**
      * Creates the menu where the theme can be changed.
      *
@@ -920,7 +826,8 @@ public class DockWindow {
     }
 
     /**
-     * Creates the menu where individual window bars can be enabled and disabled.
+     * Creates the menu where individual window bars can be enabled and
+     * disabled.
      *
      * @return the window bar menu
      */
@@ -1026,37 +933,31 @@ public class DockWindow {
     }
 
     /**
-     * Creates the menu where a floating window with a dynamic view can
-     * be created.
+     * Creates the menu where a floating window with a dynamic view can be
+     * created.
      *
      * @return the floating window menu
      */
     /*
-    private JMenu createFloatingWindowMenu() {
-    JMenu menu = new JMenu("Floating Window");
-    menu.add(enableMenuAndStatusLabelMenuItem);
-    
-    JMenuItem item1 = new JMenuItem(
-    "Create Floating Window with Dynamic View");
-    item1.addActionListener(new ActionListener() {
-    
-    public void actionPerformed(ActionEvent e) {
-    // Floating windows are created via the root window
-    FloatingWindow fw = rootWindow.createFloatingWindow(
-    new Point(50, 50), new Dimension(300, 200),
-    getDynamicView(getDynamicViewId()));
-    
-    // Show the window
-    fw.getTopLevelAncestor().setVisible(true);
-    }
-    });
-    menu.add(item1);
-    
-    return menu;
-    }
+     * private JMenu createFloatingWindowMenu() { JMenu menu = new
+     * JMenu("Floating Window"); menu.add(enableMenuAndStatusLabelMenuItem);
+     *
+     * JMenuItem item1 = new JMenuItem( "Create Floating Window with Dynamic
+     * View"); item1.addActionListener(new ActionListener() {
+     *
+     * public void actionPerformed(ActionEvent e) { // Floating windows are
+     * created via the root window FloatingWindow fw =
+     * rootWindow.createFloatingWindow( new Point(50, 50), new Dimension(300,
+     * 200), getDynamicView(getDynamicViewId()));
+     *
+     * // Show the window fw.getTopLevelAncestor().setVisible(true); } });
+     * menu.add(item1);
+     *
+     * return menu; }
      */
     /**
-     * Update the floating window by adding a menu bar and a status label if menu option is choosen.
+     * Update the floating window by adding a menu bar and a status label if
+     * menu option is choosen.
      *
      * @param fw the floating window
      */

@@ -12,6 +12,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
@@ -146,7 +148,7 @@ public class NavView extends JThreadPanel implements CommandListener {
             super.getTableCellRendererComponent(table, "",
                     isSelected, cellHasFocus, row, col);
 
-            String info = "";
+            String info;
             int trueCol = table.convertColumnIndexToModel(col);
 
             // Each row uses a single LayerTableEntry...
@@ -175,6 +177,9 @@ public class NavView extends JThreadPanel implements CommandListener {
                         break;
                     case ProductsListTableModel.NAV_MESSAGE:
                         info = e.message;
+                        break;
+                    default:
+                        info = "";
                         break;
 
                 }
@@ -259,7 +264,7 @@ public class NavView extends JThreadPanel implements CommandListener {
     public NavView() {
 
         // An extra layer. Not sure that this will stay a JPanel... 
-        setLayout(new MigLayout("fill", "", ""));
+        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         JPanel jRootTab = new JPanel();
         add(jRootTab, "grow");
 
@@ -269,11 +274,11 @@ public class NavView extends JThreadPanel implements CommandListener {
         jLoopPanel = new javax.swing.JPanel();
         jProductsScrollPane = new javax.swing.JScrollPane();
 
-        jRootTab.setLayout(new MigLayout("fill", "", ""));
-        jRootTab.add(jProductInfoLabel, "wrap");  // to THIS panel...
-        jRootTab.add(jNavPanel, "growx, wrap");
-        jRootTab.add(jLoopPanel, "wrap");
-        jRootTab.add(jProductsScrollPane, "dock south");
+        jRootTab.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        jRootTab.add(jProductInfoLabel, new CC().wrap());
+        jRootTab.add(jNavPanel, new CC().growX().wrap());
+        jRootTab.add(jLoopPanel, new CC().wrap());
+        jRootTab.add(jProductsScrollPane, new CC().dockSouth());
 
         //  initComponents();
         initButtonGrid();
@@ -288,8 +293,8 @@ public class NavView extends JThreadPanel implements CommandListener {
     }
 
     private void initButtonGrid() {
-        jNavPanel.setLayout(new MigLayout("fill, wrap 4", "", ""));
-
+        jNavPanel.setLayout(new MigLayout(new LC().fill().wrapAfter(4), null, null));
+                                        
         // We want a fixed size for buttons so they don't jitter as 
         NavButton sizer = new NavButton("00:00:00  ", 0);
         Dimension pref = sizer.getPreferredSize();
@@ -304,6 +309,7 @@ public class NavView extends JThreadPanel implements CommandListener {
                 b.setVisible(false);
             }
             jNavPanel.add(b, "w min:pref:, growx");
+            jNavPanel.add(b, new CC().width("min:pref:").growX());
             myNavControls.add(b);
         }
     }

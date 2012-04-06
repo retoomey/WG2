@@ -12,7 +12,7 @@ public class SourceDisconnectCommand extends SourceClearCommand {
 
     /** Called by programming */
     public SourceDisconnectCommand(String key) {
-        setIndexName(key);
+        setSourceKey(key);
     }
 
     @Override
@@ -22,9 +22,9 @@ public class SourceDisconnectCommand extends SourceClearCommand {
         super.execute();
 
         // Delete the index
-        String key = getIndexName();
+        String key = getSourceKey();
         if (key != null) {
-            disconnect(getIndexName());
+            disconnect(getSourceKey());
         }
 
         return true;

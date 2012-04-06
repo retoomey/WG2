@@ -25,8 +25,12 @@ import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.sources.IndexSource;
+import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.SourceList;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.HistoricalIndex;
+import org.wdssii.index.Index;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.xml.*;
 import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
@@ -186,8 +190,16 @@ public class ProductManager implements Singleton {
         FeatureList toAdd = FeatureList.theFeatures;
         // ----------------------------------------------------------------
         // Try to create default product from selections.
-        SourceManager manager = SourceManager.getInstance();
-        HistoricalIndex anIndex = SourceManager.getIndexByName(indexName);
+        //SourceManager manager = SourceManager.getInstance();
+        Source s = SourceList.theSources.getSource(indexName);
+        IndexSource is = null;
+        if (s instanceof IndexSource){  // Hack for moment, this code should move
+            is = (IndexSource)(s);
+        }else{
+            return;
+        }
+        HistoricalIndex anIndex = is.getIndex();
+      //  HistoricalIndex anIndex = SourceManager.getIndexByName(indexName);
 
         if (anIndex == null) {
             log.error("Index null, cannot create new product");
@@ -199,7 +211,9 @@ public class ProductManager implements Singleton {
             log.error("Record is null, cannot create new product");
             return;
         }
-        aRecord.setSourceName(manager.getIndexName(anIndex));
+        String indexKey = is.getKey();
+        
+        aRecord.setSourceName(indexKey);
         String productCacheKey = Product.createCacheKey(indexName, aRecord);
         Product aProduct = ProductManager.CreateProduct(productCacheKey, indexName, aRecord);
 

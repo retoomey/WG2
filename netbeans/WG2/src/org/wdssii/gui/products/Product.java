@@ -583,15 +583,6 @@ public class Product {
         }
     }
 
-    /**
-     * Get the display string. This is displayed by the product selection list
-     * @return string
-     */
-    public String getIndexDatatypeString() {
-        String shortName = SourceManager.getInstance().getNiceShortName(getIndexKey());
-        return (String.format("%s %s", shortName, getDataType()));
-    }
-
     public boolean timeStampLess(IndexRecord a, IndexRecord b) {
         boolean less = false;
         if (a != null && (b != null)) {

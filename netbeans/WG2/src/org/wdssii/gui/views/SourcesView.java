@@ -1,15 +1,41 @@
 package org.wdssii.gui.views;
 
 import java.awt.Component;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import net.infonode.docking.*;
+import net.infonode.docking.properties.DockingWindowProperties;
+import net.infonode.docking.properties.ViewProperties;
+import net.infonode.docking.properties.ViewTitleBarProperties;
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.swing.JThreadPanel;
+import org.wdssii.gui.DockWindow;
+import org.wdssii.gui.SourceManager.SourceCommand;
+import org.wdssii.gui.commands.FeatureCommand;
+import org.wdssii.gui.commands.SourceSelectCommand;
+import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.SourceList;
+import org.wdssii.gui.swing.*;
+import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
+import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 
 /**
+ * SourcesView. Lots of duplicate code with FeaturesView, should probably break
+ * up the code refactor here...
  *
  * @author Robert Toomey
  */
@@ -17,11 +43,30 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
     public static final String ID = "wdssii.SourcesView";
     private static Logger log = LoggerFactory.getLogger(SourcesView.class);
-    
-     /**
+    private Source myLastSelectedSource = null;
+
+    // ----------------------------------------------------------------
+    // Reflection called updates from CommandManager.
+    // See CommandManager execute and gui updating for how this works
+    // When sources or products change, update the navigation controls
+    public void SourceCommandUpdate(SourceCommand command) {
+        updateGUI(command);
+    }
+
+    // FIXME: probably not needed....
+    public void FeatureCommandUpdate(FeatureCommand command) {
+        updateGUI(command);
+    }
+
+    /**
      * Our factory, called by reflection to populate menus, etc...
      */
     public static class Factory extends WdssiiDockedViewFactory {
+
+        /**
+         * Create a sub-bock for gui controls, or a split pane
+         */
+        public static final boolean myDockControls = true;
 
         public Factory() {
             super("Sources", "brick_add.png");
@@ -29,27 +74,453 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
         @Override
         public Component getNewComponent() {
-            return new SourcesView();
+            return new SourcesView(myDockControls);
+        }
+
+        @Override
+        public DockingWindow getNewDockingWindow() {
+            if (!myDockControls) {
+                // Get a single non-docked FeatureView component
+                return super.getNewDockingWindow();
+            } else {
+                Icon i = getWindowIcon();
+                String title = getWindowTitle();
+
+                SourcesView f = new SourcesView(myDockControls);
+
+                // Create a RootWindow in the view.  Anything added to this
+                // will be movable.
+                RootWindow root = DockWindow.createARootWindow();
+                View topWindow = new View(title, i, root);
+
+                // Inside the root window we'll add two views...
+                View controls = new View("Controls", i, f.getControlComponent());
+                View select = new View("Selection", i, f);
+
+                // The select is our 'root', so make it non-dragable.  Basically
+                // the main view will be the actual holder for this.  By making it a view,
+                // we allow the other view to be docked above it, etc..
+                ViewProperties vp = select.getViewProperties();
+                ViewTitleBarProperties tp = vp.getViewTitleBarProperties();
+                tp.setVisible(false);
+
+                // Since menu allows changing, make a new window properties
+                DockingWindowProperties org = controls.getWindowProperties();
+                org.setCloseEnabled(false);
+                org.setMaximizeEnabled(false);
+                org.setMinimizeEnabled(false);
+
+                SplitWindow w = new SplitWindow(false, select, controls);
+                w.setDividerLocation(.25f);
+                root.setWindow(w);
+
+                // Add a 'close' listener to our internal root so that if the
+                // control window is closed we redock instead.. (we could close
+                // it but we'll need some control to get it back then)
+                // Add a listener which shows dialogs when a window is closing or closed.
+                root.addListener(new DockingWindowAdapter() {
+
+                    @Override
+                    public void windowClosing(DockingWindow window)
+                            throws OperationAbortedException {
+                        window.dock();
+                    }
+                });
+
+                return topWindow;
+            }
         }
     }
-    
+    private SourceListTableModel mySourceListTableModel;
+    private RowEntryTable jObjects3DListTable;
+    private JPanel jSourceGUIPanel;
+    private javax.swing.JToolBar jEditToolBar;
+    private javax.swing.JScrollPane jObjectScrollPane;
+   // private javax.swing.JScrollPane jControlScrollPane;
+    private javax.swing.JLabel jInfoLabel;
+
     @Override
     public void updateInSwingThread(Object command) {
-       
-    }
-    
-    public SourcesView() {
-        initGUI();
-        CommandManager.getInstance().addListener(SourcesView.ID, this);
-    }
-    
-    public void initGUI(){
-         setLayout(new MigLayout("fill", "", ""));
-        JPanel myPanel = new JPanel();
-        add(myPanel, "grow");
-        myPanel.setLayout(new MigLayout("fillx", "", ""));
-        JLabel myInfo = new JLabel("TESTING");
-        myPanel.add(myInfo, "dock north");
+        updateTable();
+        // jInfoLabel.setText(SourceList.theSources);
     }
 
+    public SourcesView(boolean dockControls) {
+        initComponents(dockControls);
+        CommandManager.getInstance().addListener(SourcesView.ID, this);
+    }
+
+    /**
+     * Storage for displaying the current feature list
+     */
+    private static class SourceListTableData {
+
+        public String visibleName; // Name shown in list
+        public String sourceKey;   // Key for the source lookup...
+        public boolean realtime;  // true if 'realtime' updating source
+        public String urlLocation; // location of the source
+        public boolean connected;  // connection success
+        public boolean connecting; // connection being attempted
+        public String message;
+    }
+
+    private class SourceListTableModel extends RowEntryTableModel<SourceListTableData> {
+
+        public static final int SOURCE_STATUS = 0;
+        public static final int SOURCE_NAME = 1;
+        public static final int SOURCE_PATH = 2;
+        private boolean isRebuilding = false;
+
+        public SourceListTableModel() {
+            super(SourceListTableData.class, new String[]{
+                        "Connected", "Source", "Path"
+                    });
+        }
+
+        @Override
+        public boolean rebuilding() {
+            return isRebuilding;
+        }
+
+        @Override
+        public void setRebuilding(boolean value) {
+            isRebuilding = value;
+        }
+    }
+
+    /**
+     * Our custom renderer for drawing the table for the FeatureList
+     */
+    private static class SourceListTableCellRenderer extends WG2TableCellRenderer {
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean cellHasFocus, int row, int col) {
+
+            // Let super set all the defaults...
+            super.getTableCellRendererComponent(table, "",
+                    isSelected, cellHasFocus, row, col);
+
+            String info;
+            int trueCol = table.convertColumnIndexToModel(col);
+
+            // Each row uses a single LayerTableEntry...
+            if (value instanceof SourceListTableData) {
+                SourceListTableData e = (SourceListTableData) value;
+
+                switch (trueCol) {
+                    case SourceListTableModel.SOURCE_STATUS:
+                        String icon = "link_break.png"; // Not connected
+                        if (e.connecting) {
+                            icon = "link_go.png";
+                        }
+                        if (e.connected) {
+                            icon = "link.png";
+                        }
+                        return getIcon(table, icon, isSelected, cellHasFocus, row, col);
+                    case SourceListTableModel.SOURCE_NAME:
+                        info = e.visibleName;
+                        break;
+                    case SourceListTableModel.SOURCE_PATH:
+                        info = ">"+e.urlLocation;
+                        break;
+                    default:
+                        info = Integer.toString(trueCol) + "," + col;
+                        break;
+                }
+
+                // For text...
+                setText(info);
+            } else {
+                setText((String) (value));
+            }
+            return this;
+        }
+    }
+
+    private void initTable() {
+        mySourceListTableModel = new SourceListTableModel();
+        jObjects3DListTable = new RowEntryTable();
+        final JTable myTable = jObjects3DListTable;
+        jObjects3DListTable.setModel(mySourceListTableModel);
+        final SourceListTableModel myModel = mySourceListTableModel;
+
+        jObjects3DListTable.setFillsViewportHeight(true);
+        jObjects3DListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        jObjectScrollPane.setViewportView(jObjects3DListTable);
+
+        SourceListTableCellRenderer p = new SourceListTableCellRenderer();
+        jObjects3DListTable.setDefaultRenderer(SourceListTableData.class, p);
+
+        int count = myTable.getColumnCount();
+        TableColumnModel cm = myTable.getColumnModel();
+        JCheckBox aBox = new JCheckBox();
+        Dimension d = aBox.getMinimumSize();
+        TableUtil.IconHeaderRenderer r = new TableUtil.IconHeaderRenderer();
+
+        for (int i = 0; i < count; i++) {
+            TableColumn col = cm.getColumn(i);
+            // Make all headers draw the same to be consistent.
+            col.setHeaderRenderer(r);
+            switch (i) {
+                case SourceListTableModel.SOURCE_STATUS: {
+                    IconHeaderInfo info = new IconHeaderInfo("link.png");
+                    col.setHeaderValue(info);
+                    // FIXME: this isn't right, how to do it with look + feel
+                    col.setWidth(2 * d.width);
+                    col.setMaxWidth(2 * d.width);
+                    col.setResizable(false);
+                }
+
+                break;
+            }
+        }
+
+        jObjects3DListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                jObjects3DListTableValueChanged(e);
+            }
+        });
+
+        jObjects3DListTable.addMouseListener(new RowEntryTableMouseAdapter(jObjects3DListTable, myModel) {
+
+            class Item extends JMenuItem {
+
+                private final SourceListTableData d;
+
+                public Item(String s, SourceListTableData line) {
+                    super(s);
+                    d = line;
+                }
+
+                public SourceListTableData getData() {
+                    return d;
+                }
+            };
+
+            @Override
+            public JPopupMenu getDynamicPopupMenu(Object line, int row, int column) {
+
+                // FIXME: Code a bit messy, we're just hacking the text value
+                // for now.  Probably will need a custom JPopupMenu that has
+                // our Objects3DTableData in it.
+                ActionListener al = new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        Item i = (Item) (e.getSource());
+                        String text = i.getText();
+                        if (text.startsWith("Delete")) {
+                            // FeatureDeleteCommand del = new FeatureDeleteCommand(i.getData().keyName);
+                            // CommandManager.getInstance().executeCommand(del, true);
+                        }
+                    }
+                };
+                JPopupMenu popupmenu = new JPopupMenu();
+                SourceListTableData entry = (SourceListTableData) (line);
+                String name = "Delete " + entry.visibleName;
+                Item i = new Item(name, entry);
+                popupmenu.add(i);
+                i.addActionListener(al);
+                return popupmenu;
+            }
+
+            @Override
+            public void handleClick(Object stuff, int orgRow, int orgColumn) {
+
+                if (stuff instanceof SourceListTableData) {
+                    SourceListTableData entry = (SourceListTableData) (stuff);
+
+                    switch (orgColumn) {
+                        default:
+                            break;
+                    }
+                }
+            }
+        });
+
+        setUpSortingColumns();
+
+        // updateTable();
+    }
+    // Disable for now since this does nothing yet
+
+    /**
+     * Set up sorting columns if wanted
+     */
+    private void setUpSortingColumns() {
+    }
+
+    private void jObjects3DListTableValueChanged(ListSelectionEvent evt) {
+        if (evt.getValueIsAdjusting()) {
+            return;
+        }
+        // We're in the updateTable and have set the selection to the old
+        // value, we don't want to loop infinitely
+        if (mySourceListTableModel.rebuilding()) {
+            return;
+        }
+        int row = jObjects3DListTable.getSelectedRow();
+        if (row > -1) {
+            int dataRow = jObjects3DListTable.convertRowIndexToModel(row);
+            if (mySourceListTableModel != null) {
+                SourceListTableData d = (SourceListTableData) (mySourceListTableModel.getDataForRow(dataRow));
+                if (d != null) {
+                    SourceSelectCommand c = new SourceSelectCommand(d.sourceKey);
+                    CommandManager.getInstance().executeCommand(c, true);
+                }
+            }
+        }
+    }
+
+    public void updateTable() {
+
+        final SourceList flist = SourceList.theSources;
+
+        /**
+         * Static for now...
+         */
+        List<Source> forg = flist.getSources();
+        ArrayList<Source> f = new ArrayList<Source>(forg);
+       
+        /** Sort by visible name */
+        Collections.sort(f,
+                new Comparator<Source>() {
+
+                    @Override
+                    public int compare(Source o1, Source o2) {
+                        int c = o1.getVisibleName().compareTo(o2.getVisibleName());
+                        return c;
+                    }
+                });
+
+        int currentLine = 0;
+        int select = -1;
+        ArrayList<SourceListTableData> newList = new ArrayList<SourceListTableData>();
+        Source selectedSource = null;
+        Source topSource = flist.getTopSelected();
+
+        for (Source d : f) {
+            SourceListTableData d2 = new SourceListTableData();
+            d2.visibleName = d.getVisibleName();
+            d2.sourceKey = d.getKey();
+            d2.urlLocation = d.getURLString();
+            d2.message = "";
+
+            newList.add(d2);
+            if (topSource == d) {
+                select = currentLine;
+                selectedSource = d;
+            }
+            currentLine++;
+        }
+        mySourceListTableModel.setDataTypes(newList);
+        mySourceListTableModel.fireTableDataChanged();
+
+        if (select > -1) {
+            select = jObjects3DListTable.convertRowIndexToView(select);
+
+            // This of course fires an event, which calls jProductsListTableValueChanged
+            // which would send a command which would do this again in an
+            // infinite loop.  So we have a flag.  We don't use isAdjusting
+            // because it still fires and event when you set it false
+            mySourceListTableModel.setRebuilding(true);
+            jObjects3DListTable.setRowSelectionInterval(select, select);
+           
+            if (myLastSelectedSource != selectedSource) {
+                jSourceGUIPanel.removeAll();
+                selectedSource.setupSourceGUI(jSourceGUIPanel);
+                jSourceGUIPanel.validate();
+                jSourceGUIPanel.repaint();
+                myLastSelectedSource = selectedSource;
+            } else {
+                selectedSource.updateGUI();
+            }
+
+            mySourceListTableModel.setRebuilding(false);
+
+        } else {
+            setEmptyControls();
+            jSourceGUIPanel.validate();
+            jSourceGUIPanel.repaint();
+            myLastSelectedSource = null;
+        }
+        jObjects3DListTable.repaint();
+    }
+
+    private JComponent initControlGUI() {
+        //JPanel holder = new JPanel();
+        //holder.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));      
+        jSourceGUIPanel = new JPanel();
+        jSourceGUIPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        setEmptyControls();
+        return jSourceGUIPanel;
+    }
+
+    /**
+     * The part of the GUI that deals with selection of a individual feature
+     */
+    private JComponent initSelectGUI() {
+
+        jObjectScrollPane = new JScrollPane();
+        jInfoLabel = new JLabel("---");
+        return jObjectScrollPane;
+    }
+
+    private JToolBar initToolBar() {
+        jEditToolBar = new javax.swing.JToolBar();
+        jEditToolBar.setFloatable(false);
+        jEditToolBar.setRollover(true);
+        return jEditToolBar;
+    }
+
+    private void initComponents(boolean dockControls) {
+
+        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        jInfoLabel = new JLabel("---");
+        JComponent controls = initControlGUI();
+        JComponent selection = initSelectGUI();
+        JComponent toolbar = initToolBar();
+        JComponent rootComponent;
+        if (!dockControls) {
+            JSplitPane s = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                    selection, controls);
+            s.setResizeWeight(.50);
+            rootComponent = s;
+        } else {
+            rootComponent = jObjectScrollPane;
+            jObjectScrollPane.setBorder(null);
+        }
+
+        add(toolbar, new CC().dockNorth());
+        add(jInfoLabel, new CC().dockNorth().growX());
+        add(rootComponent, new CC().growX().growY());
+        // growX().growY());
+
+        // to size correct, init table last, nope not it
+        initTable();
+    }
+
+    public JComponent getControlComponent() {
+        return jSourceGUIPanel;
+    }
+
+    public JComponent getToolBar() {
+        return jEditToolBar;
+    }
+
+    public JComponent getInfoLabel() {
+        return jInfoLabel;
+    }
+
+    private void setEmptyControls() {
+        jSourceGUIPanel.removeAll();
+        JTextField t = new javax.swing.JTextField();
+        t.setText("Controls for selected feature");
+        t.setEditable(false);
+        jSourceGUIPanel.setLayout(new java.awt.BorderLayout());
+        jSourceGUIPanel.add(t, java.awt.BorderLayout.CENTER);
+    }
 }

@@ -1,8 +1,12 @@
 package org.wdssii.gui.commands;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
@@ -12,7 +16,9 @@ import org.wdssii.gui.PreferencesManager.PrefConstants;
  */
 public class SourceAddCommand extends SourceClearCommand {
 
-    private String myPath;
+    private static Logger log = LoggerFactory.getLogger(SourceAddCommand.class);
+
+    private URL myPath;
     private boolean myRealtime = false;
     private String myNiceName = null;
     private boolean myConnect = false;
@@ -25,13 +31,32 @@ public class SourceAddCommand extends SourceClearCommand {
      */
     private JComponent myRoot = null;
     
-    /**
+       /**
      * 
      * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
      * @param path	The path such as "http://...."
      * @param realtime	Is this a realtime index?  (requires a socket connection)
      */
     public SourceAddCommand(String niceName, String path, boolean realtime, boolean connect) {
+        myNiceName = niceName;
+        myUserConfirm = false;
+        myUserReport = false;     
+        myRealtime = realtime;
+        myConnect = connect;
+        try {
+            myPath = new URL(path);
+        } catch (MalformedURLException ex) {
+            log.error("SOURCE URL is MALFORMED "+ex.toString());
+        }
+    }
+ 
+    /**
+     * 
+     * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
+     * @param path	The path such as "http://...."
+     * @param realtime	Is this a realtime index?  (requires a socket connection)
+     */
+    public SourceAddCommand(String niceName, URL path, boolean realtime, boolean connect) {
         myNiceName = niceName;
         myUserConfirm = false;
         myUserReport = false;
@@ -47,7 +72,7 @@ public class SourceAddCommand extends SourceClearCommand {
      * @param needUserConfirm	Do we use user dialogs? (scripting turns this off)
      * @param realtime	Is this a realtime index?  (requires a socket connection)
      */
-    public SourceAddCommand(JComponent root, String niceName, String path, boolean needUserConfirm,
+    public SourceAddCommand(JComponent root, String niceName, URL path, boolean needUserConfirm,
             boolean needUserReport, boolean realtime, boolean connect) {
         myRoot = root;
         myNiceName = niceName;
@@ -56,6 +81,28 @@ public class SourceAddCommand extends SourceClearCommand {
         myPath = path;
         myRealtime = realtime;
         myConnect = connect;
+    }
+    
+           /**
+     * 
+     * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
+     * @param path	The path such as "http://...."
+     * @param needUserConfirm	Do we use user dialogs? (scripting turns this off)
+     * @param realtime	Is this a realtime index?  (requires a socket connection)
+     */
+    public SourceAddCommand(JComponent root, String niceName, String path, boolean needUserConfirm,
+            boolean needUserReport, boolean realtime, boolean connect) {
+        myRoot = root;
+        myNiceName = niceName;
+        myUserConfirm = needUserConfirm;
+        myUserReport = needUserReport;
+        myRealtime = realtime;
+        myConnect = connect;
+         try {
+            myPath = new URL(path);
+        } catch (MalformedURLException ex) {
+            log.error("SOURCE URL is MALFORMED "+ex.toString());
+        }
     }
 
     @Override

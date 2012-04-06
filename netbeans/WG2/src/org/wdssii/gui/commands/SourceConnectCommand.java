@@ -4,8 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.SourceManager.SourceCommand;
+import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.SourceList;
 
 public class SourceConnectCommand extends SourceCommand {
 
@@ -16,22 +17,23 @@ public class SourceConnectCommand extends SourceCommand {
 
     /** Called by other code */
     public SourceConnectCommand(String key) {
-        setIndexName(key);
+        setSourceKey(key);
     }
 
     @Override
     public boolean execute() {
 
-        final String key = getIndexName();
+        final String key = getSourceKey();
         final WdssiiCommand update = this;
         if (key != null) {
-            final String nice = SourceManager.getInstance().getNiceShortName(key);
+            final Source s = SourceList.theSources.getSource(key);
+            final String nice = s.getVisibleName();
+            //final String nice = SourceManager.getInstance().getNiceShortName(key);
             log.info("Connection attempt being made to source '" + nice + "' (" + key + ")");
-            //PlatformUI.getWorkbench().getProgressService().showInDialog(shell, job);
 
             // This will make it so that our GUI will show 'connecting' icons, etc.
            // aboutToConnect(key, true);
-            
+
             WdssiiJob job = new WdssiiJob("Connecting to '" + nice + "'") {
 
                 @Override

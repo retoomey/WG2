@@ -1,8 +1,8 @@
 package org.wdssii.gui.commands;
 
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.LLHAreaFeature;
 
 /**
  * Command to select any feature in a window
@@ -10,7 +10,7 @@ import org.wdssii.gui.features.LLHAreaFeature;
  */
 public class FeatureSelectCommand extends FeatureCommand {
     private String myFeatureKey = null;
-    LLHAreaFeature myFeature = null;
+    Feature myFeature = null;
     
     /** Select an LLHArea by known keyname */
     public FeatureSelectCommand(String key) {
@@ -18,7 +18,7 @@ public class FeatureSelectCommand extends FeatureCommand {
     }
     
     /** Select an LLHArea by known contained object */
-    public FeatureSelectCommand(LLHAreaFeature area){
+    public FeatureSelectCommand(Feature area){
         myFeature = area;
     }
 

@@ -36,7 +36,7 @@ public class SourceDeleteCommand extends SourceClearCommand {
 
     /** Called by other code */
     public SourceDeleteCommand(String key) {
-        setIndexName(key);
+        setSourceKey(key);
     }
 
     /** Delete all sources from display */
@@ -110,7 +110,7 @@ public class SourceDeleteCommand extends SourceClearCommand {
     public boolean execute() {
         boolean success = false;
         if (validIndexNameOrSelected()) {
-            String toDelete = getIndexName();
+            String toDelete = getSourceKey();
             success = deleteSingleSource(toDelete, true);
         }
         return success;

@@ -11,6 +11,8 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.Product.ProductTimeWindowAge;
 import org.wdssii.gui.products.Product.ProductTimeWindowInfo;
 import org.wdssii.gui.products.navigators.ProductNavigator;
+import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.SourceList;
 
 /**
  * ProductFeature handles a collection of the same product type (i.e. KTLX
@@ -36,7 +38,6 @@ public class ProductFeature extends Feature {
      * The filter list for this handler.
      */
     protected FilterList myFList = new FilterList();
-    protected String myDisplayName;
     /**
      * Current text time stamp from product, if any
      */
@@ -82,8 +83,7 @@ public class ProductFeature extends Feature {
         myFList.setColorMap(p.getColorMap());
 
         setKey(getKeyForProduct(p));
-        setName(p.getIndexDatatypeString());
-        myDisplayName = p.getIndexDatatypeString();
+        setName(getIndexDatatypeString());
 
         // Should we hold these or pull from product directly?
         myCurrentTime = myProduct.getTime();
@@ -103,9 +103,11 @@ public class ProductFeature extends Feature {
         return myProduct;
     }
 
-    /*
+    /* else {
+           
+        }
      * Time we are AT. a 'Product' will always have the same time..the time it's
-     * at
+     * atgetVisible();
      */
     public String getTimeStamp() {
         return myCurrentTimeStamp;
@@ -140,6 +142,23 @@ public class ProductFeature extends Feature {
     }
 
     /**
+     * Get the display string. This is displayed by the product selection list
+     *
+     * @return string
+     */
+    protected String getIndexDatatypeString() {
+        if (myProduct != null) {
+            Source s = SourceList.theSources.getSource(myProduct.getIndexKey());
+            if (s != null) {
+                String d = myProduct.getDataType();
+                String v = s.getVisibleName();
+                return (String.format("%s %s", v, d));
+            }
+        }
+        return "?";
+    }
+
+    /**
      * ProductHandlers are kept in sets. Return true if we can handle the given
      * product, otherwise a new handler will be created
      *
@@ -153,12 +172,11 @@ public class ProductFeature extends Feature {
     }
 
     /**
-     * Get the name shown in product selection gui list. This is typically index
-     * information
+     * Get the name shown in product selection gui list. This is typically of
+     * the form "SourceName Product" such as "KTLX Reflectivity"
      */
     public String getListName() {
-
-        return myDisplayName;
+        return getName();  // Just use the name
     }
 
     /**
@@ -252,6 +270,10 @@ public class ProductFeature extends Feature {
      * displayed by this handler. We should make our product time <= the current
      * one
      *
+     *
+     *
+     *
+     *
 
      *
      * @param current product to match
@@ -283,11 +305,12 @@ public class ProductFeature extends Feature {
         }
     }
 
-    /** ProductFeature was chosen manually, by navigation button or
-     * record picker, etc.  Navigate time to us.
+    /**
+     * ProductFeature was chosen manually, by navigation button or record
+     * picker, etc. Navigate time to us.
      */
     public void timeNavigateTo() {
-          
+
         // Set entire FilterList simulation time to us
         setToOurSimulationTime();
 

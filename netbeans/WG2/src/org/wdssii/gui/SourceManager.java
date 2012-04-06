@@ -14,6 +14,9 @@ import org.wdssii.index.IndexWatcher;
 import org.wdssii.index.HistoricalIndex.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.gui.sources.IndexSource;
+import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.SourceList;
 import org.wdssii.index.ManualLoadIndex;
 
 /**
@@ -60,26 +63,27 @@ public class SourceManager implements Singleton {
     public static abstract class SourceCommand extends DataCommand {
 
         /** The index key for affected index, if any */
-        public String myIndexName = null;
+        public String mySourceKey = null;
 
         /** Get the index key for this command */
-        public String getIndexName() {
-            return myIndexName;
+        public String getSourceKey() {
+            return mySourceKey;
         }
 
         /** Set the index key for this command */
-        public void setIndexName(String s) {
-            myIndexName = s;
+        public void setSourceKey(String s) {
+            mySourceKey = s;
         }
 
         /** Do we have a valid index or selected source? */
         protected boolean validIndexNameOrSelected() {
-            String name = getIndexName();
+            String name = getSourceKey();
             if (name == null) {
-                name = SourceManager.getInstance().getIndexCollection().getSelectedIndexKey();
+                Source s = SourceList.theSources.getTopSelected();
+                name = s.getKey();
             }
             if (name != null) {
-                setIndexName(name);
+                setSourceKey(name);
             }
             return (name != null);
         }
@@ -87,35 +91,46 @@ public class SourceManager implements Singleton {
         // Private method access (for subclasses) ----------------------------
         /** Remove an index */
         protected void removeIndexKey(String name) {
-            SourceManager.getInstance().getIndexCollection().removeIndexKey(name);
+            SourceList.theSources.removeSource(name);
         }
 
         /** Add an index */
-        protected String add(String shortName, String path, boolean realtime) {
-            return SourceManager.getInstance().add(shortName, path, realtime);
+        protected String add(String shortName, URL url, boolean realtime) {
+            return SourceManager.getInstance().add(shortName, url, realtime);
         }
 
         /** Called before a connect, so that we can update GUI to show connecting statuses */
-        protected boolean aboutToConnect(String keyName, boolean start) {
-            boolean success = SourceManager.getInstance().getIndexCollection().aboutToConnect(keyName, start);
-            return success;
+        protected boolean aboutToConnect(String keyName, boolean start) {          
+            Source s = SourceList.theSources.getSource(keyName);
+            if (s!= null){
+                return s.aboutToConnect(start);
+            }
+            return false;
         }
 
         /** Add to an index.  This can take some time so should be called in a worker thread */
-        protected boolean connect(String keyName) {
-            boolean success = SourceManager.getInstance().getIndexCollection().connect(keyName);
-            return success;
+        protected boolean connect(String keyName) {            
+            Source s = SourceList.theSources.getSource(keyName);
+            if (s!= null){
+                return s.connect();
+            }
+            return false;
         }
 
         protected void disconnect(String keyName) {
-            SourceManager.getInstance().getIndexCollection().disconnect(keyName);
+             Source s = SourceList.theSources.getSource(keyName);
+            if (s!= null){
+                s.disconnect();
+            }
         }
     }
 
     /** Only SourceManager and SourceCommands are allowed to access this directly */
     private IndexCollection getIndexCollection() {
+       log.error("INDEX COLLECTION CALLED...this no longer works");
         return myIndexCollection;
     }
+
     private static SourceManager instance = null;
     private SourceRecordLog mySourceRecordLog = new SourceRecordLog();
 
@@ -137,28 +152,13 @@ public class SourceManager implements Singleton {
         return instance;
     }
 
-    public String add(String shortName, String path, boolean realtime) { 
-        String success = "";    
-        IndexCollection iCollection = getIndexCollection();
+    /** Add a source to the display */
+    public String add(String shortName, URL aUrl, boolean realtime) { 
         
-        // Add the manual index...
-        if (path.equals(HistoricalIndex.MANUAL)) {
-            try {
-                //CommandManager c = CommandManager.getInstance();
-                String key = iCollection.addManualIndex(HistoricalIndex.MANUAL);
-                HistoricalIndex theIndex = getIndexByName(key);
-                if (theIndex != null) {
-                    Index i = theIndex.getIndex();
-                    myManualIndex = (ManualLoadIndex) (i);
-                    success = key;
-                }
-            } catch (Exception e) {
-            }
-           
-        }else{
-             success = iCollection.add(shortName, path, realtime);
-        }
-        return success;
+        String success = "";
+        Source s = Source.SourceFactory(shortName, aUrl);
+        SourceList.theSources.addSource(s);
+        return s.getKey();  
     }
 
     /**
@@ -173,7 +173,7 @@ public class SourceManager implements Singleton {
             CommandManager c = CommandManager.getInstance();
             boolean connect = true;
             // Add the manual index...
-            c.executeCommand(new SourceAddCommand("Localfiles", HistoricalIndex.MANUAL, false, true), false);
+           // c.executeCommand(new SourceAddCommand("Localfiles", HistoricalIndex.MANUAL, false, true), false);
            // c.executeCommand(new SourceAddCommand("CONUS", "file:/E:/CONUS/code_index.xml?p=xml", false, connect), false);
            // c.executeCommand(new SourceAddCommand("KTLX", "file:/E:/KTLX-large/radar_data.xml?p=xml", false, connect), false);
            // c.executeCommand(new SourceAddCommand("Wind", "file:/E:/WindData/code_index.xml", false, connect), false);
@@ -239,7 +239,13 @@ public class SourceManager implements Singleton {
     }
 
     public static HistoricalIndex getIndexByName(String name) {
-        return getInstance().getIndexCollection().getIndexByNameI(name);
+        SourceManager m = getInstance();
+        Source s = SourceList.theSources.getSource(name);
+        HistoricalIndex anIndex = null;
+        if (s instanceof IndexSource){
+            anIndex = ((IndexSource)s).getIndex();
+        }
+        return anIndex;
     }
 
     // Given an index key, record and direction, try to get the next record
@@ -393,8 +399,13 @@ public class SourceManager implements Singleton {
     }*/
 
     // Index collection access  -----------------------------
-    public String getNiceShortName(String toDelete) {
-        return myIndexCollection.getNiceShortName(toDelete);
+    public String getNiceShortName(String key) {
+        Source s = SourceList.theSources.getSource(key);
+        String name = "";
+        if (s != null){
+            name = s.getVisibleName();
+        }
+        return name;
     }
 
     public String getIndexName(HistoricalIndex anIndex) {
@@ -402,7 +413,12 @@ public class SourceManager implements Singleton {
     }
 
     public String getSelectedIndexKey() {
-        return myIndexCollection.getSelectedIndexKey();
+        Source s = SourceList.theSources.getTopSelected();
+        String name = "";
+        if (s != null){
+            name = s.getKey();
+        }
+        return name;
     }
 
     public ArrayList<IndexWatcher> getIndexList() {

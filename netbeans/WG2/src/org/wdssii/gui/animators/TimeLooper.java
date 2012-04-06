@@ -82,7 +82,8 @@ public class TimeLooper extends Animator {
             VisualCollection v = CommandManager.getInstance().getVisualCollection();
             myFrames = v.getLoopFrames();
             indexKey = prod.getIndexKey();
-            name = prod.getIndexDatatypeString();  // Note this name is lagged behind (time is wrong)
+           // name = prod.getIndexDatatypeString();  // Note this name is lagged behind (time is wrong)
+            name = "?";
             recs = prod.getLoopRecords(v.getLoopFrames());
             availableFrames = recs.size();
         }

@@ -14,7 +14,7 @@ public class SourceClearCommand extends SourceCommand {
     public boolean execute() {
 
         if (validIndexNameOrSelected()) {
-            String toClear = getIndexName();
+            String toClear = getSourceKey();
 
             // 1. Remove any products from handler list matching us...
             clearFromHandlerList(toClear);

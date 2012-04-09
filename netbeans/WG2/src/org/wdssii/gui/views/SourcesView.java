@@ -1,9 +1,15 @@
 package org.wdssii.gui.views;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,6 +17,7 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import net.infonode.docking.*;
@@ -22,11 +29,13 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.datatypes.builders.Builder;
+import org.wdssii.datatypes.builders.NetcdfBuilder;
+import org.wdssii.datatypes.builders.XMLBuilder;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.DockWindow;
 import org.wdssii.gui.SourceManager.SourceCommand;
-import org.wdssii.gui.commands.FeatureCommand;
-import org.wdssii.gui.commands.SourceSelectCommand;
+import org.wdssii.gui.commands.*;
 import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceList;
 import org.wdssii.gui.swing.*;
@@ -94,7 +103,7 @@ public class SourcesView extends JThreadPanel implements CommandListener {
                 View topWindow = new View(title, i, root);
 
                 // Inside the root window we'll add two views...
-                View controls = new View("Controls", i, f.getControlComponent());
+                View controls = new View("Source Controls", i, f.getControlComponent());
                 View select = new View("Selection", i, f);
 
                 // The select is our 'root', so make it non-dragable.  Basically
@@ -136,13 +145,13 @@ public class SourcesView extends JThreadPanel implements CommandListener {
     private JPanel jSourceGUIPanel;
     private javax.swing.JToolBar jEditToolBar;
     private javax.swing.JScrollPane jObjectScrollPane;
-   // private javax.swing.JScrollPane jControlScrollPane;
+    // private javax.swing.JScrollPane jControlScrollPane;
     private javax.swing.JLabel jInfoLabel;
 
     @Override
     public void updateInSwingThread(Object command) {
         updateTable();
-        // jInfoLabel.setText(SourceList.theSources);
+        updateInfoLabel();
     }
 
     public SourcesView(boolean dockControls) {
@@ -158,6 +167,7 @@ public class SourcesView extends JThreadPanel implements CommandListener {
         public String visibleName; // Name shown in list
         public String sourceKey;   // Key for the source lookup...
         public boolean realtime;  // true if 'realtime' updating source
+        public String typeName;   // The 'type' this source thinks it is
         public String urlLocation; // location of the source
         public boolean connected;  // connection success
         public boolean connecting; // connection being attempted
@@ -168,12 +178,13 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
         public static final int SOURCE_STATUS = 0;
         public static final int SOURCE_NAME = 1;
-        public static final int SOURCE_PATH = 2;
+        public static final int SOURCE_TYPE = 2;
+        public static final int SOURCE_PATH = 3;
         private boolean isRebuilding = false;
 
         public SourceListTableModel() {
             super(SourceListTableData.class, new String[]{
-                        "Connected", "Source", "Path"
+                        "Connected", "Source", "Type", "Path"
                     });
         }
 
@@ -221,8 +232,11 @@ public class SourcesView extends JThreadPanel implements CommandListener {
                     case SourceListTableModel.SOURCE_NAME:
                         info = e.visibleName;
                         break;
+                    case SourceListTableModel.SOURCE_TYPE:
+                        info = e.typeName;
+                        break;
                     case SourceListTableModel.SOURCE_PATH:
-                        info = ">"+e.urlLocation;
+                        info = ">" + e.urlLocation;
                         break;
                     default:
                         info = Integer.toString(trueCol) + "," + col;
@@ -306,24 +320,68 @@ public class SourcesView extends JThreadPanel implements CommandListener {
                 // FIXME: Code a bit messy, we're just hacking the text value
                 // for now.  Probably will need a custom JPopupMenu that has
                 // our Objects3DTableData in it.
+                // FIXME: Really need a cleaner way to do this...
                 ActionListener al = new ActionListener() {
 
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        Item i = (Item) (e.getSource());
-                        String text = i.getText();
-                        if (text.startsWith("Delete")) {
-                            // FeatureDeleteCommand del = new FeatureDeleteCommand(i.getData().keyName);
-                            // CommandManager.getInstance().executeCommand(del, true);
+                        Object z = e.getSource();
+                        if (z instanceof Item) {
+                            Item i = (Item) (e.getSource());
+                            String text = i.getText();
+                            String key = i.getData().sourceKey;
+                            if (text.startsWith("Delete")) {
+                                SourceDeleteCommand del = new SourceDeleteCommand(key);
+                                CommandManager.getInstance().executeCommand(del, true);
+                            } else if (text.startsWith("Connect")) {
+                                SourceConnectCommand r = new SourceConnectCommand(key);
+                                CommandManager.getInstance().executeCommand(r, true);
+                            } else if (text.startsWith("Disconnect")) {
+                                SourceDisconnectCommand r = new SourceDisconnectCommand(key);
+                                CommandManager.getInstance().executeCommand(r, true);
+                            }
+                        } else {
+                            JMenuItem i = (JMenuItem) (z);
+                            String text = i.getText();
+                            if (text.startsWith("Delete All Sources")) {
+                                SourceDeleteCommand.SourceDeleteAllCommand del = new SourceDeleteCommand.SourceDeleteAllCommand();
+                                CommandManager.getInstance().executeCommand(del, true);
+                            }
                         }
                     }
                 };
                 JPopupMenu popupmenu = new JPopupMenu();
                 SourceListTableData entry = (SourceListTableData) (line);
-                String name = "Delete " + entry.visibleName;
+
+                String vis = entry.visibleName;
+                // Disconnect/Reconnect command...
+                if (entry.connected) {
+                    String name = "Disconnect " + vis;
+                    Item i = new Item(name, entry);
+                    popupmenu.add(i);
+                    i.addActionListener(al);
+                } else {
+                    if (!entry.connecting) {
+                        String name = "Connect " + vis;
+                        Item i = new Item(name, entry);
+                        popupmenu.add(i);
+                        i.addActionListener(al);
+                    }
+                }
+
+                // Delete 'ktlx'
+                String name = "Delete " + vis;
                 Item i = new Item(name, entry);
                 popupmenu.add(i);
                 i.addActionListener(al);
+
+                popupmenu.add(new JSeparator());
+
+                // Delete all
+                name = "Delete All Sources";
+                JMenuItem z = new JMenuItem(name, null);
+                popupmenu.add(z);
+                z.addActionListener(al);
                 return popupmenu;
             }
 
@@ -384,8 +442,10 @@ public class SourcesView extends JThreadPanel implements CommandListener {
          */
         List<Source> forg = flist.getSources();
         ArrayList<Source> f = new ArrayList<Source>(forg);
-       
-        /** Sort by visible name */
+
+        /**
+         * Sort by visible name
+         */
         Collections.sort(f,
                 new Comparator<Source>() {
 
@@ -404,7 +464,11 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
         for (Source d : f) {
             SourceListTableData d2 = new SourceListTableData();
+            d2.connected = d.isConnected();
+            d2.connecting = d.isConnecting();
+            d2.realtime = d.isRealtime();
             d2.visibleName = d.getVisibleName();
+            d2.typeName = d.getShownTypeName();
             d2.sourceKey = d.getKey();
             d2.urlLocation = d.getURLString();
             d2.message = "";
@@ -428,7 +492,7 @@ public class SourcesView extends JThreadPanel implements CommandListener {
             // because it still fires and event when you set it false
             mySourceListTableModel.setRebuilding(true);
             jObjects3DListTable.setRowSelectionInterval(select, select);
-           
+
             if (myLastSelectedSource != selectedSource) {
                 jSourceGUIPanel.removeAll();
                 selectedSource.setupSourceGUI(jSourceGUIPanel);
@@ -448,6 +512,16 @@ public class SourcesView extends JThreadPanel implements CommandListener {
             myLastSelectedSource = null;
         }
         jObjects3DListTable.repaint();
+    }
+
+    public void updateInfoLabel() {
+        Source s = SourceList.theSources.getTopSelected();
+        if (s != null) {
+            String info = s.getSourceDescription();
+            jInfoLabel.setText(info);
+        } else {
+            jInfoLabel.setText(" ");
+        }
     }
 
     private JComponent initControlGUI() {
@@ -473,7 +547,30 @@ public class SourcesView extends JThreadPanel implements CommandListener {
         jEditToolBar = new javax.swing.JToolBar();
         jEditToolBar.setFloatable(false);
         jEditToolBar.setRollover(true);
+
+        JButton b = new JButton("+Source");
+        b.setFocusable(false);
+        b.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        b.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        b.addActionListener(new java.awt.event.ActionListener() {
+
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                //addActionPerformed(evt);
+            }
+        });
+        jEditToolBar.add(b);
+
         return jEditToolBar;
+    }
+
+    private void addActionPerformed(java.awt.event.ActionEvent evt) {
+        // Open dialog for single file adding.....
+
+        // FeatureCreateCommand doit = new FeatureCreateCommand("VSlice");
+        // CommandManager.getInstance().executeCommand(doit, true);
+        //FeatureList.theFeatures.addFeature(new LLHAreaFeature(0));
+        doSingleProductOpenDialog();
     }
 
     private void initComponents(boolean dockControls) {
@@ -522,5 +619,193 @@ public class SourcesView extends JThreadPanel implements CommandListener {
         t.setEditable(false);
         jSourceGUIPanel.setLayout(new java.awt.BorderLayout());
         jSourceGUIPanel.add(t, java.awt.BorderLayout.CENTER);
+    }
+
+    // Single source dialog.  We're gonna have to make it handle ANY generic
+    // Source type. FIXME
+    /**
+     * Filter for local files.
+     */
+    private class SingleProductFileFilter extends FileFilter {
+
+        @Override
+        public boolean accept(File f) {
+            String t = f.getName().toLowerCase();
+            // FIXME: need to get these from the Sources, some sort of
+            // Factory
+            return (f.isDirectory()
+                    || t.endsWith(".netcdf") || t.endsWith(".nc") || t.endsWith(".netcdf.gz")
+                    || t.endsWith(".xml") || t.endsWith(".xml.gz"));
+        }
+
+        @Override
+        public String getDescription() {
+            return "netcdf files or xml files";
+        }
+    }
+
+    /**
+     * Load an individual file into the ManualLoadIndex
+     */
+    public URL doSingleProductOpenDialog() {
+
+        if (false){
+        URL pickedFile = null;
+        JFileChooser chooser = new JFileChooser();
+
+        chooser.setAccessory(new LabelAccessory(chooser));
+
+        chooser.setFileFilter(new SingleProductFileFilter());
+        chooser.setDialogTitle("Add single source");
+
+        int returnVal = chooser.showOpenDialog(null);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File f = chooser.getSelectedFile();
+            try {
+                pickedFile = f.toURI().toURL();
+            } catch (MalformedURLException ex) {
+                // We assume that chooser knows not to return
+                // malformed urls...
+            }
+        }
+        return pickedFile;
+        }else{
+             CustomDialog myDialog = new CustomDialog(null, true, "Do you like Java?");
+            System.err.println("After opening dialog.");
+            if(myDialog.getAnswer()) {
+                System.err.println("The answer stored in CustomDialog is 'true' (i.e. user clicked yes button.)");
+            }
+            else {
+                System.err.println("The answer stored in CustomDialog is 'false' (i.e. user clicked no button.)");
+            }
+            return null;
+        }
+    }
+
+    public String figureOutSelectedFileType(URL aURL) {
+        String type = "Unknown";
+        if (aURL != null) {
+            String text = aURL.toString();
+            //jSingleURLTextField.setText(text);
+
+            // FIXME: Generalize these across Sources.  Sources might
+            // 'share' a builder...should Source do it or Builder?
+
+            // See if we can build from netcdf (a Wdssii netcdf file)
+            Builder.BuilderFileInfo info = NetcdfBuilder.getBuilderFileInfo(aURL);
+            if (info.success) {
+                log.debug("FOUND a WDSS2 Netcdf format file...");
+                type = "WDSS2 Netcdf File";
+                // setToInfo(info);
+            } else {
+
+                // Try to get header from xml
+                info = XMLBuilder.getBuilderFileInfo(aURL);
+                if (info.success) {
+                    // setToInfo(info);
+                    log.debug("FOUND a WDSSII XML format file....");
+                    type = "WDSS2 XML File";
+                }
+            }
+        }
+        return type;
+    }
+
+    class LabelAccessory extends JLabel implements PropertyChangeListener {
+
+        private static final int PREFERRED_WIDTH = 125;
+        private static final int PREFERRED_HEIGHT = 100;
+
+        public LabelAccessory(JFileChooser chooser) {
+            setVerticalAlignment(JLabel.CENTER);
+            setHorizontalAlignment(JLabel.CENTER);
+            chooser.addPropertyChangeListener(this);
+            setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT));
+        }
+
+        @Override
+        public void propertyChange(PropertyChangeEvent changeEvent) {
+            String changeName = changeEvent.getPropertyName();
+            if (changeName.equals(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY)) {
+                File file = (File) changeEvent.getNewValue();
+                if (file != null) {
+                    String type = "Internal Error";
+                    try {
+                        URL aURL = file.toURI().toURL();
+                        type = figureOutSelectedFileType(aURL);
+                    } catch (MalformedURLException ex) {
+                        // We assume that chooser knows not to return
+                        // malformed urls...
+                    }
+                    setText(type);
+                    /*
+                     * ImageIcon icon = new ImageIcon(file.getPath()); if
+                     * (icon.getIconWidth() > PREFERRED_WIDTH) { icon = new
+                     * ImageIcon(icon.getImage().getScaledInstance(
+                     * PREFERRED_WIDTH, -1, Image.SCALE_DEFAULT)); if
+                     * (icon.getIconHeight() > PREFERRED_HEIGHT) { icon = new
+                     * ImageIcon(icon.getImage().getScaledInstance( -1,
+                     * PREFERRED_HEIGHT, Image.SCALE_DEFAULT)); } }
+                     * setIcon(icon);
+                     *
+                     *
+                     */
+
+                }
+            }
+        }
+    }
+
+    public class CustomDialog extends JDialog implements ActionListener {
+
+        private JPanel myPanel = null;
+        private JButton yesButton = null;
+        private JButton noButton = null;
+        private boolean answer = false;
+
+        public boolean getAnswer() {
+            return answer;
+        }
+
+        public CustomDialog(JFrame frame, boolean modal, String myMessage) {
+            super(frame, modal);
+            
+            Container content = getContentPane();
+            
+            myPanel = new JPanel();
+            myPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+
+            content.add(myPanel);
+            
+            myPanel.add(new JLabel(myMessage), new CC().growX().wrap());
+
+            JFileChooser fileChooser = new JFileChooser(".");
+           // fileChooser.setControlButtonsAreShown(false);
+            myPanel.add(fileChooser, new CC().growX().growY().wrap());
+            
+             yesButton = new JButton("Yes");
+            yesButton.addActionListener(this);
+            myPanel.add(yesButton, new CC().growX().wrap());
+            
+            noButton = new JButton("No");
+            noButton.addActionListener(this);
+            myPanel.add(noButton, new CC().growX().wrap());
+            
+            pack();
+            setLocationRelativeTo(frame);
+            setVisible(true);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (yesButton == e.getSource()) {
+                System.err.println("User chose yes.");
+                answer = true;
+                setVisible(false);
+            } else if (noButton == e.getSource()) {
+                System.err.println("User chose no.");
+                answer = false;
+                setVisible(false);
+            }
+        }
     }
 }

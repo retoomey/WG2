@@ -21,7 +21,6 @@ import org.wdssii.index.IndexRecord;
 public class IndexSource extends Source implements HistoryListener {
 
     private static Logger log = LoggerFactory.getLogger(IndexSource.class);
-
     /**
      * The historical index within this source, this does all the low-level hard
      * work
@@ -43,7 +42,7 @@ public class IndexSource extends Source implements HistoryListener {
         myRealtime = true;
     }
 
-
+    @Override
     public synchronized boolean isConnecting() {
         return myConnecting;
     }
@@ -52,11 +51,13 @@ public class IndexSource extends Source implements HistoryListener {
         myConnecting = flag;
     }
 
+    @Override
     public synchronized boolean isConnected() {
         return myConnected;
     }
 
-    public boolean getRealtime() {
+    @Override
+    public boolean isRealtime() {
         return myRealtime;
     }
 
@@ -137,7 +138,7 @@ public class IndexSource extends Source implements HistoryListener {
      */
     public HistoricalIndex getIndex() {
         // Assume index not ready for use if we're still connecting...
-        log.debug("GET INDEX "+myIndex+" "+myConnecting +", "+!myConnected);
+        log.debug("GET INDEX " + myIndex + " " + myConnecting + ", " + !myConnected);
         if (myConnecting || !myConnected) {
             return null;
         }
@@ -163,18 +164,14 @@ public class IndexSource extends Source implements HistoryListener {
         //System.out.println("WG got deleted record event");
     }
 
-    public boolean isRealtime() {
-        return myRealtime;
-    }
-
     /**
      * Filter path and clean it up. Don't do any operation here that hangs, such
      * as nslookup... that should be done inside the connection which is done as
      * a job
      *
-     *  @param path
-     *  @param domain
-     *  @return
+     * @param path
+     * @param domain
+     * @return
      */
     public String pathFilter(String path, String domain) {
         String outPath = path;
@@ -228,5 +225,40 @@ public class IndexSource extends Source implements HistoryListener {
         if (myControls != null) {
             myControls.updateGUI();
         }
+    }
+
+    @Override
+    public String getSourceDescription() {
+        String description;
+        int aSize = 0;
+        int maxSize = 0;
+        int totalSize = 0;
+        String location = "";
+
+        HistoricalIndex i = getIndex();
+        if (i != null) {
+            aSize = i.getCurrentHistorySize();
+            maxSize = i.getMaxHistorySize();
+            totalSize = i.getTotalHistorySize();
+            location = getPath();
+        }
+        // Update the content description for selected index
+        // String shortName = getVisibleName();
+        String content = String.format("%s (%d/%d [%d lifetime])",
+                location,
+                aSize,
+                maxSize,
+                totalSize);
+        description = content;
+        return description;
+    }
+
+    /**
+     * Get the shown type name for this source The GUI uses this to show what
+     * type we think we are
+     */
+    @Override
+    public String getShownTypeName() {
+        return "W2 Index";
     }
 }

@@ -13,53 +13,83 @@ import java.util.Map.Entry;
 
 import org.wdssii.index.IndexSubType.SubtypeType;
 
-/** A wrapper to an index that stores a certain number of records in a history for browsing, either
- * by the GUI or others
- * 
- * FIXME: Could extend this to handle a collection of Index, instead of just one. The advantage would
- * be that you could control size of the group history.
- * FIXME: Total record counts should be by each datatype, not the whole index.  Otherwise
- * a large number of datatypes 'pushes out' data.
- * 
+/**
+ * A wrapper to an index that stores a certain number of records in a history
+ * for browsing, either by the GUI or others
+ *
+ * FIXME: Could extend this to handle a collection of Index, instead of just
+ * one. The advantage would be that you could control size of the group history.
+ * FIXME: Total record counts should be by each datatype, not the whole index.
+ * Otherwise a large number of datatypes 'pushes out' data.
+ *
  * @author Robert Toomey
  *
  */
 public class HistoricalIndex implements IndexRecordListener {
 
-    /** The size of our history */
+    /**
+     * The size of our history
+     */
     private int maxHistorySize = 0;
-    /** The current count of all records we have. */
+    /**
+     * The current count of all records we have.
+     */
     private int currentHistorySize = 0;
-    /** The total history we've ever seen */
+    /**
+     * The total history we've ever seen
+     */
     private int totalHistorySize = 0;
-    /** Fire events on add/delete.  Turned off when first reading index to avoid flooding */
+    /**
+     * Fire events on add/delete. Turned off when first reading index to avoid
+     * flooding
+     */
     private boolean fireEvents = false;
-    /** The index we watch */
+    /**
+     * The index we watch
+     */
     private Index index = null;
-    /** Collection of listeners for responding to records */
+    /**
+     * Collection of listeners for responding to records
+     */
     private Set<HistoryListener> listeners = new TreeSet<HistoryListener>();
-    /** Map from internal datatype key to the IndexDataType storing the records */
+    /**
+     * Map from internal datatype key to the IndexDataType storing the records
+     */
     private TreeMap<String, IndexDataType> datatypeStringToInt = new TreeMap<String, IndexDataType>();
-    /** Set of datatype names to short strings, used to save memory on keys. */
+    /**
+     * Set of datatype names to short strings, used to save memory on keys.
+     */
     private ArrayList<String> datatypeIntToString = new ArrayList<String>();
-    /** Name of the manual, or local file index */
+    /**
+     * Name of the manual, or local file index
+     */
     public static final String MANUAL = "LOCALFILES";
 
-    /** Query result to gather a subset of records.  The GUI uses this
-    to pass in parameters and get a subset of records from the selections
-    a user makes.  You can call this for any purpose though.
+    /**
+     * Query result to gather a subset of records. The GUI uses this to pass in
+     * parameters and get a subset of records from the selections a user makes.
+     * You can call this for any purpose though.
      */
     public static class RecordQuery {
 
-        /** A set of the unique subtypes found in the query */
+        /**
+         * A set of the unique subtypes found in the query
+         */
         public Set<String> uniqueSubtypes = new TreeSet<String>();
-        /** A set of the unique datatypes found in the query */
+        /**
+         * A set of the unique datatypes found in the query
+         */
         public Set<String> uniqueDatatypes = new TreeSet<String>();
-        /** The records matching the query */
+        /**
+         * The records matching the query
+         */
         public ArrayList<IndexRecord> matches = new ArrayList<IndexRecord>();
     }
 
-    /** Create a historical index given a path (e.g: /tmp/code_index.xml) and a maximum history in record count. */
+    /**
+     * Create a historical index given a path (e.g: /tmp/code_index.xml) and a
+     * maximum history in record count.
+     */
     public HistoricalIndex(String path, int aHistorySize) {
         maxHistorySize = aHistorySize;
         if (path.equals(MANUAL)) {
@@ -71,27 +101,38 @@ public class HistoricalIndex implements IndexRecordListener {
         fireEvents = true;
     }
 
-    /** Get the index we wrap around */
+    /**
+     * Get the index we wrap around
+     */
     public Index getIndex() {
         return index;
     }
 
-    /** Get the current history size in records */
+    /**
+     * Get the current history size in records
+     */
     public int getCurrentHistorySize() {
         return currentHistorySize;
     }
 
-    /** Get the maximum history size in records */
+    /**
+     * Get the maximum history size in records
+     */
     public int getMaxHistorySize() {
         return maxHistorySize;
     }
 
-    /** Get the total history size (every record ever received */
+    /**
+     * Get the total history size (every record ever received
+     */
     public int getTotalHistorySize() {
         return totalHistorySize;
     }
 
-    /** Add a datatype to index, keeping reference count.  Called for each new record */
+    /**
+     * Add a datatype to index, keeping reference count. Called for each new
+     * record
+     */
     private IndexDataType addDatatype(String datatypeName) {
         IndexDataType info = datatypeStringToInt.get(datatypeName);
         if (info == null) {
@@ -102,8 +143,10 @@ public class HistoricalIndex implements IndexRecordListener {
         return info;
     }
 
-    /** Given a long name such as "Reflectivity", get the IndexDataType that
+    /**
+     * Given a long name such as "Reflectivity", get the IndexDataType that
      * stores all the subtypes for it
+     *
      * @param datatypeName	DataType name such as "Reflectivity"
      * @return	The IndexDataType for given name
      */
@@ -111,12 +154,16 @@ public class HistoricalIndex implements IndexRecordListener {
         return (datatypeStringToInt.get(datatypeName));
     }
 
-    /** Register a listener to be notified about record changes in this history */
+    /**
+     * Register a listener to be notified about record changes in this history
+     */
     public void addHistoryListener(HistoryListener listener) {
         listeners.add(listener);
     }
 
-    /** Handle records from the index by storing them into our history */
+    /**
+     * Handle records from the index by storing them into our history
+     */
     @Override
     public void handleRecord(IndexRecord rec) {
 
@@ -127,14 +174,18 @@ public class HistoricalIndex implements IndexRecordListener {
         addRecord(rec);
     }
 
-    /** Iterator for handling IndexDataTypes */
+    /**
+     * Iterator for handling IndexDataTypes
+     */
     public Iterator<Entry<String, IndexDataType>> getIndexDataTypeIterator() {
         Set<Entry<String, IndexDataType>> set = datatypeStringToInt.entrySet();
         Iterator<Entry<String, IndexDataType>> i = set.iterator();
         return i;
     }
 
-    /** Add a new record to our history */
+    /**
+     * Add a new record to our history
+     */
     public void addRecord(IndexRecord rec) {
 
         // Add record 
@@ -152,7 +203,8 @@ public class HistoricalIndex implements IndexRecordListener {
         }
     }
 
-    /** Remove the oldest records to make room for new ones
+    /**
+     * Remove the oldest records to make room for new ones
      */
     private void removeOldestRecords() {
         if (currentHistorySize + 1 > maxHistorySize) {
@@ -212,10 +264,13 @@ public class HistoricalIndex implements IndexRecordListener {
         return holdme;
     }
 
-    /** This gets all records for a data type.  It doesn't return a Map<Date, IndexRecord> 
-     * because there can be the same Date stored in multiple subtypes (such as WindField)
-     * In general, you'll want to use getRecordsByTypeTime (above) which gives you a unique Date
-     * per record, but for a single DataType/SubType.
+    /**
+     * This gets all records for a data type. It doesn't return a Map<Date,
+     * IndexRecord> because there can be the same Date stored in multiple
+     * subtypes (such as WindField) In general, you'll want to use
+     * getRecordsByTypeTime (above) which gives you a unique Date per record,
+     * but for a single DataType/SubType.
+     *
      * @param from
      * @param to
      * @return
@@ -241,8 +296,9 @@ public class HistoricalIndex implements IndexRecordListener {
         return (type.getFirstRecordByTime(subtype));
     }
 
-    /** Get latest record by time for all subtypes 
-     * 
+    /**
+     * Get latest record by time for all subtypes
+     *
      * @param longDt
      * @return
      */
@@ -254,7 +310,8 @@ public class HistoricalIndex implements IndexRecordListener {
         return null;
     }
 
-    /** Get latest time record, forcing subtype to stay the same
+    /**
+     * Get latest time record, forcing subtype to stay the same
      */
     public IndexRecord getLastRecordByTime(String longDt, String subtype) {
         if (subtype == null || subtype.length() == 0) {
@@ -267,11 +324,11 @@ public class HistoricalIndex implements IndexRecordListener {
         return null;
     }
 
-    /** 
-     * @return the index record <= the given date, trying to match subtype.
-     * Used by display to synchronize products such as Reflectivity/Velocity.
-     * You pass in "Reflectivity" "3.5" and 3 pm..and get the closest record
-     * up to and including 3 pm.
+    /**
+     * @return the index record <= the given date, trying to match subtype. Used
+     * by display to synchronize products such as Reflectivity/Velocity. You
+     * pass in "Reflectivity" "3.5" and 3 pm..and get the closest record up to
+     * and including 3 pm.
      */
     public IndexRecord getLatestUpToDate(String longDt, String subtype, Date d) {
         IndexDataType type = getDataTypeInfo(longDt);
@@ -284,7 +341,8 @@ public class HistoricalIndex implements IndexRecordListener {
 
     /**
      * @param longDt the DataType name
-     * @return Number of records stored in this DataType, or -1 if no DataType exists
+     * @return Number of records stored in this DataType, or -1 if no DataType
+     * exists
      */
     public int numRecordsByTime(String longDt) {
         IndexDataType type = getDataTypeInfo(longDt);
@@ -294,7 +352,9 @@ public class HistoricalIndex implements IndexRecordListener {
         return (type.getRecordCount());
     }
 
-    /** Get record from index given datatype, subtype and time */
+    /**
+     * Get record from index given datatype, subtype and time
+     */
     public IndexRecord getRecord(String datatype, String subtype, Date time) {
         if (datatype != null) {
             IndexDataType type = getDataTypeInfo(datatype);
@@ -306,7 +366,9 @@ public class HistoricalIndex implements IndexRecordListener {
 
     }
 
-    /** Get the datatype list for this index */
+    /**
+     * Get the datatype list for this index
+     */
     public TreeSet<String> getDataTypes() {
 
         // Copy to set for backward compatibility.
@@ -317,7 +379,9 @@ public class HistoricalIndex implements IndexRecordListener {
         return output;
     }
 
-    /** Get the subtype list for a given datatype */
+    /**
+     * Get the subtype list for a given datatype
+     */
     public TreeSet<String> getSubTypesForDataType(String longDt) {
         IndexDataType info = datatypeStringToInt.get(longDt);
         if (info == null) {
@@ -328,10 +392,9 @@ public class HistoricalIndex implements IndexRecordListener {
 
     /**
      * Get a list of the sorted subtypes for a datatype 'product'
-     * @param longDt
-     *            Datatype to get such as "Reflectivity"
-     * @param ascending
-     *            Which way to sort
+     *
+     * @param longDt Datatype to get such as "Reflectivity"
+     * @param ascending Which way to sort
      */
     public ArrayList<String> getSortedSubTypesForDataType(
             String longDt, boolean ascending) {
@@ -340,23 +403,24 @@ public class HistoricalIndex implements IndexRecordListener {
 
         // Try it from index directly
         TreeSet<String> subtypeList = getSubTypesForDataType(longDt);
-        for (String s : subtypeList) {
-            strings.add(s);
+        if (subtypeList != null) {
+            for (String s : subtypeList) {
+                strings.add(s);
+            }
+
+            // Sort the strings (though index should return them sorted already now)
+            if (ascending) {
+                Collections.sort(strings);
+            } else {
+                Collections.sort(strings, new Comparator<String>() {
+
+                    @Override
+                    public int compare(String o1, String o2) {
+                        return o2.compareTo(o1);
+                    }
+                });
+            }
         }
-
-        // Sort the strings (though index should return them sorted already now)
-        if (ascending) {
-            Collections.sort(strings);
-        } else {
-            Collections.sort(strings, new Comparator<String>() {
-
-                @Override
-                public int compare(String o1, String o2) {
-                    return o2.compareTo(o1);
-                }
-            });
-        }
-
 
         return strings;
     }
@@ -373,7 +437,11 @@ public class HistoricalIndex implements IndexRecordListener {
         LatestAllSubTypes;                   // Latest time record, ignore subtype
     }
 
-    /** Navigate starting from this record. @return null if no record was found in that direction */
+    /**
+     * Navigate starting from this record.
+     *
+     * @return null if no record was found in that direction
+     */
     public IndexRecord getNextRecord(IndexRecord start, Direction direction) {
 
         IndexRecord next = null;
@@ -432,10 +500,10 @@ public class HistoricalIndex implements IndexRecordListener {
         return next;
     }
 
-    /** Get a sorted result list of index records.  The upto is a 
-    set of strings telling the selection.  For now, these come from the
-    GUI from the product picker
-    FIXME:  Put some examples here in the documentation
+    /**
+     * Get a sorted result list of index records. The upto is a set of strings
+     * telling the selection. For now, these come from the GUI from the product
+     * picker FIXME: Put some examples here in the documentation
      */
     public RecordQuery gatherRecords(
             String[] upto, boolean ascending) {
@@ -517,7 +585,9 @@ public class HistoricalIndex implements IndexRecordListener {
         return results;
     }
 
-    /** Sort a collection of IndexRecords by ascending or descending time */
+    /**
+     * Sort a collection of IndexRecords by ascending or descending time
+     */
     public static void sortRecordsByTime(ArrayList<IndexRecord> matches, boolean ascending) {
         if (matches != null) {
             if (ascending) {

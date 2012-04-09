@@ -74,7 +74,14 @@ public class Source {
     public String getVisibleName() {
         return myVisibleName;
     }
-
+    
+    /** Get the shown type name for this source
+     * The GUI uses this to show what type we think we are
+     */
+    public String getShownTypeName(){
+        return "SOURCE";
+    }
+    
     /**
      * Set the key for this featuremyTopSelectedSource
      */
@@ -128,5 +135,24 @@ public class Source {
     /** Disconnect to a source if needed. */
     public void disconnect(){
         
+    }
+    
+    public boolean isConnected(){
+        return true;
+    }
+    
+    public boolean isConnecting(){
+        return false;
+    }
+    
+    public boolean isRealtime(){
+        return false;
+    }
+
+    /** Called by GUI when this source is selected, to place in the
+     * info bar at top of sources view 
+     */
+    public String getSourceDescription() {
+        return getVisibleName();
     }
 }

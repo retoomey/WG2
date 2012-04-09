@@ -1,6 +1,7 @@
 package org.wdssii.gui.commands;
 
 import java.util.ArrayList;
+import java.util.List;
 
 //import org.eclipse.jface.dialogs.IDialogConstants;
 //import org.eclipse.jface.dialogs.MessageDialogWithToggle;
@@ -9,6 +10,8 @@ import javax.swing.JOptionPane;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
+import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.SourceList;
 import org.wdssii.index.IndexWatcher;
 
 /** Called by name from WdssiiDynamic
@@ -64,9 +67,9 @@ public class SourceDeleteCommand extends SourceClearCommand {
         if (doJob) {
             // Get copy of current list...(iteration shouldn't get the ConcurrentModificationError)
             // This is important since we're spawning jobs that delete these
-            ArrayList<IndexWatcher> list = SourceManager.getInstance().getIndexList();
-            for (IndexWatcher w : list) {
-                deleteSingleSource(w.getKeyName(), false);
+            List<Source> list = SourceList.theSources.getSourcesCopy();
+            for(Source s:list){
+                deleteSingleSource(s.getKey(), false);
             }
         }
         return doJob; // if job was done, fire GUI update

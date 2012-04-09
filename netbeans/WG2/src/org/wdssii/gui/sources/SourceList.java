@@ -103,10 +103,10 @@ public class SourceList {
 
             if (selected == f) {
                 Source newSelection = getFirstSource("");
-                if (newSelection == null) {
-                } else {
+               // if (newSelection == null) {
+               // } else {
                     setSelected(newSelection);
-                }
+               // }
             }
         }
     }
@@ -145,6 +145,12 @@ public class SourceList {
      */
     public List<Source> getSources() {
         return Collections.unmodifiableList(mySources);
+    }
+    
+    
+    /** Used by delete routine */
+    public List<Source> getSourcesCopy(){
+        return new ArrayList(mySources);
     }
    
     public Source getFirstSource(String g) {

@@ -39,8 +39,8 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
      */
     private ProductListTableModel myProductListTableModel;
     private RowEntryTable myProductsTable;
-    private JLabel jResultsLabel;
-
+    private String mySelectedProduct;
+    
     private static class ProductListTableData {
 
         public String productName; // Name shown in list
@@ -190,6 +190,7 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
     // columns...
     private ResultListTableModel myResultListTableModel;
     private RowEntryTable myResultsTable;
+    private JLabel jResultsLabel;
 
     private static class ResultListTableData {
 
@@ -289,18 +290,15 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
      */
     @Override
     public void updateGUI() {
-        //MapMemento m = (MapMemento) myFeature.getNewMemento();
-        //jLineThicknessSpinner.setValue(m.getLineThickness());
-        //jColorLabel.setBackground(m.getLineColor());
         // Selection changed to us...fill the products list...
-        fillDatatypeList("", "");
-        myProductListTableModel.fireTableDataChanged();
+        
+        updateTables();
     }
 
     //private JScrollPane myScrollPane;
     @Override
     public void activateGUI(JComponent parent) {
-        parent.setLayout(new MigLayout(new LC().fill(), null, null));
+        parent.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         // myScrollPane = new JScrollPane();
         //myScrollPane.setViewportView(this);
         //myScrollPane.setBorder(null);
@@ -315,13 +313,30 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         parent.remove(this);
     }
 
+    
+    private void updateTables(){
+        if (mySource.getIndex() == null){
+            // Clear everything...
+            myProductListTableModel.setDataTypes(null);
+            myChoiceListTableModel.setDataTypes(null);
+            myResultListTableModel.setDataTypes(null);
+            myProductListTableModel.fireTableDataChanged();
+            myChoiceListTableModel.fireTableDataChanged();
+            myResultListTableModel.fireTableDataChanged();
+        }else{
+            
+            // FIXME: need to smart update the tables!!
+            fillProductsList();
+            myProductListTableModel.fireTableDataChanged();
+        }
+    }
     private void setupComponents() {
 
         /**
          * Completely control the layout within the scrollpane. Probably don't
          * want to fill here, let the controls do default sizes
          */
-        setLayout(new MigLayout(new LC().fill(), null, null));
+        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
 
         javax.swing.JScrollPane myProductsScrollPane;
         javax.swing.JScrollPane myChoicesScrollPane;
@@ -365,7 +380,7 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         
         JPanel resultPanel = new JPanel();
         jResultsLabel = new JLabel("No results");
-        resultPanel.setLayout(new MigLayout(new LC().fill(), null, null));
+        resultPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         resultPanel.add(jResultsLabel, new CC().dockNorth());
         resultPanel.add(myResultsScrollPane, new CC().growX().growY());
         
@@ -376,8 +391,6 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         splitTopBottom.setBottomComponent(resultPanel);
         splitTopBottom.setDividerLocation(150);
       
-        JLabel jSelectedSourceLabel = new javax.swing.JLabel("No source");
-        add(jSelectedSourceLabel, new CC().dockNorth());
         add(splitTopBottom, new CC().growX().growY());
 
         myProductsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -472,8 +485,7 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         }
     }
 
-    public void fillDatatypeList(String oldDatatype,
-            String oldSubtype) {
+    public void fillProductsList() {
 
         // ----------------------------------------------------------------------
         // Fill in product list, given an index name
@@ -533,16 +545,17 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
                     return (arg0.productName.compareTo(arg1.productName));
                 }
             });
-        } else {
-            log.debug("INDEX WAS NULL, can't load any products :(");
-        }
+            
+            // Clear choice?
+            fillChoicesList("");
+        } 
         myProductListTableModel.setDataTypes(sortedList);
     }
 
     public void fillChoicesList(String datatype) {
 
+        mySelectedProduct = datatype;
         HistoricalIndex anIndex = mySource.getIndex();
-
         if (anIndex != null) {
             mySelection[0] = datatype;
             ArrayList<String> strings = anIndex.getSortedSubTypesForDataType(datatype, true);
@@ -555,29 +568,7 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
                 newlist.add(d);
             }
             myChoiceListTableModel.setDataTypes(newlist);
-
-            // FIXME: rare case of null here? what to do...probably empty
-            // subtype list
-				/*
-             * mySubTypes = strings;
-             *
-             * // ------------------------------------------------------------
-             * // Search the list for latest clicked subtype, we'll stay there
-             * int oldIndex = Collections.binarySearch(strings,
-             * myLatestClickedSubtypeVisible); int actualIndex = oldIndex; int
-             * aSize = mySubTypes.size(); if (myStarSubtype) { aSize += 1;
-             * actualIndex += 1; // move selection down because of '*' if
-             * (myLatestClickedSubtypeVisible.equals("*")) { oldIndex = 0;
-             * actualIndex = 0; } } myElevations.setItemCount(aSize);
-             * myElevations.clearAll(); if (oldIndex >= 0) {
-             * myElevations.select(actualIndex); myElevations.showSelection();
-             * // click the subtype
-             * fillRecordList(myLatestClickedSubtypeVisible); } else {
-             * clearResultsList(); }
-             */
         }
-
-
     }
 
     public void fillRecordList(String selectedSubtype) {

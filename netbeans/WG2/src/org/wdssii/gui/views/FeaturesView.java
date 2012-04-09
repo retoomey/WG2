@@ -99,7 +99,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
                 View topWindow = new View(title, i, root);
 
                 // Inside the root window we'll add two views...
-                View controls = new View("Controls", i, f.getControlComponent());
+                View controls = new View("Feature Controls", i, f.getControlComponent());
                 View select = new View("Selection", i, f);
 
                 // The select is our 'root', so make it non-dragable.  Basically

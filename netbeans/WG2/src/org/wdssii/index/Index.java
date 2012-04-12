@@ -25,6 +25,10 @@ public abstract class Index {
      */
     public abstract Index newInstance(URL url, URL fullurl, TreeMap<String, String> paramMap, Set<IndexRecordListener> listeners) throws DataUnavailableException;
 
+    
+    /** Check URL for reading */
+    public abstract boolean checkURL(URL url, URL fullurl, TreeMap<String, String> paramMap);
+    
     /**
      * The update() method will be called periodically. The implementation is
      * allowed to ignore update() calls that happen at inconvenient times.

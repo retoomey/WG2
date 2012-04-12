@@ -93,6 +93,15 @@ public class IndexRecord {
         Date time = new Date(tm_long);
         return time;
     }
+    
+    /** Convert from our xml date format to a real Date */
+    public static Date getDateFromString(String timeString, double ftm) {
+        long tm_long = 1000 * Long.parseLong(timeString.trim());
+        tm_long += (int) Math.round(1000 * ftm);
+        Date time = new Date(tm_long);
+        return time;
+    }
+    
 
     /** Convert from date into our xml date format */
     public static String getStringFromDate(Date in) {

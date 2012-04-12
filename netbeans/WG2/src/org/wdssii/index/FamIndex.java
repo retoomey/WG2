@@ -123,4 +123,9 @@ public class FamIndex extends Index {
         // broke it
         return new FamIndex(fullUrl, listeners);
     }
+
+    @Override
+    public boolean checkURL(URL url, URL fullurl, TreeMap<String, String> paramMap) {
+        return true;
+    }
 }

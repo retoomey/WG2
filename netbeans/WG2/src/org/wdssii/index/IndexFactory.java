@@ -16,14 +16,12 @@ import org.wdssii.core.DataUnavailableException;
 import org.wdssii.core.PrototypeFactory;
 
 /**
- * Creates index objects from Index URLs
- * We use the 'p' or 'protocol' get parameter in the URL to determine
- * which index handles it.
- * 
- * Format examples:
- * http://tensor.protect.nssl/data/code_index.xml?p=xml
+ * Creates index objects from Index URLs We use the 'p' or 'protocol' get
+ * parameter in the URL to determine which index handles it.
+ *
+ * Format examples: http://tensor.protect.nssl/data/code_index.xml?p=xml
  * file://E:/data/code_index.xml?p=xml
- * 
+ *
  * @author Lakshman
  * @version $Id: IndexFactory.java,v 1.3 2009/06/02 20:18:30 lakshman Exp $
  * @see IndexRecord
@@ -33,9 +31,10 @@ public abstract class IndexFactory {
     private static Logger log = LoggerFactory.getLogger(IndexFactory.class);
     private static final PrototypeFactory<Index> myFactory;
 
-    /** Create the factory from Index.xml in the xml, OR use
-     * a stock set of built in defaults.  This rarely changes, so this
-     * allows overriding without breaking if w2config is missing.
+    /**
+     * Create the factory from Index.xml in the xml, OR use a stock set of built
+     * in defaults. This rarely changes, so this allows overriding without
+     * breaking if w2config is missing.
      */
     static {
         myFactory = new PrototypeFactory<Index>(
@@ -62,13 +61,17 @@ public abstract class IndexFactory {
         // seconds
     }
 
-    /** Creates an index. Add listeners using addIndexRecordListener */
+    /**
+     * Creates an index. Add listeners using addIndexRecordListener
+     */
     public static Index createIndex(String url)
             throws IllegalArgumentException, DataUnavailableException {
         return createIndex(url, new HashSet<IndexRecordListener>());
     }
 
-    /** convenience function when only one listener needs to be provided. */
+    /**
+     * convenience function when only one listener needs to be provided.
+     */
     public static Index createIndex(String url, IndexRecordListener listener)
             throws IllegalArgumentException, DataUnavailableException {
         Set<IndexRecordListener> listeners = new HashSet<IndexRecordListener>();
@@ -76,7 +79,51 @@ public abstract class IndexFactory {
         return createIndex(url, listeners);
     }
 
-    /** Creates an index. Existing records are supplied to the list of listeners */
+    /**
+     * Return 'true' if this URL can be read by an index
+     */
+    public static boolean checkURLForIndex(URL aURL) {
+        boolean valid;
+        try {
+            // Get params off the URL..
+            TreeMap<String, String> paramMap = new TreeMap<String, String>();
+            URL baseURL = Index.getParams(aURL, paramMap);
+
+            // Find the protocol
+            String protocol = paramMap.get("p");
+            if (protocol == null) {
+                protocol = paramMap.get("protocol");
+            }
+            if (protocol == null) {
+                log.error("Missing protocol in URL.  Need something like ?p=xml or ?protocol=webindex in URL");
+                // FIXME: might 'guess' protocol... stuff ending in ".xml" is probably xml...
+                //return null;
+                protocol = "xml"; // hack to see something...
+            }
+            log.info("URL protocol is:" + protocol);
+
+            Index prototype = myFactory.getPrototypeMaster(protocol);
+            if (prototype == null) {
+                String error = ("No protocol named " + protocol);
+                log.error(error);
+                throw new IllegalArgumentException(error);
+            }
+
+            valid = prototype.checkURL(baseURL, aURL, paramMap);
+            
+            //Index index = prototype.newInstance(baseURL, aURL, paramMap, listeners);
+            //toUpdate.add(index);
+        } catch (Exception e) {
+            // any exception warn and return gracefully
+            log.error("URL error: " + e.toString());
+            return false;
+        }
+        return valid;
+    }
+
+    /**
+     * Creates an index. Existing records are supplied to the list of listeners
+     */
     public static Index createIndex(String url,
             Set<IndexRecordListener> listeners)
             throws IllegalArgumentException, DataUnavailableException {

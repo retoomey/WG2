@@ -51,4 +51,9 @@ public class TestIndex extends Index {
                      
         }
     }
+
+    @Override
+    public boolean checkURL(URL url, URL fullurl, TreeMap<String, String> paramMap) {
+        return true;
+    }
 }

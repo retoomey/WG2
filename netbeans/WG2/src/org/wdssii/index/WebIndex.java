@@ -121,4 +121,9 @@ public class WebIndex extends Index {
 
         return new WebIndex(aURL, fullURL, listeners);
     }
+
+    @Override
+    public boolean checkURL(URL url, URL fullurl, TreeMap<String, String> paramMap) {
+        return true;
+    }
 }

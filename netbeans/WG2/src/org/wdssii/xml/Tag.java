@@ -1,16 +1,18 @@
 package org.wdssii.xml;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -18,28 +20,52 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 /**
- * Tag is an html Tag object that handles a Stax parsing stream.
- * Even though we create a tree, it's our tree so we have some perks
- * like being able to directly stores values as proper field types, etc.
- * Also I'm hoping to eventually have the rest of display doing stuff like
- * creating radials or contours AS THEY LOAD...lol.
- * This basically halves the memory usage vs using a full Sax document instead.
- * 
- * FIXME: bug where if duplicate tag occurs within an unhandled child then
- * it will overwrite the tag.
- * 
+ * Tag is an html Tag object that handles a Stax parsing stream. Even though we
+ * create a tree, it's our tree so we have some perks like being able to
+ * directly stores values as proper field types, etc. Also I'm hoping to
+ * eventually have the rest of display doing stuff like creating radials or
+ * contours AS THEY LOAD...lol. This basically halves the memory usage vs using
+ * a full Sax document instead.
+ *
+ * FIXME: bug where if duplicate tag occurs within an unhandled child then it
+ * will overwrite the tag.
+ *
  * @author Robert Toomey
  */
 public abstract class Tag {
 
     private String cacheTagName;
     private boolean haveTag = false;
-    /** Set to true iff tag was found and processed */
-    private boolean processedTag = false;
-
-    /* Default tag method returns the part of the classname
-     * without the "Tag_" part.  This is why this class is abstract.
+    /**
+     * Set to true to process children of this tag
      */
+    private boolean processChildren = true;
+    /**
+     * Set to true iff tag was found and processed
+     */
+    private boolean processedTag = false;
+    /**
+     * The text between tags, if any... <tag>the text</tag>
+     */
+    private String text = ""; // Important to be "" since we append to it
+
+    public String getText() {
+        return text;
+    }
+    
+    /** Release text.  This is done by default by validateTag to save memory,
+     * I typically don't use text between tags.  If you do, override
+     * validateTag for tags you want to keep text for.
+     */
+    public void releaseText(){
+        text = null;
+    }
+    
+    /*
+     * Default tag method returns the part of the classname without the "Tag_"
+     * part. This is why this class is abstract.
+     */
+
     public final String tag() {
         if (!haveTag) {
             Class<?> c = this.getClass();
@@ -52,12 +78,20 @@ public abstract class Tag {
         return cacheTagName;
     }
 
-    /** Return true iff tag was read from xml */
+    /**
+     * Return true iff tag was read from xml
+     */
     public boolean wasRead() {
         return processedTag;
     }
 
-    /** Utility function to check for a new start tag */
+    public void setProcessChildren(boolean flag) {
+        processChildren = flag;
+    }
+
+    /**
+     * Utility function to check for a new start tag
+     */
     protected static String haveStartTag(XMLStreamReader p) {
         String startTag = null;
         if (p.getEventType() == XMLStreamConstants.START_ELEMENT) {
@@ -66,7 +100,9 @@ public abstract class Tag {
         return startTag;
     }
 
-    /** Utility function to check for a new start tag */
+    /**
+     * Utility function to check for a new start tag
+     */
     protected boolean isStartTag(XMLStreamReader p) {
         boolean haveStart = false;
         if (p.getEventType() == XMLStreamConstants.START_ELEMENT) {
@@ -108,7 +144,9 @@ public abstract class Tag {
         return atEnd;
     }
 
-    /** Utility function to check for end tag */
+    /**
+     * Utility function to check for end tag
+     */
     protected static boolean isEndTag(XMLStreamReader p, String end) {
         boolean isEndTag = false;
         if (p.getEventType() == XMLStreamConstants.END_ELEMENT) {
@@ -144,7 +182,9 @@ public abstract class Tag {
 
     }
 
-    /** Holder class for unit/value attributes */
+    /**
+     * Holder class for unit/value attributes
+     */
     public static class UnitValuePair {
 
         public String unit;
@@ -177,24 +217,47 @@ public abstract class Tag {
         }
     }
 
-    /** Process our root tag returned by tag() */
+    /**
+     * In the current stream and tag, find any attribute pairs and keep them
+     */
+    public void handleAttributes(XMLStreamReader p) {
+        int count = p.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            QName attribute = p.getAttributeName(i);
+            String name = attribute.toString();
+            String value = p.getAttributeValue(i);
+            handleAttribute(name, value);
+        }
+    }
+
+    /**
+     * Process our root tag returned by tag()
+     */
     public boolean processTag(XMLStreamReader p) {
 
         boolean foundIt = false;
         if (atStart(p)) {  // We have to have our root tag
             foundIt = true;
-            // Handle attributes of our start tag
-            // <datatype name="Mesonet"
-            int count = p.getAttributeCount();
-            for (int i = 0; i < count; i++) {
-                QName attribute = p.getAttributeName(i);
-                String name = attribute.toString();
-                String value = p.getAttributeValue(i);
-                handleAttribute(name, value);
-            }
+            handleAttributes(p);
 
-            while (nextNotEnd(p)) {
-                processChildren(p);
+            // Note that processChildren false means only the start tag and
+            // attributes are processed, any text, etc. will be ignored.
+            // <item t=1> ...... rest ignored--> hello there</item>
+            if (processChildren) {
+                while (nextNotEnd(p)) { // While not at end tag
+
+                    // Check for text data...note since this is a stream parser
+                    // we will get ANY text between our tags if no child tag
+                    // handles it.
+                    if (p.getEventType() == XMLStreamConstants.CHARACTERS) {
+                        int start = p.getTextStart();
+                        int length = p.getTextLength();
+                        text += new String(p.getTextCharacters(),
+                                start,
+                                length);
+                    }
+                    processChildren(p);
+                }
             }
             processedTag = true;
             validateTag();
@@ -203,11 +266,13 @@ public abstract class Tag {
     }
 
     public void validateTag() {
+        releaseText();
     }
 
-    /** Process this tag as a document root.  Basically skip any information
-     * until we get to our tag.  In STAX, the first event is not a start
-     * tag typically.
+    /**
+     * Process this tag as a document root. Basically skip any information until
+     * we get to our tag. In STAX, the first event is not a start tag typically.
+     *
      * @param p the stream to read from
      * @return true if tag was found and processed
      */
@@ -228,9 +293,10 @@ public abstract class Tag {
         return found;
     }
 
-    /** Process just this tag and STOP.  Normally don't do this.  GUI uses
-     * this to process a 'header' of a URL/file to gather info.
-     * The tag must match the given.
+    /**
+     * Process just this tag and STOP. Normally don't do this. GUI uses this to
+     * process a 'header' of a URL/file to gather info. The tag must match the
+     * given.
      */
     public boolean processOneAndStop(XMLStreamReader p) {
         boolean found = false;
@@ -251,31 +317,50 @@ public abstract class Tag {
         return found;
     }
 
-    /** Process document root from a given File */
+    /**
+     * Process document root from a given File
+     */
     public boolean processAsRoot(File f) {
-        boolean success = false;
+        boolean success;
+        try {
+            URL fURL = f.toURI().toURL();
+            success = processAsRoot(fURL);
+        } catch (MalformedURLException ex) {
+            return false;
+        }
+        
+       /* boolean success = false;
         XMLInputFactory factory = XMLInputFactory.newInstance();
         try {
             FileInputStream is = new FileInputStream(f);
             XMLStreamReader p = factory.createXMLStreamReader(is);
             success = processAsRoot(p);
         } catch (Exception ex) {
-        }
+        }*/
         return success;
 
     }
 
-    /** Process document root from a given URL */
+    /**
+     * Process document root from a given URL
+     */
     public boolean processAsRoot(URL aURL) {
         boolean success = false;
         if (aURL != null) {
             XMLInputFactory factory = XMLInputFactory.newInstance();
             try {
+                URLConnection urlConnection = aURL.openConnection();
+                InputStream is = urlConnection.getInputStream();
+                if (aURL.toString().contains(".gz")) {  // simple hack
+                    is = new GZIPInputStream(is);
+                }
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(
-                        aURL.openStream()));
+                        is));
                 XMLStreamReader p = factory.createXMLStreamReader(in);
                 success = processAsRoot(p);
+
+
             } catch (Exception ex) {
             }
         }
@@ -283,7 +368,9 @@ public abstract class Tag {
 
     }
 
-    /** Process all child tabs within our tag */
+    /**
+     * Process all child tabs within our tag
+     */
     public void processChildren(XMLStreamReader p) {
 
         // Default snags Tags and ArrayList<Tags>
@@ -291,12 +378,13 @@ public abstract class Tag {
         fillArrayListFieldsFromReflection(p);
     }
 
-    /** Handle attributes by reflection.
-     *  It looks for a matching field name exactly matching the xml attribute
-     *  tag.  The type of the field is used to parse the xml string.
-     * 
+    /**
+     * Handle attributes by reflection. It looks for a matching field name
+     * exactly matching the xml attribute tag. The type of the field is used to
+     * parse the xml string.
+     *
      * @param n
-     * @param value 
+     * @param value
      */
     public void handleAttribute(String name, String value) {
 
@@ -315,10 +403,11 @@ public abstract class Tag {
         }
     }
 
-    /** Parse a field and value from reflection. Return true if handled.
-     * Subclasses can override to add more types if needed.
-     * We handle int, boolean, float and string by default
-     * 
+    /**
+     * Parse a field and value from reflection. Return true if handled.
+     * Subclasses can override to add more types if needed. We handle int,
+     * boolean, float and string by default
+     *
      * @param f theField we are to set
      * @param value the string of the xml text to parse
      * @return true if we handled it
@@ -392,12 +481,12 @@ public abstract class Tag {
         return handled;
     }
 
-    /** Fill in ArrayList fields from reflection.  For example:
-     * in xml we have "<color " tag.  This will look for
-     * public ArrayList<Tag_color> colors;
-     * and add by reflection each Tag_color
-     * 
-     * @param p 
+    /**
+     * Fill in ArrayList fields from reflection. For example: in xml we have
+     * "<color " tag. This will look for public ArrayList<Tag_color> colors; and
+     * add by reflection each Tag_color
+     *
+     * @param p
      */
     public void fillArrayListFieldsFromReflection(XMLStreamReader p) {
 
@@ -454,12 +543,19 @@ public abstract class Tag {
         }
     }
 
-    /** Fill in Tag_ fields from reflection.  For example:
-     * in xml we have "<color " tag.  This will look for
-     * public Tag_Color color;
-     * and add by reflection
-     * 
-     * @param p 
+    /**
+     * Fill in Tag_ fields from reflection. For example: in xml we have "<color
+     * " tag. This will look for public Tag_Color color; and add by reflection
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+
+     *
+     * @param p
      */
     public void fillTagFieldsFromReflection(XMLStreamReader p) {
 

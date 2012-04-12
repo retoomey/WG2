@@ -67,4 +67,9 @@ public class ManualLoadIndex extends Index {
         rec.setDataLocationURL(theURL);
         addRecord(rec);
     }
+
+    @Override
+    public boolean checkURL(URL url, URL fullurl, TreeMap<String, String> paramMap) {
+        return true;
+    }
 }

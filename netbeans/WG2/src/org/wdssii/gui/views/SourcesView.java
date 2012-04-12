@@ -1,8 +1,6 @@
 package org.wdssii.gui.views;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -15,6 +13,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
@@ -24,6 +24,7 @@ import net.infonode.docking.*;
 import net.infonode.docking.properties.DockingWindowProperties;
 import net.infonode.docking.properties.ViewProperties;
 import net.infonode.docking.properties.ViewTitleBarProperties;
+import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
@@ -41,6 +42,7 @@ import org.wdssii.gui.sources.SourceList;
 import org.wdssii.gui.swing.*;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
+import org.wdssii.index.IndexFactory;
 
 /**
  * SourcesView. Lots of duplicate code with FeaturesView, should probably break
@@ -556,7 +558,7 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                //addActionPerformed(evt);
+                addActionPerformed(evt);
             }
         });
         jEditToolBar.add(b);
@@ -649,35 +651,28 @@ public class SourcesView extends JThreadPanel implements CommandListener {
      */
     public URL doSingleProductOpenDialog() {
 
-        if (false){
-        URL pickedFile = null;
-        JFileChooser chooser = new JFileChooser();
+        if (false) {
+            URL pickedFile = null;
+            JFileChooser chooser = new JFileChooser();
 
-        chooser.setAccessory(new LabelAccessory(chooser));
+            chooser.setAccessory(new LabelAccessory(chooser));
 
-        chooser.setFileFilter(new SingleProductFileFilter());
-        chooser.setDialogTitle("Add single source");
+            chooser.setFileFilter(new SingleProductFileFilter());
+            chooser.setDialogTitle("Add single source");
 
-        int returnVal = chooser.showOpenDialog(null);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File f = chooser.getSelectedFile();
-            try {
-                pickedFile = f.toURI().toURL();
-            } catch (MalformedURLException ex) {
-                // We assume that chooser knows not to return
-                // malformed urls...
+            int returnVal = chooser.showOpenDialog(null);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File f = chooser.getSelectedFile();
+                try {
+                    pickedFile = f.toURI().toURL();
+                } catch (MalformedURLException ex) {
+                    // We assume that chooser knows not to return
+                    // malformed urls...
+                }
             }
-        }
-        return pickedFile;
-        }else{
-             CustomDialog myDialog = new CustomDialog(null, true, "Do you like Java?");
-            System.err.println("After opening dialog.");
-            if(myDialog.getAnswer()) {
-                System.err.println("The answer stored in CustomDialog is 'true' (i.e. user clicked yes button.)");
-            }
-            else {
-                System.err.println("The answer stored in CustomDialog is 'false' (i.e. user clicked no button.)");
-            }
+            return pickedFile;
+        } else {
+            URLLoadDialog myDialog = new URLLoadDialog(null, true, "Open Source");
             return null;
         }
     }
@@ -685,6 +680,14 @@ public class SourcesView extends JThreadPanel implements CommandListener {
     public String figureOutSelectedFileType(URL aURL) {
         String type = "Unknown";
         if (aURL != null) {
+            
+            // Check for wdssii index??
+            boolean isIndex = IndexFactory.checkURLForIndex(aURL);
+            if (isIndex){
+                type = "WDSS2 Index";
+                return type;
+            }
+            
             String text = aURL.toString();
             //jSingleURLTextField.setText(text);
 
@@ -769,28 +772,26 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
         public CustomDialog(JFrame frame, boolean modal, String myMessage) {
             super(frame, modal);
-            
             Container content = getContentPane();
-            
+
             myPanel = new JPanel();
             myPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
 
-            content.add(myPanel);
-            
+            content.add(myPanel, new CC().width("min:pref:"));
             myPanel.add(new JLabel(myMessage), new CC().growX().wrap());
 
             JFileChooser fileChooser = new JFileChooser(".");
-           // fileChooser.setControlButtonsAreShown(false);
+            // fileChooser.setControlButtonsAreShown(false);
             myPanel.add(fileChooser, new CC().growX().growY().wrap());
-            
-             yesButton = new JButton("Yes");
+
+            yesButton = new JButton("Yes");
             yesButton.addActionListener(this);
             myPanel.add(yesButton, new CC().growX().wrap());
-            
+
             noButton = new JButton("No");
             noButton.addActionListener(this);
             myPanel.add(noButton, new CC().growX().wrap());
-            
+
             pack();
             setLocationRelativeTo(frame);
             setVisible(true);
@@ -807,5 +808,212 @@ public class SourcesView extends JThreadPanel implements CommandListener {
                 setVisible(false);
             }
         }
+    }
+
+    /**
+     * A dialog that loads a URL with the ability to prefetch url information
+     */
+    public class URLLoadDialog extends JDialog implements ActionListener {
+
+        private JPanel myPanel = null;
+        private JTextField myURLTextField;
+        private JTextField myNameTextField;
+        private JPanel mySubPanel;
+        private JButton myValidateURLButton;
+        private JButton myCancelButton;
+        private JPanel myGUIHolder;
+        private boolean myValidURLSource = false;
+
+        /**
+         * Get a default name of the form 'Source#', making sure that name isn't
+         * already being used
+         *
+         * @return a default source name
+         */
+        private String getDefaultName() {
+            int counter = 0;
+            boolean done = false;
+            List<Source> list = SourceList.theSources.getSources();
+            String candidateName = "Source";
+            while (!done) {
+                candidateName = "Source" + (++counter);
+                // See if candidate matches something there....
+                boolean alreadyHaveThatName = false;
+                for (Source S : list) {
+                    if (S.getVisibleName().equals(candidateName)) {
+                        counter++;
+                        alreadyHaveThatName = true;
+                        break;
+                    }
+                }
+                if (!alreadyHaveThatName) {
+                    done = true;
+                }
+            }
+            return candidateName;
+        }
+
+        public URLLoadDialog(JFrame frame, boolean modal, String myMessage) {
+            super(frame, modal);
+
+            setTitle("Open Source");
+            Container content = getContentPane();
+
+            JPanel p;
+            myPanel = p = new JPanel();
+            p.setLayout(new MigLayout("fillx, wrap 3", "[pref!][][pref!]", ""));
+
+            // The URL field...
+            p.add(new JLabel("URL:"));
+            myURLTextField = new JTextField();
+            p.add(myURLTextField, new CC().growX().width("300"));
+
+            // The browse local file button...
+            JButton b = new JButton("Browse...");
+            p.add(b, new CC().alignX("right"));
+
+            // Source name
+            p.add(new JLabel("Name:"));
+            myNameTextField = new javax.swing.JTextField();
+            myNameTextField.setText(getDefaultName());
+            p.add(myNameTextField, new CC().growX().spanX(2));
+
+            // Validate button...
+            myValidateURLButton = new JButton("Validate");
+            p.add(myValidateURLButton, new CC().skip(1).alignX("right"));
+
+            myCancelButton = new JButton("Cancel");
+            p.add(myCancelButton, new CC().alignX("right"));
+
+            // The extra information panel...
+            myGUIHolder = new JPanel();
+            myGUIHolder.setSize(200, 50);
+            setUpBadSource(myGUIHolder);
+            p.add(myGUIHolder, new CC().growX().growY().spanX(3));
+
+            content.add(myPanel);
+            pack();
+            setLocationRelativeTo(frame);
+
+            myURLTextField.getDocument().addDocumentListener(new DocumentListener() {
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    invalidate();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    invalidate();
+                }
+
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    invalidate();
+                }
+
+                public void invalidate() {
+                    setValidURL(false);
+                }
+            });
+
+
+            b.addActionListener(new java.awt.event.ActionListener() {
+
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    //jBrowseButtonActionPerformed(evt);
+                    URL aURL = doSourceOpenDialog();
+                    if (aURL != null) {
+                        myURLTextField.setText(aURL.toString());
+                        setValidURL(true);
+                        setUpGUIForURL(myGUIHolder, aURL);
+                    }
+                }
+            });
+
+            myCancelButton.addActionListener(new java.awt.event.ActionListener() {
+
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    setVisible(false);
+                }
+            });
+
+            myValidateURLButton.addActionListener(new java.awt.event.ActionListener() {
+
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    boolean valid = validateURL();
+                    setValidURL(valid);
+                }
+            });
+
+            setVisible(true);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent ae) {
+        }
+
+        public void setValidURL(boolean flag) {
+            myValidURLSource = flag;
+            myValidateURLButton.setVisible(!myValidURLSource);
+        }
+    }
+
+    public boolean validateURL() {
+        return true;
+
+    }
+
+    public void setUpBadSource(JComponent holder) {
+        holder.removeAll();
+        holder.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        JPanel myStuff = new JPanel();
+        myStuff.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        myStuff.setBackground(Color.red);
+        myStuff.add(new JLabel("invalid URL"), new CC().growX());
+        holder.add(myStuff, new CC().growX().growY());
+    }
+    
+    public void setUpGUIForURL(JComponent holder, URL aURL){
+        String type = figureOutSelectedFileType(aURL);
+        holder.removeAll();
+        holder.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        JPanel myStuff = new JPanel();
+        myStuff.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        myStuff.setBackground(Color.green);
+        myStuff.add(new JLabel(type), new CC().growX());
+        holder.add(myStuff, new CC().growX().growY());
+    }
+
+    /** FIXME: move to factory.  When an Index is found....set it up */
+    public boolean setUpIndexGUIForURL(JTextField urlDisplay, JComponent holder, URL aURL){
+        return false;
+    }
+    
+    /**
+     * For the moment a simple file dialog
+     */
+    public URL doSourceOpenDialog() {
+
+        URL pickedFile = null;
+        JFileChooser chooser = new JFileChooser();
+        //chooser.setFileFilter(new LocalDataFilter());
+        chooser.setDialogTitle("Open local file");
+
+        int returnVal = chooser.showOpenDialog(null);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File f = chooser.getSelectedFile();
+            try {
+                pickedFile = f.toURI().toURL();
+            } catch (MalformedURLException ex) {
+                pickedFile = null;
+            }
+
+        }
+
+        return pickedFile;
     }
 }

@@ -47,13 +47,12 @@ import org.wdssii.gui.swing.JThreadPanel;
 
 /**
  *
- * SourcesView is a JPanel that handles adding data from various locations
- * to the display.
- * By having a swing panel I can put it into any RCP container I want,
- * such as Eclipse RCP or Netbeans
- * 
+ * SourcesView is a JPanel that handles adding data from various locations to
+ * the display. By having a swing panel I can put it into any RCP container I
+ * want, such as Eclipse RCP or Netbeans
+ *
  * @author Robert Toomey
- * 
+ *
  */
 public class IndexView extends JThreadPanel implements CommandListener, CONUSJPanelListener {
 
@@ -64,12 +63,14 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
     private BookmarkURLDataTableModel myModel;
     private final CONUSJPanel myCONUSPanel;
     private Date mySingleDate;
-    
-    /** Our factory, called by reflection to populate menus, etc...*/
+
+    /**
+     * Our factory, called by reflection to populate menus, etc...
+     */
     public static class Factory extends WdssiiDockedViewFactory {
 
         public Factory() {
-            super("Index", "cart_add.png");
+            super("Bookmark", "cart_add.png");
         }
 
         @Override
@@ -104,8 +105,8 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         // which are of course already in the swing thread.
     }
 
-    /** Filter to looks for local data files.  We can make this more 
-     * advanced
+    /**
+     * Filter to looks for local data files. We can make this more advanced
      */
     private class LocalDataFilter extends FileFilter {
 
@@ -120,7 +121,8 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         }
     }
 
-    /** Filter for local files.
+    /**
+     * Filter for local files.
      */
     private class SingleProductFileFilter extends FileFilter {
 
@@ -128,10 +130,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         public boolean accept(File f) {
             String t = f.getName().toLowerCase();
             // FIXME: need to get these from the Builders
-            return (f.isDirectory() 
+            return (f.isDirectory()
                     || t.endsWith(".netcdf") || t.endsWith(".nc") || t.endsWith(".netcdf.gz")
-                    || t.endsWith(".xml") || t.endsWith(".xml.gz")
-                    );
+                    || t.endsWith(".xml") || t.endsWith(".xml.gz"));
         }
 
         @Override
@@ -140,7 +141,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         }
     }
 
-    /** A class that uses a BookmarkURLData as its model */
+    /**
+     * A class that uses a BookmarkURLData as its model
+     */
     private class BookmarkURLDataTableModel extends RowEntryTableModel<BookmarkURLSource> {
 
         // FIXME: should be an enum class probably...
@@ -149,7 +152,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         public static final int BOOK_PATH = 2;
         public static final int BOOK_TIME = 3;
         public static final int BOOK_GROUP = 4;
-        /** Group filter */
+        /**
+         * Group filter
+         */
         private BookmarkRowFilter myRowFilter = new BookmarkRowFilter();
 
         private void selectLineOf(BookmarkURLSource s) {
@@ -280,7 +285,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         }
     }
 
-    /** Our custom renderer for our product view table */
+    /**
+     * Our custom renderer for our product view table
+     */
     private static class BookmarkTableCellRenderer extends WG2TableCellRenderer {
 
         @Override
@@ -352,7 +359,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
             @Override
             public void mouseClicked(MouseEvent e) {
 
-                /** On double click, try to add the source */
+                /**
+                 * On double click, try to add the source
+                 */
                 if (e.getClickCount() == 2) {
                     addNewSourceFromFields(true, true);
                 }
@@ -366,7 +375,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
 
             @Override
             public void keyPressed(KeyEvent e) {
-                /** Have to do enter pressed to snag before the table scroll */
+                /**
+                 * Have to do enter pressed to snag before the table scroll
+                 */
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     addNewSourceFromFields(true, true);
                 }
@@ -403,9 +414,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         add(jRootTab, "grow");
 
         JPanel p1 = createIndexLoadPanel();
-        JPanel p2 = createSingleFilePanel();
-        jRootTab.addTab("From index.xml", p1);
-        jRootTab.addTab("From single file", p2);
+        //JPanel p2 = createSingleFilePanel();
+        jRootTab.addTab("W2 Index", p1);
+        // jRootTab.addTab("From single file", p2);
     }
 
     private JPanel createIndexLoadPanel() {
@@ -484,7 +495,7 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         p.add(jBookTabPane, "spanx 3, growx, growy");
         jSourceTableScrollPane = new javax.swing.JScrollPane();
         jBookTabPane.addTab("List", jSourceTableScrollPane);
-        
+
         // Listener setup ----------------------------------------------------- 
         jURLTextField.addActionListener(new java.awt.event.ActionListener() {
 
@@ -628,12 +639,12 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         setSingleTimeDate(null);
         jDataTypeTextField.setText("");
     }
-    
-    private void setSingleTimeDate(Date aDate){
+
+    private void setSingleTimeDate(Date aDate) {
         mySingleDate = aDate;
-        if (aDate != null){
+        if (aDate != null) {
             jSingleTimeTextField.setText(aDate.toString());
-        }else{
+        } else {
             jSingleTimeTextField.setText("");
         }
     }
@@ -645,7 +656,7 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
     private void jClearLocalButtonActionPerformed(java.awt.event.ActionEvent evt) {
         clearInfo();
     }
-    
+
     private void jAddLocalButtonActionPerformed(java.awt.event.ActionEvent evt) {
 
         // Check URL format first...
@@ -726,7 +737,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
     private javax.swing.JTabbedPane jRootTab;
     // End of variables declaration                   
 
-    /** Update the table of bookmarks to the current combo box selection */
+    /**
+     * Update the table of bookmarks to the current combo box selection
+     */
     private void updateListToCurrent() {
         try {
             // FIXME: should be from GUI, not hardcoded
@@ -744,7 +757,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         }
     }
 
-    /** Try to update the image/radar info vcp latencies for the CONUS */
+    /**
+     * Try to update the image/radar info vcp latencies for the CONUS
+     */
     public void updateCurrentRadarInfo() {
 
         RadarInfo info = new RadarInfo();
@@ -775,8 +790,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         }
     }
 
-    /** From our manually added table, handle selection of a line by filling
-     * in the fields
+    /**
+     * From our manually added table, handle selection of a line by filling in
+     * the fields
      */
     private void jSourceListTableValueChanged(ListSelectionEvent evt) {
         if (evt.getValueIsAdjusting()) {
@@ -797,7 +813,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         }
     }
 
-    /** Set our visual table list of bookmarks from a given data set of them */
+    /**
+     * Set our visual table list of bookmarks from a given data set of them
+     */
     public void setBookmarks(BookmarkURLData bookmarks) {
 
         BookmarkURLDataTableModel model = (BookmarkURLDataTableModel) jSourceListTable.getModel();
@@ -829,18 +847,22 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         setShownGroup(theItem);
     }
 
-    /** Try to add a source to the display from the currently showing
-     * fields
+    /**
+     * Try to add a source to the display from the currently showing fields
      */
     public void addNewSourceFromFields(boolean confirm, boolean report) {
         String path = jURLTextField.getText();
         String name = jNameTextField.getText();
 
-        // Assuming realtime?  FIXME
-        boolean realtime = true;
-        boolean connect = true;
-        CommandManager.getInstance().executeCommand(
-                new SourceAddCommand(this, name, path, confirm, report, realtime, connect), false);
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Give this source a name, such as 'KTLX'");
+        } else {
+            // Assuming realtime?  FIXME
+            boolean realtime = true;
+            boolean connect = true;
+            CommandManager.getInstance().executeCommand(
+                    new SourceAddCommand(this, name, path, confirm, report, realtime, connect), false);
+        }
     }
 
     public String doSourceOpenDialog() {
@@ -864,7 +886,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         return pickedFile;
     }
 
-    /** Load an individual file into the ManualLoadIndex */
+    /**
+     * Load an individual file into the ManualLoadIndex
+     */
     public URL doSingleProductOpenDialog() {
 
         URL pickedFile = null;

@@ -1,16 +1,9 @@
 package org.wdssii.index;
 
-import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.zip.GZIPInputStream;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
@@ -120,14 +113,6 @@ public class XMLIndex extends Index {
             }
         } catch (Exception c) {
             valid = false;
-        }
-        if (valid) {
-            log.debug("OK....here it is " + t.items.size());
-            for (Tag_item i : t.items) {
-                if (i.params != null) {
-                    log.debug("params {" + i.params.getText() + "}");
-                }
-            }
         }
         return valid;
     }

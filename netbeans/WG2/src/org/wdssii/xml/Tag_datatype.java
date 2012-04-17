@@ -65,7 +65,7 @@ public class Tag_datatype extends Tag {
 
             // <attr loop
             if (atStart(p, "attr")) {
-                Map aMap = new TreeMap<String, String>();
+                Map<String, String> aMap = new TreeMap<String, String>();
                 processAttributes(p, aMap); // <attr name=value
                 while (p.hasNext()) {
                     p.next();

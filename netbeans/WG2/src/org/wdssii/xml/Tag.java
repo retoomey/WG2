@@ -2,6 +2,7 @@ package org.wdssii.xml;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -10,14 +11,15 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import java.util.zip.GZIPInputStream;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Tag is an html Tag object that handles a Stax parsing stream. Even though we
@@ -30,10 +32,14 @@ import javax.xml.stream.XMLStreamReader;
  * FIXME: bug where if duplicate tag occurs within an unhandled child then it
  * will overwrite the tag.
  *
+ * This isn't as fast as raw STAX, the advantage is that we can define new tags
+ * very quickly and easily.
+ * 
  * @author Robert Toomey
  */
 public abstract class Tag {
 
+    private static Logger log = LoggerFactory.getLogger(Tag.class);
     private String cacheTagName;
     private boolean haveTag = false;
     /**
@@ -48,24 +54,39 @@ public abstract class Tag {
      * The text between tags, if any... <tag>the text</tag>
      */
     private String text = ""; // Important to be "" since we append to it
+    /** ArrayLists are done by reflection in the form:
+     * <tag>
+     *   <item>
+     *   <item>
+     * </tag>
+     * with a field of the form:
+     * public ArrayList<Tag_item> items;
+     * Typically these repeat in a block, so we cache the array
+     * to speed up the reflection.  So if you have ArrayLists of subtags,
+     * you want to group them in the xml file as much as possible for speed.
+     */
+    private ArrayList<Object> lastArray;
+    private String lastArrayName;
+    private Class<? extends Tag> lastClass;
+    private int lastCounter = 0;
+    Field[] fields;
 
     public String getText() {
         return text;
     }
-    
+
     /** Release text.  This is done by default by validateTag to save memory,
      * I typically don't use text between tags.  If you do, override
      * validateTag for tags you want to keep text for.
      */
-    public void releaseText(){
+    public void releaseText() {
         text = null;
     }
-    
+
     /*
      * Default tag method returns the part of the classname without the "Tag_"
      * part. This is why this class is abstract.
      */
-
     public final String tag() {
         if (!haveTag) {
             Class<?> c = this.getClass();
@@ -261,12 +282,24 @@ public abstract class Tag {
             }
             processedTag = true;
             validateTag();
+            if (lastCounter > 0) {
+                log.debug("Tag " + this.tag() + " array " + lastArrayName + " had " + lastCounter + " hits************");
+            }
+            cleanUp();
         }
         return foundIt;
     }
 
     public void validateTag() {
         releaseText();
+    }
+
+    /** Free up memory since we might hold onto tags for a while */
+    public void cleanUp() {
+        lastArrayName = null;
+        lastArray = null;
+        lastClass = null;
+        fields = null;
     }
 
     /**
@@ -328,17 +361,7 @@ public abstract class Tag {
         } catch (MalformedURLException ex) {
             return false;
         }
-        
-       /* boolean success = false;
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        try {
-            FileInputStream is = new FileInputStream(f);
-            XMLStreamReader p = factory.createXMLStreamReader(is);
-            success = processAsRoot(p);
-        } catch (Exception ex) {
-        }*/
         return success;
-
     }
 
     /**
@@ -378,6 +401,34 @@ public abstract class Tag {
         fillArrayListFieldsFromReflection(p);
     }
 
+    /** A getDeclaredField that caches the fields of our tag, this is faster
+     * than the internal methods that copy all fields each time getDeclaredField
+     * is called
+     * 
+     * @param name
+     * @return 
+     */
+    private Field getDeclaredField(String name) {
+
+        // Reflection COPIES fields on getDeclaredField, so we cache them
+        // for speed.
+        if (fields == null) {
+            Class<?> c = this.getClass();
+            fields = c.getFields();
+        }
+
+        // Copied from Field private method for searching.
+        // Not sure if intern does more harm than good here....
+        //String internedName = name.intern();
+        for (int i = 0; i < fields.length; i++) {
+            //if (fields[i].getName() == internedName) {
+            if (fields[i].getName().equals(name)) {
+                return fields[i];
+            }
+        }
+        return null;
+    }
+
     /**
      * Handle attributes by reflection. It looks for a matching field name
      * exactly matching the xml attribute tag. The type of the field is used to
@@ -388,18 +439,9 @@ public abstract class Tag {
      */
     public void handleAttribute(String name, String value) {
 
-        try {
-            Class<?> c = this.getClass();
-            Field f = c.getDeclaredField(name);
+        Field f = getDeclaredField(name);
+        if (f != null) {
             parseFieldString(f, value);
-
-        } catch (NoSuchFieldException x) {
-            // Store generically in a map<String, String> if no field exists?
-            // Not sure I like this since it could let developer avoid using
-            // types.  We end up with code like:
-            // String stuff = getStuff("tagname");
-            // int i = Integer.parse(stuff);
-            // error, error, etc...
         }
     }
 
@@ -467,11 +509,30 @@ public abstract class Tag {
                     handled = true;
                 } catch (NumberFormatException e) {
                     // Could warn....
-                }
+                }                            
+               
+                 // ---------------------------------------------------------------
+                // Handle 'double' field type
+                // <tag fieldInteger={+-infinity, +-inf, float
+            } else if (theType.equals("double")){
+                 try {
+                    double aDouble = Double.NaN;
+                    if (value.equalsIgnoreCase("infinity")) {
+                        aDouble = Double.POSITIVE_INFINITY;
+                    } else if (value.equalsIgnoreCase("-infinity")) {
+                        aDouble = Double.NEGATIVE_INFINITY;
+                    } else {
+                        aDouble = Double.parseDouble(value);
+                    }
+                    f.setDouble(this, aDouble);
+                    handled = true;
+                } catch (NumberFormatException e) {
+                    // Could warn....
+                }    
                 // ---------------------------------------------------------------
                 // Handle 'string' field type (which is just the xml text)
                 // <tag fieldInteger=xmltext
-            } else {
+            }else{
                 f.set(this, value);
                 handled = true;
             }
@@ -479,6 +540,31 @@ public abstract class Tag {
             // FIXME: notify programmer of bad access
         }
         return handled;
+    }
+
+    /** Throws everything but kitchen sink....create a sub tag from given
+     * class and call processTag on it
+     * @param p the stream
+     * @param m the class maker
+     * @return new Tag
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException 
+     */
+    public Tag createAndProcessSubTag(XMLStreamReader p, Class<? extends Tag> m)
+            throws InstantiationException, IllegalAccessException,
+            NoSuchMethodException, InvocationTargetException {
+        Class<?>[] argTypes = new Class[]{XMLStreamReader.class};
+        Object[] args = new Object[]{p}; // Actual args
+        Tag classInstance = m.newInstance();
+        Method aMethod = m.getMethod("processTag", argTypes);
+        Object result = aMethod.invoke(classInstance, args);
+        if ((Boolean) (result) == true) {
+            return (Tag) classInstance;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -494,14 +580,27 @@ public abstract class Tag {
         if ((tag = haveStartTag(p)) != null) {
 
             try {
+                final String tags = tag + "s";
 
-                // For tag <color >  -->
-                // public ArrayList<Tag_color> colors;
-                Class<?> c = this.getClass();
+                // Cache hit the last array, this should speed up our
+                // reflection for large arrays
+                if (tags.equals(lastArrayName)) {
+
+                    lastCounter++;
+                    Tag subTag = createAndProcessSubTag(p, lastClass);
+                    if (subTag != null) {
+                        lastArray.add(subTag);
+                    }
+                    return;
+                }
 
                 // ---------------------------------------------------------------------------
                 // Only allow ArrayList for now....
-                Field f = c.getDeclaredField(tag + "s");
+                //Field f = c.getDeclaredField(tags);
+                Field f = getDeclaredField(tags);
+                if (f == null) {
+                    return;
+                }
                 String theType = f.getType().getName();
                 if (theType.equals("java.util.ArrayList")) {
 
@@ -509,29 +608,26 @@ public abstract class Tag {
                     Type type = f.getGenericType();
                     if (type instanceof ParameterizedType) {
                         ParameterizedType pt = (ParameterizedType) (type);
-                        //Type rawType = pt.getRawType();
-                        // String raw = rawType.toString(); //arrayList?
 
                         // We just want one thing inside the <>...
                         Type[] types = pt.getActualTypeArguments();
                         if (types.length == 1) {
                             Type insideType = types[0];
-                            // From pre-generics Type/Class merging...
-                            if (insideType instanceof Class<?>) {
-                                Class<?> theClass = (Class<?>) (insideType);
+                            // We know this is unchecked...will cause exception
+                            @SuppressWarnings("unchecked")
+                            Class<? extends Tag> theClass = (Class<? extends Tag>) (insideType);
 
-                                // This class should be a subclass of Tag...
-                                Class<?>[] argTypes = new Class[]{XMLStreamReader.class};
-                                Object[] args = new Object[]{p}; // Actual args
-                                Object classInstance = theClass.newInstance();
-                                Method aMethod = theClass.getMethod("processTag", argTypes);
-                                Object result = aMethod.invoke(classInstance, args);
-
-                                if ((Boolean) (result) == true) {
-                                    // Add this tag to the ArrayList...
-                                    ArrayList<Object> currentArray = (ArrayList<Object>) (f.get(this));
-                                    currentArray.add(classInstance);
-                                }
+                            Tag subTag = createAndProcessSubTag(p, theClass);
+                            if (subTag != null) {
+                                // We know this is unchecked...will cause exception
+                                @SuppressWarnings("unchecked")
+                                ArrayList<Object> currentArray = (ArrayList<Object>) (f.get(this));
+                                //currentArray.add(classInstance);
+                                currentArray.add(subTag);
+                                // Cache it (because it probably repeats)
+                                lastArrayName = tags;
+                                lastArray = currentArray;
+                                lastClass = theClass;
                             }
                         }
                     }
@@ -546,15 +642,6 @@ public abstract class Tag {
     /**
      * Fill in Tag_ fields from reflection. For example: in xml we have "<color
      * " tag. This will look for public Tag_Color color; and add by reflection
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-
-     *
      * @param p
      */
     public void fillTagFieldsFromReflection(XMLStreamReader p) {
@@ -563,34 +650,21 @@ public abstract class Tag {
         if ((tag = haveStartTag(p)) != null) {
 
             try {
-
-                // For tag <color >  -->
-                // public Tag_color colors;
-                Class<?> c = this.getClass();
-
-                // ---------------------------------------------------------------------------
-                // Only allow ArrayList for now....
-                Field f = c.getDeclaredField(tag);
-                Type t = f.getType();
-                // FIXME: how to check for Tag_name?
-                Class<?> toMake = null;
-                if (t instanceof Class<?>) {
-                    toMake = (Class<?>) (t);
-
-                    // This class should be a subclass of Tag...
-                    Class<?>[] argTypes = new Class[]{XMLStreamReader.class};
-                    Object[] args = new Object[]{p}; // Actual args
-                    Object classInstance = toMake.newInstance();
-                    Method aMethod = toMake.getMethod("processTag", argTypes);
-                    Object result = aMethod.invoke(classInstance, args);
-
-                    if ((Boolean) (result) == true) {
-                        f.set(this, classInstance);
-                        // Add this tag to the ArrayList...
-                        // ArrayList<Object> currentArray = (ArrayList<Object>) (f.get(this));
-                        //  currentArray.add(classInstance);
-                    }
+                Field f = getDeclaredField(tag);
+                if (f == null) {
+                    return;
                 }
+                Type t = f.getType();
+                
+                // We know this is unchecked...will cause exception
+                @SuppressWarnings("unchecked")
+                Class<? extends Tag> toMake = (Class<? extends Tag>) (t);
+                
+                Tag subTag = createAndProcessSubTag(p, toMake);
+                if (subTag != null) {
+                    f.set(this, subTag);
+                }
+                // }
 
             } catch (Exception e) {
                 // We don't know how to handle this tag...ignore it...

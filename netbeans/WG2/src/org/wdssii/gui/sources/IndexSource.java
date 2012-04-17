@@ -73,6 +73,7 @@ public class IndexSource extends Source implements HistoryListener {
         myPath = newPath;
     }
 
+    @Override
     public synchronized void disconnect() {
         if (myIndex != null) {
             myConnected = false;
@@ -138,7 +139,7 @@ public class IndexSource extends Source implements HistoryListener {
      */
     public HistoricalIndex getIndex() {
         // Assume index not ready for use if we're still connecting...
-        log.debug("GET INDEX " + myIndex + " " + myConnecting + ", " + !myConnected);
+       // log.debug("GET INDEX " + myIndex + " " + myConnecting + ", " + !myConnected);
         if (myConnecting || !myConnected) {
             return null;
         }

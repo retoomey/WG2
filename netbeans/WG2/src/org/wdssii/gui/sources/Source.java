@@ -36,13 +36,6 @@ public class Source {
      */
     private URL myURL;
     
-    /**
-     * Given a URL to something, create a Source object
-     */
-    public static Source SourceFactory(String visibleName, URL aURL) {
-        return new IndexSource(visibleName, aURL);
-    }
- 
     private synchronized String getNewKeyName() {
         String newKey = String.format("s%d", indexCounter++);
         return (newKey);

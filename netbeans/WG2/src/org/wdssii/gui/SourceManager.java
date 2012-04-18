@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.sources.IndexSource;
 import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.SourceFactory;
 import org.wdssii.gui.sources.SourceList;
 import org.wdssii.index.ManualLoadIndex;
 
@@ -125,12 +126,6 @@ public class SourceManager implements Singleton {
         }
     }
 
-    /** Only SourceManager and SourceCommands are allowed to access this directly */
-    private IndexCollection getIndexCollection() {
-       log.error("INDEX COLLECTION CALLED...this no longer works");
-        return myIndexCollection;
-    }
-
     private static SourceManager instance = null;
     private SourceRecordLog mySourceRecordLog = new SourceRecordLog();
 
@@ -155,8 +150,12 @@ public class SourceManager implements Singleton {
     /** Add a source to the display */
     public String add(String shortName, URL aUrl, boolean realtime) { 
         
+	
         String success = "";
-        Source s = Source.SourceFactory(shortName, aUrl);
+	// Fixme: more generalized
+	IndexSource s = new IndexSource(shortName, aUrl);
+
+//        Source s = SourceFactory.create(shortName, aUrl);
         SourceList.theSources.addSource(s);
         return s.getKey();  
     }
@@ -177,7 +176,7 @@ public class SourceManager implements Singleton {
            // c.executeCommand(new SourceAddCommand("CONUS", "file:/E:/CONUS/code_index.xml?p=xml", false, connect), false);
            // c.executeCommand(new SourceAddCommand("KTLX", "file:/E:/KTLX-large/radar_data.xml?p=xml", false, connect), false);
            // c.executeCommand(new SourceAddCommand("Wind", "file:/E:/WindData/code_index.xml", false, connect), false);
-            c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml?p=xml", false, connect), false);
+            c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml", false, connect), false);
         } catch (Exception e) {
             // Recover
         }
@@ -186,46 +185,6 @@ public class SourceManager implements Singleton {
         //instance.connect("Wind", "xml:E:/WindData/code_index.xml", false);	
     }
 
-    /**
-     * Attempt to connect to an index, returns true on success
-     * 
-     * @param shortName
-     *            the short name of the index
-     * @param path
-     *            the url path of the index
-     * @param realtime
-     *            if realtime, connect an index listener to it
-     * @return success of connection to index
-     */
-    /*public boolean connect(String shortName, String path, boolean realtime) {
-    boolean changed = false;
-    boolean success = false;
-    
-    // This 'adds' to the list of index (not the same as connect)
-    IndexWatcher current = add(shortName, path, realtime);
-    try {
-    success = current.connect();
-    if (!success) {
-    log.warn("Couldn't connect to index '" + shortName + "' " + path);
-    } else {
-    log.info("Connected to '" + shortName + "' " + path);
-    log.info("There are " + getIndexCount() + "index(es)");
-    
-    }
-    changed = true;
-    } catch (IllegalArgumentException e) {
-    log.error("Could not connect to source " + shortName);
-    } catch (DataUnavailableException e) {
-    log.error("Data UNAVAILABLE!");
-    }
-    if (changed) {
-    CommandManager.getInstance().executeCommand(
-    new SourceConnectCommand(), false);
-    }
-    return true;
-    }*/
-    //public void connect(String indexKey){
-//
     //}
     /** A disconnect is basically a delete, but where we keep the index for future connection */
     public void disconnect(String indexName) {
@@ -365,25 +324,6 @@ public class SourceManager implements Singleton {
         return newRecord;
     }
 
-    /*  This will shift subtype
-    public IndexRecord getRecordLatestUpToDate(String indexKey,
-    String dataType, Date time) {
-    Index theIndex = getIndexByName(indexKey);
-    IndexRecord newRecord = null;
-    
-    if (theIndex != null) {
-    
-    // First try record matching datatype, subtype and time...
-    newRecord = theIndex.getLatestUpToDate(dataType, time);
-    
-    // Make sure source name set in record
-    if (newRecord != null) {
-    newRecord.setSourceName(getIndexName(theIndex));
-    }
-    }
-    return newRecord;
-    }
-     */
     /** Going to modify the builder/index so that we can 'open' a single file and have it go into a 'static' index */
     public void build1FromLocation() {
         //Date toUse = new Date(); // use 'now'  Humm notice with this the true date is INSIDE the object, not outside like normal
@@ -392,11 +332,6 @@ public class SourceManager implements Singleton {
         //	testrcp.Application test ;
         //	IndexRecord r = new IndexRecord();
     }
-    /*
-    public void disconnectSelectedSource() {
-    System.out.println("Current sourceName is " + mySelectIndex);
-    disconnect(mySelectIndex);
-    }*/
 
     // Index collection access  -----------------------------
     public String getNiceShortName(String key) {
@@ -408,10 +343,6 @@ public class SourceManager implements Singleton {
         return name;
     }
 
-    public String getIndexName(HistoricalIndex anIndex) {
-        return myIndexCollection.getIndexName(anIndex);
-    }
-
     public String getSelectedIndexKey() {
         Source s = SourceList.theSources.getTopSelected();
         String name = "";
@@ -419,18 +350,6 @@ public class SourceManager implements Singleton {
             name = s.getKey();
         }
         return name;
-    }
-
-    public ArrayList<IndexWatcher> getIndexList() {
-        return myIndexCollection.getIndexList();
-    }
-
-    public IndexWatcher getIndexWatcher(String s) {
-        return myIndexCollection.getIndexWatcher(s);
-    }
-
-    public void selectIndexKey(String key) {
-        myIndexCollection.selectIndexKey(key);
     }
 
     /** Add a local URL to our ManualLoadIndex */

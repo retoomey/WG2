@@ -10,41 +10,61 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
+import org.wdssii.gui.sources.IndexSource;
+import org.wdssii.gui.sources.Source;
 
 /**  Add a new source (and then spawn a connect to it)
  * @author Robert Toomey
  */
 public class SourceAddCommand extends SourceClearCommand {
 
+    /** Info needed to add a source, passed to Source such as IndexSource */
+    public static class SourceAddParams{
+        public JComponent rootWindow = null; // root for any dialogs
+        public String niceName;
+	public URL sourceURL;
+	public boolean realTime = false;
+	public boolean connect = false;
+	public Source createSource(){
+		return new IndexSource(niceName, sourceURL);
+	}
+    }
+
     private static Logger log = LoggerFactory.getLogger(SourceAddCommand.class);
 
-    private URL myPath;
-    private boolean myRealtime = false;
-    private String myNiceName = null;
-    private boolean myConnect = false;
+    private SourceAddParams myParams;
+
     /** By default if user clicks a button, require a confirm dialog */
-    private boolean myUserConfirm = true;
-    private boolean myUserReport = true;
+    private boolean myUserConfirm = false;
+    private boolean myUserReport = false;
     
-    /** Root window that called this command.  Used by dialogs to link
-     * to proper caller window.  Important for multiple displays
-     */
-    private JComponent myRoot = null;
-    
-       /**
+     /**
      * 
      * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
      * @param path	The path such as "http://...."
      * @param realtime	Is this a realtime index?  (requires a socket connection)
      */
-    public SourceAddCommand(String niceName, String path, boolean realtime, boolean connect) {
-        myNiceName = niceName;
-        myUserConfirm = false;
-        myUserReport = false;     
-        myRealtime = realtime;
-        myConnect = connect;
+    public SourceAddCommand(SourceAddParams params, String path){
+        myParams = params;
         try {
-            myPath = new URL(path);
+           URL aURL = new URL(path);
+	   myParams.sourceURL = aURL;
+        } catch (MalformedURLException ex) {
+            log.error("SOURCE URL is MALFORMED "+ex.toString());
+        }
+    }
+
+    /** Add a source from a given path.  This will try to guess the type */
+    public SourceAddCommand(String niceName, String path, boolean realtime, boolean connect) {
+        try {
+// Only IndexSource right now
+            SourceAddParams params = new SourceAddParams();
+	    params.connect = connect;
+	    params.realTime = realtime;
+	    params.niceName= niceName;
+	    myParams = params;
+            URL aURL = new URL(path);
+	    params.sourceURL = aURL;
         } catch (MalformedURLException ex) {
             log.error("SOURCE URL is MALFORMED "+ex.toString());
         }
@@ -56,53 +76,8 @@ public class SourceAddCommand extends SourceClearCommand {
      * @param path	The path such as "http://...."
      * @param realtime	Is this a realtime index?  (requires a socket connection)
      */
-    public SourceAddCommand(String niceName, URL path, boolean realtime, boolean connect) {
-        myNiceName = niceName;
-        myUserConfirm = false;
-        myUserReport = false;
-        myPath = path;
-        myRealtime = realtime;
-        myConnect = connect;
-    }
-    
-       /**
-     * 
-     * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
-     * @param path	The path such as "http://...."
-     * @param needUserConfirm	Do we use user dialogs? (scripting turns this off)
-     * @param realtime	Is this a realtime index?  (requires a socket connection)
-     */
-    public SourceAddCommand(JComponent root, String niceName, URL path, boolean needUserConfirm,
-            boolean needUserReport, boolean realtime, boolean connect) {
-        myRoot = root;
-        myNiceName = niceName;
-        myUserConfirm = needUserConfirm;
-        myUserReport = needUserReport;
-        myPath = path;
-        myRealtime = realtime;
-        myConnect = connect;
-    }
-    
-           /**
-     * 
-     * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
-     * @param path	The path such as "http://...."
-     * @param needUserConfirm	Do we use user dialogs? (scripting turns this off)
-     * @param realtime	Is this a realtime index?  (requires a socket connection)
-     */
-    public SourceAddCommand(JComponent root, String niceName, String path, boolean needUserConfirm,
-            boolean needUserReport, boolean realtime, boolean connect) {
-        myRoot = root;
-        myNiceName = niceName;
-        myUserConfirm = needUserConfirm;
-        myUserReport = needUserReport;
-        myRealtime = realtime;
-        myConnect = connect;
-         try {
-            myPath = new URL(path);
-        } catch (MalformedURLException ex) {
-            log.error("SOURCE URL is MALFORMED "+ex.toString());
-        }
+    public SourceAddCommand(SourceAddParams params){
+	    myParams = params;
     }
 
     @Override
@@ -110,16 +85,16 @@ public class SourceAddCommand extends SourceClearCommand {
 
         boolean updateGUI = false;
         boolean doJob = true;
-        if (myPath != null) {
+        if (myParams.sourceURL != null) {
 
             // Remember if user wants dialog to show on add or not...
             PreferencesManager p = PreferencesManager.getInstance();
             boolean showDialog = p.getBoolean(PrefConstants.PREF_showAddCommandDialog);
             if (myUserConfirm && showDialog) {
                 JCheckBox checkbox = new JCheckBox("Do not show this message again.");
-                String message = "Add and connect to source '" + myNiceName + "'?";
+                String message = "Add and connect to source '" + myParams.niceName + "'?";
                 Object[] params = {message, checkbox};
-                int n = JOptionPane.showConfirmDialog(myRoot, params, "Confirm source addition", JOptionPane.YES_NO_OPTION);
+                int n = JOptionPane.showConfirmDialog(myParams.rootWindow, params, "Confirm source addition", JOptionPane.YES_NO_OPTION);
                 boolean dontShow = checkbox.isSelected();
                 if (n == 0) { // Yes
                     doJob = true;
@@ -131,14 +106,14 @@ public class SourceAddCommand extends SourceClearCommand {
             }
             if (doJob) {
 
-                String newKey = add(myNiceName, myPath, myRealtime);  // Don't lag here.
+                String newKey = add(myParams.niceName, myParams.sourceURL, myParams.realTime);  // Don't lag here.
                 updateGUI = true;  // Add needs a 'unconnected' icon and name in list.
                 if (myUserReport) {
                     if (newKey != null) {
-                        JOptionPane.showMessageDialog(myRoot, "Add was successful",
+                        JOptionPane.showMessageDialog(myParams.rootWindow, "Add was successful",
                                 "Add success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        JOptionPane.showMessageDialog(myRoot, "Add not successful",
+                        JOptionPane.showMessageDialog(myParams.rootWindow, "Add not successful",
                                 "Add failure", JOptionPane.ERROR_MESSAGE);
                     }
                 }
@@ -146,7 +121,7 @@ public class SourceAddCommand extends SourceClearCommand {
                 // Pass on to the connect command...
                 if (newKey != null) {
 
-                    if (myConnect) {
+                    if (myParams.connect) {
                         // Spawns worker thread....
                         SourceConnectCommand c = new SourceConnectCommand(newKey);
                         CommandManager.getInstance().executeCommand(c, false);

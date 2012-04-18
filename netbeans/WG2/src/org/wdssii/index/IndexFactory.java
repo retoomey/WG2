@@ -94,11 +94,10 @@ public abstract class IndexFactory {
             if (protocol == null) {
                 protocol = paramMap.get("protocol");
             }
+
+	    // We assume no protocol means it is regular xml
             if (protocol == null) {
-                log.error("Missing protocol in URL.  Need something like ?p=xml or ?protocol=webindex in URL");
-                // FIXME: might 'guess' protocol... stuff ending in ".xml" is probably xml...
-                //return null;
-                protocol = "xml"; // hack to see something...
+                protocol = "xml"; 
             }
             log.info("URL protocol is:" + protocol);
 
@@ -146,11 +145,9 @@ public abstract class IndexFactory {
         if (protocol == null) {
             protocol = paramMap.get("protocol");
         }
+	// We assume no protocol means it is regular xml
         if (protocol == null) {
-            log.error("Missing protocol in URL.  Need something like ?p=xml or ?protocol=webindex in URL");
-            // FIXME: might 'guess' protocol... stuff ending in ".xml" is probably xml...
-            //return null;
-            protocol = "xml"; // hack to see something...
+            protocol = "xml"; 
         }
         log.info("URL protocol is:" + protocol);
 

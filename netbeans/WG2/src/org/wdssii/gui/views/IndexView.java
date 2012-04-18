@@ -861,7 +861,7 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
             boolean realtime = true;
             boolean connect = true;
             CommandManager.getInstance().executeCommand(
-                    new SourceAddCommand(this, name, path, confirm, report, realtime, connect), false);
+                    new SourceAddCommand(name, path, realtime, connect), false);
         }
     }
 

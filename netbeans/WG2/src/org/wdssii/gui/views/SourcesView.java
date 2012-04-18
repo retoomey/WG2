@@ -1,20 +1,13 @@
 package org.wdssii.gui.views;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
@@ -24,25 +17,21 @@ import net.infonode.docking.*;
 import net.infonode.docking.properties.DockingWindowProperties;
 import net.infonode.docking.properties.ViewProperties;
 import net.infonode.docking.properties.ViewTitleBarProperties;
-import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.datatypes.builders.Builder;
-import org.wdssii.datatypes.builders.NetcdfBuilder;
-import org.wdssii.datatypes.builders.XMLBuilder;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.DockWindow;
 import org.wdssii.gui.SourceManager.SourceCommand;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.SourceFactory;
 import org.wdssii.gui.sources.SourceList;
 import org.wdssii.gui.swing.*;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
-import org.wdssii.index.IndexFactory;
 
 /**
  * SourcesView. Lots of duplicate code with FeaturesView, should probably break
@@ -133,7 +122,7 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
 					@Override
 					public void windowClosing(DockingWindow window)
-									throws OperationAbortedException {
+						throws OperationAbortedException {
 						window.dock();
 					}
 				});
@@ -147,7 +136,6 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 	private JPanel jSourceGUIPanel;
 	private javax.swing.JToolBar jEditToolBar;
 	private javax.swing.JScrollPane jObjectScrollPane;
-	// private javax.swing.JScrollPane jControlScrollPane;
 	private javax.swing.JLabel jInfoLabel;
 
 	@Override
@@ -186,8 +174,8 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
 		public SourceListTableModel() {
 			super(SourceListTableData.class, new String[]{
-								"Connected", "Source", "Type", "Path"
-							});
+					"Connected", "Source", "Type", "Path"
+				});
 		}
 
 		@Override
@@ -208,11 +196,11 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value,
-						boolean isSelected, boolean cellHasFocus, int row, int col) {
+			boolean isSelected, boolean cellHasFocus, int row, int col) {
 
 			// Let super set all the defaults...
 			super.getTableCellRendererComponent(table, "",
-							isSelected, cellHasFocus, row, col);
+				isSelected, cellHasFocus, row, col);
 
 			String info;
 			int trueCol = table.convertColumnIndexToModel(col);
@@ -449,14 +437,14 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 		 * Sort by visible name
 		 */
 		Collections.sort(f,
-						new Comparator<Source>() {
+			new Comparator<Source>() {
 
-							@Override
-							public int compare(Source o1, Source o2) {
-								int c = o1.getVisibleName().compareTo(o2.getVisibleName());
-								return c;
-							}
-						});
+				@Override
+				public int compare(Source o1, Source o2) {
+					int c = o1.getVisibleName().compareTo(o2.getVisibleName());
+					return c;
+				}
+			});
 
 		int currentLine = 0;
 		int select = -1;
@@ -585,7 +573,7 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 		JComponent rootComponent;
 		if (!dockControls) {
 			JSplitPane s = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-							selection, controls);
+				selection, controls);
 			s.setResizeWeight(.50);
 			rootComponent = s;
 		} else {
@@ -624,25 +612,34 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 	}
 
 	// Single source dialog.  We're gonna have to make it handle ANY generic
-	// Source type. FIXME
+	// Source type.
 	/**
 	 * Filter for local files.
 	 */
-	private class SingleProductFileFilter extends FileFilter {
+	private class SourceFileFilter extends FileFilter {
 
 		@Override
 		public boolean accept(File f) {
 			String t = f.getName().toLowerCase();
 			// FIXME: need to get these from the Sources, some sort of
 			// Factory
-			return (f.isDirectory()
-							|| t.endsWith(".netcdf") || t.endsWith(".nc") || t.endsWith(".netcdf.gz")
-							|| t.endsWith(".xml") || t.endsWith(".xml.gz"));
+			boolean canBeHandled = SourceFactory.canAnyHandleFileType(f);
+			return (f.isDirectory() || canBeHandled);
+
+//							|| t.endsWith(".netcdf") || t.endsWith(".nc") || t.endsWith(".netcdf.gz")
+//							|| t.endsWith(".xml") || t.endsWith(".xml.gz"));
 		}
 
 		@Override
 		public String getDescription() {
-			return "netcdf files or xml files";
+			Set<String> types = SourceFactory.getAllHandledFileDescriptions();
+			String d = "";
+			for (String s : types) {
+				d += s;
+				d += " ";
+			}
+			d += "Files";
+			return d;
 		}
 	}
 
@@ -651,377 +648,14 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 	 */
 	public URL doSingleProductOpenDialog() {
 
-		if (false) {
-			URL pickedFile = null;
-			JFileChooser chooser = new JFileChooser();
-
-			chooser.setAccessory(new LabelAccessory(chooser));
-
-			chooser.setFileFilter(new SingleProductFileFilter());
-			chooser.setDialogTitle("Add single source");
-
-			int returnVal = chooser.showOpenDialog(null);
-			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				File f = chooser.getSelectedFile();
-				try {
-					pickedFile = f.toURI().toURL();
-				} catch (MalformedURLException ex) {
-					// We assume that chooser knows not to return
-					// malformed urls...
-				}
-			}
-			return pickedFile;
-		} else {
-			URLLoadDialog myDialog = new URLLoadDialog(null, true, "Open Source");
-			return null;
-		}
-	}
-
-	public String figureOutSelectedFileType(URL aURL) {
-		String type = "Unknown";
-		if (aURL != null) {
-
-			// Check for wdssii index??
-			boolean isIndex = IndexFactory.checkURLForIndex(aURL);
-			if (isIndex) {
-				type = "WDSS2 Index";
-				return type;
-			}
-
-			String text = aURL.toString();
-			//jSingleURLTextField.setText(text);
-
-			// FIXME: Generalize these across Sources.  Sources might
-			// 'share' a builder...should Source do it or Builder?
-
-			// See if we can build from netcdf (a Wdssii netcdf file)
-			Builder.BuilderFileInfo info = NetcdfBuilder.getBuilderFileInfo(aURL);
-			if (info.success) {
-				log.debug("FOUND a WDSS2 Netcdf format file...");
-				type = "WDSS2 Netcdf File";
-				// setToInfo(info);
-			} else {
-
-				// Try to get header from xml
-				info = XMLBuilder.getBuilderFileInfo(aURL);
-				if (info.success) {
-					// setToInfo(info);
-					log.debug("FOUND a WDSSII XML format file....");
-					type = "WDSS2 XML File";
-				}
-			}
-		}
-		return type;
-	}
-
-	class LabelAccessory extends JLabel implements PropertyChangeListener {
-
-		private static final int PREFERRED_WIDTH = 125;
-		private static final int PREFERRED_HEIGHT = 100;
-
-		public LabelAccessory(JFileChooser chooser) {
-			setVerticalAlignment(JLabel.CENTER);
-			setHorizontalAlignment(JLabel.CENTER);
-			chooser.addPropertyChangeListener(this);
-			setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT));
-		}
-
-		@Override
-		public void propertyChange(PropertyChangeEvent changeEvent) {
-			String changeName = changeEvent.getPropertyName();
-			if (changeName.equals(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY)) {
-				File file = (File) changeEvent.getNewValue();
-				if (file != null) {
-					String type = "Internal Error";
-					try {
-						URL aURL = file.toURI().toURL();
-						type = figureOutSelectedFileType(aURL);
-					} catch (MalformedURLException ex) {
-						// We assume that chooser knows not to return
-						// malformed urls...
-					}
-					setText(type);
-					/*
-					 * ImageIcon icon = new ImageIcon(file.getPath()); if
-					 * (icon.getIconWidth() > PREFERRED_WIDTH) { icon = new
-					 * ImageIcon(icon.getImage().getScaledInstance(
-					 * PREFERRED_WIDTH, -1, Image.SCALE_DEFAULT)); if
-					 * (icon.getIconHeight() > PREFERRED_HEIGHT) { icon = new
-					 * ImageIcon(icon.getImage().getScaledInstance( -1,
-					 * PREFERRED_HEIGHT, Image.SCALE_DEFAULT)); } }
-					 * setIcon(icon);
-					 *
-					 *
-					 */
-
-				}
-			}
-		}
-	}
-
-	public class CustomDialog extends JDialog implements ActionListener {
-
-		private JPanel myPanel = null;
-		private JButton yesButton = null;
-		private JButton noButton = null;
-		private boolean answer = false;
-
-		public boolean getAnswer() {
-			return answer;
-		}
-
-		public CustomDialog(JFrame frame, boolean modal, String myMessage) {
-			super(frame, modal);
-			Container content = getContentPane();
-
-			myPanel = new JPanel();
-			myPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-
-			content.add(myPanel, new CC().width("min:pref:"));
-			myPanel.add(new JLabel(myMessage), new CC().growX().wrap());
-
-			JFileChooser fileChooser = new JFileChooser(".");
-			// fileChooser.setControlButtonsAreShown(false);
-			myPanel.add(fileChooser, new CC().growX().growY().wrap());
-
-			yesButton = new JButton("Yes");
-			yesButton.addActionListener(this);
-			myPanel.add(yesButton, new CC().growX().wrap());
-
-			noButton = new JButton("No");
-			noButton.addActionListener(this);
-			myPanel.add(noButton, new CC().growX().wrap());
-
-			pack();
-			setLocationRelativeTo(frame);
-			setVisible(true);
-		}
-
-		public void actionPerformed(ActionEvent e) {
-			if (yesButton == e.getSource()) {
-				System.err.println("User chose yes.");
-				answer = true;
-				setVisible(false);
-			} else if (noButton == e.getSource()) {
-				System.err.println("User chose no.");
-				answer = false;
-				setVisible(false);
-			}
-		}
+		SourcesURLLoadDialog myDialog = new SourcesURLLoadDialog(null, true, "Open Source");
+		return null;
 	}
 
 	/**
-	 * A dialog that loads a URL with the ability to prefetch url information
+	 * FIXME: move to factory. When an Index is found....set it up
 	 */
-	public class URLLoadDialog extends JDialog implements ActionListener {
-
-		private JPanel myPanel = null;
-		private JTextField myURLTextField;
-		private JTextField myNameTextField;
-		private JLabel myTypeTextField;
-		private JPanel mySubPanel;
-		private JButton myValidateURLButton;
-		private JButton myCancelButton;
-		private JPanel myGUIHolder;
-		private boolean myValidURLSource = false;
-
-		/**
-		 * Get a default name of the form 'Source#', making sure that name isn't
-		 * already being used
-		 *
-		 * @return a default source name
-		 */
-		private String getDefaultName() {
-			int counter = 0;
-			boolean done = false;
-			List<Source> list = SourceList.theSources.getSources();
-			String candidateName = "Source";
-			while (!done) {
-				candidateName = "Source" + (++counter);
-				// See if candidate matches something there....
-				boolean alreadyHaveThatName = false;
-				for (Source S : list) {
-					if (S.getVisibleName().equals(candidateName)) {
-						counter++;
-						alreadyHaveThatName = true;
-						break;
-					}
-				}
-				if (!alreadyHaveThatName) {
-					done = true;
-				}
-			}
-			return candidateName;
-		}
-
-		public URLLoadDialog(JFrame frame, boolean modal, String myMessage) {
-			super(frame, modal);
-
-			setTitle("Open Source");
-			Container content = getContentPane();
-
-			JPanel p;
-			myPanel = p = new JPanel();
-			p.setLayout(new MigLayout("fillx, wrap 3", "[pref!][][pref!]", ""));
-
-			// The URL field...
-			p.add(new JLabel("URL:"));
-			myURLTextField = new JTextField();
-			p.add(myURLTextField, new CC().growX().width("300"));
-
-			// The browse local file button...
-			JButton b = new JButton("Browse...");
-			p.add(b, new CC().alignX("right"));
-
-			// Source name
-			p.add(new JLabel("Name:"));
-			myNameTextField = new javax.swing.JTextField();
-			myNameTextField.setText(getDefaultName());
-			p.add(myNameTextField, new CC().growX().spanX(2));
-
-			// Validate button...
-			myValidateURLButton = new JButton("Validate");
-			p.add(myValidateURLButton, new CC().skip(1).alignX("right"));
-
-			myCancelButton = new JButton("Cancel");
-			p.add(myCancelButton, new CC().alignX("right"));
-
-			// The type information....
-			p.add(new JLabel("Type:"));
-			myTypeTextField = new JLabel("Unknown");
-			p.add(myTypeTextField, new CC().growX().spanX(2));
-
-			// The extra information panel...
-			myGUIHolder = new JPanel();
-			myGUIHolder.setSize(200, 50);
-			setUpBadSource(myGUIHolder);
-			p.add(myGUIHolder, new CC().growX().growY().spanX(3));
-
-			content.add(myPanel);
-			pack();
-			setLocationRelativeTo(frame);
-
-			myURLTextField.getDocument().addDocumentListener(new DocumentListener() {
-
-				@Override
-				public void changedUpdate(DocumentEvent e) {
-					invalidate();
-				}
-
-				@Override
-				public void removeUpdate(DocumentEvent e) {
-					invalidate();
-				}
-
-				@Override
-				public void insertUpdate(DocumentEvent e) {
-					invalidate();
-				}
-
-				public void invalidate() {
-					setValidURL(false);
-				}
-			});
-
-
-			b.addActionListener(new java.awt.event.ActionListener() {
-
-				@Override
-				public void actionPerformed(java.awt.event.ActionEvent evt) {
-					//jBrowseButtonActionPerformed(evt);
-					URL aURL = doSourceOpenDialog();
-					if (aURL != null) {
-						myURLTextField.setText(aURL.toString());
-						setValidURL(true);
-						setUpGUIForURL(myGUIHolder, aURL);
-					}
-				}
-			});
-
-			myCancelButton.addActionListener(new java.awt.event.ActionListener() {
-
-				@Override
-				public void actionPerformed(java.awt.event.ActionEvent evt) {
-					setVisible(false);
-				}
-			});
-
-			myValidateURLButton.addActionListener(new java.awt.event.ActionListener() {
-
-				@Override
-				public void actionPerformed(java.awt.event.ActionEvent evt) {
-					boolean valid = validateURL();
-					setValidURL(valid);
-				}
-			});
-
-			setVisible(true);
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-		}
-
-		public void setValidURL(boolean flag) {
-			myValidURLSource = flag;
-			myValidateURLButton.setVisible(!myValidURLSource);
-		}
-
-		;
-	    public void setUpBadSource(JComponent holder) {
-			holder.removeAll();
-			holder.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-			JPanel myStuff = new JPanel();
-			myStuff.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-			myStuff.add(new JLabel("invalid URL"), new CC().growX());
-			holder.add(myStuff, new CC().growX().growY());
-
-			myTypeTextField.setText("Unknown, click Validate to check");
-		}
-
-		public void setUpGUIForURL(JComponent holder, URL aURL) {
-			String type = figureOutSelectedFileType(aURL);
-			holder.removeAll();
-			holder.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-			JPanel myStuff = new JPanel();
-			myStuff.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-			myStuff.add(new JLabel(type), new CC().growX());
-			holder.add(myStuff, new CC().growX().growY());
-			myTypeTextField.setText(type);
-		}
-	}
-
-	public boolean validateURL() {
-		return true;
-
-	}
-
-	/** FIXME: move to factory.  When an Index is found....set it up */
 	public boolean setUpIndexGUIForURL(JTextField urlDisplay, JComponent holder, URL aURL) {
 		return false;
-	}
-
-	/**
-	 * For the moment a simple file dialog
-	 */
-	public URL doSourceOpenDialog() {
-
-		URL pickedFile = null;
-		JFileChooser chooser = new JFileChooser();
-		//chooser.setFileFilter(new LocalDataFilter());
-		chooser.setDialogTitle("Open local file");
-
-		int returnVal = chooser.showOpenDialog(null);
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			File f = chooser.getSelectedFile();
-			try {
-				pickedFile = f.toURI().toURL();
-			} catch (MalformedURLException ex) {
-				pickedFile = null;
-			}
-
-		}
-
-		return pickedFile;
 	}
 }

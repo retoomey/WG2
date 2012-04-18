@@ -1,6 +1,6 @@
 package org.wdssii.gui.sources;
 
-import javax.swing.JComponent;
+import org.wdssii.gui.GUIPlugInPanel;
 
 /**
  * Source GUI shows the controls/gui options for a particular source.
@@ -9,19 +9,5 @@ import javax.swing.JComponent;
  * 
  * @author Robert Toomey
  */
-public interface SourceGUI {
-     /**
-     * Update GUI to the properties of the Feature
-     */
-    public void updateGUI();
-
-    /**
-     * Activate the GUI into the given container
-     */
-    public void activateGUI(JComponent parent);
-
-    /**
-     * Deactivate the GUI from given container
-     */
-    public void deactivateGUI(JComponent parent);
+public interface SourceGUI extends GUIPlugInPanel {
 }

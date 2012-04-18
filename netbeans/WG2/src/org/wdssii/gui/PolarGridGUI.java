@@ -24,12 +24,12 @@ import org.wdssii.gui.features.PolarGridFeature.PolarGridMemento;
  * @author Robert Toomey
  */
 public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
-
     /**
      * The PolarGridFeature we are using
      */
     private PolarGridFeature myFeature;
     private JSpinner jLineThicknessSpinner;
+    private JSpinner jNumRingsSpinner;
     private JButton jColorLabel;
 
     /**
@@ -48,6 +48,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
         PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
         jLineThicknessSpinner.setValue(m.getLineThickness());
         jColorLabel.setBackground(m.getLineColor());
+        jNumRingsSpinner.setValue(m.getNumRings());
     }
 
     @Override
@@ -107,6 +108,24 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
         add(jColorLabel, mid);
         add(new JLabel("Color"), "growx, wrap");
 
+        // Create rings spinner
+        jNumRingsSpinner = new JSpinner();
+        jNumRingsSpinner.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jNumRingsStateChanged(evt); 
+            }
+        });
+        model = new SpinnerNumberModel(m.getNumRings(), //initial value
+                1, // min of the max value
+                20, // max of the max value
+                1); // 1 step.
+        jNumRingsSpinner.setModel(model);
+        add(new JLabel("Number of Rings"), "growx");
+        add(jNumRingsSpinner, mid);
+        add(new JLabel(""), "wrap");
+
     }
 
     private void jLineThicknessStateChanged(ChangeEvent evt) {
@@ -131,6 +150,16 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
             CommandManager.getInstance().executeCommand(c, true);
         }
 
+    }
+
+    private void jNumRingsStateChanged(ChangeEvent evt) {
+        int value = (Integer) jNumRingsSpinner.getValue();
+        PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
+        if (m.getNumRings() != value) {
+            m.setNumRings(value);
+            FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
+            CommandManager.getInstance().executeCommand(c, true);
+        }
     }
 
     /**

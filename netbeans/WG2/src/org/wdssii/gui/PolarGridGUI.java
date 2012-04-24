@@ -30,6 +30,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
     private PolarGridFeature myFeature;
     private JSpinner jLineThicknessSpinner;
     private JSpinner jNumRingsSpinner;
+    private JSpinner jRangeSpinner;
     private JButton jColorLabel;
 
     /**
@@ -49,6 +50,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
         jLineThicknessSpinner.setValue(m.getLineThickness());
         jColorLabel.setBackground(m.getLineColor());
         jNumRingsSpinner.setValue(m.getNumRings());
+        jRangeSpinner.setValue(m.getRangeMetersPerRing());
     }
 
     @Override
@@ -126,6 +128,25 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
         add(jNumRingsSpinner, mid);
         add(new JLabel(""), "wrap");
 
+				// Create range ring spinner
+        // Create rings spinner
+        jRangeSpinner = new JSpinner();
+        jRangeSpinner.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jRangeStateChanged(evt); 
+            }
+        });
+        model = new SpinnerNumberModel(m.getRangeMetersPerRing(), //initial value
+                1, // min of the max value
+                50000, // max of the max value
+                10); // 1 step.
+        jRangeSpinner.setModel(model);
+        add(new JLabel("Range per ring"), "growx");
+        add(jRangeSpinner, mid);
+        add(new JLabel(""), "wrap");
+
     }
 
     private void jLineThicknessStateChanged(ChangeEvent evt) {
@@ -157,6 +178,16 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
         PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
         if (m.getNumRings() != value) {
             m.setNumRings(value);
+            FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
+            CommandManager.getInstance().executeCommand(c, true);
+        }
+    }
+
+    private void jRangeStateChanged(ChangeEvent evt) {
+        int value = (Integer) jRangeSpinner.getValue();
+        PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
+        if (m.getRangeMetersPerRing() != value) {
+            m.setRangeMetersPerRing(value);
             FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
             CommandManager.getInstance().executeCommand(c, true);
         }

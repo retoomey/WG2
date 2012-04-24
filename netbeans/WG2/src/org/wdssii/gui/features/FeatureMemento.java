@@ -64,19 +64,26 @@ public class FeatureMemento {
         useOnly = true;
     }
     
+		// 
+		// Experiment..maybe create property objects
+		// so I can generalize the gui of them
+		public static class FeatureProperty {
+
+		}
+		public static class FeatureBooleanProperty {
+		}
     public void setProperty(String key, Object stuff){
         myProperties.put(key, stuff);
         // creating NEW is the issue...
         // how to deep copy for example generically?
-
     }
     
-   /* public <T> T getProperty(String key){
+    public <T> T getProperty(String key){
        // T newOne = (T) c.newInstance();
         try{
             return (T) myProperties.get(key);
         }catch(ClassCastException e){
             return null;
         }
-    }*/
+    }
 }

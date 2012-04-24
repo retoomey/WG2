@@ -22,7 +22,7 @@ public class PolarGridFeature extends Feature {
 	 */
 	public static class PolarGridMemento extends FeatureMemento {
 
-		private int linethickness = 2;
+		private int linethickness = 1;
 		private boolean useLineThickness = false;
 		private Color lineColor = Color.WHITE;
 		private boolean useLineColor = false;
@@ -32,6 +32,8 @@ public class PolarGridFeature extends Feature {
 		private boolean useDegrees = false;
 		private int numOfRings = 10;
 		private boolean useRings = false;
+		private int rangeMetersPerRing = 10000;
+		private boolean useRangeMetersPerRing = false;
 
 		public PolarGridMemento(PolarGridMemento m) {
 			super(m);
@@ -40,7 +42,7 @@ public class PolarGridFeature extends Feature {
 			center = m.center;
 			elevDegrees = m.elevDegrees;
 			numOfRings = m.numOfRings;
-
+			rangeMetersPerRing = m.rangeMetersPerRing;
 		}
 
 		/**
@@ -65,6 +67,9 @@ public class PolarGridFeature extends Feature {
 			}
 			if (m.useRings){
 				numOfRings = m.numOfRings;
+			}
+			if (m.useRangeMetersPerRing){
+				rangeMetersPerRing = m.rangeMetersPerRing;
 			}
 		}
 
@@ -115,6 +120,13 @@ public class PolarGridFeature extends Feature {
 		public void setNumRings(int r){
 			numOfRings = r;
 			useRings = true;
+		}
+		public int getRangeMetersPerRing(){
+			return rangeMetersPerRing;
+		}
+		public void setRangeMetersPerRing(int r){
+			rangeMetersPerRing = r;
+			useRangeMetersPerRing = true;
 		}
 	}
 	private static Logger log = LoggerFactory.getLogger(PolarGridFeature.class);

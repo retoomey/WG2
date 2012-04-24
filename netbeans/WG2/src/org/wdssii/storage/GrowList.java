@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * This list is highly specialized linked list for synchronization. Basically it
  * allows adding to the end of it within one thread, while reading up-to a
  * previous size in another. The java classes do so much checking/etc. and are
- * very generalizes, so that this helps with speed.
+ * very generalized, so that this helps with speed.
  *
  * It doesn't allow changing items. It grows only. It can only be iterated
  * forward...
@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GrowList<E> {
 
-        private static Logger log = LoggerFactory.getLogger(GrowList.class);
+  private static Logger log = LoggerFactory.getLogger(GrowList.class);
 
 	/** Create a node...single linked list.  We could save a bit of
 	 * memory by 'blocking' items into chunks...might do that later
@@ -36,7 +36,7 @@ public class GrowList<E> {
 			item0 = item;
 		}
 		E2 item0;
-		node next;
+		node<E2> next;
 	}
 
 	/**
@@ -71,39 +71,18 @@ public class GrowList<E> {
 
 		@Override
 		public E next() {
-			boolean has = hasNext();
 			E item = null;
 			if (at != null) {
-				at = at.next;
-			}else{
-				if (has){
-					log.debug("BLEH NULL...supposed to have");
+				// First call, use root, otherwise move forward 1
+				if (cursor > -1){
+				  at = at.next;
 				}
-			}
-			if (at != null) {
+				// Get item if not-null
+			  if (at != null) {
 			    item = at.item0;
-				if ((item == null) && has){
-					log.debug("BLEH ITEM NULL...supposed to have");
-				}
+		  	}
 			}
 			cursor++;
-			if (item == null){
-				log.debug("ITEM WAS NULL???"+cursor+", "+sizeAtCreation);
-			}
-			return item;
-		}
-
-		public E peek(int i) {
-			E item = null;
-			node<E> pat = at;
-			for (int p = 0; p < i; i++) {
-				if (pat != null) {
-					pat = pat.next;
-				}
-			}
-			if (pat != null) {
-				item = pat.item0;
-			}
 			return item;
 		}
 
@@ -124,7 +103,7 @@ public class GrowList<E> {
 	 * Add to the list
 	 */
 	public boolean add(E e) {
-		node n = new node<E>(e);
+		node<E> n = new node<E>(e);
 
 		// Change root before size, since iterator might
 		// be in different thread....worst case you have the
@@ -135,6 +114,7 @@ public class GrowList<E> {
 		} else {
 			// Add to end of list....note done before size
 			last.next = n;
+			last = n;
 		}
 		setSize(size + 1);
 		return true;

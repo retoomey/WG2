@@ -485,14 +485,15 @@ public class DockWindow {
         DockingWindow chart = getViewByID("ChartView");
         DockingWindow debug = getViewByID("DebugView");
         DockingWindow features = getViewByID("FeaturesView");
+        DockingWindow tview = getViewByID("TableProductView");
 
         // TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
-        TabWindow sourceProducts = new TabWindow(new DockingWindow[]{index, sources, features});
+        TabWindow sourceProducts = new TabWindow(new DockingWindow[]{sources, features, index});
         sourceProducts.setSelectedTab(0);
 
         // SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
 
-        TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart, debug, all});
+        TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart, layers, tview});
         rootWindow.setWindow(
                 new SplitWindow(true, 0.5f,
                 new SplitWindow(false, 0.7f, earth, nav), stuff));

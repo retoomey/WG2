@@ -2,6 +2,7 @@ package org.wdssii.gui.products;
 
 import javax.swing.JScrollPane;
 import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.swing.ProductTableModel;
 import org.wdssii.gui.swing.SimpleTable;
 
@@ -23,14 +24,16 @@ public class Product2DTable {
     /* Create a brand new table in given scrollpane.  Humm, we might
      * want to save some information...or maybe not.
      */
-    public void createInScrollPane(JScrollPane scrollPane, Product p){
+    public void createInScrollPane(JScrollPane scrollPane, ProductFeature p,
+	    int mouseMode){
         
        // Default is to make a virtual table..
        myTableModel = new ProductTableModel();
        jProductDataTable = new SimpleTable(scrollPane, 100,100);
+       jProductDataTable.setMode(mouseMode);
        jProductDataTable.setupScrollPane(scrollPane);
        jProductDataTable.setModel(myTableModel);
-       myTableModel.setProduct(p);
+       myTableModel.setProductFeature(p);
        scrollPane.revalidate();
        scrollPane.repaint();
        //jProductDataTable.revalidate();
@@ -47,5 +50,10 @@ public class Product2DTable {
             return myTableModel.getCurrentVisibleGrid();
         }
         return null;
+    }
+
+    /** Set the mouse 'mode', controlled by the TableView */
+    public void setMode(int myMouseMode) {
+        jProductDataTable.setMode(myMouseMode);
     }
 }

@@ -6,17 +6,22 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.GridVisibleArea;
 
 /**
@@ -34,8 +39,11 @@ import org.wdssii.gui.GridVisibleArea;
  */
 public class SimpleTable extends JLabel
         implements Scrollable,
-        MouseMotionListener {
+        MouseListener, MouseMotionListener {
+    private static Logger log = LoggerFactory.getLogger(SimpleTable.class);
+	private final JScrollPane myScrollPane;
 
+	
     /** Simple table model, unlike the swing counter part, doesn't
      * create billions of TableColumn objects.  Every cell in the table
      * is the same type, having a set width/height.  We also combine the model
@@ -346,12 +354,15 @@ public class SimpleTable extends JLabel
         super();
         myColHeader = new Rule(Rule.HORIZONTAL, true);
         myRowHeader = new Rule(Rule.VERTICAL, true);
+	myScrollPane = pane;
+	
         setOpaque(true);
         setBackground(Color.white);
 
         //Let the user scroll by dragging to outside the window.
         setAutoscrolls(true); //enable synthetic drag events
-        // addMouseMotionListener(this); //handle mouse drags
+        addMouseMotionListener(this); //handle mouse drags
+	addMouseListener(this);
     }
 
     public void setupScrollPane(JScrollPane pane) {
@@ -450,17 +461,65 @@ public class SimpleTable extends JLabel
         }
     }
 
+    // FIXME: this mouse stuff 'may' move out, since we have several
+    // different table types ...
+
+    private int myMode = 0; // magic numbers for moment.. 
+    public void setMode(int mode){ // hack
+	    myMode = mode;
+    }
+
+    private Point start = new Point();
     //Methods required by the MouseMotionListener interface:
     @Override
     public void mouseMoved(MouseEvent e) {
     }
 
+    @Override // mouse listener
+    public void mouseClicked(MouseEvent e){
+	     // Clicked and RELEASED
+    }
+
+    @Override // mouse listener
+    public void mousePressed(MouseEvent e){
+        start = e.getPoint();
+    }
+
     @Override
     public void mouseDragged(MouseEvent e) {
-        //The user is dragging us, so scroll!
-        Rectangle r = new Rectangle(e.getX(), e.getY(), 1, 1);
-        scrollRectToVisible(r);
+
+	    if (myMode == 0){ // move mode
+	// ----------------------------------------------
+	// Drag the window centered on mouse....
+	SimpleTable me =(SimpleTable)e.getSource();
+	Rectangle r = me.getVisibleRect();
+        JViewport vport = myScrollPane.getViewport();
+        Point cp = e.getPoint();
+        Point vp = vport.getViewPosition();
+        vp.translate(start.x-cp.x, start.y-cp.y);
+	Rectangle visible = new Rectangle(vp, vport.getSize());
+        me.scrollRectToVisible(new Rectangle(vp, vport.getSize()));
+	// Since table is source, the point is in the coordinates of the whole table,
+	// so we have to move this point the opposite direction
+	cp.translate(start.x-cp.x, start.y-cp.y);
+        start.setLocation(cp);
+	    }else{ // selection mode...
+
+	    }
+
     }
+
+	@Override
+	public void mouseReleased(MouseEvent me) {
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent me) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent me) {
+	}
 
     @Override
     public Dimension getPreferredSize() {

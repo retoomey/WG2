@@ -10,6 +10,7 @@ import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.Product.ProductTimeWindowAge;
 import org.wdssii.gui.products.Product.ProductTimeWindowInfo;
+import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceList;
@@ -34,6 +35,10 @@ public class ProductFeature extends Feature {
      * The navigator for our product type
      */
     protected ProductNavigator myNavigator = null;
+    /**
+     * The 2DTable for our product type
+     */
+    protected Product2DTable my2DTable = null;
     /**
      * The filter list for this handler.
      */
@@ -326,5 +331,15 @@ public class ProductFeature extends Feature {
             myNavigator = myProduct.createNavigator();
         }
         return myNavigator;
+    }
+
+    public Product2DTable get2DTable() {
+
+        // All Products we handle will be of the same type, thus
+        // we only create the table once.
+        if (my2DTable == null) {
+            my2DTable = myProduct.create2DTable();
+        }
+        return my2DTable;
     }
 }

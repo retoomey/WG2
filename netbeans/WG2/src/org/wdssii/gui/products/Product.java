@@ -325,7 +325,7 @@ public class Product {
 // Stock helper objects -------------------------------------------------------
     // Return the thing that draws this product
     public ProductRenderer getRenderer() {
-        ProductRenderer pr = (ProductRenderer) getHelperObject("Renderer", false, RENDERER_CLASSPATH, "");
+        ProductRenderer pr = (ProductRenderer) getHelperObject("Renderer", false, true, RENDERER_CLASSPATH, "");
         return pr;
     }
 
@@ -334,7 +334,7 @@ public class Product {
         // We create one Volume for virtual, one for regular. We need unique ones
         // since multiple threads hit this.  Example: Chart draws a virtual VSlice in one thread,
         // while worldwind window draws regular volume 3D Slice in it.
-        ProductVolume vp = (ProductVolume) getHelperObject("Volume", false, VOLUME_CLASSPATH, virtual ? "Virtual" : "");
+        ProductVolume vp = (ProductVolume) getHelperObject("Volume", false, true, VOLUME_CLASSPATH, virtual ? "Virtual" : "");
         if (vp != null) {
             vp.initVirtual(this, virtual);
         }
@@ -342,21 +342,17 @@ public class Product {
     }
 
     /** Convenience method to get the 2D Table for this Product, if any */
-    public Product2DTable get2DTable() {
-        Product2DTable t = (Product2DTable) getHelperObject("2DTable", true, TABLE_CLASSPATH, "");
+    public Product2DTable create2DTable() {
+        Product2DTable t = (Product2DTable) getHelperObject("2DTable", true, false, /* don't cache*/ TABLE_CLASSPATH, "");
         return t;
     }
 
-    /** Create a navigator for this product.  Every ProductHandler will have
-    a unique ProductNavigator.  Imagine two windows..each would have 
-    a different ProductHandler with the SAME Product, different actual
-    navigated location...
-     * 
-     * This is called by ProductHandler to get the Navigator for this product.
+    /** Create a navigator for this product.
+     * ProductFeature uses this to get our navigator.
      * Note it will return NULL until the product DataType is loaded.
      */
     public ProductNavigator createNavigator() {
-        ProductNavigator t = (ProductNavigator) getHelperObject("Navigator", true, NAVIGATOR_CLASSPATH, "");
+        ProductNavigator t = (ProductNavigator) getHelperObject("Navigator", true, false, /* don't cache */ NAVIGATOR_CLASSPATH, "");
         return t;
     }
 
@@ -489,8 +485,19 @@ public class Product {
         return aColorMap;
     }
 
-    /** Get a helper object from cache */
-    protected Object getHelperObject(String classSuffix, boolean useBaseClass, String root, String extrainfo) {
+    /** Get a helper object from cache 
+     * 
+     * @param classSuffix
+     * @param useBaseClass  Fall back to 'base' class if special class missing.
+                 For example, no "RadialSetNavigator" will use "ProductNavigator"
+     * @param cachePerProduct Store an instance per product object, for example
+               RadialSetRenderer is cached per product
+     * @param root
+     * @param extrainfo
+     * @return 
+     */
+    protected Object getHelperObject(String classSuffix, boolean useBaseClass, 
+	    boolean cachePerProduct, String root, String extrainfo) {
         Object helper = null;
 
         // Is it cached?
@@ -518,7 +525,7 @@ public class Product {
             }
 
             // Store object in cache
-            if (helper != null) {
+            if ((helper != null) && cachePerProduct) {
                 setHelperClass(classSuffix + ":" + extrainfo, helper);
             }
         }

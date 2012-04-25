@@ -150,7 +150,7 @@ public class SourceList {
     
     /** Used by delete routine */
     public List<Source> getSourcesCopy(){
-        return new ArrayList(mySources);
+        return new ArrayList<Source>(mySources);
     }
    
     public Source getFirstSource(String g) {

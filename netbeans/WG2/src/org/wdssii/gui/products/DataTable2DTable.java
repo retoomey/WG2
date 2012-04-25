@@ -13,6 +13,7 @@ import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.views.WorldWindView;
 
 /**
@@ -91,9 +92,11 @@ public class DataTable2DTable extends Product2DTable {
      * want to save some information...or maybe not.
      */
     @Override
-    public void createInScrollPane(JScrollPane scrollPane, Product p) {
+    public void createInScrollPane(JScrollPane scrollPane, ProductFeature f,
+    		int mouseMode) {
 
         // By now this is loaded or we wouldn't be here.
+	Product p = f.getProduct();    
         DataType dt = p.getRawDataType();
         // Should always be true.  Can't create DataTable2DTable by reflection
         // without DataTable being loaded.

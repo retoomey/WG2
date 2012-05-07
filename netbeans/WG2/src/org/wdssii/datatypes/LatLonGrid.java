@@ -1,9 +1,11 @@
 package org.wdssii.datatypes;
 
+import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.wdssii.geom.Location;
+import org.wdssii.gui.GridVisibleArea;
 import org.wdssii.storage.Array2Dfloat;
 
 /**
@@ -252,4 +254,7 @@ public class LatLonGrid extends DataType implements Table2DView {
             q.outDataValue = MissingData;
         }
     }
+
+    @Override
+    public void exportToURL(URL aURL, GridVisibleArea g){}
 }

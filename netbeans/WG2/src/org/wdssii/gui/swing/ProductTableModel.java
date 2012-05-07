@@ -28,28 +28,33 @@ import org.wdssii.gui.views.WorldWindView;
 public class ProductTableModel extends SimpleTableModel {
 
 	private static Logger log = LoggerFactory.getLogger(ProductTableModel.class);
-	ProductFeature myProduct = null;
+	/** The Product feature we were created for */
+	ProductFeature myProductFeature = null;
+	/** Raw datatype we are viewing...which is lazy loading */
 	Table2DView myView = null;
 
+	/** Typically called once...FIXME: could put in constructor make final? */
 	public void setProductFeature(ProductFeature p) {
 		myView = null;
-		myProduct = p;
+		myProductFeature = p;
 	}
 
+	/** Check for change in our displayed data...  */
 	public void checkDataAvailability() {
-		// Products lazy load...so data might not be there 'yet'
-		if (myProduct != null) {
-			Product p = myProduct.getProduct();
-			if (p != null) {
-				p.updateDataTypeIfLoaded();
-				if (myView == null) {
-					DataType dt = p.getRawDataType();
-					if (dt instanceof Table2DView) {
-						myView = (Table2DView) (dt);
-						handleDataChanged();
-					}
+		// Check for a new datatype
+		Table2DView newOne = null;
+		if (myProductFeature != null) {
+			DataType dt = myProductFeature.getLoadedDatatype();
+			if (dt != null) {
+				if (dt instanceof Table2DView) {
+					newOne = (Table2DView) (dt);
 				}
 			}
+		}
+		// Update table visually 
+		if (newOne != myView) {
+			myView = newOne;
+			handleDataChanged();
 		}
 	}
 
@@ -119,7 +124,7 @@ public class ProductTableModel extends SimpleTableModel {
 				myView.getCellValue(row, col, cq);
 				Color fore, back;
 				if (cq.text == null) {
-					FilterList list = myProduct.getFList();
+					FilterList list = myProductFeature.getFList();
 					ColorMapOutput out = new ColorMapOutput();
 					dq.inDataValue = dq.outDataValue = cq.value;
 					if (out == null) {

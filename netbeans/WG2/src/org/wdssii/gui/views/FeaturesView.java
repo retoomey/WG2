@@ -140,6 +140,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
     private Feature myLastSelectedFeature = null;
     private javax.swing.JButton jNewMapButton;
     private javax.swing.JButton jNewVSliceButton;
+    private javax.swing.JButton jNewStickButton;
     private javax.swing.JButton jNewPolarGridButton;
     private JPanel jFeatureGUIPanel;
     private javax.swing.JToolBar jEditToolBar;
@@ -520,9 +521,21 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         jEditToolBar = new javax.swing.JToolBar();
         jEditToolBar.setFloatable(false);
         jNewVSliceButton = new javax.swing.JButton("+Slice");
+        jNewStickButton = new javax.swing.JButton("+Stick");
         jNewMapButton = new javax.swing.JButton("+Map");
         jNewPolarGridButton = new javax.swing.JButton("+PolarGrid");
         jEditToolBar.setRollover(true);
+
+        jNewStickButton.setFocusable(false);
+        jNewStickButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jNewStickButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jNewStickButton.addActionListener(new java.awt.event.ActionListener() {
+
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                StickActionPerformed(evt);
+            }
+        });
 
         jNewVSliceButton.setFocusable(false);
         jNewVSliceButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -534,6 +547,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
                 jButton2ActionPerformed(evt);
             }
         });
+        jEditToolBar.add(jNewStickButton);
         jEditToolBar.add(jNewVSliceButton);
 
         jNewPolarGridButton.setFocusable(false);
@@ -610,11 +624,12 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
         jFeatureGUIPanel.add(t, java.awt.BorderLayout.CENTER);
     }
 
+    private void StickActionPerformed(java.awt.event.ActionEvent evt) {
+        FeatureCreateCommand doit = new FeatureCreateCommand("Stick");
+        CommandManager.getInstance().executeCommand(doit, true);
+    }
+
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        // LLHAreaCreateCommand doit = new LLHAreaCreateCommand("Slice");
-        // CommandManager.getInstance().executeCommand(doit, true);
-        // Hack for now allow adding of a shp file...gonna need more
-        // generic interface for adding features...
         URL newMap = MapGUI.doSingleMapOpenDialog();
         if (newMap != null) {
             Feature testOne = new MapFeature(FeatureList.theFeatures, newMap);
@@ -624,7 +639,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
     }
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        FeatureCreateCommand doit = new FeatureCreateCommand("VSlice");
+        FeatureCreateCommand doit = new FeatureCreateCommand("Slice");
         CommandManager.getInstance().executeCommand(doit, true);
         //FeatureList.theFeatures.addFeature(new LLHAreaFeature(0));
     }

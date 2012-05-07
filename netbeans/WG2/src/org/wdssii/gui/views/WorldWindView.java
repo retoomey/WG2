@@ -39,7 +39,6 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
-import org.wdssii.gui.commands.FeatureCreateCommand;
 import org.wdssii.gui.commands.Snapshot3DWorldCommand;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
@@ -312,6 +311,19 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
             myStatusBar.setReadoutString(readout);
             if (r != null) {
                 drawLabel(dc, readout, new Vec4(p1.x, p1.y, 0), Color.BLACK);
+
+	   /** Make data table view follow mouse...
+	    CommandListener c = CommandManager.getInstance().getNamedCommandListener(TableProductView.ID);
+	    if (c != null){
+		    TableProductView t = (TableProductView)(c);
+		    // Location should be from the product, not the status bar, but for moment I think
+		    // it will work...
+		    Position p = myStatusBar.lastPosition;
+		    Location loc = new Location(p.latitude.degrees, p.longitude.degrees, p.elevation/1000.0);
+		    t.scrollLocationToVisible(loc);
+	    }
+	    */
+
             }
             //System.out.println("READOUT BACK IS:"+aProduct.getReadoutString(p1, dc));
         }

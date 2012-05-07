@@ -41,6 +41,7 @@ public class ReadoutStatusBar extends JPanel implements PositionListener,
     private int myLastX = 0;
     private int myLastY = 0;
     private String myReadoutString = "N/A";
+    public Position lastPosition = null;
 
     public ReadoutStatusBar() {
         super(new GridLayout(1, 0));
@@ -184,6 +185,7 @@ public class ReadoutStatusBar extends JPanel implements PositionListener,
     private void handleCursorPositionChange(PositionEvent event) {
         Position newPos = event.getPosition();
         if (newPos != null) {
+            lastPosition = newPos;
             String loc = String.format("(%7.4f\u00B0,%7.4f\u00B0)", newPos.getLatitude().getDegrees(),
                     newPos.getLongitude().getDegrees());
             //	String las = String.format("Lat %7.4f\u00B0", newPos.getLatitude()

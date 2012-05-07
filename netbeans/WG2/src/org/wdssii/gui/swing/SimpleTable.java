@@ -291,6 +291,8 @@ public class SimpleTable extends JLabel
 				mySelectionGrid.lastFullColumn = ecol;
 				mySelectionGrid.lastPartialColumn = ecol;
 			}
+			mySelectionGrid.numRows = erow-srow+1;
+			mySelectionGrid.numCols = ecol-scol+1;
 			mySelectionGrid.active = true;
 		}
 
@@ -361,7 +363,13 @@ public class SimpleTable extends JLabel
 			final boolean leftEdge = selected && !l;
 
 			g.setColor(Color.RED);
-			g2.setStroke(new BasicStroke(4));
+			g2.setStroke(new BasicStroke(
+			4.0f,                      // Width
+                           BasicStroke.CAP_SQUARE,    // End cap
+                           BasicStroke.JOIN_MITER,    // Join style
+                           10.0f,                     // Miter limit
+                           new float[] {10.0f,10.0f}, // Dash pattern
+                           0.0f) );                   // Dash phase	4
 			if (rightEdge || leftEdge) {
 				g.drawLine(x, y, x, y + h);
 			}
@@ -745,5 +753,38 @@ public class SimpleTable extends JLabel
 	@Override
 	public boolean getScrollableTracksViewportHeight() {
 		return false;
+	}
+
+	/** Calculate the rectangle box of a given row/col */
+	public Rectangle getCellRect(int row, int col) {
+		int x = myModel.getCellWidth() * col;
+		int y = myModel.getCellHeight() * row;
+		int w = myModel.getCellWidth();
+		int h = myModel.getCellHeight();
+		Rectangle r = new Rectangle(x, y, w, h);
+		return r;
+	}
+
+	/** Try to scroll to the center of the table a particular row/col */
+	public void scrollToCenter(int rowIndex, int vColIndex) {
+		if (!(getParent() instanceof JViewport)) {
+			return;
+		}
+		JViewport viewport = (JViewport) getParent();
+		// We aren't a JTable, so we have our own routine here...
+		Rectangle rect = getCellRect(rowIndex, vColIndex);
+		Rectangle viewRect = viewport.getViewRect();
+		rect.setLocation(rect.x - viewRect.x, rect.y - viewRect.y);
+
+		int centerX = (viewRect.width - rect.width) / 2;
+		int centerY = (viewRect.height - rect.height) / 2;
+		if (rect.x < centerX) {
+			centerX = -centerX;
+		}
+		if (rect.y < centerY) {
+			centerY = -centerY;
+		}
+		rect.translate(centerX, centerY);
+		viewport.scrollRectToVisible(rect);
 	}
 }

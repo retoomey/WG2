@@ -1179,6 +1179,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         //return this.getSlice();
     }
 
+    /*
     public LLHAreaSlice getSlice() {
         LLHAreaSlice s = null;
         LLHArea ap = getAirspace();
@@ -1187,6 +1188,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         }
         return s;
     }
+     * 
+     */
 
     //**************************************************************//
     //********************  Control Point Assembly  ****************//
@@ -1209,9 +1212,10 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             return;
         }
 
-        if (area instanceof LLHAreaSlice) {  // Why do this?
-            LLHAreaSlice s = (LLHAreaSlice) (area);
-            int numLocations = s.getLocations().size();
+        //if (area instanceof LLHAreaSlice) {  // Why do this?
+       // if (area instanceof LLHAreaSlice) {  // Why do this?
+         //   LLHAreaSlice s = (LLHAreaSlice) (area);
+            int numLocations = area.getLocations().size();
 
             for (int locationIndex = 0; locationIndex < numLocations; locationIndex++) {
                 this.addPolygonControlPoint(dc, locationIndex, LOWER_ALTITUDE);
@@ -1219,7 +1223,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
                 this.addPolygonControlPoint(dc, locationIndex, UPPER_ALTITUDE);
             }
 
-        }
+        //}
 
         /*
          * VolumeTableData d = LLHAreaManager.getInstance().getSelection(); if
@@ -1238,13 +1242,13 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     }
 
     protected void addPolygonControlPoint(DrawContext dc, int locationIndex, int altitudeIndex) {
-        LatLon location = this.getSlice().getLocations().get(locationIndex);
-        double altitude = this.getSlice().getAltitudes()[altitudeIndex];
+        LatLon location = this.getAirspace().getLocations().get(locationIndex);
+        double altitude = this.getAirspace().getAltitudes()[altitudeIndex];
 
         double vert = dc.getVerticalExaggeration();
         Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude * vert);
         LLHAreaControlPoint controlPoint =
-                new BasicLLHAreaControlPoint(this, this.getSlice(), locationIndex, altitudeIndex, point);
+                new BasicLLHAreaControlPoint(this, this.getAirspace(), locationIndex, altitudeIndex, point);
 
         this.addControlPoint(dc, controlPoint);
     }
@@ -1254,7 +1258,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //**************************************************************//
     protected LLHAreaControlPoint doAddControlPoint(WorldWindow wwd, LLHArea airspace,
             Point mousePoint) {
-        if (this.getSlice().getLocations().isEmpty()) {
+        if (this.getAirspace().getLocations().isEmpty()) {
             return this.doAddFirstLocation(wwd, mousePoint);
         }
         return this.doAddNextLocation(wwd, mousePoint);
@@ -1285,7 +1289,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         altitudes[UPPER_ALTITUDE] = newPosition.getElevation() + DEFAULT_POLYGON_HEIGHT;
         pinAltitudes(altitudes);
 
-        this.getSlice().setAltitudes(altitudes[LOWER_ALTITUDE], altitudes[UPPER_ALTITUDE]);
+        this.getAirspace().setAltitudes(altitudes[LOWER_ALTITUDE], altitudes[UPPER_ALTITUDE]);
 
         ArrayList<LatLon> locationList = new ArrayList<LatLon>();
         locationList.add(new LatLon(newPosition));
@@ -1295,15 +1299,15 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             locationList.add(new LatLon(newPosition));
         }
 
-        this.getSlice().setLocations(locationList);
+        this.getAirspace().setLocations(locationList);
 
         LLHAreaControlPoint controlPoint =
-                new BasicLLHAreaControlPoint(this, this.getSlice(), 0, LOWER_ALTITUDE, newPoint);
+                new BasicLLHAreaControlPoint(this, this.getAirspace(), 0, LOWER_ALTITUDE, newPoint);
         this.fireControlPointAdded(new LLHAreaEditEvent(wwd, this.getAirspace(), this, controlPoint));
 
         // If rubber banding is enabled, fire a second add event, and return a reference to the second location.
         if (this.isUseRubberBand()) {
-            controlPoint = new BasicLLHAreaControlPoint(this, this.getSlice(), 1, LOWER_ALTITUDE, newPoint);
+            controlPoint = new BasicLLHAreaControlPoint(this, this.getAirspace(), 1, LOWER_ALTITUDE, newPoint);
             this.fireControlPointAdded(new LLHAreaEditEvent(wwd, this.getAirspace(), this, controlPoint));
         }
 
@@ -1318,7 +1322,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         // based on the points orientaton relative to the edge.
 
         List<LLHAreaEdgeInfo> edgeInfoList = computeEdgeInfoFor(
-                this.getSlice().getLocations().size(), this.getCurrentControlPoints());
+                this.getAirspace().getLocations().size(), this.getCurrentControlPoints());
 
         if (edgeInfoList.isEmpty()) {
             return null;
@@ -1338,9 +1342,9 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         Vec4 newPoint = controlPoint.getPoint();
         LatLon newLocation = new LatLon(wwd.getModel().getGlobe().computePositionFromPoint(newPoint));
 
-        ArrayList<LatLon> locationList = new ArrayList<LatLon>(this.getSlice().getLocations());
+        ArrayList<LatLon> locationList = new ArrayList<LatLon>(this.getAirspace().getLocations());
         locationList.add(controlPoint.getLocationIndex(), newLocation);
-        this.getSlice().setLocations(locationList);
+        this.getAirspace().setLocations(locationList);
 
         this.fireControlPointAdded(new LLHAreaEditEvent(wwd, this.getAirspace(), this, controlPoint));
 
@@ -1530,10 +1534,10 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         LatLon change = pos.subtract(previousPos);
 
         int index = controlPoint.getLocationIndex();
-        List<LatLon> newLocationList = new ArrayList<LatLon>(this.getSlice().getLocations());
+        List<LatLon> newLocationList = new ArrayList<LatLon>(this.getAirspace().getLocations());
         LatLon newLatLon = newLocationList.get(index).add(change);
         newLocationList.set(index, newLatLon);
-        this.getSlice().setLocations(newLocationList);
+        this.getAirspace().setLocations(newLocationList);
 
         this.fireControlPointChanged(new LLHAreaEditEvent(wwd, controlPoint.getAirspace(), this, controlPoint));
     }
@@ -1568,7 +1572,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
         double[] altitudes = controlPoint.getAirspace().getAltitudes();
 
-        double d = computeMinimumDistanceBetweenAltitudes(this.getSlice().getLocations().size(),
+        double d = computeMinimumDistanceBetweenAltitudes(this.getAirspace().getLocations().size(),
                 this.getCurrentControlPoints());
         if (index == LOWER_ALTITUDE) {
             if (elevationChange > d) {

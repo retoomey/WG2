@@ -36,7 +36,7 @@ public class LLHAreaHeightStickFactory extends LLHAreaFactory {
         data.keyName = name;
         data.visible = true;
 
-        LLHAreaSlice poly = new LLHAreaSlice(f);
+        LLHAreaHeightStick poly = new LLHAreaHeightStick(f);
         poly.setAttributes(getDefaultAttributes());
         poly.setValue(AVKey.DISPLAY_NAME, name);
         poly.setAltitudes(0.0, 0.0);
@@ -48,7 +48,7 @@ public class LLHAreaHeightStickFactory extends LLHAreaFactory {
     }
 
     /** Initialize a new polygon (VSlice) FIXME: should be factory method */
-    protected void initializePolygon(WorldWindow wwd, LLHAreaSlice polygon, boolean fitShapeToViewport) {
+    protected void initializePolygon(WorldWindow wwd, LLHArea polygon, boolean fitShapeToViewport) {
         // Creates a rectangle in the center of the viewport. Attempts to guess at a reasonable size and height.
 
         // Taken from worldwind...we'll need to figure out how we want the vslice/isosurface to work...
@@ -85,8 +85,8 @@ public class LLHAreaHeightStickFactory extends LLHAreaFactory {
         double heightOver2 = sizeInMeters / 2.0;
         Vec4[] points = new Vec4[]{
             new Vec4(-widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower left (as if looking down, to sw)
-            new Vec4(widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower right
-            new Vec4(widthOver2, heightOver2, 0.0).transformBy4(transform), // upper right
+        //    new Vec4(widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower right
+        //    new Vec4(widthOver2, heightOver2, 0.0).transformBy4(transform), // upper right
         //new Vec4(-widthOver2,  heightOver2, 0.0).transformBy4(transform)  // upper left
         };
 

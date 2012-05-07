@@ -21,7 +21,7 @@ public class FeatureCreateCommand extends FeatureCommand {
 
         // For the moment just 'first' factory or slice....
         LLHAreaFeature A = new LLHAreaFeature(FeatureList.theFeatures);
-        boolean success = A.createLLHArea("Slice");
+        boolean success = A.createLLHArea(myFactory);
         if (success){
             FeatureList.theFeatures.addFeature(A);
         }

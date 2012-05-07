@@ -6,7 +6,6 @@ import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.util.GeometryBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
@@ -100,8 +99,6 @@ public class LLHAreaSlice extends LLHArea {
     private VolumeSliceInput myCurrentGrid =
             new VolumeSliceInput(myNumRows, myNumCols, 0, 0,
             0, 0, 0, 50);
-    /** This info is in the SliceInput, might be able to remove it */
-    private List<LatLon> locations = new ArrayList<LatLon>();
     private LatLon myLeftLocation;
     private LatLon myRightLocation;
     
@@ -192,7 +189,6 @@ public class LLHAreaSlice extends LLHArea {
         return myCurrentGrid;
     }
 
-    // public int getIterationCount(){ return myIterationCount; }
     public double getRangeKms() {
         // FIXME: cleaner way of this?....fetch radius of current globe..
         double radius = CommandManager.getInstance().getEarthBall().getWwd().getModel().getGlobe().getRadius();
@@ -216,69 +212,12 @@ public class LLHAreaSlice extends LLHArea {
         myVolumeProduct = volume;
     }
 
-    public List<LatLon> getLocations() {
-        return Collections.unmodifiableList(this.locations);
-    }
-
-    public void setLocations(Iterable<? extends LatLon> locations) {
-        this.locations.clear();
-        this.addLocations(locations);
-        updateCurrentGrid();
-    }
-
-    protected List<LatLon> getLocationList() {
-        return this.locations;
-    }
-
-    protected void addLocations(Iterable<? extends LatLon> newLocations) {
-        if (newLocations != null) {
-            for (LatLon ll : newLocations) {
-                if (ll != null) {
-                    this.locations.add(ll);
-                }
-            }
-        }
-        orderLocations(this.locations);
-        updateCurrentGrid();
-        this.setExtentOutOfDate();
-    }
-
-    @Override
-    public Position getReferencePosition() {
-        return this.computeReferencePosition(this.locations, this.getAltitudes());
-    }
-
-    @Override
-    protected void doMoveTo(Position oldRef, Position newRef) {
-        super.doMoveTo(oldRef, newRef);
-
-        int count = this.locations.size();
-        LatLon[] newLocations = new LatLon[count];
-        for (int i = 0; i < count; i++) {
-            LatLon ll = this.locations.get(i);
-            double distance = LatLon.greatCircleDistance(oldRef, ll).radians;
-            double azimuth = LatLon.greatCircleAzimuth(oldRef, ll).radians;
-            newLocations[i] = LatLon.greatCircleEndPosition(newRef, azimuth, distance);
-        }
-        this.setLocations(Arrays.asList(newLocations));
-    }
-
     //**************************************************************//
     //********************  Geometry Rendering  ********************//
     //**************************************************************//
     protected Vec4 computeReferenceCenter(DrawContext dc) {
         Extent extent = this.getExtent(dc);
         return extent != null ? extent.getCenter() : null;
-    }
-
-    @Override
-    protected Extent doComputeExtent(DrawContext dc) {
-        return this.computeBoundingCylinder(dc, this.locations);
-    }
-
-    @Override
-    protected void doRenderGeometry(DrawContext dc, String drawStyle) {
-        this.doRenderGeometry(dc, drawStyle, this.locations, null);
     }
 
     /** This is what we have to modify, replace...right here.....
@@ -288,6 +227,7 @@ public class LLHAreaSlice extends LLHArea {
      * @param locations
      * @param edgeFlags
      */
+	@Override
     protected void doRenderGeometry(DrawContext dc, String drawStyle, List<LatLon> locations, List<Boolean> edgeFlags) {
         if (locations.isEmpty()) {
             return;
@@ -365,6 +305,7 @@ public class LLHAreaSlice extends LLHArea {
         String newKey = "";
 
         // Add location and altitude...
+	List<LatLon> locations = getLocationList();
         for (int i = 0; i < locations.size(); i++) {
             LatLon l = locations.get(i);
             newKey = newKey + l.getLatitude() + ":";
@@ -664,27 +605,15 @@ public class LLHAreaSlice extends LLHArea {
     }
 
     /** Update the current grid that is the GIS location of the slice */
-    private void updateCurrentGrid() {
-
-        // VSlice only.  Two locations, the points on the bottom. Make sure the east one is right of the west one...
-        // FIXME: duplicate code with getLeftLocation/getRightLocation
-        LatLon l1 = locations.get(0);
-        LatLon l2 = locations.get(1);
-        LatLon leftBottom;
-        LatLon rightBottom;
-        if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
-            leftBottom = l1;
-            rightBottom = l2;
-        } else {
-            leftBottom = l2;
-            rightBottom = l1;
-        }
+    @Override
+    public void updateCurrentGrid() {
 
         // Generate the 3D VSlice in the window, and the 2D slice for charting...
-        double startLat = leftBottom.getLatitude().getDegrees();
-        double startLon = leftBottom.getLongitude().getDegrees();
-        double endLat = rightBottom.getLatitude().getDegrees();
-        double endLon = rightBottom.getLongitude().getDegrees();
+	orderLocations(getLocationList());
+        double startLat = myLeftLocation.getLatitude().getDegrees();
+        double startLon = myLeftLocation.getLongitude().getDegrees();
+        double endLat = myRightLocation.getLatitude().getDegrees();
+        double endLon = myRightLocation.getLongitude().getDegrees();
 
         myCurrentGrid.startLat = startLat;
         myCurrentGrid.startLon = startLon;

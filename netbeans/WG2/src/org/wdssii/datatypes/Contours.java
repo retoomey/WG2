@@ -1,8 +1,10 @@
 package org.wdssii.datatypes;
 
+import java.net.URL;
 import java.util.ArrayList;
 
 import org.wdssii.geom.Location;
+import org.wdssii.gui.GridVisibleArea;
 
 /** A set of contour objects inside a DataType 
  * 
@@ -124,4 +126,7 @@ public class Contours extends DataType implements Table2DView {
         // TODO Auto-generated method stub
         return false;
     }
+	
+    @Override
+    public void exportToURL(URL aURL, GridVisibleArea g) {}
 }

@@ -1,10 +1,12 @@
 package org.wdssii.datatypes;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.wdssii.geom.Location;
+import org.wdssii.gui.GridVisibleArea;
 
 /**
  * @author lakshman
@@ -235,4 +237,7 @@ public class DataTable extends DataType implements Table2DView {
             
         }
     }
+
+    @Override
+    public void exportToURL(URL aURL, GridVisibleArea g){}
 }

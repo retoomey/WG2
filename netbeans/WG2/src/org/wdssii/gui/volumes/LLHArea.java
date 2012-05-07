@@ -12,6 +12,8 @@ import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
 import gov.nasa.worldwind.util.GeometryBuilder;
 import gov.nasa.worldwind.util.Logging;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.wdssii.gui.ProductManager;
@@ -124,6 +126,9 @@ public class LLHArea extends AVListImpl implements Movable {
     // Geometry computation and rendering support.
     private GeometryBuilder geometryBuilder = new GeometryBuilder();
 
+    /** The list of locations that make us up */
+    private List<LatLon> locations = new ArrayList<LatLon>();
+
     public LLHArea(LLHAreaFeature f) {
         this(new BasicAirspaceAttributes());
         myFeature = f;
@@ -205,6 +210,10 @@ public class LLHArea extends AVListImpl implements Movable {
         this.only = only;
     }
 
+    public List<LatLon> getLocations() {
+        return Collections.unmodifiableList(this.locations);
+    }
+      
     public AirspaceAttributes getAttributes() {
         return this.attributes;
     }
@@ -300,6 +309,42 @@ public class LLHArea extends AVListImpl implements Movable {
         double[] altitudes = this.getAltitudes();
         double elevDelta = newRef.getElevation() - oldRef.getElevation();
         this.setAltitudes(altitudes[0] + elevDelta, altitudes[1] + elevDelta);
+
+	// Update all locations...
+
+        int count = this.locations.size();
+        LatLon[] newLocations = new LatLon[count];
+        for (int i = 0; i < count; i++) {
+            LatLon ll = this.locations.get(i);
+            double distance = LatLon.greatCircleDistance(oldRef, ll).radians;
+            double azimuth = LatLon.greatCircleAzimuth(oldRef, ll).radians;
+            newLocations[i] = LatLon.greatCircleEndPosition(newRef, azimuth, distance);
+        }
+        this.setLocations(Arrays.asList(newLocations));
+    }
+
+    public void setLocations(Iterable<? extends LatLon> locations) {
+        this.locations.clear();
+        this.addLocations(locations);
+    }
+  
+    protected List<LatLon> getLocationList() {
+        return this.locations;
+    }
+
+    protected void addLocations(Iterable<? extends LatLon> newLocations) {
+        if (newLocations != null) {
+            for (LatLon ll : newLocations) {
+                if (ll != null) {
+                    this.locations.add(ll);
+                }
+            }
+        }
+        updateCurrentGrid();
+        this.setExtentOutOfDate();
+    }
+
+    public void updateCurrentGrid() {
     }
 
     protected Position computeReferencePosition(List<? extends LatLon> locations, double[] altitudes) {
@@ -328,12 +373,17 @@ public class LLHArea extends AVListImpl implements Movable {
     // (a) the dateline
     // (b) either pole
     protected Extent doComputeExtent(DrawContext dc) {
-        return null;
+        return this.computeBoundingCylinder(dc, this.locations);
     }
 
     protected void doRenderGeometry(DrawContext dc, String drawStyle) {
+        this.doRenderGeometry(dc, drawStyle, getLocationList(), null);
     }
 
+   protected void doRenderGeometry(DrawContext dc, String drawStyle, List<LatLon> locations, List<Boolean> edgeFlags) {
+
+   }
+     
     protected GeometryBuilder getGeometryBuilder() {
         return this.geometryBuilder;
     }
@@ -461,7 +511,7 @@ public class LLHArea extends AVListImpl implements Movable {
 
     @Override
     public Position getReferencePosition() {
-        return null;
+        return this.computeReferencePosition(this.locations, this.getAltitudes());
     }
 
     /**

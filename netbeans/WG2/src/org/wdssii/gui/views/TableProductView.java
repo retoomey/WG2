@@ -2,8 +2,16 @@ package org.wdssii.gui.views;
 
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
@@ -12,32 +20,31 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.GridVisibleArea;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.SourceManager.SourceCommand;
 import org.wdssii.gui.commands.AnimateCommand;
 import org.wdssii.gui.commands.FeatureCommand;
-import org.wdssii.gui.commands.ProductChangeCommand;
 import org.wdssii.gui.commands.ProductCommand;
+import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
 import org.wdssii.gui.features.ProductFeature;
-import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.SwingIconFactory;
+import javax.swing.filechooser.FileFilter;
 
-public class TableProductView extends JThreadPanel implements CommandListener {
+public class TableProductView extends JThreadPanel implements CommandListener, ProductFollowerView {
 
 	private static Logger log = LoggerFactory.getLogger(TableProductView.class);
 	// ----------------------------------------------------------------
 	// Reflection called updates from CommandManager.
 	// See CommandManager execute and gui updating for how this works
 	// When sources or products change, update the navigation controls
+	private String myCurrentFollow = ProductManager.TOP_PRODUCT;
 
 	public void ProductCommandUpdate(ProductCommand command) {
-		if (command instanceof ProductChangeCommand) {
-			int a = 1;
-		}
 		updateGUI(command);
 	}
 
@@ -54,8 +61,24 @@ public class TableProductView extends JThreadPanel implements CommandListener {
 	}
 	public static final String ID = "wj.TableProductView";
 	private Product2DTable myTable;
+	private JLabel selectionLabel;
 	// Global mouse mode for all tables....
 	private int myMouseMode = 0;
+
+	// ProductFollower methods...
+	@Override
+	public void setCurrentProductFollow(String changeTo) {
+		myCurrentFollow = changeTo;
+	}
+
+	@Override
+	public String getCurrentProductFollow() {
+		return myCurrentFollow;
+	}
+
+	public void scrollLocationToVisible(Location loc) {
+		myTable.centerToLocation(loc);
+	}
 
 	/** Our factory, called by reflection to populate menus, etc...*/
 	public static class Factory extends WdssiiDockedViewFactory {
@@ -147,7 +170,51 @@ public class TableProductView extends JThreadPanel implements CommandListener {
 		group.setSelected(first.getModel(), true);
 		updateMouseCursor();
 
+		JButton export = new JButton("Export...");
+		export.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				jExportActionPerformed(e);
+			}
+		});
+		bar.add(export);
+		selectionLabel = new JLabel("");
+		bar.add(selectionLabel);
 		return bar;
+	}
+
+	/** Handle export. For the moment will only handle Bim's file format */
+	private void jExportActionPerformed(java.awt.event.ActionEvent evt) {
+		JFileChooser fileopen = new JFileChooser();
+		fileopen.setFileFilter(new FileFilter() {
+
+			@Override
+			public boolean accept(File f) {
+				String t = f.getName().toLowerCase();
+				// FIXME: need to get these from the Builders
+				return (f.isDirectory() || t.endsWith(".inp"));
+			}
+
+			@Override
+			public String getDescription() {
+				return "INP Bim Wood format";
+			}
+		});
+		fileopen.setDialogTitle("Export Table Selection");
+		int ret = fileopen.showSaveDialog(null);
+		if (ret == JFileChooser.APPROVE_OPTION) {
+			File file = fileopen.getSelectedFile();
+			try {
+				// Bim's format....
+				URL aURL = file.toURI().toURL();
+				log.debug("Would try to write to " + aURL.toString());
+				if (myTable != null){
+					myTable.exportToURL(aURL);
+				}
+			} catch (MalformedURLException ex) {
+			}
+		}
 	}
 
 	private void jMouseModeActionPerformed(java.awt.event.ActionEvent evt) {
@@ -155,7 +222,7 @@ public class TableProductView extends JThreadPanel implements CommandListener {
 		boolean selected = abstractButton.getModel().isSelected();
 		if (selected) {
 			myMouseMode = abstractButton.getMode();
-			if (myTable != null){
+			if (myTable != null) {
 				myTable.setMode(myMouseMode);
 			}
 			updateMouseCursor();
@@ -184,7 +251,7 @@ public class TableProductView extends JThreadPanel implements CommandListener {
 	private void updateDataTable() {
 		Product2DTable t = null;
 
-		ProductFeature f = ProductManager.getInstance().getTopProductFeature();
+		ProductFeature f = ProductManager.getInstance().getProductFeature(myCurrentFollow);
 		if (f != null) {
 			t = f.get2DTable();
 		}
@@ -201,11 +268,16 @@ public class TableProductView extends JThreadPanel implements CommandListener {
 			// Add new stuff if there
 			if (t != null) {
 				t.createInScrollPane(jDataTableScrollPane, f, myMouseMode);
-				log.debug("Installed 2D table "+t);
+				log.debug("Installed 2D table " + t);
 			}
 			myTable = t;
 			this.doLayout();
 			this.revalidate();
+		}
+
+		// Product update, redraw current table...
+		if (myTable != null) {
+			myTable.updateTable();
 		}
 	}
 }

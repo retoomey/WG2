@@ -4,6 +4,7 @@ import gov.nasa.worldwind.layers.AbstractLayer;
 import gov.nasa.worldwind.render.DrawContext;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.features.PolarGridFeature;
 import org.wdssii.gui.features.ProductFeature;
@@ -47,6 +48,7 @@ public class ProductLayer extends AbstractLayer implements WWCategoryLayer {
         // For now....
         f.renderFeatureGroup(dc, MapFeature.MapGroup);
         f.renderFeatureGroup(dc, PolarGridFeature.PolarGridGroup);
+        f.renderFeatureGroup(dc, LLHAreaFeature.LLHAreaGroup);
        
     }
     

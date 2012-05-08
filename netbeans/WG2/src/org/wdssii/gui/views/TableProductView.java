@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import gov.nasa.worldwind.geom.LatLon;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
@@ -7,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -34,6 +36,12 @@ import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.SwingIconFactory;
 import javax.swing.filechooser.FileFilter;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureList.FeatureFilter;
+import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.volumes.LLHArea;
+import org.wdssii.gui.volumes.LLHAreaHeightStick;
 
 public class TableProductView extends JThreadPanel implements CommandListener, ProductFollowerView {
 
@@ -209,7 +217,7 @@ public class TableProductView extends JThreadPanel implements CommandListener, P
 				// Bim's format....
 				URL aURL = file.toURI().toURL();
 				log.debug("Would try to write to " + aURL.toString());
-				if (myTable != null){
+				if (myTable != null) {
 					myTable.exportToURL(aURL);
 				}
 			} catch (MalformedURLException ex) {
@@ -248,17 +256,80 @@ public class TableProductView extends JThreadPanel implements CommandListener, P
 		jDataTableScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 	}
 
+	/** Return an LLHAreaFeature that contains a LLHAreaHeightStick */
+	private static class StickFilter implements FeatureFilter {
+
+		@Override
+		public boolean matches(Feature f) {
+			if (f instanceof LLHAreaFeature) {
+				LLHAreaFeature a = (LLHAreaFeature) f;
+				LLHArea area = a.getLLHArea();
+				if (area instanceof LLHAreaHeightStick) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	/** Get the feature we are tracking */
+	public LLHAreaFeature getTrackFeature() {
+		// -------------------------------------------------------------------------
+		// Snag the top stick for the moment
+		LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new StickFilter());
+		if (f != null) {
+			LLHArea area = f.getLLHArea();
+			if (area instanceof LLHAreaHeightStick) {
+				return f;
+			}
+		}
+		return null;
+	}
+
+	/** Get the stick we are tracking */
+	public LLHAreaHeightStick getTrackStick() {
+
+		// -------------------------------------------------------------------------
+		// Snag the top stick for the moment
+		LLHAreaHeightStick stick = null;
+		LLHAreaFeature f = getTrackFeature();
+		if (f != null) {
+			stick = (LLHAreaHeightStick) f.getLLHArea();
+		}
+		return stick;
+	}
+
+	/**
+	 * Return the Location we are currently tracking
+	 */
+	public Location getTrackLocation() {
+		Location L = null;
+		LLHAreaHeightStick stick = getTrackStick();
+		if (stick != null) {
+			// FIXME: would be nice to have a Position ability
+			List<LatLon> list = stick.getLocations();
+			double[] alts = stick.getAltitudes();
+			if (list.size() > 0) {
+				LatLon l = list.get(0);
+				double a = alts[0]; // assuming correct
+				L = new Location(l.latitude.degrees, l.longitude.degrees, a);
+			}
+		}
+		return L;
+	}
+
 	private void updateDataTable() {
-		Product2DTable t = null;
+		Product2DTable newTable = null;
+		Product2DTable oldTable = myTable;
 
 		ProductFeature f = ProductManager.getInstance().getProductFeature(myCurrentFollow);
 		if (f != null) {
-			t = f.get2DTable();
+			newTable = f.get2DTable();
 		}
 
 		// Always check and replace table.  There may be no ProductFeature,
 		// there may be no table...
-		if (myTable != t) {
+		if (myTable != newTable) {
 
 			// Remove any old stuff completely
 			remove(jDataTableScrollPane);
@@ -266,17 +337,32 @@ public class TableProductView extends JThreadPanel implements CommandListener, P
 			add(jDataTableScrollPane, new CC().growX().growY());
 
 			// Add new stuff if there
-			if (t != null) {
-				t.createInScrollPane(jDataTableScrollPane, f, myMouseMode);
-				log.debug("Installed 2D table " + t);
+			if (newTable != null) {
+				newTable.createInScrollPane(jDataTableScrollPane, f, myMouseMode);
+				log.debug("Installed 2D table " + newTable);
 			}
-			myTable = t;
+			myTable = newTable;
+
+			// Link 3DRenderer (usually outline of product) to current stick...
 			this.doLayout();
 			this.revalidate();
 		}
 
-		// Product update, redraw current table...
+		// Always register..bleh..this is because you can add a stick without changing table..
+		// bleh...guess it's cheap enough to do for now
+		FeatureList.theFeatures.remove3DRenderer(oldTable);
+		LLHAreaFeature s = getTrackFeature();
+		if (s != null) {
+			s.addRenderer(newTable);
+		}
+
+		// Feature update, move table to stick experiment...
 		if (myTable != null) {
+			Location l = getTrackLocation();
+			if (l != null) {
+				myTable.centerToLocation(l);
+			}
+			// Product update, redraw current table...
 			myTable.updateTable();
 		}
 	}

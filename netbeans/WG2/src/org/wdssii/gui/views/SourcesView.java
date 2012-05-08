@@ -391,7 +391,8 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 
 		setUpSortingColumns();
 
-		// updateTable();
+		updateTable();
+		updateInfoLabel();
 	}
 	// Disable for now since this does nothing yet
 

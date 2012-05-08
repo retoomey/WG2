@@ -13,294 +13,322 @@ import org.slf4j.LoggerFactory;
  */
 public class FeatureList {
 
-    private static Logger log = LoggerFactory.getLogger(FeatureList.class);
-    
-    /** A simple filter to return boolean for mass actions such as deletion */
-    public static interface FeatureFilter{
-        boolean matches(Feature f);
-    }
-    
-    /**
-     * A single feature list for entire display, because I only have one window
-     * at the moment.....
-     */
-    public static final FeatureList theFeatures = new FeatureList();
-    /**
-     * Every group can have a selected object
-     */
-    public TreeMap<String, Feature> mySelections = new TreeMap<String, Feature>();
-    /**
-     * The top selected Feature of all groups
-     */
-    private Feature myTopSelectedFeature = null;
-    /**
-     * We keep the 'stamp' which is hidden/made in the wdssii core
-     */
-    protected String mySimulationTimeStamp = "No time set";
-    /**
-     * The current 'time' this feature list is at, any feature can be time
-     * dependent. Products are, for example
-     */
-    protected Date mySimulationTime;
+	private static Logger log = LoggerFactory.getLogger(FeatureList.class);
 
-    static {
-        Feature testOne = new MapFeature(theFeatures, "shapefiles/usa/ok/okcnty.shp");
-        theFeatures.addFeature(testOne);
-        Feature testTwo = new MapFeature(theFeatures, "shapefiles/usa/tx/txcnty.shp");
-        theFeatures.addFeature(testTwo);
-    }
-    /**
-     * The features we contain. Not adding a public interface here for
-     * synchronization purposes
-     */
-    private ArrayList<Feature> myFeatures = new ArrayList<Feature>();
+	/** A simple filter to return boolean for mass actions such as deletion */
+	public static interface FeatureFilter {
 
-    public FeatureList() {
-    }
+		boolean matches(Feature f);
+	}
+	/**
+	 * A single feature list for entire display, because I only have one window
+	 * at the moment.....
+	 */
+	public static final FeatureList theFeatures = new FeatureList();
+	/**
+	 * Every group can have a selected object
+	 */
+	public TreeMap<String, Feature> mySelections = new TreeMap<String, Feature>();
+	/**
+	 * The top selected Feature of all groups
+	 */
+	private Feature myTopSelectedFeature = null;
+	/**
+	 * We keep the 'stamp' which is hidden/made in the wdssii core
+	 */
+	protected String mySimulationTimeStamp = "No time set";
+	/**
+	 * The current 'time' this feature list is at, any feature can be time
+	 * dependent. Products are, for example
+	 */
+	protected Date mySimulationTime;
 
-    public void setMemento(String key, FeatureMemento m) {
-        Feature f = getFeature(key);
-        if (f != null) {
-            f.setMemento(m);
-        }
-    }
+	static {
+		Feature testOne = new MapFeature(theFeatures, "shapefiles/usa/ok/okcnty.shp");
+		theFeatures.addFeature(testOne);
+		Feature testTwo = new MapFeature(theFeatures, "shapefiles/usa/tx/txcnty.shp");
+		theFeatures.addFeature(testTwo);
+	}
+	/**
+	 * The features we contain. Not adding a public interface here for
+	 * synchronization purposes
+	 */
+	private ArrayList<Feature> myFeatures = new ArrayList<Feature>();
 
-    /**
-     * Add a new Feature to our list
-     */
-    public void addFeature(Feature f) {
-        myFeatures.add(f);
-        setSelected(f);  // When created, select it
-    }
+	public FeatureList() {
+	}
 
-    /**
-     * Remove a Feature from our list
-     */
-    public void removeFeature(String key) {
-        Feature f = getFeature(key);
-        if (f != null) {
-            removeFeature(f);
-        }
-    }
+	public void setMemento(String key, FeatureMemento m) {
+		Feature f = getFeature(key);
+		if (f != null) {
+			f.setMemento(m);
+		}
+	}
 
-    /**
-     * Remove a Feature by object
-     */
-    public void removeFeature(Feature f) {
-        if (f != null) {
+	/**
+	 * Add a new Feature to our list
+	 */
+	public void addFeature(Feature f) {
+		myFeatures.add(f);
+		setSelected(f);  // When created, select it
+	}
 
-            final String group = f.getFeatureGroup();
-            Feature selected = getSelected(group);
-            myFeatures.remove(f);
+	/**
+	 * Remove a Feature from our list
+	 */
+	public void removeFeature(String key) {
+		Feature f = getFeature(key);
+		if (f != null) {
+			removeFeature(f);
+		}
+	}
 
-            if (selected == f) {
-                Feature newSelection = getFirstFeature(group);
-                if (newSelection == null) {
-                    mySelections.remove(group);
-                } else {
-                    setSelected(newSelection);
-                }
-            }
-        }
-    }
-    
-    /** Remove all features matching given filter */
-    public void removeFeatures(FeatureFilter filter){
-        ArrayList<Feature> toDelete = new ArrayList<Feature>();
-        for(Feature f:myFeatures){
-            if (filter.matches(f)){
-                toDelete.add(f);
-            }
-        }
-        for(Feature f:toDelete){
-            removeFeature(f);  // safest, might be slow
-        }
-    }
+	/** Remove a 3DRenderer from any feature */
+	public void remove3DRenderer(Feature3DRenderer r) {
+		if (r != null) {
+			Iterator<Feature> iter = myFeatures.iterator();
+			while (iter.hasNext()) {
+				Feature f = iter.next();
+				f.removeRenderer(r);
+			}
+		}
+	}
 
-    /**
-     * Get a Feature matching a given key
-     */
-    public Feature getFeature(String key) {
-        Iterator<Feature> i = myFeatures.iterator();
-        while (i.hasNext()) {
-            Feature f = i.next();
-            if (f.getKey().equals(key)) {
-                return f;
-            }
-        }
-        return null;
-    }
+	/**
+	 * Remove a Feature by object
+	 */
+	public void removeFeature(Feature f) {
+		if (f != null) {
 
-    /**
-     * Get the selected Feature of a given group
-     */
-    public Feature getSelected(String g) {
-        Feature have = mySelections.get(g);
-        return have;
-    }
+			final String group = f.getFeatureGroup();
+			Feature selected = getSelected(group);
+			myFeatures.remove(f);
 
-    /**
-     * Set the selected Feature for the group that it is in. For example, you
-     * can set the selected 'map' or '3d object' separately.
-     *
-     * @param f the Feature to select in its group
-     */
-    public void setSelected(Feature f) {
-        myTopSelectedFeature = f;
+			if (selected == f) {
+				Feature newSelection = getFirstFeature(group);
+				if (newSelection == null) {
+					mySelections.remove(group);
+				} else {
+					setSelected(newSelection);
+				}
+			}
+		}
+	}
 
-        if (f != null) {
-            mySelections.put(f.getFeatureGroup(), f);
-            myFeatures.remove(f);
-            myFeatures.add(f);
-            f.wasSelected();
-        }
-    }
+	/** Remove all features matching given filter */
+	public void removeFeatures(FeatureFilter filter) {
+		ArrayList<Feature> toDelete = new ArrayList<Feature>();
+		for (Feature f : myFeatures) {
+			if (filter.matches(f)) {
+				toDelete.add(f);
+			}
+		}
+		for (Feature f : toDelete) {
+			removeFeature(f);  // safest, might be slow
+		}
+	}
 
-    public void setDrawLast(Feature f) {
-        if (f != null) {
-            // Make sure this selected object draws last and over all others
-            myFeatures.remove(f);
-            myFeatures.add(f);
-        }
-    }
+	/**
+	 * Get a Feature matching a given key
+	 */
+	public Feature getFeature(String key) {
+		Iterator<Feature> i = myFeatures.iterator();
+		while (i.hasNext()) {
+			Feature f = i.next();
+			if (f.getKey().equals(key)) {
+				return f;
+			}
+		}
+		return null;
+	}
 
-    /**
-     * Get the most recently selected Feature of ALL groups. The GUI has a uses
-     * this for table selection where the selected Feature has a GUI available
-     * for setting properties.
-     *
-     * @return
-     */
-    public Feature getTopSelected() {
-        return myTopSelectedFeature;
-    }
+	/**
+	 * Get the selected Feature of a given group
+	 */
+	public Feature getSelected(String g) {
+		Feature have = mySelections.get(g);
+		return have;
+	}
 
-    /**
-     * Selected this key for group
-     */
-    public void setSelected(String key) {
-        Iterator<Feature> i = myFeatures.iterator();
-        while (i.hasNext()) {
-            Feature f = i.next();
-            if (f.getKey().equals(key)) {
-                setSelected(f);
-                break;
-            }
-        }
-    }
+	/**
+	 * Set the selected Feature for the group that it is in. For example, you
+	 * can set the selected 'map' or '3d object' separately.
+	 *
+	 * @param f the Feature to select in its group
+	 */
+	public void setSelected(Feature f) {
+		myTopSelectedFeature = f;
 
-    /**
-     * Used by GUI to pull out state information for table....
-     * LLHAreaCreateCommand
-     *
-     * @return
-     */
-    public List<Feature> getFeatures() {
-        return Collections.unmodifiableList(myFeatures);
-    }
+		if (f != null) {
+			mySelections.put(f.getFeatureGroup(), f);
+			myFeatures.remove(f);
+			myFeatures.add(f);
+			f.wasSelected();
+		}
+	}
 
-    public Feature getFirstFeature(Class c) {
-        Feature first = null;
-        Iterator<Feature> i = myFeatures.iterator();
-        while (i.hasNext()) {
-            Feature f = i.next();
-            if (f.getClass() == c) {
-                first = f;
-            }
-        }
-        return first;
-    }
+	public void setDrawLast(Feature f) {
+		if (f != null) {
+			// Make sure this selected object draws last and over all others
+			myFeatures.remove(f);
+			myFeatures.add(f);
+		}
+	}
 
-    public Feature getFirstFeature(String g) {
-        Feature first = null;
-        Iterator<Feature> i = myFeatures.iterator();
-        while (i.hasNext()) {
-            Feature f = i.next();
-            if (f.getFeatureGroup().equals(g)) {
-                first = f;
-            }
-        }
-        return first;
-    }
+	/**
+	 * Get the most recently selected Feature of ALL groups. The GUI has a uses
+	 * this for table selection where the selected Feature has a GUI available
+	 * for setting properties.
+	 *
+	 * @return
+	 */
+	public Feature getTopSelected() {
+		return myTopSelectedFeature;
+	}
 
-    /**
-     * Render all features that are in the given group
-     */
-    public void renderFeatureGroup(DrawContext dc, String g) {
+	/**
+	 * Selected this key for group
+	 */
+	public void setSelected(String key) {
+		Iterator<Feature> i = myFeatures.iterator();
+		while (i.hasNext()) {
+			Feature f = i.next();
+			if (f.getKey().equals(key)) {
+				setSelected(f);
+				break;
+			}
+		}
+	}
 
-        List<Feature> list = getActiveFeatureGroup(g);
-        Iterator<Feature> iter = list.iterator();
-        while (iter.hasNext()) {
-            Feature f = iter.next();
-            f.render(dc);
-        }
-    }
+	/**
+	 * Used by GUI to pull out state information for table....
+	 * LLHAreaCreateCommand
+	 *
+	 * @return
+	 */
+	public List<Feature> getFeatures() {
+		return Collections.unmodifiableList(myFeatures);
+	}
 
-    /**
-     * Get all visible/onlymode features in a group. All that should be shown.
-     */
-    public List<Feature> getActiveFeatureGroup(String g) {
-        ArrayList<Feature> holder = new ArrayList<Feature>();
+	public Feature getFirstFeature(Class c) {
+		Feature first = null;
+		Iterator<Feature> i = myFeatures.iterator();
+		while (i.hasNext()) {
+			Feature f = i.next();
+			if (f.getClass() == c) {
+				first = f;
+			}
+		}
+		return first;
+	}
 
-        Feature selected = getSelected(g);
+	public Feature getFirstFeature(String g) {
+		Feature first = null;
+		Iterator<Feature> i = myFeatures.iterator();
+		while (i.hasNext()) {
+			Feature f = i.next();
+			if (f.getFeatureGroup().equals(g)) {
+				first = f;
+			}
+		}
+		return first;
+	}
 
-        // In only mode the selected volume is the only possible visible one
-        // for its group
-        if ((selected != null) && (selected.getOnlyMode())) {
-            if (selected.getVisible()) {
-                holder.add(selected);
-            }
-        } else {
-            Iterator<Feature> i = myFeatures.iterator();
-            while (i.hasNext()) {
-                Feature f = i.next();
-                if (f.getVisible() && (f.getFeatureGroup().equals(g))) {
-                    holder.add(f);
-                }
-            }
-        }
+	/**
+	 * Render all features that are in the given group
+	 */
+	public void renderFeatureGroup(DrawContext dc, String g) {
 
-        return holder;
-    }
+		List<Feature> list = getActiveFeatureGroup(g);
+		Iterator<Feature> iter = list.iterator();
+		while (iter.hasNext()) {
+			Feature f = iter.next();
+			f.render(dc);
+		}
+	}
 
-    public <T> ArrayList<T> getFeatureGroup(Class c) {
-        ArrayList<T> holder = new ArrayList<T>();
-        Iterator<Feature> iter = myFeatures.iterator();
-        while (iter.hasNext()) {
-            Feature f = iter.next();
-            if (f.getClass() == c) {  // Humm subclass won't work, right?
-                holder.add((T) f);
-            }
-        }
-        return holder;
-    }
+	/**
+	 * Get all visible/onlymode features in a group. All that should be shown.
+	 */
+	public List<Feature> getActiveFeatureGroup(String g) {
+		ArrayList<Feature> holder = new ArrayList<Feature>();
 
-    /**
-     * Get the simulation time of this FeatureList
-     */
-    public Date getSimulationTime() {
-        return mySimulationTime;
-    }
+		Feature selected = getSelected(g);
 
-    public void setSimulationTime(Date d) {
-        mySimulationTime = d;
-    }
+		// In only mode the selected volume is the only possible visible one
+		// for its group
+		if ((selected != null) && (selected.getOnlyMode())) {
+			if (selected.getVisible()) {
+				holder.add(selected);
+			}
+		} else {
+			Iterator<Feature> i = myFeatures.iterator();
+			while (i.hasNext()) {
+				Feature f = i.next();
+				if (f.getVisible() && (f.getFeatureGroup().equals(g))) {
+					holder.add(f);
+				}
+			}
+		}
 
-    /**
-     * Get the simulation timestamp string of this FeatureList
-     */
-    public String getSimulationTimeStamp() {
-        return mySimulationTimeStamp;
-    }
+		return holder;
+	}
 
-    public void setSimulationTimeStamp(String s) {
-        mySimulationTimeStamp = s;
-    }
+	public <T> ArrayList<T> getFeatureGroup(Class c) {
+		ArrayList<T> holder = new ArrayList<T>();
+		Iterator<Feature> iter = myFeatures.iterator();
+		while (iter.hasNext()) {
+			Feature f = iter.next();
+			if (f.getClass() == c) {  // Humm subclass won't work, right?
+				holder.add((T) f);
+			}
+		}
+		return holder;
+	}
 
-    /**
-     * Get the string displayed by the GUI on our status
-     */
-    public String getGUIInfoString() {
-        return mySimulationTimeStamp;
-    }
+	/** Get 'top' match of a group (selected items move to top, or end of the list,
+	 * since last rendered is on 'top' of other items
+	 */
+	public <T> T getTopMatch(FeatureFilter matcher) {
+		T holder = null;
+		ListIterator<Feature> itr = myFeatures.listIterator(myFeatures.size());
+		while (itr.hasPrevious()) {
+			Feature f = itr.previous();
+			if (matcher.matches(f)) {
+				holder = (T) f;
+				break;
+			}
+		}
+
+		return holder;
+	}
+
+	/**
+	 * Get the simulation time of this FeatureList
+	 */
+	public Date getSimulationTime() {
+		return mySimulationTime;
+	}
+
+	public void setSimulationTime(Date d) {
+		mySimulationTime = d;
+	}
+
+	/**
+	 * Get the simulation timestamp string of this FeatureList
+	 */
+	public String getSimulationTimeStamp() {
+		return mySimulationTimeStamp;
+	}
+
+	public void setSimulationTimeStamp(String s) {
+		mySimulationTimeStamp = s;
+	}
+
+	/**
+	 * Get the string displayed by the GUI on our status
+	 */
+	public String getGUIInfoString() {
+		return mySimulationTimeStamp;
+	}
 }

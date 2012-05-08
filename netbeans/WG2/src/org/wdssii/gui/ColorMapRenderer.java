@@ -178,7 +178,7 @@ public class ColorMapRenderer {
             // Calculate height
             int barwidth = Math.max(w - unitWidth, 1);
             int aSize = myColorMap.getNumberOfBins();
-            int cellWidth = barwidth / aSize;
+            int cellWidth = barwidth > 0? barwidth / aSize: 1;
             barwidth = cellWidth * aSize;
 
             int currentX = 0;
@@ -288,7 +288,7 @@ public class ColorMapRenderer {
             // Calculate height
             int barwidth = Math.max(aViewWidth - unitWidth, 1);
             int aSize = myColorMap.getNumberOfBins();
-            int cellWidth = barwidth / aSize;
+            int cellWidth = barwidth > 0? barwidth / aSize: 1;
             barwidth = cellWidth * aSize;
 
             double currentX = 0.0;

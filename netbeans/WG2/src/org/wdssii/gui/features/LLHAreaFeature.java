@@ -1,7 +1,6 @@
 package org.wdssii.gui.features;
 
 import gov.nasa.worldwind.WorldWindow;
-import gov.nasa.worldwind.render.DrawContext;
 import java.util.TreeMap;
 import javax.swing.JComponent;
 import org.slf4j.Logger;
@@ -96,14 +95,6 @@ public class LLHAreaFeature extends Feature {
 
     public LLHArea getLLHArea() {
         return myLLHArea;
-    }
-
-    /**
-     * Render a LLHAreaFeature. Currently the LLHAreaLayer gets our LLHArea
-     * directly and does fancy rendering...
-     */
-    @Override
-    public void render(DrawContext dc) {
     }
 
     /**

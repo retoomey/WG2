@@ -1,5 +1,6 @@
 package org.wdssii.gui.products;
 
+import gov.nasa.worldwind.render.DrawContext;
 import java.net.URL;
 import javax.swing.JScrollPane;
 import org.slf4j.Logger;
@@ -8,7 +9,10 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.gui.features.Feature3DRenderer;
+import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.ProductFeature;
+import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.swing.ProductTableModel;
 import org.wdssii.gui.swing.SimpleTable;
 
@@ -18,7 +22,7 @@ import org.wdssii.gui.swing.SimpleTable;
  * @author Robert Toomey
  * 
  */
-public class Product2DTable {
+public class Product2DTable implements Feature3DRenderer {
 
 	private static Logger log = LoggerFactory.getLogger(Product2DTable.class);
 	// The default 2D table for a product uses the virtual table for
@@ -100,8 +104,32 @@ public class Product2DTable {
 			if (dt instanceof Table2DView) {
 				Table2DView t = (Table2DView) (dt);
 				GridVisibleArea g = getSelectedGrid();
-				if (g!= null){
-				  t.exportToURL(aURL, g);
+				if (g != null) {
+					t.exportToURL(aURL, g);
+				}
+			}
+		}
+	}
+
+	 /* Not sure if the Table should draw this or the ProductRenderer...
+	 * We actually have the selected grid which is based on our
+	 * table layout, since we have will have multiple tables, might be good to at
+	 * least draw through us.  This would allow tables to share
+	 * the product renderer at least (n--> 1).  So if we had 5 tables
+	 * looking at same product, we could draw 5 outlines representing each
+	 * table..
+	 * @param dc
+	 * @param m 
+	 */
+	@Override
+	public void draw(DrawContext dc, FeatureMemento m) {
+		// Delegate to the product feature product renderer....
+		if (myProductFeature != null) {
+			Product p = myProductFeature.getProduct();
+			if (p != null) {
+				ProductRenderer r = p.getRenderer();
+				if (r != null) {
+					r.drawProductOutline(dc);
 				}
 			}
 		}

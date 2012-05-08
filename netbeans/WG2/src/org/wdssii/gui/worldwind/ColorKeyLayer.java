@@ -10,7 +10,6 @@ import org.wdssii.gui.CommandManager;
 
 import java.awt.*;
 import com.sun.opengl.util.j2d.TextRenderer;
-import gov.nasa.worldwind.WorldWindow;
 import org.wdssii.gui.ColorMapRenderer;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.views.WorldWindView;
@@ -166,7 +165,7 @@ public class ColorKeyLayer extends RenderableLayer implements WWCategoryLayer {
             WorldWindView v = CommandManager.getInstance().getEarthBall();
             if (v != null) {
                 //System.out.println("Drawing product outline "+counter++);
-                v.DrawProductOutline(dc);
+                v.DrawProductReadout(dc);
             }
         }
     }

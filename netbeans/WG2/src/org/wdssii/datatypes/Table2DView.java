@@ -26,14 +26,6 @@ public interface Table2DView {
         CENTER
     };
 
-    /** Used by the getCell method for output */
-    public static class Cell {
-
-        public int row;
-        public int col;
-        public boolean exactHit;
-    }
-
     /** Returned by getCellValue.  Different DataTypes have
      * different stuff.  You can create a subclass to hold
      * more information for a particular data type.
@@ -41,6 +33,19 @@ public interface Table2DView {
     public static class CellQuery {
         public float value;
         public String text;
+        public int row;
+        public int col;
+
+	/** Set if query is within range of the number of rows */
+	public boolean rowInRange;
+
+	/** Set if query is within range of the number of cols */
+	public boolean colInRange;
+
+	/** Was the query inside the table? */
+	public boolean isInGrid(){
+		return rowInRange && colInRange;
+	}
     }
     
     /** Get the number of columns in the table */
@@ -64,7 +69,7 @@ public interface Table2DView {
     public boolean getLocation(LocationType type, int row, int col, Location output);
 
     /** For a given Location, get the hit row and col. */
-    public boolean getCell(Location input, Cell output);
+    public boolean getCell(Location input, CellQuery output);
 
     /** Export selection to a url */
     public void exportToURL(URL aURL, GridVisibleArea g);

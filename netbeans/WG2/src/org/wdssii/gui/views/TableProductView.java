@@ -3,6 +3,7 @@ package org.wdssii.gui.views;
 import gov.nasa.worldwind.geom.LatLon;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -123,14 +124,6 @@ public class TableProductView extends JThreadPanel implements CommandListener, P
 	@Override
 	public void updateInSwingThread(Object command) {
 		updateDataTable();
-	}
-
-	public GridVisibleArea getVisibleGrid() {
-		GridVisibleArea a = null;
-		if (myTable != null) {
-			return myTable.getCurrentVisibleGrid();
-		}
-		return null;
 	}
 
 	private class JMToggleButton extends JToggleButton {
@@ -344,8 +337,10 @@ public class TableProductView extends JThreadPanel implements CommandListener, P
 			myTable = newTable;
 
 			// Link 3DRenderer (usually outline of product) to current stick...
-			this.doLayout();
-			this.revalidate();
+			// Revalidate is delayed, we need it NOW because the GridVisibleArea
+			// calculation needs a valid ViewRect
+			//this.revalidate();
+			this.validate(); // update now
 		}
 
 		// Always register..bleh..this is because you can add a stick without changing table..

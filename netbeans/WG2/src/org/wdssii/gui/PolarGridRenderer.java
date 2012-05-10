@@ -22,12 +22,15 @@ import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.RadialSet;
 import org.wdssii.geom.Location;
+import org.wdssii.gui.features.Feature3DRenderer;
+import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.PolarGridFeature.PolarGridMemento;
 import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.storage.GrowList;
+import org.wdssii.util.GLUtil;
 import org.wdssii.util.RadialUtil;
 
 /**
@@ -39,7 +42,7 @@ import org.wdssii.util.RadialUtil;
  * from workerlock...hummm..check this.
  *
  */
-public class PolarGridRenderer {
+public class PolarGridRenderer implements Feature3DRenderer {
 
 	private static Logger log = LoggerFactory.getLogger(PolarGridRenderer.class);
 	/**
@@ -112,13 +115,13 @@ public class PolarGridRenderer {
 		 * Do the work of generating the OpenGL stuff
 		 */
 		public WdssiiJobStatus create(DrawContext dc, PolarGridMemento p,
-						PolarGridRenderer r, WdssiiJobMonitor monitor) {
+			PolarGridRenderer r, WdssiiJobMonitor monitor) {
 
 			Globe myGlobe = dc.getGlobe();
 			int idx = 0;
 
 			//	int myMaxR = 500; // firstgate+(numgates*gatewidth)....for a radialset
-			int ringApart = p.getRangeMetersPerRing()/1000;
+			int ringApart = p.getRangeMetersPerRing() / 1000;
 			//		int numCircles;
 			int numCircles = p.getNumRings();
 			if (numCircles < 1) {
@@ -126,7 +129,7 @@ public class PolarGridRenderer {
 			} // HAVE to have at least one
 
 			Location ourCenter = new Location(p.getCenter().getLatitude().degrees,
-							p.getCenter().getLongitude().degrees, 0);
+				p.getCenter().getLongitude().degrees, 0);
 
 //			if (ringApart > myMaxR) {
 //				numCircles = 1;
@@ -152,9 +155,9 @@ public class PolarGridRenderer {
 
 			// Allocate memory...
 			Array1Dfloat workPolygons = new Array1DfloatAsNodes(
-							(numCircles * (numSegs+1) * 3) // Number of circle points
-							+ (numSpokes * (numCircles + 1) * 3), // Number of spoke points
-							0.0f);
+				(numCircles * (numSegs + 1) * 3) // Number of circle points
+				+ (numSpokes * (numCircles + 1) * 3), // Number of spoke points
+				0.0f);
 			GrowList<Integer> workOffsets = new GrowList<Integer>();
 			GrowList<Vec4> workLabelPoints = new GrowList<Vec4>();
 			GrowList<String> workLabelStrings = new GrowList<String>();
@@ -170,12 +173,12 @@ public class PolarGridRenderer {
 					double sinAzimuthRAD = Math.sin(Math.toRadians(d));
 					double cosAzimuthRAD = Math.cos(Math.toRadians(d));
 					RadialUtil.getAzRanElLocation(l, ourCenter,
-									sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
-									sinElevAngle, cosElevAngle);
+						sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
+						sinElevAngle, cosElevAngle);
 					Vec4 point = myGlobe.computePointFromPosition(
-									Angle.fromDegrees(l.getLatitude()),
-									Angle.fromDegrees(l.getLongitude()),
-									l.getHeightKms() * 1000.0);
+						Angle.fromDegrees(l.getLatitude()),
+						Angle.fromDegrees(l.getLongitude()),
+						l.getHeightKms() * 1000.0);
 					workPolygons.set(idx++, (float) point.x);
 					workPolygons.set(idx++, (float) point.y);
 					workPolygons.set(idx++, (float) point.z);
@@ -193,9 +196,9 @@ public class PolarGridRenderer {
 
 			// Calculate the absolute center, shared by each spoke....
 			Vec4 cpoint = myGlobe.computePointFromPosition(
-							Angle.fromDegrees(ourCenter.getLatitude()),
-							Angle.fromDegrees(ourCenter.getLongitude()),
-							ourCenter.getHeightKms() * 1000.0);
+				Angle.fromDegrees(ourCenter.getLatitude()),
+				Angle.fromDegrees(ourCenter.getLongitude()),
+				ourCenter.getHeightKms() * 1000.0);
 
 			// For each step in spoke degrees....
 			int spokeAngle = 0;
@@ -211,12 +214,12 @@ public class PolarGridRenderer {
 				rangeKMS = ringApart;
 				for (int c = 0; c < numCircles; c++) {
 					RadialUtil.getAzRanElLocation(l, ourCenter,
-									sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
-									sinElevAngle, cosElevAngle);
+						sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
+						sinElevAngle, cosElevAngle);
 					Vec4 point = myGlobe.computePointFromPosition(
-									Angle.fromDegrees(l.getLatitude()),
-									Angle.fromDegrees(l.getLongitude()),
-									l.getHeightKms() * 1000.0);
+						Angle.fromDegrees(l.getLatitude()),
+						Angle.fromDegrees(l.getLongitude()),
+						l.getHeightKms() * 1000.0);
 					workPolygons.set(idx++, (float) point.x);
 					workPolygons.set(idx++, (float) point.y);
 					workPolygons.set(idx++, (float) point.z);
@@ -238,12 +241,12 @@ public class PolarGridRenderer {
 				double sinAzimuthRAD = Math.sin(Math.toRadians(labelDegree));
 				double cosAzimuthRAD = Math.cos(Math.toRadians(labelDegree));
 				RadialUtil.getAzRanElLocation(l, ourCenter,
-								sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
-								sinElevAngle, cosElevAngle);
+					sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
+					sinElevAngle, cosElevAngle);
 				Vec4 point = myGlobe.computePointFromPosition(
-								Angle.fromDegrees(l.getLatitude()),
-								Angle.fromDegrees(l.getLongitude()),
-								l.getHeightKms() * 1000.0);
+					Angle.fromDegrees(l.getLatitude()),
+					Angle.fromDegrees(l.getLongitude()),
+					l.getHeightKms() * 1000.0);
 
 				// Add STRING first, draw thread will use size of points to render,
 				// so we need to make sure string is available
@@ -272,7 +275,7 @@ public class PolarGridRenderer {
 		if (new1.getNumRings() != old.getNumRings()) {
 			needsUpdate = true;
 		}
-		if(new1.getRangeMetersPerRing() != old.getRangeMetersPerRing()){
+		if (new1.getRangeMetersPerRing() != old.getRangeMetersPerRing()) {
 			needsUpdate = true;
 		}
 
@@ -319,8 +322,10 @@ public class PolarGridRenderer {
 	 * renderer right now.....do we merge some of these classes or make util
 	 * functions?
 	 */
-	public void draw(DrawContext dc, PolarGridMemento m) {
+	@Override
+	public void draw(DrawContext dc, FeatureMemento mf) {
 
+		PolarGridMemento m = (PolarGridMemento) (mf);
 		// Regenerate if memento is different...
 		if (changeNeedsUpdate(m, current)) {
 			// Have to make copy of information for background job
@@ -353,11 +358,11 @@ public class PolarGridRenderer {
 					synchronized (lock1) {
 
 						gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT
-										| GL.GL_COLOR_BUFFER_BIT
-										| GL.GL_ENABLE_BIT
-										| GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT
-										| GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT
-										| GL.GL_LINE_BIT);
+							| GL.GL_COLOR_BUFFER_BIT
+							| GL.GL_ENABLE_BIT
+							| GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT
+							| GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT
+							| GL.GL_LINE_BIT);
 						attribsPushed = true;
 
 						gl.glDisable(GL.GL_LIGHTING);
@@ -365,7 +370,7 @@ public class PolarGridRenderer {
 						gl.glDisable(GL.GL_DEPTH_TEST);
 						gl.glShadeModel(GL.GL_FLAT);
 						gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT
-										| GL.GL_CLIENT_PIXEL_STORE_BIT);
+							| GL.GL_CLIENT_PIXEL_STORE_BIT);
 						gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 						// gl.glEnableClientState(GL.GL_COLOR_ARRAY);
 
@@ -377,31 +382,9 @@ public class PolarGridRenderer {
 
 						statePushed = true;
 						FloatBuffer z = polygonData.getRawBuffer();
-
-						// Only render if there is data to render
-						if ((z != null) && (z.capacity() > 0)) {
-							gl.glColor4f(r, g, b, a);
-							gl.glLineWidth(m.getLineThickness());
-							gl.glVertexPointer(3, GL.GL_FLOAT, 0, z.rewind());
-
-							Iterator<Integer> itr = myOffsets.iterator();
-							if (itr.hasNext()) {
-								Integer now = itr.next();
-								while (itr.hasNext()) {
-									Integer plus1 = itr.next();
-									if (plus1 != null) {
-										int start_index = now;
-										int end_index = plus1;
-										int run_indices = end_index - start_index;
-										int start_vertex = start_index / 3;
-										int run_vertices = run_indices / 3;
-										gl.glDrawArrays(GL.GL_LINE_STRIP, start_vertex,
-														run_vertices);
-										now = plus1;
-									}
-								}
-							}
-						}
+						gl.glColor4f(r, g, b, a);
+						gl.glLineWidth(m.getLineThickness());
+						GLUtil.renderArrays(dc, z, myOffsets, GL.GL_LINE_STRIP);
 
 					}
 				} finally {
@@ -413,101 +396,53 @@ public class PolarGridRenderer {
 					}
 				}
 
-				boolean projectionPushed = false;
-				boolean modelviewPushed = false;
 				try {
-
-					// System.out.println("Drawing color key layer");
-					gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT
-									| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT
-									| GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
-									| GL.GL_CURRENT_BIT);
-					attribsPushed = true;
-					gl.glEnable(GL.GL_BLEND);
-					gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-					gl.glDisable(GL.GL_DEPTH_TEST);
-
-					View myView = dc.getView();
-					// Standard ortho projection
-					int aViewWidth = myView.getViewport().width;
-					int aViewHeight = myView.getViewport().height;
-
-					gl.glMatrixMode(GL.GL_PROJECTION);
-					gl.glPushMatrix();
-					projectionPushed = true;
-					gl.glLoadIdentity();
-					gl.glOrtho(0, aViewWidth, 0, aViewHeight, -1, 1);  // TopLeft
-					gl.glMatrixMode(GL.GL_MODELVIEW);
-					gl.glPushMatrix();
-					modelviewPushed = true;
-					gl.glLoadIdentity();
-
-					gl.glDisable(GL.GL_TEXTURE_2D); // no textures
-					gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
+					// Pre non-opengl first...
 					TextRenderer aText = null;
 					Font font = new Font("Arial", Font.PLAIN, 14);
 					if (aText == null) {
 						aText = new TextRenderer(font, true, true);
 					}
-					aText.begin3DRendering();
 					Globe myGlobe = dc.getGlobe();
 					Rectangle2DIntersector i = new Rectangle2DIntersector();
-
 					// Get the iterator for the object updated LAST
 					Iterator<Vec4> points = myLabelPoints.iterator();
 					Iterator<String> strings = myLabelStrings.iterator();
+					final View myView = dc.getView();
 
+					gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT
+						| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT
+						| GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
+						| GL.GL_CURRENT_BIT);
+					attribsPushed = true;
+					gl.glEnable(GL.GL_BLEND);
+					gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+					gl.glDisable(GL.GL_DEPTH_TEST);
+
+					GLUtil.pushOrtho2D(dc);
+					gl.glDisable(GL.GL_TEXTURE_2D); // no textures
+					gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
+					aText.begin3DRendering();
 					while (strings.hasNext()) {
 						final Vec4 v = points.next();
 						final String l = strings.next();
 						final Vec4 s = myView.project(v);
 						Rectangle2D bounds = aText.getBounds(l);
 						bounds.setRect(bounds.getX() + s.x, bounds.getY() + s.y,
-										bounds.getWidth(), bounds.getHeight());
+							bounds.getWidth(), bounds.getHeight());
 						if (!i.intersectsAdd(bounds)) {
-							cheezyOutline(aText, l, (int) s.x, (int) s.y);
+							GLUtil.cheezyOutline(aText, l, Color.WHITE, Color.BLACK, (int) s.x, (int) s.y);
 						}
 					}
 					aText.end3DRendering();
 				} finally {
-					if (projectionPushed) {
-						gl.glMatrixMode(GL.GL_PROJECTION);
-						gl.glPopMatrix();
-					}
-					if (modelviewPushed) {
-						gl.glMatrixMode(GL.GL_MODELVIEW);
-						gl.glPopMatrix();
-					}
+					GLUtil.popOrtho2D(dc);
 					if (attribsPushed) {
 						gl.glPopAttrib();
 					}
 				}
 			}
 		}
-	}
-
-	/**
-	 * A cheezy outline behind the text that doesn't require an outline font
-	 * to render. It shadows by shifting the text 1 pixel in every
-	 * direction. Not very fast, but color keys are more about looks.
-	 */
-	public void cheezyOutline(TextRenderer t, String l, int x, int y) {
-
-		// Draw a 'grid' of background to shadow the character....
-		// We can get away with this because there aren't that many labels
-		// in a color key really. Draw 8 labels shifted to get outline.
-		t.setColor(Color.black);
-		t.draw(l, x + 1, y + 1);
-		t.draw(l, x, y + 1);
-		t.draw(l, x - 1, y + 1);
-		t.draw(l, x - 1, y);
-		t.draw(l, x - 1, y - 1);
-		t.draw(l, x, y - 1);
-		t.draw(l, x + 1, y - 1);
-		t.draw(l, x + 1, y);
-
-		t.setColor(Color.white);
-		t.draw(l, x, y);
 	}
 
 	/**
@@ -549,7 +484,7 @@ public class PolarGridRenderer {
 	 * changing of settings). The worker will stop on false
 	 */
 	public boolean updateData(BackgroundPolarGridMaker worker, GrowList<Integer> off, Array1Dfloat poly,
-					GrowList<Vec4> points, GrowList<String> labels, boolean done) {
+		GrowList<Vec4> points, GrowList<String> labels, boolean done) {
 
 		// WorkerLock --> drawLock.  Never switch order
 		boolean keepWorking;

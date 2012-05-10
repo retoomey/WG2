@@ -154,7 +154,7 @@ public class SimpleTable extends JLabel
 
 		// Humm depends upon wdssii..should it? The GridVisibleArea is used
 		// by the display for rendering the outline of table in 3D window
-		public GridVisibleArea getVisibleGrid(Rectangle clipBounds) {
+		public GridVisibleArea updateVisibleGrid(Rectangle clipBounds) {
 			GridVisibleArea a = new GridVisibleArea();
 
 			a.startCol = clipBounds.x / getCellWidth();
@@ -177,6 +177,7 @@ public class SimpleTable extends JLabel
 			a.lastFullRow = a.lastPartialRow - 1;
 			a.lastFullColumn = a.lastPartialColumn - 1;
 
+			//log.debug("Rectangle is " + clipBounds + ", " + rows + ", " + cols);
 			myCurrentGrid = a;
 			return a;
 
@@ -291,8 +292,8 @@ public class SimpleTable extends JLabel
 				mySelectionGrid.lastFullColumn = ecol;
 				mySelectionGrid.lastPartialColumn = ecol;
 			}
-			mySelectionGrid.numRows = erow-srow+1;
-			mySelectionGrid.numCols = ecol-scol+1;
+			mySelectionGrid.numRows = erow - srow + 1;
+			mySelectionGrid.numCols = ecol - scol + 1;
 			mySelectionGrid.active = true;
 		}
 
@@ -364,12 +365,12 @@ public class SimpleTable extends JLabel
 
 			g.setColor(Color.RED);
 			g2.setStroke(new BasicStroke(
-			4.0f,                      // Width
-                           BasicStroke.CAP_SQUARE,    // End cap
-                           BasicStroke.JOIN_MITER,    // Join style
-                           10.0f,                     // Miter limit
-                           new float[] {10.0f,10.0f}, // Dash pattern
-                           0.0f) );                   // Dash phase	4
+				4.0f, // Width
+				BasicStroke.CAP_SQUARE, // End cap
+				BasicStroke.JOIN_MITER, // Join style
+				10.0f, // Miter limit
+				new float[]{10.0f, 10.0f}, // Dash pattern
+				0.0f));                   // Dash phase	4
 			if (rightEdge || leftEdge) {
 				g.drawLine(x, y, x, y + h);
 			}
@@ -454,7 +455,7 @@ public class SimpleTable extends JLabel
 				g.setColor(new Color(230, 163, 4));
 				g.fillRect(drawHere.x, drawHere.y, drawHere.width, drawHere.height);
 
-				GridVisibleArea a = myModel.getVisibleGrid(drawHere);
+				GridVisibleArea a = myModel.updateVisibleGrid(getVisibleRect());
 				if (orientation == HORIZONTAL) {
 					// The header columns....
 					int w = myModel.getCellWidth();
@@ -584,13 +585,21 @@ public class SimpleTable extends JLabel
 	public void selectNone() {
 	}
 
+	public void updateVisibleGrid() {
+		myModel.updateVisibleGrid(getVisibleRect());
+	}
+
+	public GridVisibleArea getCurrentVisibleGrid() {
+		updateVisibleGrid();
+		return myModel.getCurrentVisibleGrid();
+	}
+
 	@Override
 	public void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D) (g);
 
 		if (myModel != null) {
-			Rectangle drawHere = getVisibleRect();
-			GridVisibleArea a = myModel.getVisibleGrid(drawHere);
+			GridVisibleArea a = myModel.updateVisibleGrid(getVisibleRect());
 
 			for (int row = a.startRow; row <= a.lastPartialRow; row++) {
 				for (int col = a.startCol; col <= a.lastPartialColumn; col++) {
@@ -786,5 +795,6 @@ public class SimpleTable extends JLabel
 		}
 		rect.translate(centerX, centerY);
 		viewport.scrollRectToVisible(rect);
+		updateVisibleGrid();
 	}
 }

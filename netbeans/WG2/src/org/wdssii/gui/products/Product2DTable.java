@@ -47,11 +47,6 @@ public class Product2DTable implements Feature3DRenderer {
 		jProductDataTable.setupScrollPane(scrollPane);
 		jProductDataTable.setModel(myTableModel);
 		myTableModel.setProductFeature(p);
-		scrollPane.revalidate();
-		scrollPane.repaint();
-		//jProductDataTable.revalidate();
-		// jProductDataTable.repaint();
-
 	}
 
 	public void updateTable() {
@@ -64,7 +59,7 @@ public class Product2DTable implements Feature3DRenderer {
 			DataType dt = myProductFeature.getLoadedDatatype();
 			if (dt instanceof Table2DView) {
 				Table2DView t = (Table2DView) (dt);
-				Table2DView.Cell aCell = new Table2DView.Cell();
+				Table2DView.CellQuery aCell = new Table2DView.CellQuery();
 				t.getCell(loc, aCell);
 				jProductDataTable.scrollToCenter(aCell.row, aCell.col);
 			}
@@ -77,6 +72,7 @@ public class Product2DTable implements Feature3DRenderer {
 	public GridVisibleArea getCurrentVisibleGrid() {
 		GridVisibleArea a = null;
 		if (myTableModel != null) {
+			jProductDataTable.updateVisibleGrid();
 			return myTableModel.getCurrentVisibleGrid();
 		}
 		return null;
@@ -123,13 +119,15 @@ public class Product2DTable implements Feature3DRenderer {
 	 */
 	@Override
 	public void draw(DrawContext dc, FeatureMemento m) {
+		GridVisibleArea rect = getCurrentVisibleGrid();
+
 		// Delegate to the product feature product renderer....
 		if (myProductFeature != null) {
 			Product p = myProductFeature.getProduct();
 			if (p != null) {
 				ProductRenderer r = p.getRenderer();
 				if (r != null) {
-					r.drawProductOutline(dc);
+					r.drawGridOutline(dc, rect);
 				}
 			}
 		}

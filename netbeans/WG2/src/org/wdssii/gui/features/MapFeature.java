@@ -170,8 +170,8 @@ public class MapFeature extends Feature {
     public void render(DrawContext dc) {
 
         if (myRenderer != null) {
-            myRenderer.setupIfNeeded(dc);
-            myRenderer.draw(dc, ((MapMemento) getMemento()));
+           // myRenderer.setupIfNeeded(dc);
+            myRenderer.draw(dc, getMemento());
         }
     }
 

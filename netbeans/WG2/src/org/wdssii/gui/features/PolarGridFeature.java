@@ -179,7 +179,7 @@ public class PolarGridFeature extends Feature {
 	public void render(DrawContext dc) {
 
 		if (myRenderer != null) {
-			myRenderer.draw(dc, ((PolarGridMemento) getMemento()));
+			myRenderer.draw(dc, getMemento());
 		}
 	}
 

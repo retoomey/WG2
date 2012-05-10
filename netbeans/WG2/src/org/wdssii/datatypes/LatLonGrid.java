@@ -222,7 +222,7 @@ public class LatLonGrid extends DataType implements Table2DView {
     }
 
     @Override
-    public boolean getCell(Location input, Cell output) {
+    public boolean getCell(Location input, CellQuery output) {
         // TODO Auto-generated method stub
         return false;
     }

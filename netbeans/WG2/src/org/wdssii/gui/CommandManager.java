@@ -13,7 +13,6 @@ import org.wdssii.gui.commands.WdssiiCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.views.CommandListener;
 import org.wdssii.gui.views.SourceManagerView;
-import org.wdssii.gui.views.TableProductView;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.IndexRecord;
 
@@ -172,15 +171,6 @@ public class CommandManager implements Singleton {
             SourceManagerView smv = (SourceManagerView) (view);
             smv.update();  // Different thread
         }
-    }
-
-    public GridVisibleArea getVisibleGrid() {
-        CommandListener view = getNamedCommandListener(TableProductView.ID);
-        if (view instanceof TableProductView) {
-            TableProductView table = (TableProductView) (view);
-            return (table.getVisibleGrid());
-        }
-        return null;
     }
 
     public void hackWindField(Product aProduct) {

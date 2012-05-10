@@ -757,21 +757,20 @@ public class RadialSet extends DataType implements Table2DView {
 	}
 
 	@Override
-	public boolean getCell(Location input, Cell output) {
+	public boolean getCell(Location input, CellQuery output) {
 		RadialSetQuery q = new RadialSetQuery();
 		q.inLocation = input;
 		q.inUseHeight = false;
 		queryData(q);
-		boolean success = false;
+		boolean withinTable = false;
 		int row = q.outHitGateNumber;
 		int col = q.outHitRadialNumber;
-		// Humm this is already done in query, right?
-		success = ((row >= 0) && (row < getNumRows()) && (col >= 0) && (col < getNumCols()));
-		if (success) {
-			output.row = getNumRows() - row - 1;
-			output.col = col;
-		}
-		return success;
+		output.row = getNumRows() - row - 1;
+		output.col = col;
+		output.rowInRange = ((row > 0) && (row < getNumRows()));
+		output.colInRange = ((col > 0) && (col < getNumRows()));
+		withinTable = output.rowInRange && output.colInRange;
+		return withinTable;
 	}
 
 	@Override

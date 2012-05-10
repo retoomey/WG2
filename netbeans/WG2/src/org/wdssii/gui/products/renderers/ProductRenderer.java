@@ -100,22 +100,6 @@ public abstract class ProductRenderer {
         return new ProductReadout();
     }
 
-    /** The default product outline in the 3D world.  This assumes that
-     * the Product2DTable implementation of the product smoothly maps to
-     * 3D (Which is true for LatLonGrid, RadialSet, WindField...)
-     * @param dc
-     */
-    public void drawProductOutline(DrawContext dc) {
-        // FIXME: Humm...right now this is based upon the visible grid of
-        // the DataTable view...which only is showing top product..
-        // We should probably store a current grid within the product or
-        // renderer for multi-product support....
-        // This will eventually track with mouse....
-
-        GridVisibleArea a = CommandManager.getInstance().getVisibleGrid();
-        drawGridOutline(dc, a);
-    }
-    
     public void highlightObject(Object o){
         
     }

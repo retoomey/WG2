@@ -1,6 +1,7 @@
 package org.wdssii.gui.volumes;
 
 import gov.nasa.worldwind.geom.Vec4;
+import gov.nasa.worldwind.render.markers.Marker;
 
 public interface LLHAreaControlPoint {
 
@@ -13,4 +14,8 @@ public interface LLHAreaControlPoint {
     Vec4 getPoint();
 
     Object getKey();
+
+    /** Let each point have a marker (possibly shared) */
+    Marker getControlPointMarker();
+    
 }

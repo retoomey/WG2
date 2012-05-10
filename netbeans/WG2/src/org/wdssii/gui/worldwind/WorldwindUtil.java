@@ -23,7 +23,7 @@ public class WorldwindUtil {
 		// is in initial position...
 		if (inPosition) {
 			if (wwd.getView() instanceof OrbitView) {
-				Position z = ((OrbitView) wwd.getView()).getCenterPosition();
+				p = ((OrbitView) wwd.getView()).getCenterPosition();
 			}
 		}
 		return p;

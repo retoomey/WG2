@@ -1,7 +1,6 @@
 package org.wdssii.gui.views;
 
 import java.awt.event.ActionEvent;
-import java.util.logging.Level;
 import org.wdssii.gui.swing.JThreadPanel;
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.Model;
@@ -33,7 +32,6 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
@@ -41,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.JobManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
 import org.wdssii.gui.commands.Snapshot3DWorldCommand;

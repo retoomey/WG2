@@ -44,11 +44,14 @@ public class ProductLayer extends AbstractLayer implements WWCategoryLayer {
         // Get the current product list
         FeatureList f = ProductManager.getInstance().getFeatureList();
         f.renderFeatureGroup(dc, ProductFeature.ProductGroup);
+
+	// For now...
+       // f.renderFeatureGroup(dc, LLHAreaFeature.LLHAreaGroup);
         
-        // For now....
+	// Have to draw last, so that stipple works 'behind' product...
+	// It's 'behind' but actually renders on top..lol
         f.renderFeatureGroup(dc, MapFeature.MapGroup);
         f.renderFeatureGroup(dc, PolarGridFeature.PolarGridGroup);
-        f.renderFeatureGroup(dc, LLHAreaFeature.LLHAreaGroup);
        
     }
     

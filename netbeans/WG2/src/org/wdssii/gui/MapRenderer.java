@@ -264,6 +264,7 @@ public class MapRenderer implements Feature3DRenderer {
 				final float g = line.getGreen() / 255.0f;
 				final float b = line.getBlue() / 255.0f;
 				final float a = line.getAlpha() / 255.0f;
+				gl.glLineWidth(m.getLineThickness());
 				boolean attribsPushed = false;
 				try {
 					Object lock1 = polygonData.getBufferLock();

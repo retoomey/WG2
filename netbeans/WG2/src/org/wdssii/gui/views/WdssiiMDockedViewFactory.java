@@ -1,0 +1,147 @@
+package org.wdssii.gui.views;
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.util.List;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import net.infonode.docking.DockingWindow;
+import net.infonode.docking.RootWindow;
+import net.infonode.docking.SplitWindow;
+import net.infonode.docking.TabWindow;
+import net.infonode.docking.View;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wdssii.gui.DockWindow;
+import org.wdssii.gui.swing.SwingIconFactory;
+
+/**
+ * A docked factory handling adding of new sub-docked Views
+ * Handles simple add right now, will probably extend to include layout
+ * ability, listing of subviews, etc.
+ * 
+ * @author Robert Toomey
+ */
+public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
+
+	private static Logger log = LoggerFactory.getLogger(WdssiiMDockedViewFactory.class);
+
+	/** Interface for creating parts of a multi dock view */
+	public static interface MDockView {
+
+		/** Get the global title controls for the main dock window */
+		public void addGlobalCustomTitleBarComponents(List l);
+
+		/** Get the controls for an individual dock window instance */
+		public void addCustomTitleBarComponents(List l);
+	}
+
+	public WdssiiMDockedViewFactory(String title, String icon) {
+		super(title, icon);
+	}
+	/** The root window we add new subviews to */
+	private RootWindow rootW;
+	/** Each subview gets a unique counter in its title */
+	private int counter = 1;
+	/** Our factory */
+	private WdssiiDockedViewFactory myAddFactory;
+
+	@Override
+	public DockingWindow getNewDockingWindow() {
+
+		JPanel holder = new JPanel();
+		holder.setLayout(new BorderLayout());
+
+		//info = new JTextField();
+		//info.setText("Testing Nested Docking Charts (in progress)");
+		//holder.add(info, BorderLayout.NORTH);
+
+		// -------------------------------------------------------------
+		// Create a root window (just a square that's hold views), it's
+		// not a view itself...all charts will dock to this
+		RootWindow root = DockWindow.createARootWindow();
+		rootW = root;
+		addNewSubView();
+		holder.add(root, BorderLayout.CENTER);
+		// ------------------------------------------------------------
+
+		// The main view that contains all sub-docked views
+		String title = getWindowTitle();
+		Icon i = getWindowIcon();
+		View topWindow = new View(title + "s", i, holder);
+		MDockView m = getTempComponent();
+		List l = topWindow.getCustomTitleBarComponents();
+		m.addGlobalCustomTitleBarComponents(l);
+		addCreationButton(l);
+
+		return topWindow;
+	}
+
+	/** Return a MDockView that can give us global title components */
+	public abstract MDockView getTempComponent();
+
+	/** Return a new numbered sub view */
+	public abstract Component getNewSubViewComponent(int counter);
+
+	/** Get available counter for a new view */
+	protected int getNewViewCounter(){
+		return(counter++);
+	}
+
+	/** Create a new subview, add to management */
+	private View addNewSubView() {
+		Icon i = getWindowIcon();
+		String title = getWindowTitle();
+
+		int c = getNewViewCounter();
+		Component p = getNewSubViewComponent(c);
+		View v = new View(title + "-" + c, i, p);
+		if (p instanceof MDockView) {
+			MDockView m = (MDockView) (p);
+			m.addCustomTitleBarComponents(v.getCustomTitleBarComponents());
+		}
+
+		DockingWindow base = rootW.getWindow();
+
+		// Depending on how user has moved stuff around, should be one of three
+		// possibilities:
+		// 1.  All closed, so null --> create a new tabwindow
+		// 2.  Dragged into split window...
+		// 3.  TabWindow already...
+		if (base == null) {
+			TabWindow theTab = new TabWindow(v);
+			rootW.setWindow(theTab);
+		} else {
+			if (base instanceof TabWindow) {
+				TabWindow theTab = (TabWindow) (base);
+				theTab.addTab(v);
+			} else if (base instanceof SplitWindow) {
+				TabWindow theTab = new TabWindow(new DockingWindow[]{v, base});
+				rootW.setWindow(theTab);
+			} else {
+				log.error("Unknown window type...We should handle this type (FIXME)");
+			}
+		}
+		return v;
+	}
+
+	/** Add the standard button on main container that allows creating a new sub-view */
+	public void addCreationButton(List addTo) {
+
+		JButton test = new JButton();
+		Icon i = SwingIconFactory.getIconByName("brick_add.png");
+		test.setIcon(i);
+		test.setToolTipText("Add new chart");
+		test.setFocusable(false);
+		test.setOpaque(false);
+		test.addActionListener(new java.awt.event.ActionListener() {
+
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				addNewSubView();
+			}
+		});
+		addTo.add(test);
+	}
+}

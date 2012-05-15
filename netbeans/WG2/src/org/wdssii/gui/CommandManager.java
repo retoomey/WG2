@@ -1,11 +1,14 @@
 package org.wdssii.gui;
 
 import gov.nasa.worldwind.layers.LayerList;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +24,7 @@ import org.wdssii.index.IndexRecord;
  * management system that requires at times explicit ordering of events (for
  * window syncing/looping properly of multiple windows, etc.)
  * 
- * @author rest
+ * @author Robert Toomey
  * 
  */
 public class CommandManager implements Singleton {
@@ -31,7 +34,11 @@ public class CommandManager implements Singleton {
     private VisualCollection myVisualCollection = new VisualCollection();
     public static String CommandPath = "org.wdssii.gui.commands.";
     private final Object myViewLock = new Object();
-    private TreeMap<String, CommandListener> myNamedViews = new TreeMap<String, CommandListener>();
+
+    /** Keep weak references to command listeners, we don't hold onto them.
+     We purge null references when we send messages out.
+     */
+    private TreeMap<String, WeakReference<CommandListener>> myNamedViews = new TreeMap<String, WeakReference<CommandListener>>();
 
     // You should not create NavigationAction
     // yourself. Any class method using a NavigationAction must have that
@@ -69,7 +76,20 @@ public class CommandManager implements Singleton {
 
     public void addListener(String name, CommandListener aView) {
         synchronized (myViewLock) {
-            myNamedViews.put(name, aView);
+		/*
+            if (myNamedViews.containsKey(name)){
+               log.error("ADDED a duplicate listener.  This is a bug "+name);
+	       	WeakReference<CommandListener> c = myNamedViews.get(name);
+		if (c == null){
+                   log.error("Humm the reference was null it's ok...");
+
+		}
+	       // Maybe not with weak references...might not have purged the
+	       // old one yet...
+	    }
+		 */
+            myNamedViews.put(name, new WeakReference<CommandListener>(aView));
+	    
         }
     }
 
@@ -82,7 +102,9 @@ public class CommandManager implements Singleton {
 
     public CommandListener getNamedCommandListener(String name) {
         synchronized (myViewLock) {
-            return (myNamedViews.get(name));
+	    WeakReference<CommandListener> c = myNamedViews.get(name);
+	    if (c == null){ return null; }
+	    return c.get();
         }
     }
 
@@ -243,8 +265,16 @@ public class CommandManager implements Singleton {
 
         // All views are considered to be command listeners for now...
         synchronized (myViewLock) {
-            Collection<CommandListener> c = myNamedViews.values();
-            for (CommandListener v : c) {
+	   Set<Entry<String, WeakReference<CommandListener>>> c = myNamedViews.entrySet();
+	    ArrayList<String> cleanup = new ArrayList<String>();
+            for (Entry<String, WeakReference<CommandListener>> entry : c) {
+		WeakReference<CommandListener> r = entry.getValue();
+		CommandListener v =  r.get();
+		if (v == null){ // It's gone...purge it..
+			cleanup.add(entry.getKey());
+			continue;
+		}
+		
                 Class<?> theClass = v.getClass();
                 Class<?> commandClass = command.getClass();
                 String rootClass = WdssiiCommand.class.getSimpleName();
@@ -286,6 +316,21 @@ public class CommandManager implements Singleton {
                     }
                 }
             }
+	    // Purge....
+	    for(String s:cleanup){
+		    myNamedViews.remove(s);
+//		    log.debug("COMMAND MANAGER PURGE LISTENER "+s);
+	    }
+	    // Debug dump...
+	    /*
+            Set<String> aSet = myNamedViews.keySet();
+	    log.debug("DUMP listeners----------------"+c.size());
+            for (String s:aSet) {
+		    log.debug("CURRENT LISTENER "+s);
+	    }
+	    log.debug("END DUMP listeners");
+	     * 
+	     */
         }
     }
 }

@@ -46,7 +46,7 @@ public class ProductLayer extends AbstractLayer implements WWCategoryLayer {
         f.renderFeatureGroup(dc, ProductFeature.ProductGroup);
 
 	// For now...
-       // f.renderFeatureGroup(dc, LLHAreaFeature.LLHAreaGroup);
+        f.renderFeatureGroup(dc, LLHAreaFeature.LLHAreaGroup);
         
 	// Have to draw last, so that stipple works 'behind' product...
 	// It's 'behind' but actually renders on top..lol

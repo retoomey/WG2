@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -94,9 +95,11 @@ public class JwgDropDownButton extends JButton {
         protected void installDefaults(AbstractButton b) {
             super.installDefaults(b);
 
-            b.setOpaque(true);
+            b.setOpaque(false);
             b.setBorderPainted(false);
             b.setRolloverEnabled(true);
+	    b.setFocusable(false);
+	    b.setMargin(new Insets(0,0,0,0));
 
             dashedRectGapX = UIManager.getInt("ButtonUI.dashedRectGapX");
             dashedRectGapY = UIManager.getInt("ButtonUI.dashedRectGapY");
@@ -179,8 +182,10 @@ public class JwgDropDownButton extends JButton {
             int w = i.getIconWidth();
             i.paintIcon(c, g, c.getWidth() - w - X_OVERLAP, 0);
 
-            Border t = c.getBorder();
-            t.paintBorder(c, g, 0, 0, c.getWidth(), c.getHeight());
+	    if (b.isBorderPainted()){
+              Border t = c.getBorder();
+              t.paintBorder(c, g, 0, 0, c.getWidth(), c.getHeight());
+	    }
             model.setArmed(orgArmed);
             model.setPressed(orgPressed);
             model.setSelected(orgSel);

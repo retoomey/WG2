@@ -3,7 +3,6 @@ package org.wdssii.gui.views;
 import gov.nasa.worldwind.geom.LatLon;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -25,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.GridVisibleArea;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.SourceManager.SourceCommand;
 import org.wdssii.gui.commands.AnimateCommand;
@@ -41,10 +39,11 @@ import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeatureFilter;
 import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaHeightStick;
 
-public class TableProductView extends JThreadPanel implements CommandListener, ProductFollowerView {
+public class TableProductView extends JThreadPanel implements MDockView, CommandListener, ProductFollowerView {
 
 	private static Logger log = LoggerFactory.getLogger(TableProductView.class);
 	// ----------------------------------------------------------------
@@ -90,7 +89,7 @@ public class TableProductView extends JThreadPanel implements CommandListener, P
 	}
 
 	/** Our factory, called by reflection to populate menus, etc...*/
-	public static class Factory extends WdssiiDockedViewFactory {
+	public static class Factory extends WdssiiMDockedViewFactory {
 
 		public Factory() {
 			super("DataTable", "color_swatch.png");
@@ -98,14 +97,30 @@ public class TableProductView extends JThreadPanel implements CommandListener, P
 
 		@Override
 		public Component getNewComponent() {
+			return new TableProductView("DataTable");
+		}
+
+		@Override
+		public Component getNewSubViewComponent(int counter) {
+			return new TableProductView("DataTable-" + counter);
+		}
+
+		@Override
+		public MDockView getTempComponent() {
 			return new TableProductView();
 		}
 	}
 
-	public TableProductView() {
-		initComponents();
-		CommandManager.getInstance().addListener(TableProductView.ID, this);
+	private String myTitle;
 
+	public TableProductView() {
+		myTitle="Top datatable object, not a real datatable";
+	}
+
+	public TableProductView(String title) {
+		myTitle = title;
+		initComponents();
+		CommandManager.getInstance().addListener(myTitle, this);
 	}
 
 	private void initComponents() {
@@ -115,10 +130,21 @@ public class TableProductView extends JThreadPanel implements CommandListener, P
 		add(jDataTableScrollPane, new CC().growX().growY());
 
 		JToolBar bar = initToolBar();
-		add(bar, new CC().dockNorth());
+	        add(bar, new CC().dockNorth());
 		initTable();
 		updateDataTable();
 	}
+
+	/** Get the items for the view group */
+	@Override
+	public void addGlobalCustomTitleBarComponents(List addTo) {
+	}
+
+	/** Get the items for an individual view */
+	@Override
+	public void addCustomTitleBarComponents(List addTo) {
+	}
+
 	private javax.swing.JScrollPane jDataTableScrollPane;
 
 	@Override
@@ -348,6 +374,7 @@ public class TableProductView extends JThreadPanel implements CommandListener, P
 		FeatureList.theFeatures.remove3DRenderer(oldTable);
 		LLHAreaFeature s = getTrackFeature();
 		if (s != null) {
+			log.debug("TABLE VIEW ADD for "+this+"-->"+newTable);
 			s.addRenderer(newTable);
 		}
 

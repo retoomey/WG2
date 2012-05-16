@@ -9,14 +9,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import javax.swing.ButtonGroup;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
@@ -30,20 +24,16 @@ import org.wdssii.gui.commands.AnimateCommand;
 import org.wdssii.gui.commands.FeatureCommand;
 import org.wdssii.gui.commands.ProductCommand;
 import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
-import org.wdssii.gui.features.ProductFeature;
+import org.wdssii.gui.features.*;
+import org.wdssii.gui.features.FeatureList.FeatureFilter;
 import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.SwingIconFactory;
-import javax.swing.filechooser.FileFilter;
-import org.wdssii.gui.features.Feature;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.FeatureList.FeatureFilter;
-import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaHeightStick;
 
-public class TableProductView extends JThreadPanel implements MDockView, CommandListener, ProductFollowerView {
+public class TableProductView extends JThreadPanel implements MDockView, CommandListener, ProductFollowerView  {
 
 	private static Logger log = LoggerFactory.getLogger(TableProductView.class);
 	// ----------------------------------------------------------------
@@ -72,6 +62,7 @@ public class TableProductView extends JThreadPanel implements MDockView, Command
 	private JLabel selectionLabel;
 	// Global mouse mode for all tables....
 	private int myMouseMode = 0;
+	private ProductFeature myLastProductFeature = null;
 
 	// ProductFollower methods...
 	@Override
@@ -338,17 +329,28 @@ public class TableProductView extends JThreadPanel implements MDockView, Command
 	}
 
 	private void updateDataTable() {
-		Product2DTable newTable = null;
+		Product2DTable newTable; 
 		Product2DTable oldTable = myTable;
 
+		// Check for ProductFeature change first...this means table type changed
 		ProductFeature f = ProductManager.getInstance().getProductFeature(myCurrentFollow);
-		if (f != null) {
-			newTable = f.get2DTable();
+		boolean changed = (f != myLastProductFeature);
+		myLastProductFeature = f;
+
+		// Different feature, get a new table...
+		// this 'could' be better since if it's same product type we don't really need
+		// a new table..but it could be loading and still null...this is easiest.
+		// Also, we assume ALL products have a 2DTable class so we check null (once it's
+		// loaded this will become not null)
+		if ((f != null) && (changed || (oldTable == null))){ 
+		    newTable = f.getNew2DTable();
+		}else{
+		    newTable = myTable; // Keep same table
 		}
 
 		// Always check and replace table.  There may be no ProductFeature,
 		// there may be no table...
-		if (myTable != newTable) {
+		if (oldTable != newTable) {
 
 			// Remove any old stuff completely
 			remove(jDataTableScrollPane);
@@ -358,8 +360,9 @@ public class TableProductView extends JThreadPanel implements MDockView, Command
 			// Add new stuff if there
 			if (newTable != null) {
 				newTable.createInScrollPane(jDataTableScrollPane, f, myMouseMode);
-				log.debug("Installed 2D table " + newTable);
+			//	log.debug("Installed 2D table " + newTable);
 			}
+			log.debug("Installed 2D table " + myTable + " --> "+ newTable);
 			myTable = newTable;
 
 			// Link 3DRenderer (usually outline of product) to current stick...
@@ -371,10 +374,10 @@ public class TableProductView extends JThreadPanel implements MDockView, Command
 
 		// Always register..bleh..this is because you can add a stick without changing table..
 		// bleh...guess it's cheap enough to do for now
+		// Ok we need 'Table Features' that are linked to data tables... FIXME
 		FeatureList.theFeatures.remove3DRenderer(oldTable);
 		LLHAreaFeature s = getTrackFeature();
 		if (s != null) {
-			log.debug("TABLE VIEW ADD for "+this+"-->"+newTable);
 			s.addRenderer(newTable);
 		}
 

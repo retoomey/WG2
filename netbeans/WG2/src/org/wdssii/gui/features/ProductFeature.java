@@ -331,20 +331,24 @@ public class ProductFeature extends Feature {
 
 		// All Products we handle will be of the same type, thus
 		// we only create the navigator once.
+		// We also only display one navigator in the navigator view,
+		// so we only need one instance. Unlike tables that can display
+		// in multiple views.
 		if (myNavigator == null) {
 			myNavigator = myProduct.createNavigator();
 		}
 		return myNavigator;
 	}
 
-	public Product2DTable get2DTable() {
+	/** Called by multiple table views to display a table for this
+	 * ProductFeature
+	 * 
+	 * @return 
+	 */
+	public Product2DTable getNew2DTable() {
 
-		// All Products we handle will be of the same type, thus
-		// we only create the table once.
-		if (my2DTable == null) {
-			my2DTable = myProduct.create2DTable();
-		}
-		return my2DTable;
+		Product2DTable t = myProduct.create2DTable();
+		return t;
 	}
 
 	/** Get the loaded datatype.  Since datatype can lazy load, this could

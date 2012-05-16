@@ -538,7 +538,6 @@ public class Product {
         Object newClass = null;
 
         String createIt = rootpath + "." + dataName + suffix;
-        log.info("Looking for class " + createIt);
 
         Class<?> c = null;
 
@@ -546,10 +545,10 @@ public class Product {
         try {
             c = Class.forName(createIt);
             newClass = c.newInstance();
+            log.info("Generated " + createIt);
         } catch (Exception e) {
             log.warn("DataType " + dataName + " doesn't have a " + suffix + " it seems");
         }
-        log.info("Generated " + suffix + " for datatype " + dataName);
 
         return newClass;
     }

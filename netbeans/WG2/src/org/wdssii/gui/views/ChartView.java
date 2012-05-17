@@ -190,20 +190,7 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
 
 		// ---------------------------------------------------------
 		// The product follow menu
-		test = SwingIconFactory.getIconByName("link.png");
-		JwgDropDownButton b2 = new JwgDropDownButton(test) {
-
-			@Override
-			public void generateMenu() {
-				// Because the list dynamically changes
-				ProductFollowCommand f = new ProductFollowCommand();
-				f.setTargetListener(ChartView.this);
-				JPopupMenu menu = WdssiiCommand.getSwingMenuFor(f);
-				setMenu(menu);
-			}
-		};
-		b2.setToolTipText("Choose product to follow");
-		addTo.add(b2);
+		addTo.add(ProductFollowCommand.getDropButton(this));
 
 		// ---------------------------------------------------------
 		// The 3D object follow menu

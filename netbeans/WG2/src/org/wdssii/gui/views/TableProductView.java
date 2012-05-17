@@ -23,6 +23,7 @@ import org.wdssii.gui.SourceManager.SourceCommand;
 import org.wdssii.gui.commands.AnimateCommand;
 import org.wdssii.gui.commands.FeatureCommand;
 import org.wdssii.gui.commands.ProductCommand;
+import org.wdssii.gui.commands.ProductFollowCommand;
 import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
 import org.wdssii.gui.features.*;
 import org.wdssii.gui.features.FeatureList.FeatureFilter;
@@ -40,7 +41,7 @@ public class TableProductView extends JThreadPanel implements MDockView, Command
 	// Reflection called updates from CommandManager.
 	// See CommandManager execute and gui updating for how this works
 	// When sources or products change, update the navigation controls
-	private String myCurrentFollow = ProductManager.TOP_PRODUCT;
+	private String myCurrentProductFollow = ProductManager.TOP_PRODUCT;
 
 	public void ProductCommandUpdate(ProductCommand command) {
 		updateGUI(command);
@@ -67,12 +68,12 @@ public class TableProductView extends JThreadPanel implements MDockView, Command
 	// ProductFollower methods...
 	@Override
 	public void setCurrentProductFollow(String changeTo) {
-		myCurrentFollow = changeTo;
+		myCurrentProductFollow = changeTo;
 	}
 
 	@Override
 	public String getCurrentProductFollow() {
-		return myCurrentFollow;
+		return myCurrentProductFollow;
 	}
 
 	public void scrollLocationToVisible(Location loc) {
@@ -134,6 +135,9 @@ public class TableProductView extends JThreadPanel implements MDockView, Command
 	/** Get the items for an individual view */
 	@Override
 	public void addCustomTitleBarComponents(List addTo) {
+		// ---------------------------------------------------------
+		// The product follow menu
+		addTo.add(ProductFollowCommand.getDropButton(this));
 	}
 
 	private javax.swing.JScrollPane jDataTableScrollPane;
@@ -333,7 +337,7 @@ public class TableProductView extends JThreadPanel implements MDockView, Command
 		Product2DTable oldTable = myTable;
 
 		// Check for ProductFeature change first...this means table type changed
-		ProductFeature f = ProductManager.getInstance().getProductFeature(myCurrentFollow);
+		ProductFeature f = ProductManager.getInstance().getProductFeature(myCurrentProductFollow);
 		boolean changed = (f != myLastProductFeature);
 		myLastProductFeature = f;
 

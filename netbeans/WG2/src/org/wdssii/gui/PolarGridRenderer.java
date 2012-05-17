@@ -121,23 +121,28 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			int idx = 0;
 
 			//	int myMaxR = 500; // firstgate+(numgates*gatewidth)....for a radialset
-			int ringApart = p.getRangeMetersPerRing() / 1000;
+			int range = (Integer)p.getProperty(PolarGridMemento.RING_RANGE);
+			int ringApart = range / 1000;
 			//		int numCircles;
-			int numCircles = p.getNumRings();
+			int numCircles = (Integer) p.getProperty(PolarGridMemento.RING_COUNT);
+			log.debug("CREATING with number of rings..."+numCircles);
 			if (numCircles < 1) {
 				numCircles = 1;
 			} // HAVE to have at least one
 
-			Location ourCenter = new Location(p.getCenter().getLatitude().degrees,
-				p.getCenter().getLongitude().degrees, 0);
+			LatLon center = p.getProperty(PolarGridMemento.CENTER);
+			Location ourCenter = new Location(center.getLatitude().degrees,
+				center.getLongitude().degrees, 0);
+			log.debug("Center is at "+ourCenter);
 
 //			if (ringApart > myMaxR) {
 //				numCircles = 1;
 //			} else {
 //				numCircles = (int) (0.5 + ((float) myMaxR) / ringApart);
 //			}
-			final double sinElevAngle = Math.sin(Math.toRadians(p.getElevDegrees()));
-			final double cosElevAngle = Math.cos(Math.toRadians(p.getElevDegrees()));
+			double elev = (Double)p.getProperty(PolarGridMemento.ELEV_DEGREES);
+			final double sinElevAngle = Math.sin(Math.toRadians(elev));
+			final double cosElevAngle = Math.cos(Math.toRadians(elev));
 			final int numSegments = 10;
 
 			Location l = new Location(35, 35, 10);
@@ -272,10 +277,14 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			return true;
 		}
 		// If rings change we need a new worker...
-		if (new1.getNumRings() != old.getNumRings()) {
+		int newRing = (Integer)new1.getProperty(PolarGridMemento.RING_COUNT);
+		int oldRing = (Integer)old.getProperty(PolarGridMemento.RING_COUNT);
+		if (newRing != oldRing) {
 			needsUpdate = true;
 		}
-		if (new1.getRangeMetersPerRing() != old.getRangeMetersPerRing()) {
+		int newRange = (Integer)new1.getProperty(PolarGridMemento.RING_RANGE);
+		int oldRange = (Integer)old.getProperty(PolarGridMemento.RING_RANGE);
+		if (newRange != oldRange) {
 			needsUpdate = true;
 		}
 
@@ -295,21 +304,21 @@ public class PolarGridRenderer implements Feature3DRenderer {
 					double latDegs = l.getLatitude();
 					double lonDegs = l.getLongitude();
 					// Why am I mixing worldwind LatLon with wdssii location?
-					LatLon ll = old.getCenter();
+					LatLon ll = old.getProperty(PolarGridMemento.CENTER);
 					double latOldDegs = ll.latitude.degrees;
 					double lonOldDegs = ll.longitude.degrees;
 
 					if ((latOldDegs != latDegs) || (lonOldDegs != lonDegs)) {
 						needsUpdate = true;
 						LatLon aLatLon = LatLon.fromDegrees(latDegs, lonDegs);
-						new1.setCenter(aLatLon);
+						new1.setProperty(PolarGridMemento.CENTER, aLatLon);
 					}
 
-					double oldElev = old.getElevDegrees();
+					Double oldElev = old.getProperty(PolarGridMemento.ELEV_DEGREES);
 					double newElev = radial.getElevationDegs();
 					if (oldElev != newElev) {
 						needsUpdate = true;
-						new1.setElevDegrees(newElev);
+						new1.setProperty(PolarGridMemento.ELEV_DEGREES, newElev);
 					}
 				}
 			}
@@ -346,7 +355,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 		synchronized (drawLock) {
 			if (isCreated() && (polygonData != null)) {
 				GL gl = dc.getGL();
-				Color line = m.getLineColor();
+                                Color line = (Color)m.getProperty(PolarGridMemento.LINE_COLOR);
 				final float r = line.getRed() / 255.0f;
 				final float g = line.getGreen() / 255.0f;
 				final float b = line.getBlue() / 255.0f;
@@ -383,7 +392,8 @@ public class PolarGridRenderer implements Feature3DRenderer {
 						statePushed = true;
 						FloatBuffer z = polygonData.getRawBuffer();
 						gl.glColor4f(r, g, b, a);
-						gl.glLineWidth(m.getLineThickness());
+						Integer t = m.getProperty(PolarGridMemento.LINE_THICKNESS);
+						gl.glLineWidth(t);
 						GLUtil.renderArrays(dc, z, myOffsets, GL.GL_LINE_STRIP);
 
 					}

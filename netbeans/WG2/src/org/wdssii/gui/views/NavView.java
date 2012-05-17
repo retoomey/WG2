@@ -449,7 +449,7 @@ public class NavView extends JThreadPanel implements CommandListener {
                             Feature f = ProductManager.getInstance().getNamedFeature(entry.keyName);
                             if (f != null) {
                                 FeatureMemento m = f.getNewMemento();
-                                m.setVisible(!entry.checked);
+				m.setProperty(FeatureMemento.VISIBLE, !entry.checked);
                                 FeatureChangeCommand c = new FeatureChangeCommand(entry.keyName, m);
                                 CommandManager.getInstance().executeCommand(c, true);
                             }
@@ -459,7 +459,7 @@ public class NavView extends JThreadPanel implements CommandListener {
                             Feature f = ProductManager.getInstance().getNamedFeature(entry.keyName);
                             if (f != null) {
                                 FeatureMemento m = f.getNewMemento();
-                                m.setOnly(!entry.onlyMode);
+				m.setProperty(FeatureMemento.ONLY, !entry.onlyMode);
                                 FeatureChangeCommand c = new FeatureChangeCommand(entry.keyName, m);
                                 CommandManager.getInstance().executeCommand(c, true);
                             }

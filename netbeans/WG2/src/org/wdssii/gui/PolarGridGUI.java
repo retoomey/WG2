@@ -47,10 +47,10 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
     @Override
     public void updateGUI() {
         PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
-        jLineThicknessSpinner.setValue(m.getLineThickness());
-        jColorLabel.setBackground(m.getLineColor());
-        jNumRingsSpinner.setValue(m.getNumRings());
-        jRangeSpinner.setValue(m.getRangeMetersPerRing());
+        jLineThicknessSpinner.setValue((Integer)m.getProperty(PolarGridMemento.LINE_THICKNESS));
+        jColorLabel.setBackground((Color)m.getProperty(PolarGridMemento.LINE_COLOR));
+        jNumRingsSpinner.setValue((Integer)m.getProperty(PolarGridMemento.RING_COUNT));
+        jRangeSpinner.setValue((Integer)m.getProperty(PolarGridMemento.RING_RANGE));
     }
 
     @Override
@@ -86,7 +86,8 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
                 jLineThicknessStateChanged(evt);
             }
         });
-        SpinnerNumberModel model = new SpinnerNumberModel(m.getLineThickness(), //initial value
+	Integer t = m.getProperty(PolarGridMemento.LINE_THICKNESS);
+        SpinnerNumberModel model = new SpinnerNumberModel(t.intValue(), //initial value
                 1, // min of the max value
                 15, // max of the max value
                 1); // 1 step.
@@ -105,7 +106,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
             }
         });
         int h = jColorLabel.getHeight();
-        jColorLabel.setBackground(m.getLineColor());
+        jColorLabel.setBackground((Color)m.getProperty(PolarGridMemento.LINE_COLOR));
         add(new JLabel("Line Color"), "growx");
         add(jColorLabel, mid);
         add(new JLabel("Color"), "growx, wrap");
@@ -119,7 +120,8 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
                 jNumRingsStateChanged(evt); 
             }
         });
-        model = new SpinnerNumberModel(m.getNumRings(), //initial value
+	int numrings = (Integer)(m.getProperty(PolarGridMemento.RING_COUNT));
+        model = new SpinnerNumberModel(numrings, //initial value
                 1, // min of the max value
                 20, // max of the max value
                 1); // 1 step.
@@ -138,7 +140,8 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
                 jRangeStateChanged(evt); 
             }
         });
-        model = new SpinnerNumberModel(m.getRangeMetersPerRing(), //initial value
+	int range = (Integer)(m.getProperty(PolarGridMemento.RING_RANGE));
+        model = new SpinnerNumberModel(range, //initial value
                 1, // min of the max value
                 50000, // max of the max value
                 10); // 1 step.
@@ -152,8 +155,9 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
     private void jLineThicknessStateChanged(ChangeEvent evt) {
         int value = (Integer) jLineThicknessSpinner.getValue();
         PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
-        if (m.getLineThickness() != value) {
-            m.setLineThickness(value);
+	Integer t = m.getProperty(PolarGridMemento.LINE_THICKNESS);
+        if (t != value) {
+	    m.setProperty(PolarGridMemento.LINE_THICKNESS, value);
             FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
@@ -167,7 +171,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
         if (aLineColor != null) {
             PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
             FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
-            m.setLineColor(aLineColor);
+	    m.setProperty(PolarGridMemento.LINE_COLOR, aLineColor);
             CommandManager.getInstance().executeCommand(c, true);
         }
 
@@ -176,8 +180,9 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
     private void jNumRingsStateChanged(ChangeEvent evt) {
         int value = (Integer) jNumRingsSpinner.getValue();
         PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
-        if (m.getNumRings() != value) {
-            m.setNumRings(value);
+	Integer r = m.getProperty(PolarGridMemento.RING_COUNT);
+        if (r != value) {
+	    m.setProperty(PolarGridMemento.RING_COUNT, value);
             FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
@@ -186,8 +191,9 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
     private void jRangeStateChanged(ChangeEvent evt) {
         int value = (Integer) jRangeSpinner.getValue();
         PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
-        if (m.getRangeMetersPerRing() != value) {
-            m.setRangeMetersPerRing(value);
+	Integer r = m.getProperty(PolarGridMemento.RING_RANGE);
+        if (r != value) {
+	    m.setProperty(PolarGridMemento.RING_RANGE, value);
             FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
             CommandManager.getInstance().executeCommand(c, true);
         }

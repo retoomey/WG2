@@ -22,113 +22,29 @@ public class PolarGridFeature extends Feature {
 	 */
 	public static class PolarGridMemento extends FeatureMemento {
 
-		private int linethickness = 1;
-		private boolean useLineThickness = false;
-		private Color lineColor = Color.WHITE;
-		private boolean useLineColor = false;
-		private LatLon center = LatLon.fromDegrees(35.3331, -97.2778);
-		private boolean useCenter = false;
-		private double elevDegrees = 0.5d;
-		private boolean useDegrees = false;
-		private int numOfRings = 10;
-		private boolean useRings = false;
-		private int rangeMetersPerRing = 10000;
-		private boolean useRangeMetersPerRing = false;
+		// Properties
+		public static final String LINE_THICKNESS = "line_thickness";
+		public static final String LINE_COLOR = "line_color";
+		public static final String CENTER = "center";
+		public static final String ELEV_DEGREES = "degrees";
+		public static final String RING_COUNT = "ring_count";
+		public static final String RING_RANGE = "ring_range";
 
 		public PolarGridMemento(PolarGridMemento m) {
-			super(m);
-			linethickness = m.linethickness;
-			lineColor = m.lineColor; // Humm do I need to copy?
-			center = m.center;
-			elevDegrees = m.elevDegrees;
-			numOfRings = m.numOfRings;
-			rangeMetersPerRing = m.rangeMetersPerRing;
-		}
-
-		/**
-		 * Sync to another memento by only copying what is wanted to be
-		 * changed.
-		 *
-		 * @param m
-		 */
-		public void syncToMemento(PolarGridMemento m) {
-			super.syncToMemento(m);
-			if (m.useLineThickness) {
-				linethickness = m.linethickness;
-			}
-			if (m.useLineColor) {
-				lineColor = m.lineColor;
-			}
-			if (m.useCenter) {
-				center = m.center;
-			}
-			if (m.useDegrees) {
-				elevDegrees = m.elevDegrees;
-			}
-			if (m.useRings){
-				numOfRings = m.numOfRings;
-			}
-			if (m.useRangeMetersPerRing){
-				rangeMetersPerRing = m.rangeMetersPerRing;
-			}
+	          super(m);
 		}
 
 		public PolarGridMemento(boolean v, boolean o, int line) {
 			super(v, o);
-			linethickness = line;
-			lineColor = Color.WHITE;
-		}
-
-		public int getLineThickness() {
-			return linethickness;
-		}
-
-		public void setLineThickness(int l) {
-			linethickness = l;
-			useLineThickness = true;
-		}
-
-		public Color getLineColor() {
-			return lineColor;
-		}
-
-		public void setLineColor(Color c) {
-			lineColor = c;
-			useLineColor = true;
-		}
-
-		public LatLon getCenter() {
-			return center;
-		}
-
-		public void setCenter(LatLon l) {
-			center = l;
-			useCenter = true;
-		}
-
-		public double getElevDegrees(){
-			return elevDegrees;
-		}
-
-		public void setElevDegrees(double e){
-			elevDegrees = e;
-			useDegrees = true;
-		}
-		public int getNumRings(){
-			return numOfRings;
-		}
-		public void setNumRings(int r){
-			numOfRings = r;
-			useRings = true;
-		}
-		public int getRangeMetersPerRing(){
-			return rangeMetersPerRing;
-		}
-		public void setRangeMetersPerRing(int r){
-			rangeMetersPerRing = r;
-			useRangeMetersPerRing = true;
+			initProperty(LINE_THICKNESS,  1);
+			initProperty(LINE_COLOR,  Color.WHITE);
+			initProperty(CENTER, LatLon.fromDegrees(35.3331, -97.2778));
+			initProperty(ELEV_DEGREES, 0.5d);
+			initProperty(RING_COUNT, 10);
+			initProperty(RING_RANGE, 10000);
 		}
 	}
+
 	private static Logger log = LoggerFactory.getLogger(PolarGridFeature.class);
 	public static final String PolarGridGroup = "POLARGRIDS";
 	/**

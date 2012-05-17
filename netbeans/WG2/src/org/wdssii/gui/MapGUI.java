@@ -46,8 +46,10 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
     @Override
     public void updateGUI() {
         MapMemento m = (MapMemento) myFeature.getNewMemento();
-        jLineThicknessSpinner.setValue(m.getLineThickness());
-        jColorLabel.setBackground(m.getLineColor());
+	Integer t = m.getProperty(MapMemento.LINE_THICKNESS);
+	Color c = m.getProperty(MapMemento.LINE_COLOR);
+        jLineThicknessSpinner.setValue(t);
+        jColorLabel.setBackground(c);
     }
 
     @Override
@@ -83,7 +85,8 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
                 jLineThicknessStateChanged(evt);
             }
         });
-        SpinnerNumberModel model = new SpinnerNumberModel(m.getLineThickness(), //initial value
+	Integer l = m.getProperty(MapMemento.LINE_THICKNESS);
+        SpinnerNumberModel model = new SpinnerNumberModel(l.intValue(), //initial value
                 1, // min of the max value
                 15, // max of the max value
                 1); // 1 step.
@@ -102,7 +105,8 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
             }
         });
         int h = jColorLabel.getHeight();
-        jColorLabel.setBackground(m.getLineColor());
+	Color lc = m.getProperty(MapMemento.LINE_COLOR);
+        jColorLabel.setBackground(lc);
         add(new JLabel("Line Color"), "growx");
         add(jColorLabel, mid);
         add(new JLabel("Color"), "growx, wrap");
@@ -112,8 +116,9 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
     private void jLineThicknessStateChanged(ChangeEvent evt) {
         int value = (Integer) jLineThicknessSpinner.getValue();
         MapMemento m = (MapMemento) myFeature.getNewMemento();
-        if (m.getLineThickness() != value) {
-            m.setLineThickness(value);
+	Integer r = m.getProperty(MapMemento.LINE_THICKNESS);
+        if (r != value) {
+	    m.setProperty(MapMemento.LINE_THICKNESS, value);
             FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
@@ -127,7 +132,7 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
         if (aLineColor != null) {
             MapMemento m = (MapMemento) myFeature.getNewMemento();
             FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
-            m.setLineColor(aLineColor);
+	    m.setProperty(MapMemento.LINE_COLOR, aLineColor);
             CommandManager.getInstance().executeCommand(c, true);
         }
 

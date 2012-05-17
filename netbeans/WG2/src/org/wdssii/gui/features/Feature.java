@@ -110,29 +110,29 @@ public class Feature {
 	/**
 	 * Get visible state
 	 */
-	public boolean getVisible() {
-		return mySettings.getVisible();
+	public Boolean getVisible() {
+		return mySettings.getProperty(FeatureMemento.VISIBLE);
 	}
 
 	/**
 	 * Set visible state
 	 */
 	public void setVisible(boolean flag) {
-		mySettings.setVisible(flag);
+		mySettings.setProperty(FeatureMemento.VISIBLE, flag);
 	}
 
 	/**
 	 * Get visible state
 	 */
-	public boolean getOnlyMode() {
-		return mySettings.getOnly();
+	public Boolean getOnlyMode() {
+		return mySettings.getProperty(FeatureMemento.ONLY);
 	}
 
 	/**
 	 * Set visible state
 	 */
 	public void setOnlyMode(boolean flag) {
-		mySettings.setOnly(flag);
+		mySettings.setProperty(FeatureMemento.ONLY, flag);
 	}
 
 	/**

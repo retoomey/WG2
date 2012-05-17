@@ -1,7 +1,10 @@
 package org.wdssii.gui.features;
 
-import java.awt.Color;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Used by commands/GUI to send changes to a Feature
@@ -10,80 +13,99 @@ import java.util.TreeMap;
  */
 public class FeatureMemento {
 
-    private boolean visible;
-    private boolean useVisible = false;
-    private boolean only;
-    private boolean useOnly = false;
+        private static Logger log = LoggerFactory.getLogger(FeatureMemento.class);
 
-    private TreeMap<String, Object> myProperties = new TreeMap<String, Object>();
-    private final String V = "visible";
-    
-    /** Create a full copy of another mememto */
-    public FeatureMemento(FeatureMemento m){
-        visible = m.visible;
-        only = m.only;
-    }
-    
-    /** Sync to another memento by only copying what is wanted
-     * to be changed.
-     * @param m 
-     */
-    public void syncToMemento(FeatureMemento m){
-        if (m.useVisible){
-            visible = m.visible;
-        }
-        if (m.useOnly){
-            only = m.only;
-        }
-    }
-    
-    public FeatureMemento(boolean v, boolean o) {
-        visible = v;
-        only = o;
-    }
+	public static class FeatureProperty {
 
-    public boolean getVisible() {
-      // return visible;
-        setProperty(V, visible);
-       // Boolean test = getProperty(V);
-        //Integer shouldBeError = getProperty(V);
-        return visible;
-    }
+		public boolean use;
+		public Object value;
 
-    public void setVisible(boolean f) {
-        visible = f;
-        useVisible = true;
-    }
-
-    public boolean getOnly() {
-        return only;
-    }
-
-    public void setOnly(boolean f) {
-        only = f;
-        useOnly = true;
-    }
-    
-		// 
-		// Experiment..maybe create property objects
-		// so I can generalize the gui of them
-		public static class FeatureProperty {
-
+		/** Created by initProperty */
+		public FeatureProperty(Object o) {
+			value = o;
 		}
-		public static class FeatureBooleanProperty {
+
+		/** Created by set property */
+		public FeatureProperty(Object o, boolean u) {
+			this(o);
+			use = u;
 		}
-    public void setProperty(String key, Object stuff){
-        myProperties.put(key, stuff);
-        // creating NEW is the issue...
-        // how to deep copy for example generically?
-    }
-    
-    public <T> T getProperty(String key){
-       // T newOne = (T) c.newInstance();
-        try{
-            return (T) myProperties.get(key);
-        }catch(ClassCastException e){
-            return null;
-        }
-    }
+	}
+
+	/** Our set of feature properties */
+	private TreeMap<String, FeatureProperty> myProperties = new TreeMap<String, FeatureProperty>();
+
+	// Properties
+	public final static String VISIBLE = "v";
+	public final static String ONLY = "o";
+
+	/** Create a full copy of another mememto */
+	public FeatureMemento(FeatureMemento m) {
+		copyFromOther(m);
+	}
+
+	private void copyUsedFromOther(FeatureMemento other) {
+		// Set the other momento fields to any in ours that are used
+		Set<	Entry<String, FeatureProperty>> entries = other.myProperties.entrySet();
+		for (Entry<String, FeatureProperty> e : entries) {
+			FeatureProperty v = e.getValue();
+			if (v.use) {
+				this.initProperty(e.getKey(), e.getValue().value);
+			}
+		}
+	}
+
+	private void copyFromOther(FeatureMemento other) {
+		// Set the other momento fields to any in ours that are used
+		Set<	Entry<String, FeatureProperty>> entries = other.myProperties.entrySet();
+		for (Entry<String, FeatureProperty> e : entries) {
+			FeatureProperty v = e.getValue();
+			this.initProperty(e.getKey(), e.getValue().value);
+		}
+	}
+
+	/** Sync to another memento by only copying what is wanted
+	 * to be changed.
+	 * @param m 
+	 */
+	public void syncToMemento(FeatureMemento m) {
+		copyUsedFromOther(m);
+	}
+
+	public FeatureMemento(boolean v, boolean o) {
+		initProperty(VISIBLE, v);
+		initProperty(ONLY, o);
+	}
+
+	public final void initProperty(String key, Object stuff) {
+		myProperties.put(key, new FeatureProperty(stuff));
+	}
+
+	public final void setProperty(String key, Object stuff) {
+		// FIXME: check class?
+		FeatureProperty f = myProperties.get(key);
+		if (f == null){
+			// You need to call initProperty on the memento before setting
+			log.error("Tried to set uninitialized property: "+key);
+		}else{
+	           // FIXME: Might be able to modify the original, this makes
+	           // a copy...
+		   myProperties.put(key, new FeatureProperty(stuff, true));
+		}
+	}
+
+	public <T extends Object> T getProperty(String key) {
+		FeatureProperty f = myProperties.get(key);
+		if (f != null) {
+			// Can't test here because java loses generic information at
+			// compile time...caller is able to test it. I don't consider
+			// it a big deal since the debugger will catch it and it would
+			// be an easy fix.
+			@SuppressWarnings("unchecked")
+			T r = (T) f.value;
+
+			return r;
+		}
+		return null;
+	}
 }

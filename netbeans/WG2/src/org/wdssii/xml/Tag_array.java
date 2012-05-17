@@ -40,7 +40,9 @@ public class Tag_array<T> extends Tag {
     public void processChildren(XMLStreamReader p) {
         if (factory.processTag(theStuff, p)){
             // Humm could put this code in the factory?
-            data.add((T)theStuff);  // Your factory better return the right type
+	    @SuppressWarnings("unchecked")
+            T toAdd = (T)theStuff;
+            data.add(toAdd);  // Your factory better return the right type
             theStuff = factory.make();
         }
     }

@@ -20,193 +20,158 @@ import org.wdssii.gui.MapRenderer;
  */
 public class MapFeature extends Feature {
 
-    /**
-     * The properties of the MapFeature
-     */
-    public static class MapMemento extends FeatureMemento {
+	/**
+	 * The properties of the MapFeature
+	 */
+	public static class MapMemento extends FeatureMemento {
 
-        private int linethickness = 2;
-        private boolean useLineThickness = false;
-        private Color lineColor = Color.WHITE;
-        private boolean useLineColor = false;
+		// Properties
+		public static final String LINE_THICKNESS = "line_thickness";
+		public static final String LINE_COLOR = "line_color";
 
-        public MapMemento(MapMemento m) {
-            super(m);
-            linethickness = m.linethickness;
-            lineColor = m.lineColor;
-        }
+		public MapMemento(MapMemento m) {
+			super(m);
+		}
 
-        /**
-         * Sync to another memento by only copying what is wanted to be changed.
-         *
-         * @param m
-         */
-        public void syncToMemento(MapMemento m) {
-            super.syncToMemento(m);
-            if (m.useLineThickness) {
-                linethickness = m.linethickness;
-            }
-            if (m.useLineColor) {
-                lineColor = m.lineColor;
-            }
-        }
+		public MapMemento(boolean v, boolean o, int line) {
+			super(v, o);
+			initProperty(LINE_THICKNESS,  1);
+			initProperty(LINE_COLOR,  Color.WHITE);
+		}
+	}
 
-        public MapMemento(boolean v, boolean o, int line) {
-            super(v, o);
-            linethickness = line;
-            lineColor = Color.WHITE;
-        }
+	private static Logger log = LoggerFactory.getLogger(MapFeature.class);
+	public static final String MapGroup = "MAPS";
+	/**
+	 * The renderer we use for drawing the map.
+	 */
+	private MapRenderer myRenderer;
+	/**
+	 * The GUI for this Feature
+	 */
+	private MapGUI myControls;
 
-        public int getLineThickness() {
-            return linethickness;
-        }
+	/**
+	 * The state we use for drawing the map.
+	 */
+	public MapFeature(FeatureList f, String source) {
+		super(f, MapGroup, new MapMemento(true, false, 2));
+		URL u = W2Config.getURL(source);
+		loadURL(u, source);
+	}
 
-        public void setLineThickness(int l) {
-            linethickness = l;
-            useLineThickness = true;
-        }
+	/**
+	 * The state we use for drawing the map.
+	 */
+	public MapFeature(FeatureList f, URL u) {
+		super(f, MapGroup, new MapMemento(true, false, 2));
+		String source = "bad url";
+		if (u != null) {
+			source = u.toString();
+		}
+		loadURL(u, source);
+	}
 
-        public Color getLineColor() {
-            return lineColor;
-        }
+	/**
+	 *
+	 * @param u the URL we have to try to load from
+	 * @param source the original source string we tried to look up URL for
+	 */
+	protected final void loadURL(URL u, String source) {
+		try {
+			if (u != null) {
+				FileDataStore store = FileDataStoreFinder.getDataStore(u);
+				SimpleFeatureSource featureSource = store.getFeatureSource();
 
-        public void setLineColor(Color c) {
-            lineColor = c;
-            useLineColor = true;
-        }
-    }
-    private static Logger log = LoggerFactory.getLogger(MapFeature.class);
-    public static final String MapGroup = "MAPS";
-    /**
-     * The renderer we use for drawing the map.
-     */
-    private MapRenderer myRenderer;
-    /**
-     * The GUI for this Feature
-     */
-    private MapGUI myControls;
+				// Set message to our shapefile url...
+				String s = u.toString();
+				setMessage(s);
+				setKey(s);
 
-    /**
-     * The state we use for drawing the map.
-     */
-    public MapFeature(FeatureList f, String source) {
-        super(f, MapGroup, new MapMemento(true, false, 2));
-        URL u = W2Config.getURL(source);
-        loadURL(u, source);
-    }
+				// Does this always work?  Get short name of map from URL
+				int dot = s.lastIndexOf(".");
+				int sep = s.lastIndexOf("/");  // "\"?
+				String sub = s.substring(sep + 1, dot);
+				setName(sub);
 
-    /**
-     * The state we use for drawing the map.
-     */
-    public MapFeature(FeatureList f, URL u) {
-        super(f, MapGroup, new MapMemento(true, false, 2));
-        String source = "bad url";
-        if (u != null) {
-            source = u.toString();
-        }
-        loadURL(u, source);
-    }
+				myRenderer = new MapRenderer(featureSource);
+			} else {
+				setMessage("?? " + source);
+				setKey(source);
+				// Does this always work?  Get short name of map from URL
+				int dot = source.lastIndexOf(".");
+				int sep = source.lastIndexOf("/");  // "\"?
+				String sub = source.substring(sep + 1, dot);
+				setName(sub);
+			}
+		} catch (Exception e) {
+			log.error("Got exception trying to use GeoTools. " + e.toString());
+		}
+	}
 
-    /**
-     *
-     * @param u the URL we have to try to load from
-     * @param source the original source string we tried to look up URL for
-     */
-    protected final void loadURL(URL u, String source) {
-        try {
-            if (u != null) {
-                FileDataStore store = FileDataStoreFinder.getDataStore(u);
-                SimpleFeatureSource featureSource = store.getFeatureSource();
+	@Override
+	public FeatureMemento getNewMemento() {
+		MapMemento m = new MapMemento((MapMemento) getMemento());
+		return m;
+	}
 
-                // Set message to our shapefile url...
-                String s = u.toString();
-                setMessage(s);
-                setKey(s);
+	@Override
+	public void setMemento(FeatureMemento f) {
+		/**
+		 * Handle map mementos
+		 */
+		if (f instanceof MapMemento) {
+			MapMemento mm = (MapMemento) (f);
+			((MapMemento) getMemento()).syncToMemento(mm);
+		} else {
+			super.setMemento(f);
+		}
+	}
 
-                // Does this always work?  Get short name of map from URL
-                int dot = s.lastIndexOf(".");
-                int sep = s.lastIndexOf("/");  // "\"?
-                String sub = s.substring(sep + 1, dot);
-                setName(sub);
+	/**
+	 * Render a feature
+	 */
+	@Override
+	public void render(DrawContext dc) {
 
-                myRenderer = new MapRenderer(featureSource);
-            } else {
-                setMessage("?? " + source);
-                setKey(source);
-                // Does this always work?  Get short name of map from URL
-                int dot = source.lastIndexOf(".");
-                int sep = source.lastIndexOf("/");  // "\"?
-                String sub = source.substring(sep + 1, dot);
-                setName(sub);
-            }
-        } catch (Exception e) {
-            log.error("Got exception trying to use GeoTools. " + e.toString());
-        }
-    }
+		if (myRenderer != null) {
+			// myRenderer.setupIfNeeded(dc);
+			myRenderer.draw(dc, getMemento());
+		}
+	}
 
-    @Override
-    public FeatureMemento getNewMemento() {
-        MapMemento m = new MapMemento((MapMemento) getMemento());
-        return m;
-    }
+	@Override
+	public void setupFeatureGUI(JComponent source) {
 
-    @Override
-    public void setMemento(FeatureMemento f) {
-        /**
-         * Handle map mementos
-         */
-        if (f instanceof MapMemento) {
-            MapMemento mm = (MapMemento) (f);
-            ((MapMemento) getMemento()).syncToMemento(mm);
-        } else {
-            super.setMemento(f);
-        }
-    }
+		// FIXME: general FeatureFactory..move code up into Feature
+		boolean success = false;
+		// if (myFactory != null) {
 
-    /**
-     * Render a feature
-     */
-    @Override
-    public void render(DrawContext dc) {
+		if (myControls == null) {
+			//myControls = myFactory.createGUI(myLLHArea, source);
+			myControls = new MapGUI(this);
+		}
 
-        if (myRenderer != null) {
-           // myRenderer.setupIfNeeded(dc);
-            myRenderer.draw(dc, getMemento());
-        }
-    }
+		// Set the layout and add our controls
+		if (myControls != null) {
+			myControls.activateGUI(source);
+			updateGUI();
+			success = true;
+		}
+		//  }
 
-    @Override
-    public void setupFeatureGUI(JComponent source) {
+		/**
+		 * Fill in with default stuff if GUI failed or doesn't exist
+		 */
+		if (!success) {
+			super.setupFeatureGUI(source);
+		}
+	}
 
-        // FIXME: general FeatureFactory..move code up into Feature
-        boolean success = false;
-        // if (myFactory != null) {
-
-        if (myControls == null) {
-            //myControls = myFactory.createGUI(myLLHArea, source);
-            myControls = new MapGUI(this);
-        }
-
-        // Set the layout and add our controls
-        if (myControls != null) {
-            myControls.activateGUI(source);
-            updateGUI();
-            success = true;
-        }
-        //  }
-
-        /**
-         * Fill in with default stuff if GUI failed or doesn't exist
-         */
-        if (!success) {
-            super.setupFeatureGUI(source);
-        }
-    }
-
-    @Override
-    public void updateGUI() {
-        if (myControls != null) {
-            myControls.updateGUI();
-        }
-    }
+	@Override
+	public void updateGUI() {
+		if (myControls != null) {
+			myControls.updateGUI();
+		}
+	}
 }

@@ -434,14 +434,17 @@ public class ColorMap {
         // FIXME: check valid min/max?
         float minValue = aTag.min;
         float maxValue = aTag.max;
+	// Need full range of negative to positive, we base the point
+	// map percentage off of this.
+	float fullRange = aTag.max-aTag.min;
         
         int numOfBins = aTag.Points.size() - 1;
         for (int i = 0; i < numOfBins; i++) {
             Tag_Point p = aTag.Points.get(i);
             Tag_Point p2 = aTag.Points.get(i + 1);
 
-            float low = (float) (p.x * maxValue);
-            float high = (float) (p2.x * maxValue);
+            float low = minValue+(float) (p.x * fullRange);
+            float high = minValue+(float) (p2.x * fullRange);
             ColorBin aColor = new ColorBin.Linear(low, high,
                     ((short) (p2.r * 255.0f)),
                     ((short) (p2.g * 255.0f)),

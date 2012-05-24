@@ -11,9 +11,9 @@ import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.SimpleTable.SimpleTableModel;
 import org.wdssii.gui.views.WorldWindView;
 

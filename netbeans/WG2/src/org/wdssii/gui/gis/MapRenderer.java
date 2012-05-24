@@ -1,4 +1,4 @@
-package org.wdssii.gui;
+package org.wdssii.gui.gis;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiPolygon;
@@ -21,9 +21,10 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.features.MapFeature.MapMemento;
+import org.wdssii.gui.gis.MapFeature.MapMemento;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.GrowList;

@@ -1,8 +1,6 @@
-package org.wdssii.gui;
+package org.wdssii.gui.gis;
 
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -13,10 +11,12 @@ import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.features.FeatureGUI;
-import org.wdssii.gui.features.MapFeature;
-import org.wdssii.gui.features.MapFeature.MapMemento;
+import org.wdssii.gui.features.FeatureGUIFactory.FeaturePropertyColorGUI;
+import org.wdssii.gui.features.FeatureGUIFactory.FeaturePropertyGUI;
+import org.wdssii.gui.gis.MapFeature.MapMemento;
 
 /**
  * MapGUI handles gui controls for a shapefile map....
@@ -30,7 +30,8 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
      */
     private MapFeature myFeature;
     private JSpinner jLineThicknessSpinner;
-    private JButton jColorLabel;
+    //private JButton jColorLabel;
+    private FeaturePropertyGUI myLineColorGUI;
 
     /**
      * Creates new form LLHAreaSliceGUI
@@ -49,7 +50,7 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
 	Integer t = m.getProperty(MapMemento.LINE_THICKNESS);
 	Color c = m.getProperty(MapMemento.LINE_COLOR);
         jLineThicknessSpinner.setValue(t);
-        jColorLabel.setBackground(c);
+        myLineColorGUI.update(m);
     }
 
     @Override
@@ -95,6 +96,11 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
         add(jLineThicknessSpinner, mid);
         add(new JLabel("Pixels"), "wrap");
 
+	// Line color
+	myLineColorGUI = new FeaturePropertyColorGUI(myFeature, MapMemento.LINE_COLOR, "Line Color", this);
+ 	myLineColorGUI.addToMigLayout(this);
+
+	/*
         // Create colored button...
         jColorLabel = new JButton("     ");
         jColorLabel.addActionListener(new ActionListener() {
@@ -110,6 +116,7 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
         add(new JLabel("Line Color"), "growx");
         add(jColorLabel, mid);
         add(new JLabel("Color"), "growx, wrap");
+	*/
 
     }
 
@@ -124,6 +131,7 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
         }
     }
 
+    /*
     private void jColorButtonChanged(ActionEvent evt) {
         // Bring up color dialog with current color setting....
         Color aLineColor = JColorChooser.showDialog(this,
@@ -137,6 +145,8 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
         }
 
     }
+    * 
+    */
 
     /**
      * Load an individual file into the ManualLoadIndex

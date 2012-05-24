@@ -28,6 +28,7 @@ import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
 import org.wdssii.gui.features.*;
 import org.wdssii.gui.features.FeatureList.FeatureFilter;
 import org.wdssii.gui.products.Product2DTable;
+import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;

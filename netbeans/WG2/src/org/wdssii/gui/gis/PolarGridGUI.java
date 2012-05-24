@@ -1,6 +1,5 @@
-package org.wdssii.gui;
+package org.wdssii.gui.gis;
 
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -13,10 +12,12 @@ import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.features.FeatureGUI;
-import org.wdssii.gui.features.PolarGridFeature;
-import org.wdssii.gui.features.PolarGridFeature.PolarGridMemento;
+import org.wdssii.gui.features.FeatureGUIFactory.FeaturePropertyColorGUI;
+import org.wdssii.gui.features.FeatureGUIFactory.FeaturePropertyGUI;
+import org.wdssii.gui.gis.PolarGridFeature.PolarGridMemento;
 
 /**
  * PolarGridGUI handles gui controls for a PolarGrid overlay 
@@ -31,7 +32,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
     private JSpinner jLineThicknessSpinner;
     private JSpinner jNumRingsSpinner;
     private JSpinner jRangeSpinner;
-    private JButton jColorLabel;
+    private FeaturePropertyGUI myLineColorGUI;
 
     /**
      * Creates new form LLHAreaSliceGUI
@@ -48,7 +49,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
     public void updateGUI() {
         PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
         jLineThicknessSpinner.setValue((Integer)m.getProperty(PolarGridMemento.LINE_THICKNESS));
-        jColorLabel.setBackground((Color)m.getProperty(PolarGridMemento.LINE_COLOR));
+        myLineColorGUI.update(m);
         jNumRingsSpinner.setValue((Integer)m.getProperty(PolarGridMemento.RING_COUNT));
         jRangeSpinner.setValue((Integer)m.getProperty(PolarGridMemento.RING_RANGE));
     }
@@ -96,20 +97,8 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
         add(jLineThicknessSpinner, mid);
         add(new JLabel("Pixels"), "wrap");
 
-        // Create colored button...
-        jColorLabel = new JButton("     ");
-        jColorLabel.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                jColorButtonChanged(ae);
-            }
-        });
-        int h = jColorLabel.getHeight();
-        jColorLabel.setBackground((Color)m.getProperty(PolarGridMemento.LINE_COLOR));
-        add(new JLabel("Line Color"), "growx");
-        add(jColorLabel, mid);
-        add(new JLabel("Color"), "growx, wrap");
+	myLineColorGUI = new FeaturePropertyColorGUI(myFeature, PolarGridMemento.LINE_COLOR, "Line Color", this);
+ 	myLineColorGUI.addToMigLayout(this);
 
         // Create rings spinner
         jNumRingsSpinner = new JSpinner();
@@ -161,20 +150,6 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
             FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
             CommandManager.getInstance().executeCommand(c, true);
         }
-    }
-
-    private void jColorButtonChanged(ActionEvent evt) {
-        // Bring up color dialog with current color setting....
-        Color aLineColor = JColorChooser.showDialog(this,
-                "Choose Map Line Color",
-                jColorLabel.getBackground());
-        if (aLineColor != null) {
-            PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
-            FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);
-	    m.setProperty(PolarGridMemento.LINE_COLOR, aLineColor);
-            CommandManager.getInstance().executeCommand(c, true);
-        }
-
     }
 
     private void jNumRingsStateChanged(ChangeEvent evt) {

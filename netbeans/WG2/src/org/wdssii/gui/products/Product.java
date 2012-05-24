@@ -16,7 +16,6 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.products.volumes.IndexRecordVolume;

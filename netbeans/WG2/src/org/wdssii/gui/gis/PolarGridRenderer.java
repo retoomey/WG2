@@ -1,4 +1,4 @@
-package org.wdssii.gui;
+package org.wdssii.gui.gis;
 
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.View;
@@ -22,11 +22,13 @@ import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.RadialSet;
 import org.wdssii.geom.Location;
+import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.features.PolarGridFeature.PolarGridMemento;
-import org.wdssii.gui.features.ProductFeature;
+import org.wdssii.gui.gis.PolarGridFeature.PolarGridMemento;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.storage.GrowList;

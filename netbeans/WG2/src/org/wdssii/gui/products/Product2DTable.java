@@ -11,7 +11,6 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.GridVisibleArea;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.swing.ProductTableModel;
 import org.wdssii.gui.swing.SimpleTable;

@@ -38,6 +38,7 @@ public class FeatureMemento {
 	// Properties
 	public final static String VISIBLE = "v";
 	public final static String ONLY = "o";
+	public final static String CAN_DELETE = "d";
 
 	/** Create a full copy of another mememto */
 	public FeatureMemento(FeatureMemento m) {
@@ -72,12 +73,13 @@ public class FeatureMemento {
 		copyUsedFromOther(m);
 	}
 
-	public FeatureMemento(boolean v, boolean o) {
-		initProperty(VISIBLE, v);
-		initProperty(ONLY, o);
+	public FeatureMemento() {
+		initProperty(VISIBLE, true);
+		initProperty(ONLY, false);
+		initProperty(CAN_DELETE, true);
 	}
 
-	public final void initProperty(String key, Object stuff) {
+	protected final void initProperty(String key, Object stuff) {
 		myProperties.put(key, new FeatureProperty(stuff));
 	}
 

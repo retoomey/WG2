@@ -37,7 +37,7 @@ public class Feature {
 	 * Our feature list we belong too
 	 */
 	private final FeatureList myFeatureList;
-	private FeatureMemento mySettings = new FeatureMemento(true, false);
+	private FeatureMemento mySettings = new FeatureMemento();
 	/**
 	 * What is our name?
 	 */
@@ -55,7 +55,7 @@ public class Feature {
 
 	/** Create a feature with a default memento */
 	public Feature(FeatureList f, String g) {
-		this(f, g, new FeatureMemento(true, false));
+		this(f, g, new FeatureMemento());
 	}
 
 	/**
@@ -112,6 +112,20 @@ public class Feature {
 	 */
 	public Boolean getVisible() {
 		return mySettings.getProperty(FeatureMemento.VISIBLE);
+	}
+
+	/**
+	 * Get if can be deleted from FeatureList
+	 */
+	public Boolean getDeletable() {
+		return mySettings.getProperty(FeatureMemento.CAN_DELETE);
+	}
+
+	/**
+	 * Set if can be deleted from FeatureList
+	 */
+	public void setDeletable(boolean flag) {
+		mySettings.setProperty(FeatureMemento.CAN_DELETE, flag);
 	}
 
 	/**
@@ -197,6 +211,9 @@ public class Feature {
 	public void removeRenderer(Feature3DRenderer f) {
 		if (myRenderers != null) {
 			myRenderers.remove(f);
+			if (myRenderers.isEmpty()){
+				myRenderers = null;
+			}
 		}
 	}
 

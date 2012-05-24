@@ -33,7 +33,7 @@ import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeatureFilter;
 import org.wdssii.gui.features.LLHAreaFeature;
-import org.wdssii.gui.features.ProductFeature;
+import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.VolumeSlice2DOutput;

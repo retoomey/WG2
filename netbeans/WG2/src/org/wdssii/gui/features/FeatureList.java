@@ -4,6 +4,7 @@ import gov.nasa.worldwind.render.DrawContext;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.gui.gis.MapFeature;
 
 /**
  * FeatureList holds a list of the features of a particular window It will
@@ -15,14 +16,16 @@ public class FeatureList {
 
 	private static Logger log = LoggerFactory.getLogger(FeatureList.class);
 
-	/** A simple filter to return boolean for mass actions such as deletion */
+	/**
+	 * A simple filter to return boolean for mass actions such as deletion
+	 */
 	public static interface FeatureFilter {
 
 		boolean matches(Feature f);
 	}
 	/**
-	 * A single feature list for entire display, because I only have one window
-	 * at the moment.....
+	 * A single feature list for entire display, because I only have one
+	 * window at the moment.....
 	 */
 	public static final FeatureList theFeatures = new FeatureList();
 	/**
@@ -48,6 +51,8 @@ public class FeatureList {
 		theFeatures.addFeature(testOne);
 		Feature testTwo = new MapFeature(theFeatures, "shapefiles/usa/tx/txcnty.shp");
 		theFeatures.addFeature(testTwo);
+		Feature legend = new LegendFeature(theFeatures);
+		theFeatures.addFeature(legend);
 	}
 	/**
 	 * The features we contain. Not adding a public interface here for
@@ -83,7 +88,9 @@ public class FeatureList {
 		}
 	}
 
-	/** Remove a 3DRenderer from any feature */
+	/**
+	 * Remove a 3DRenderer from any feature
+	 */
 	public void remove3DRenderer(Feature3DRenderer r) {
 		if (r != null) {
 			Iterator<Feature> iter = myFeatures.iterator();
@@ -99,23 +106,30 @@ public class FeatureList {
 	 */
 	public void removeFeature(Feature f) {
 		if (f != null) {
+			Boolean canDelete = f.getDeletable();
 
-			final String group = f.getFeatureGroup();
-			Feature selected = getSelected(group);
-			myFeatures.remove(f);
+			if (canDelete) {
+				final String group = f.getFeatureGroup();
+				Feature selected = getSelected(group);
+				myFeatures.remove(f);
 
-			if (selected == f) {
-				Feature newSelection = getFirstFeature(group);
-				if (newSelection == null) {
-					mySelections.remove(group);
-				} else {
-					setSelected(newSelection);
+				if (selected == f) {
+					Feature newSelection = getFirstFeature(group);
+					if (newSelection == null) {
+						mySelections.remove(group);
+					} else {
+						setSelected(newSelection);
+					}
 				}
+			} else {
+				log.error("Tried to delete a feature that is not deletable");
 			}
 		}
 	}
 
-	/** Remove all features matching given filter */
+	/**
+	 * Remove all features matching given filter
+	 */
 	public void removeFeatures(FeatureFilter filter) {
 		ArrayList<Feature> toDelete = new ArrayList<Feature>();
 		for (Feature f : myFeatures) {
@@ -151,8 +165,8 @@ public class FeatureList {
 	}
 
 	/**
-	 * Set the selected Feature for the group that it is in. For example, you
-	 * can set the selected 'map' or '3d object' separately.
+	 * Set the selected Feature for the group that it is in. For example,
+	 * you can set the selected 'map' or '3d object' separately.
 	 *
 	 * @param f the Feature to select in its group
 	 */
@@ -176,9 +190,9 @@ public class FeatureList {
 	}
 
 	/**
-	 * Get the most recently selected Feature of ALL groups. The GUI has a uses
-	 * this for table selection where the selected Feature has a GUI available
-	 * for setting properties.
+	 * Get the most recently selected Feature of ALL groups. The GUI has a
+	 * uses this for table selection where the selected Feature has a GUI
+	 * available for setting properties.
 	 *
 	 * @return
 	 */
@@ -248,7 +262,8 @@ public class FeatureList {
 	}
 
 	/**
-	 * Get all visible/onlymode features in a group. All that should be shown.
+	 * Get all visible/onlymode features in a group. All that should be
+	 * shown.
 	 */
 	public List<Feature> getActiveFeatureGroup(String g) {
 		ArrayList<Feature> holder = new ArrayList<Feature>();
@@ -286,8 +301,9 @@ public class FeatureList {
 		return holder;
 	}
 
-	/** Get 'top' match of a group (selected items move to top, or end of the list,
-	 * since last rendered is on 'top' of other items
+	/**
+	 * Get 'top' match of a group (selected items move to top, or end of the
+	 * list, since last rendered is on 'top' of other items
 	 */
 	public <T> T getTopMatch(FeatureFilter matcher) {
 		T holder = null;

@@ -5,7 +5,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.features.ProductFeature;
+import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.JwgDropDownButton;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.CommandListener;

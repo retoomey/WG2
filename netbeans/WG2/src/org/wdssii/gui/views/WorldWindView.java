@@ -46,7 +46,6 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.volumes.LLHAreaLayerController;
-import org.wdssii.gui.worldwind.ColorKeyLayer;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.gui.worldwind.ProductLayer;
 import org.wdssii.gui.worldwind.ReadoutStatusBar;
@@ -217,9 +216,6 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 		theLayers.add(myVolumeLayer);
 		// Controller adds listeners to world which keeps reference
 		LLHAreaLayerController c = new LLHAreaLayerController(myWorld, myVolumeLayer);
-
-		/** The color key and wg2 overlay layer */
-		theLayers.add(new ColorKeyLayer());
 
 		// Create and install the view controls layer and register a controller for it with the World Window.
 		ViewControlsLayer viewControlsLayer = new ViewControlsLayer();

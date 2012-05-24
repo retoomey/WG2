@@ -25,9 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.DockWindow;
-import org.wdssii.gui.MapGUI;
+import org.wdssii.gui.gis.MapGUI;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.features.*;
+import org.wdssii.gui.gis.MapFeature;
+import org.wdssii.gui.gis.PolarGridFeature;
+import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
@@ -161,6 +164,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 		public String timeStamp;
 		public String subType;
 		public String message;
+		public boolean candelete;
 	}
 
 	private class FeatureListTableModel extends RowEntryTableModel<FeatureListTableData> {
@@ -334,10 +338,16 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 				};
 				JPopupMenu popupmenu = new JPopupMenu();
 				FeatureListTableData entry = (FeatureListTableData) (line);
-				String name = "Delete " + entry.visibleName;
-				Item i = new Item(name, entry);
-				popupmenu.add(i);
-				i.addActionListener(al);
+				if (entry.candelete) {
+					String name = "Delete " + entry.visibleName;
+					Item i = new Item(name, entry);
+					popupmenu.add(i);
+					i.addActionListener(al);
+				}else{
+					String name = "This feature cannot be deleted";
+					Item i = new Item(name, entry);
+					popupmenu.add(i);
+				}
 				return popupmenu;
 			}
 
@@ -457,6 +467,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 			d2.keyName = d.getKey();
 			d2.onlyMode = d.getOnlyMode();
 			d2.message = d.getMessage();
+			d2.candelete = d.getDeletable();
 			newList.add(d2);
 			if (topFeature == d) {
 				select = currentLine;

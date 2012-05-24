@@ -1,6 +1,5 @@
-package org.wdssii.gui.features;
+package org.wdssii.gui.gis;
 
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
 import java.net.URL;
 import javax.swing.JComponent;
@@ -10,8 +9,9 @@ import org.geotools.data.simple.SimpleFeatureSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.W2Config;
-import org.wdssii.gui.MapGUI;
-import org.wdssii.gui.MapRenderer;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureMemento;
 
 /**
  * A Map feature draws a map in a window
@@ -33,19 +33,15 @@ public class MapFeature extends Feature {
 			super(m);
 		}
 
-		public MapMemento(boolean v, boolean o, int line) {
-			super(v, o);
-			initProperty(LINE_THICKNESS,  1);
+		public MapMemento() {
+			initProperty(LINE_THICKNESS,  2);
 			initProperty(LINE_COLOR,  Color.WHITE);
 		}
 	}
 
 	private static Logger log = LoggerFactory.getLogger(MapFeature.class);
 	public static final String MapGroup = "MAPS";
-	/**
-	 * The renderer we use for drawing the map.
-	 */
-	private MapRenderer myRenderer;
+
 	/**
 	 * The GUI for this Feature
 	 */
@@ -55,7 +51,7 @@ public class MapFeature extends Feature {
 	 * The state we use for drawing the map.
 	 */
 	public MapFeature(FeatureList f, String source) {
-		super(f, MapGroup, new MapMemento(true, false, 2));
+		super(f, MapGroup, new MapMemento());
 		URL u = W2Config.getURL(source);
 		loadURL(u, source);
 	}
@@ -64,7 +60,7 @@ public class MapFeature extends Feature {
 	 * The state we use for drawing the map.
 	 */
 	public MapFeature(FeatureList f, URL u) {
-		super(f, MapGroup, new MapMemento(true, false, 2));
+		super(f, MapGroup, new MapMemento());
 		String source = "bad url";
 		if (u != null) {
 			source = u.toString();
@@ -94,7 +90,8 @@ public class MapFeature extends Feature {
 				String sub = s.substring(sep + 1, dot);
 				setName(sub);
 
-				myRenderer = new MapRenderer(featureSource);
+				MapRenderer m = new MapRenderer(featureSource);
+				addRenderer(m);
 			} else {
 				setMessage("?? " + source);
 				setKey(source);
@@ -113,31 +110,6 @@ public class MapFeature extends Feature {
 	public FeatureMemento getNewMemento() {
 		MapMemento m = new MapMemento((MapMemento) getMemento());
 		return m;
-	}
-
-	@Override
-	public void setMemento(FeatureMemento f) {
-		/**
-		 * Handle map mementos
-		 */
-		if (f instanceof MapMemento) {
-			MapMemento mm = (MapMemento) (f);
-			((MapMemento) getMemento()).syncToMemento(mm);
-		} else {
-			super.setMemento(f);
-		}
-	}
-
-	/**
-	 * Render a feature
-	 */
-	@Override
-	public void render(DrawContext dc) {
-
-		if (myRenderer != null) {
-			// myRenderer.setupIfNeeded(dc);
-			myRenderer.draw(dc, getMemento());
-		}
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package org.wdssii.gui.features;
+package org.wdssii.gui.products;
 
 import gov.nasa.worldwind.render.DrawContext;
 import java.util.Date;
@@ -7,11 +7,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.gui.products.FilterList;
-import org.wdssii.gui.products.Product;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product.ProductTimeWindowAge;
 import org.wdssii.gui.products.Product.ProductTimeWindowInfo;
-import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceList;

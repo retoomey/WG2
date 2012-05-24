@@ -1,13 +1,13 @@
-package org.wdssii.gui.features;
+package org.wdssii.gui.gis;
 
 import gov.nasa.worldwind.geom.LatLon;
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
 import javax.swing.JComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.PolarGridGUI;
-import org.wdssii.gui.PolarGridRenderer;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureMemento;
 
 /**
  * A PolarGrid feature renders a 3d set of range circles in a 3d window around a
@@ -34,9 +34,8 @@ public class PolarGridFeature extends Feature {
 	          super(m);
 		}
 
-		public PolarGridMemento(boolean v, boolean o, int line) {
-			super(v, o);
-			initProperty(LINE_THICKNESS,  1);
+		public PolarGridMemento() {
+			initProperty(LINE_THICKNESS,  2);
 			initProperty(LINE_COLOR,  Color.WHITE);
 			initProperty(CENTER, LatLon.fromDegrees(35.3331, -97.2778));
 			initProperty(ELEV_DEGREES, 0.5d);
@@ -47,10 +46,7 @@ public class PolarGridFeature extends Feature {
 
 	private static Logger log = LoggerFactory.getLogger(PolarGridFeature.class);
 	public static final String PolarGridGroup = "POLARGRIDS";
-	/**
-	 * The renderer we use for drawing the polar grid.
-	 */
-	private PolarGridRenderer myRenderer;
+
 	/**
 	 * The GUI for this Feature
 	 */
@@ -61,8 +57,8 @@ public class PolarGridFeature extends Feature {
 	 * The state we use for drawing the polar grid.
 	 */
 	public PolarGridFeature(FeatureList f) {
-		super(f, PolarGridGroup, new PolarGridMemento(true, false, 2));
-		myRenderer = new PolarGridRenderer();
+		super(f, PolarGridGroup, new PolarGridMemento());
+		addRenderer(new PolarGridRenderer());
 		String name = "Circle" + counter++;
 		setName(name);
 		setKey(name);
@@ -73,30 +69,6 @@ public class PolarGridFeature extends Feature {
 	public FeatureMemento getNewMemento() {
 		PolarGridMemento m = new PolarGridMemento((PolarGridMemento) getMemento());
 		return m;
-	}
-
-	@Override
-	public void setMemento(FeatureMemento f) {
-		/**
-		 * Handle polar grid mementos
-		 */
-		if (f instanceof PolarGridMemento) {
-			PolarGridMemento mm = (PolarGridMemento) (f);
-			((PolarGridMemento) getMemento()).syncToMemento(mm);
-		} else {
-			super.setMemento(f);
-		}
-	}
-
-	/**
-	 * Render a feature
-	 */
-	@Override
-	public void render(DrawContext dc) {
-
-		if (myRenderer != null) {
-			myRenderer.draw(dc, getMemento());
-		}
 	}
 
 	@Override

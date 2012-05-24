@@ -13,7 +13,6 @@ import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.GridVisibleArea;
-import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.views.WorldWindView;
 
 /**

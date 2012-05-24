@@ -45,7 +45,6 @@ public class LLHArea extends AVListImpl implements Movable {
 		private boolean useMinHeight = false;
 
 		public LLHAreaMemento(LLHArea a) {
-			super(a.visible, a.only);
 			maxHeight = a.upperAltitude;
 			minHeight = a.lowerAltitude;
 		}

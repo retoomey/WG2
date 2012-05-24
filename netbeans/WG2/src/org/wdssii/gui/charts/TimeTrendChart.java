@@ -25,7 +25,6 @@ import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
-import org.wdssii.gui.features.ProductFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.volumes.LLHArea;

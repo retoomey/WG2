@@ -3,12 +3,11 @@ package org.wdssii.gui.worldwind;
 import gov.nasa.worldwind.layers.AbstractLayer;
 import gov.nasa.worldwind.render.DrawContext;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.LLHAreaFeature;
-import org.wdssii.gui.features.MapFeature;
-import org.wdssii.gui.features.PolarGridFeature;
-import org.wdssii.gui.features.ProductFeature;
+import org.wdssii.gui.features.*;
+import org.wdssii.gui.gis.MapFeature;
+import org.wdssii.gui.gis.PolarGridFeature;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductFeature;
 
 /**
  * @author Robert Toomey
@@ -52,6 +51,7 @@ public class ProductLayer extends AbstractLayer implements WWCategoryLayer {
 	// It's 'behind' but actually renders on top..lol
         f.renderFeatureGroup(dc, MapFeature.MapGroup);
         f.renderFeatureGroup(dc, PolarGridFeature.PolarGridGroup);
+        f.renderFeatureGroup(dc, LegendFeature.LegendGroup);
        
     }
     

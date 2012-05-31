@@ -31,7 +31,13 @@ import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 
-public class NavView extends JThreadPanel implements CommandListener {
+/**
+ * NavView shows the time/volume navigation controls for the current
+ * top ProductFeature
+ * 
+ * @author Robert Toomey
+ */
+public final class NavView extends JThreadPanel implements CommandListener {
 
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
@@ -94,7 +100,9 @@ public class NavView extends JThreadPanel implements CommandListener {
 
         @Override
         public Component getNewComponent() {
-            return new NavView();
+	    NavView justOne = new NavView();
+            CommandManager.getInstance().addListener("Navigation", justOne);
+            return justOne;
         }
     }
 
@@ -263,22 +271,20 @@ public class NavView extends JThreadPanel implements CommandListener {
 
     public NavView() {
 
-        // An extra layer. Not sure that this will stay a JPanel... 
-        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        JPanel jRootTab = new JPanel();
-        add(jRootTab, "grow");
+        setLayout(new MigLayout("insets 0",
+		"[grow]",               // 1 column 
+		"[][pref!][][grow]"));  // 4 rows, last scroll so grow
 
-        jProductInfoLabel = new javax.swing.JLabel();
+        jProductInfoLabel = new javax.swing.JLabel(" ");
         jNavPanel = new javax.swing.JPanel();
         jNavPanel.setBackground(Color.BLACK);
         jLoopPanel = new javax.swing.JPanel();
         jProductsScrollPane = new javax.swing.JScrollPane();
 
-        jRootTab.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        jRootTab.add(jProductInfoLabel, new CC().wrap());
-        jRootTab.add(jNavPanel, new CC().growX().wrap());
-        jRootTab.add(jLoopPanel, new CC().wrap());
-        jRootTab.add(jProductsScrollPane, new CC().dockSouth());
+        add(jProductInfoLabel, new CC().wrap());
+        add(jNavPanel, new CC().growX().wrap());
+        add(jLoopPanel, new CC().wrap());
+        add(jProductsScrollPane, new CC().growX().growY());
 
         //  initComponents();
         initButtonGrid();
@@ -287,9 +293,7 @@ public class NavView extends JThreadPanel implements CommandListener {
         // For box layout, have to align label center...
         jProductInfoLabel.setAlignmentX(LEFT_ALIGNMENT);
 
-        CommandManager.getInstance().addListener("Navigation", this);
-        updateNavButtons(null, null);
-        updateProductList(null);
+        updateInSwingThread(null);
     }
 
     private void initButtonGrid() {
@@ -298,7 +302,6 @@ public class NavView extends JThreadPanel implements CommandListener {
         // We want a fixed size for buttons so they don't jitter as 
         NavButton sizer = new NavButton("00:00:00  ", 0);
         Dimension pref = sizer.getPreferredSize();
-        sizer = null;  // Make sure it's gone...
 
         for (int i = 0; i < myGridCount; i++) {
             NavButton b = new NavButton("Test" + i, i);
@@ -608,7 +611,7 @@ public class NavView extends JThreadPanel implements CommandListener {
         ArrayList<ProductFeature> p = getProductFeatures();
 
         if (p != null) {
-            ArrayList<ProductsTableData> sortedList = null;
+            ArrayList<ProductsTableData> sortedList;
             int currentLine = 0;
             int select = -1;
 

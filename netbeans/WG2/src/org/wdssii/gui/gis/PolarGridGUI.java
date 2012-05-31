@@ -1,7 +1,5 @@
 package org.wdssii.gui.gis;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,9 +13,9 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.features.FeatureGUI;
-import org.wdssii.gui.features.FeatureGUIFactory.FeaturePropertyColorGUI;
-import org.wdssii.gui.features.FeatureGUIFactory.FeaturePropertyGUI;
 import org.wdssii.gui.gis.PolarGridFeature.PolarGridMemento;
+import org.wdssii.properties.PropertyGUI;
+import org.wdssii.properties.gui.ColorGUI;
 
 /**
  * PolarGridGUI handles gui controls for a PolarGrid overlay 
@@ -32,7 +30,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
     private JSpinner jLineThicknessSpinner;
     private JSpinner jNumRingsSpinner;
     private JSpinner jRangeSpinner;
-    private FeaturePropertyGUI myLineColorGUI;
+    private PropertyGUI myLineColorGUI;
 
     /**
      * Creates new form LLHAreaSliceGUI
@@ -97,7 +95,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
         add(jLineThicknessSpinner, mid);
         add(new JLabel("Pixels"), "wrap");
 
-	myLineColorGUI = new FeaturePropertyColorGUI(myFeature, PolarGridMemento.LINE_COLOR, "Line Color", this);
+	myLineColorGUI = new ColorGUI(myFeature, PolarGridMemento.LINE_COLOR, "Line Color", this);
  	myLineColorGUI.addToMigLayout(this);
 
         // Create rings spinner

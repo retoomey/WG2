@@ -14,9 +14,9 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.features.FeatureGUI;
-import org.wdssii.gui.features.FeatureGUIFactory.FeaturePropertyColorGUI;
-import org.wdssii.gui.features.FeatureGUIFactory.FeaturePropertyGUI;
 import org.wdssii.gui.gis.MapFeature.MapMemento;
+import org.wdssii.properties.PropertyGUI;
+import org.wdssii.properties.gui.ColorGUI;
 
 /**
  * MapGUI handles gui controls for a shapefile map....
@@ -31,7 +31,7 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
     private MapFeature myFeature;
     private JSpinner jLineThicknessSpinner;
     //private JButton jColorLabel;
-    private FeaturePropertyGUI myLineColorGUI;
+    private PropertyGUI myLineColorGUI;
 
     /**
      * Creates new form LLHAreaSliceGUI
@@ -97,7 +97,7 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
         add(new JLabel("Pixels"), "wrap");
 
 	// Line color
-	myLineColorGUI = new FeaturePropertyColorGUI(myFeature, MapMemento.LINE_COLOR, "Line Color", this);
+	myLineColorGUI = new ColorGUI(myFeature, MapMemento.LINE_COLOR, "Line Color", this);
  	myLineColorGUI.addToMigLayout(this);
 
 	/*

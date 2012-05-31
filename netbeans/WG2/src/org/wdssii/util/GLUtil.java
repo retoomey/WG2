@@ -47,22 +47,42 @@ public class GLUtil {
 		final int aViewWidth = myView.getViewport().width;
 		final int aViewHeight = myView.getViewport().height;
 
+		pushOrtho2D(gl, aViewWidth, aViewHeight);
+	}
+
+	public static void pushOrtho2D(GL gl, int width, int height) {
 		gl.glMatrixMode(GL.GL_PROJECTION);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
-		gl.glOrtho(0, aViewWidth, 0, aViewHeight, -1, 1);  // TopLeft
+		gl.glOrtho(0, width, 0, height, -1, 1);  // TopLeft
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
+
+		// Extra default settings for rendering pure 2D
+		// FIXME: check all these needed for below..
+		gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT
+				| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT
+				| GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
+				| GL.GL_CURRENT_BIT);
+		gl.glEnable(GL.GL_BLEND);
+		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+		gl.glDisable(GL.GL_DEPTH_TEST);
+		gl.glDisable(GL.GL_TEXTURE_2D); // no textures
+		gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
 	}
 
 	/** Pop a standard 2d ortho project */
 	public static void popOrtho2D(DrawContext dc) {
-		final GL gl = dc.getGL();
+		popOrtho2D(dc.getGL());
+	}
+
+	public static void popOrtho2D(GL gl) {
 		gl.glMatrixMode(GL.GL_PROJECTION);
 		gl.glPopMatrix();
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glPopMatrix();
+		gl.glPopAttrib();
 	}
 
 	public static void pushHiddenStipple(DrawContext dc) {

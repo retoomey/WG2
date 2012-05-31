@@ -4,8 +4,8 @@ import javax.swing.JComponent;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.features.FeatureGUIFactory.FeaturePropertyBooleanGUI;
 import org.wdssii.gui.features.LegendFeature.LegendMemento;
+import org.wdssii.properties.gui.BooleanGUI;
 
 /**
  * LegendGUI handles gui controls for colorkey
@@ -20,7 +20,8 @@ public class LegendGUI extends javax.swing.JPanel implements FeatureGUI {
 	private LegendFeature myFeature;
 	//private JSpinner jLineThicknessSpinner;
 	//private JButton jColorLabel;
-	private FeatureGUIFactory.FeaturePropertyGUI myShowLabelsGUI;
+	//private FeatureGUIFactory.FeaturePropertyGUI myShowLabelsGUI;
+	private BooleanGUI myShowLabelsGUI;
 
 	/**
 	 * Creates new LegendGUI
@@ -64,7 +65,8 @@ public class LegendGUI extends javax.swing.JPanel implements FeatureGUI {
 		setLayout(new MigLayout(new LC(), null, null));
 		CC mid = new CC().growX().width("min:pref:");
 
-		myShowLabelsGUI = new FeaturePropertyBooleanGUI(myFeature, LegendMemento.SHOWLABELS, "Show Labels", this);
+//		myShowLabelsGUI = new FeaturePropertyBooleanGUI(myFeature, LegendMemento.SHOWLABELS, "Show Labels", this);
+		myShowLabelsGUI = new BooleanGUI(myFeature, LegendMemento.SHOWLABELS, "Show Labels", this);
 		myShowLabelsGUI.addToMigLayout(this);
 		//"w min:pref:, growx");
 	/*

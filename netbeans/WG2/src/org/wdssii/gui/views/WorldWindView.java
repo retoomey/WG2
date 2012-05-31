@@ -1,7 +1,5 @@
 package org.wdssii.gui.views;
 
-import java.awt.event.ActionEvent;
-import org.wdssii.gui.swing.JThreadPanel;
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.Model;
 import gov.nasa.worldwind.WorldWind;
@@ -20,15 +18,11 @@ import gov.nasa.worldwind.layers.ViewControlsSelectListener;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.view.orbit.FlyToOrbitViewAnimator;
 import gov.nasa.worldwind.view.orbit.OrbitView;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import javax.media.opengl.GL;
-import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -45,6 +39,7 @@ import org.wdssii.gui.commands.Snapshot3DWorldCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.renderers.ProductRenderer;
+import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.volumes.LLHAreaLayerController;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.gui.worldwind.ProductLayer;
@@ -90,11 +85,9 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 	public void updateInSwingThread(Object info) {
 		//  throw new UnsupportedOperationException("Not supported yet.");
 	}
-	private javax.swing.JButton jButton1;
 	private javax.swing.JPanel jPanel1;
 	private javax.swing.JPanel jPanel2;
 	private javax.swing.JSplitPane jSplitPane1;
-	private javax.swing.JToolBar jToolBar1;
 
 	/** Our factory, called by reflection to populate menus, etc...*/
 	public static class Factory extends WdssiiDockedViewFactory {
@@ -112,16 +105,6 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 	public WorldWindView() {
 		setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
 		final String w = "50"; // MigLayout width parameter
-
-		// Create the toolbar
-		jToolBar1 = new javax.swing.JToolBar();
-		jToolBar1.setRollover(true);
-		jButton1 = new JButton("Test");
-		jButton1.setFocusable(false);
-		jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-		jToolBar1.add(jButton1);
-		add(jToolBar1, new CC().dockNorth());
 
 		// Create top panel
 		jPanel1 = new JPanel(new MigLayout(new LC().fill().insetsAll("0"), null, null));
@@ -176,31 +159,12 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 			});
 		}
 		final WorldWindView theWorld = this;
-		jButton1.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Snapshot3DWorldCommand c = new Snapshot3DWorldCommand();
-				c.setTargetListener(theWorld);
-				CommandManager.getInstance().executeCommand(c, true);
-			}
-		});
 		// FIXME: should probably make a preference for this that can be
 		// toggled by user if it works correctly/incorrectly
 		System.setProperty("sun.awt.noerasebackground", "true");
 		CommandManager.getInstance().addListener(ID, this);
 
 		delayedInit();
-		// Hack add a starting slice...
-	/*
-		LLHAreaFeature A = new LLHAreaFeature(FeatureList.theFeatures);
-		boolean success = A.createLLHArea("Slice");
-		if (success){
-		FeatureList.theFeatures.addFeature(A);
-		}
-		 * 
-		 */
-
 	}
 
 	public final void createWG2Layers() {

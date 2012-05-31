@@ -2,13 +2,7 @@ package org.wdssii.gui;
 
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.render.DrawContext;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
@@ -17,11 +11,12 @@ import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LegendFeature.LegendMemento;
+import org.wdssii.gui.products.ProductFeature;
+import org.wdssii.util.GLUtil;
 
 /**
  * ColorMapRenderer. Base class for rendering a ColorMap. Since I'm only
@@ -38,6 +33,12 @@ public class ColorMapRenderer implements Feature3DRenderer {
 	 * ColorMap used by the renderer
 	 */
 	private ColorMap myColorMap;
+
+	/** 
+	 * The shown units 
+	 */
+	private String myUnits;
+
 	/**
 	 * The extra filler padding 'above' and 'below' a color bin label
 	 */
@@ -49,8 +50,9 @@ public class ColorMapRenderer implements Feature3DRenderer {
 	public ColorMap getColorMap() {
 		return myColorMap;
 	}
-
-	/** Do we show labels when drawing? */
+	/**
+	 * Do we show labels when drawing?
+	 */
 	public boolean myShowLabels = true;
 
 	/**
@@ -58,6 +60,15 @@ public class ColorMapRenderer implements Feature3DRenderer {
 	 */
 	public void setColorMap(ColorMap c) {
 		myColorMap = c;
+	}
+
+	/** Set the shown units for renderer */
+	public void setUnits(String u){
+		myUnits = u;
+	}
+
+	public String getUnits(){
+		return myUnits;
 	}
 
 	public ColorMapRenderer(ColorMap initColorMap) {
@@ -157,287 +168,268 @@ public class ColorMapRenderer implements Feature3DRenderer {
 	}
 
 	/**
+	 * Combine some of the drawing logic. This is slower, but as the color
+	 * key gets more advanced this will try to share drawing logic
+	 */
+	private static class drawer {
+
+		Graphics2D g;
+		GL gl;
+		float opacity;
+		TextRenderer glText;
+		int viewWidth;
+		int viewHeight;
+
+		public drawer(Graphics2D aG, int vw, int vh, float o) {
+			g = aG;
+			opacity = o;
+			viewWidth = vw;
+			viewHeight = vh;
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+				RenderingHints.VALUE_ANTIALIAS_ON);
+
+			g.setRenderingHint(RenderingHints.KEY_RENDERING,
+				RenderingHints.VALUE_RENDER_QUALITY);
+		}
+
+		public drawer(GL aGL, int vw, int vh, float o) {
+			gl = aGL; // or subclass...
+			opacity = o;
+			viewWidth = vw;
+			viewHeight = vh;
+		}
+
+		/**
+		 * Get the font metrics
+		 */
+		public FontMetrics getFontMetrics(Font forFont) {
+			FontMetrics fm;
+			if (g == null) {
+				BufferedImage bi = new BufferedImage(5, 5, BufferedImage.TYPE_INT_RGB);
+				fm = bi.getGraphics().getFontMetrics(forFont);
+			} else {
+				fm = g.getFontMetrics(forFont);
+			}
+			return fm;
+		}
+
+		/**
+		 * Draw the background of color
+		 */
+		public void drawBackground(
+			double x,
+			double y, // 0 is top of viewport (reverse to gl) 
+			double w,
+			double h) {
+			Color backColor = Color.BLACK;
+			if (g != null) {
+				// Erase square of colormap
+				g.setColor(backColor);
+				g.fillRect(0, (int) y, (int) w, (int) h);
+			} else {
+				// Erase square of colormap
+				final double uy = viewHeight - y;
+				gl.glColor4ub((byte) backColor.getRed(), //FIXME
+					(byte) backColor.getGreen(), (byte) backColor.getBlue(),
+					(byte) (backColor.getAlpha() * opacity));
+				gl.glRectd(0.0, uy, 0.0 + w + 0.5, uy - h - 0.5);
+			}
+		}
+
+		public void startBins() {
+			if (g != null) {
+			} else {
+				gl.glBegin(GL.GL_QUADS);
+			}
+		}
+
+		/**
+		 * Draw the color bin box
+		 */
+		public void drawBin(
+			ColorMapOutput lo, ColorMapOutput hi,
+			double x,
+			double y, // 0 is top of viewport (reverse to gl)
+			double w,
+			double h) {
+
+			if (g != null) {
+				final int ix = (int) x;
+				final int iw = (int) w;
+				final int ih = (int) h;
+				final int iy = (int) y;
+				Color loC = new Color(lo.redI(), lo.greenI(), lo.blueI());
+				Color hiC = new Color(hi.redI(), hi.greenI(), hi.blueI());
+				GradientPaint p = new GradientPaint(ix, iy, loC,
+					ix + iw, iy, hiC);
+				g.setPaint(p);
+				g.fillRect(ix, iy, iw, ih);
+			} else {
+				final double uy = viewHeight - y;
+				gl.glColor4f(lo.redF(), lo.greenF(), lo.blueF(),
+					opacity);
+				gl.glVertex2d(x, uy);
+				gl.glVertex2d(x, uy - h);
+				gl.glColor4f(hi.redF(), hi.greenF(), hi.blueF(),
+					opacity);
+				gl.glVertex2d(x + w, uy - h);
+				gl.glVertex2d(x + w, uy);
+			}
+		}
+
+		public void endBins() {
+			if (g != null) {
+			} else {
+				gl.glEnd();
+			}
+		}
+
+		public void startLabels(Font font) {
+			if (g != null) {
+			} else {
+				glText = new TextRenderer(font, true, true);
+				glText.begin3DRendering();
+				glText.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+			}
+		}
+
+		public void drawLabel(Font font, String text, double x, double y) {
+			if (g != null) {
+				FontRenderContext frc = g.getFontRenderContext();
+				TextLayout t2 = new TextLayout(text, font, frc);
+				cheezyOutline(g, (int) (x + 2), (int) y, t2);
+			} else {
+				//glText.draw(text, (int) (x + 2), (int) (viewHeight - y));
+				final double uy = viewHeight - y;
+				GLUtil.cheezyOutline(glText, text, Color.WHITE, Color.BLACK, (int) x, (int) uy);
+			}
+		}
+
+		public void endLabels() {
+			if (g != null) {
+			} else {
+				glText.end3DRendering();
+				glText = null; // ?
+			}
+		}
+	}
+
+	/**
 	 * Paint to a standard java graphics context
 	 */
 	public void paintToGraphics(Graphics g, int w, int h) {
 
-		if (myColorMap != null) {
-			Graphics2D g2 = (Graphics2D) g;
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
-
-			g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-				RenderingHints.VALUE_RENDER_QUALITY);
-
-			FontRenderContext frc = g2.getFontRenderContext();
-			Font f = getFont();
-
-			FontMetrics metrics = g2.getFontMetrics(f);
-			int textHeight = metrics.getMaxAscent() + metrics.getMaxDescent();
-			int renderY = metrics.getMaxAscent() + (hTextPadding / 2);
-			int cellHeight = textHeight + hTextPadding;
-			// FILL: int cellHeight = Math.max(textHeight + padding, h);
-
-			ColorMapOutput hi = new ColorMapOutput();
-			ColorMapOutput lo = new ColorMapOutput();
-
-			// Width of unit text
-			int unitWidth = 0;
-			String unitName = myColorMap.getUnits();
-			if ((unitName != null) && (unitName.length() > 0)) {
-				unitWidth = metrics.stringWidth(unitName) + 2;
-			} else {
-				unitWidth = 0;
-			}
-
-			// Calculate height
-			int barwidth = Math.max(w - unitWidth, 1);
-			int aSize = myColorMap.getNumberOfBins();
-			int cellWidth = barwidth > 0 ? barwidth / aSize : 1;
-			barwidth = cellWidth * aSize;
-
-			int currentX = 0;
-			int top = 0;
-
-			// Erase square of colormap
-			g2.setColor(Color.BLACK);
-			g2.fillRect(0, top, w, cellHeight);
-
-			// Draw the boxes of the color map....
-			for (int i = 0; i < aSize; i++) {
-
-				myColorMap.getUpperBoundColor(hi, i);
-				myColorMap.getLowerBoundColor(lo, i);
-
-				Color loC = new Color(lo.redI(), lo.greenI(), lo.blueI());
-				Color hiC = new Color(hi.redI(), hi.greenI(), hi.blueI());
-				int curInt = currentX;
-
-				GradientPaint p = new GradientPaint(curInt, top, loC,
-					curInt + cellWidth, top, hiC);
-				g2.setPaint(p);
-				g2.fillRect(curInt, top, cellWidth, cellHeight);
-
-				currentX += cellWidth;
-			}
-
-			// Draw the text labels for bins
-			boolean drawText = myShowLabels && (barwidth >= 100);
-			int viewx = 0;
-			if (drawText) {
-				currentX = viewx;
-				int extraXGap = 7; // Force at least these pixels
-				// between labels
-				int drawnToX = viewx;
-				for (int i = 0; i < aSize; i++) {
-					String label = myColorMap.getBinLabel(i);
-					int wtxt = metrics.stringWidth(label);
-
-					// Sparse draw, skipping when text overlaps
-					if (currentX >= drawnToX) {
-
-						// Don't draw if text sticks outside box
-						if (currentX + wtxt < (viewx + barwidth)) {
-
-							// Ok, render and remember how far it drew
-							TextLayout t2 = new TextLayout(label, f, frc);
-							// Shape outline = t2.getOutline(null);
-
-							cheezyOutline(g2, currentX + 2, renderY, t2);
-							drawnToX = currentX + wtxt + extraXGap;
-						}
-					}
-
-					currentX += cellWidth;
-				}
-			}
-			// Draw the units, only there if unitWidth > 0
-			if (unitWidth > 0) {
-				int start = (viewx + w - unitWidth);
-				TextLayout t2 = new TextLayout(unitName, f, frc);
-				cheezyOutline(g2, start, renderY, t2);
-			}
-		} else {
+		// Leave quickly if no color map
+		if (myColorMap == null) {
+			return;
 		}
+
+		Graphics2D g2 = (Graphics2D) g;
+		drawer d = new drawer(g2, w, h, 1.0f);
+		paintColorKey(d, w);
 	}
 
 	/**
 	 * Paint to a given OpenGL context
 	 */
 	public void paintToOpenGL(GL gl, int aViewWidth, int aViewHeight, float opacity) {
-
-		if (myColorMap != null) {
-			boolean attribsPushed = false;
-			boolean modelviewPushed = false;
-			boolean projectionPushed = false;
-
-			int viewx = 0;
-
-			// Created text renderer
-			TextRenderer aText = null;
-			Font font = getFont();
-			if (aText == null) {
-				aText = new TextRenderer(font, true, true);
-			}
-			//FontRenderContext frc = aText.getFontRenderContext();
-			FontMetrics metrics = getFontMetrics(font, null);
-
-			int textHeight = metrics.getMaxAscent() + metrics.getMaxDescent();
-			int renderY = metrics.getMaxAscent() + (hTextPadding / 2);
-			int cellHeight = textHeight + hTextPadding;
-			// Different in regular paint because we fill entire image size...
-			//int cellHeight = Math.max(textHeight + padding, h);
-
-			ColorMapOutput hi = new ColorMapOutput();
-			ColorMapOutput lo = new ColorMapOutput();
-
-			// Width of unit text
-			int unitWidth = 0;
-			String unitName = myColorMap.getUnits();
-			if ((unitName != null) && (unitName.length() > 0)) {
-				//Rectangle2D boundsUnits = aText.getBounds(unitName);
-				//wtxt = (int) (boundsUnits.getWidth() + 2.0d);
-				unitWidth = metrics.stringWidth(unitName) + 2;
-			} else {
-				unitWidth = 0;
-			}
-
-			// Calculate height
-			int barwidth = Math.max(aViewWidth - unitWidth, 1);
-			int aSize = myColorMap.getNumberOfBins();
-			int cellWidth = barwidth > 0 ? barwidth / aSize : 1;
-			barwidth = cellWidth * aSize;
-
-			double currentX = 0.0;
-			double top = aViewHeight;
-
-			try {
-
-				// System.out.println("Drawing color key layer");
-				gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT
-					| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT
-					| GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
-					| GL.GL_CURRENT_BIT);
-				attribsPushed = true;
-				gl.glEnable(GL.GL_BLEND);
-				gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-				gl.glDisable(GL.GL_DEPTH_TEST);
-
-				// Standard ortho projection
-				gl.glMatrixMode(GL.GL_PROJECTION);
-				gl.glPushMatrix();
-				projectionPushed = true;
-				gl.glLoadIdentity();
-				gl.glOrtho(0, aViewWidth, 0, aViewHeight, -1, 1);  // TopLeft
-				gl.glMatrixMode(GL.GL_MODELVIEW);
-				gl.glPushMatrix();
-				modelviewPushed = true;
-				gl.glLoadIdentity();
-
-				gl.glDisable(GL.GL_TEXTURE_2D); // no textures
-				gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
-
-				// Erase square of colormap
-				Color backColor = Color.BLACK;
-				gl.glColor4ub((byte) backColor.getRed(), //FIXME
-					(byte) backColor.getGreen(), (byte) backColor.getBlue(),
-					(byte) (backColor.getAlpha() * opacity));
-				gl.glRectd(0.0, top, 0.0 + aViewWidth + 0.5, top - cellHeight - 0.5);
-
-				if (aSize > 0) {
-					gl.glBegin(GL.GL_QUADS);
-
-					// Draw the boxes of the color map....
-					for (int i = 0; i < aSize; i++) {
-
-						myColorMap.getUpperBoundColor(hi, i);
-						myColorMap.getLowerBoundColor(lo, i);
-
-						gl.glColor4f(lo.redF(), lo.greenF(), lo.blueF(),
-							opacity);
-						gl.glVertex2d(currentX, top);
-						gl.glVertex2d(currentX, top - cellHeight);
-						gl.glColor4f(hi.redF(), hi.greenF(), hi.blueF(),
-							opacity);
-						gl.glVertex2d(currentX + cellWidth, top - cellHeight);
-						gl.glVertex2d(currentX + cellWidth, top);
-
-						currentX += cellWidth;
-					}
-					gl.glEnd();
-				}
-
-				gl.glColor4i(255, 0, 0, 255);
-				// Draw the text labels for bins
-				aText.begin3DRendering();
-				aText.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-			        boolean drawText = myShowLabels && (barwidth >= 100);
-				if (drawText) {
-					currentX = viewx;
-					int extraXGap = 7; // Force at least these pixels
-					// between labels
-					int drawnToX = viewx;
-					for (int i = 0; i < aSize; i++) {
-						String label = myColorMap.getBinLabel(i);
-						int wtxt = metrics.stringWidth(label);
-
-						// Sparse draw, skipping when text overlaps
-						if (currentX >= drawnToX) {
-
-							// Don't draw if text sticks outside box
-							if (currentX + wtxt < (viewx + barwidth)) {
-
-								aText.draw(label, (int) (currentX + 2),
-									(int) (top - renderY));
-								drawnToX = (int) (currentX + wtxt + extraXGap);
-							}
-						}
-
-						currentX += cellWidth;
-					}
-				}
-
-				// Draw the units (only there if wtxt > 0 from above)
-				if (unitWidth > 0) {
-					int start = (viewx + aViewWidth - unitWidth);
-					aText.draw(unitName, start, (int) (top - renderY));
-				}
-				aText.end3DRendering();
-
-
-			} finally {
-				if (projectionPushed) {
-					gl.glMatrixMode(GL.GL_PROJECTION);
-					gl.glPopMatrix();
-				}
-				if (modelviewPushed) {
-					gl.glMatrixMode(GL.GL_MODELVIEW);
-					gl.glPopMatrix();
-				}
-				if (attribsPushed) {
-					gl.glPopAttrib();
-				}
-			}
+		// Leave quickly if no color map
+		if (myColorMap == null) {
+			return;
 		}
+
+		drawer d = new drawer(gl, aViewWidth, aViewHeight, opacity);
+		GLUtil.pushOrtho2D(gl, aViewWidth, aViewHeight);
+		paintColorKey(d, aViewWidth);
+		GLUtil.popOrtho2D(gl);
 	}
 
-	public FontMetrics getFontMetrics(Font forFont, Graphics2D g) {
-		// Humm..do this everytime or cache it?
-		FontMetrics fm;
-		// No graphics if openGL.  'Could' pass a component down from above
-		if (g == null) {
-			BufferedImage bi = new BufferedImage(5, 5, BufferedImage.TYPE_INT_RGB);
-			fm = bi.getGraphics().getFontMetrics(forFont);
+	private void paintColorKey(drawer d, int w) {
+
+		// Metrics calculations
+		Font font = getFont();
+		FontMetrics metrics = d.getFontMetrics(font);
+		int textHeight = metrics.getMaxAscent() + metrics.getMaxDescent();
+		int ty = metrics.getMaxAscent() + (hTextPadding / 2);
+		int cellHeight = textHeight + hTextPadding;
+
+		ColorMapOutput hi = new ColorMapOutput();
+		ColorMapOutput lo = new ColorMapOutput();
+
+		// Width of unit text
+		int unitWidth = 0;
+		//String unitName = myColorMap.getUnits();
+		String unitName = getUnits();
+		if ((unitName != null) && (unitName.length() > 0)) {
+			unitWidth = metrics.stringWidth(unitName) + 2;
 		} else {
-			fm = g.getFontMetrics(forFont);
+			unitWidth = 0;
 		}
-		return fm;
+
+		// Calculate height
+		int barwidth = Math.max(w - unitWidth, 1);
+		int aSize = myColorMap.getNumberOfBins();
+		int cellWidth = barwidth > 0 ? barwidth / aSize : 1;
+		barwidth = cellWidth * aSize;
+
+		double currentX = 0.0;
+		double y = 0.0;
+
+		// Erase square of colormap
+		d.drawBackground(0.0, y, w, cellHeight);
+
+		// Draw the boxes of the color map....
+		if (aSize > 0) {
+			d.startBins();
+			for (int i = 0; i < aSize; i++) {
+
+				myColorMap.getUpperBoundColor(hi, i);
+				myColorMap.getLowerBoundColor(lo, i);
+
+				d.drawBin(lo, hi, currentX, y, cellWidth, cellHeight);
+				currentX += cellWidth;
+			}
+			d.endBins();
+		}
+
+		// Draw the text labels for bins
+		d.startLabels(font);
+		boolean drawText = myShowLabels && (barwidth >= 100);
+		int viewx = 0;
+		if (drawText) {
+			currentX = viewx;
+			int extraXGap = 7; // Force at least these pixels
+			// between labels
+			double drawnToX = viewx;
+			for (int i = 0; i < aSize; i++) {
+				String label = myColorMap.getBinLabel(i);
+				int wtxt = metrics.stringWidth(label);
+
+				// Sparse draw, skipping when text overlaps
+				if (currentX >= drawnToX) {
+
+					// Don't draw if text sticks outside box
+					if (currentX + wtxt < (viewx + barwidth)) {
+
+						d.drawLabel(font, label, currentX, y + ty);
+						drawnToX = currentX + wtxt + extraXGap;
+					}
+				}
+
+				currentX += cellWidth;
+			}
+		}
+		// Draw the units, only there if unitWidth > 0
+		if (unitWidth > 0) {
+			int start = (viewx + w - unitWidth);
+			d.drawLabel(font, unitName, start, y + ty);
+		}
+		d.endLabels();
+
 	}
 
 	public Font getFont() {
 		return new Font("Arial", Font.PLAIN, 12);
-		// Font.decode("Arial-PLAIN-12"); // shared with opengl code
 	}
 
 	/**
@@ -445,7 +437,7 @@ public class ColorMapRenderer implements Feature3DRenderer {
 	 * to render. It shadows by shifting the text 1 pixel in every
 	 * direction. Not very fast, but color keys are more about looks.
 	 */
-	public void cheezyOutline(Graphics2D g, int x, int y, TextLayout t) {
+	public static void cheezyOutline(Graphics2D g, int x, int y, TextLayout t) {
 
 		// Draw a 'grid' of background to shadow the character....
 		// We can get away with this because there aren't that many labels
@@ -485,17 +477,29 @@ public class ColorMapRenderer implements Feature3DRenderer {
 	@Override
 	public void draw(DrawContext dc, FeatureMemento m) {
 
-		// Should use info from the memento...
-		ProductManager man = ProductManager.getInstance();
-		ColorMap aColorMap = man.getCurrentColorMap();
-		setColorMap(aColorMap);
 
+		// Grab the first product map of first rendered
+		ColorMap aColorMap = null;
+		String units = "";
+		ProductManager man = ProductManager.getInstance();
+		java.util.List<ProductFeature> l = man.getProductFeatures();
+		for (ProductFeature current : l) {
+			if (current.wouldRender()) {
+				// Just the first color map for now at least
+				aColorMap = current.getProduct().getColorMap();
+				units = current.getProduct().getCurrentUnits();
+				break;
+			}
+		}
+		setColorMap(aColorMap);
+		setUnits(units);
+		
 		// Pass in viewport to avoid getting width from context, since it
 		// could be wrong for lightweight
 		java.awt.Rectangle viewport = dc.getView().getViewport();
 		Boolean on = m.getProperty(LegendMemento.SHOWLABELS);
 		setLabels(on);
-		paintToOpenGL(dc.getGL(), viewport.width, viewport.height, .6f);
+		paintToOpenGL(dc.getGL(), viewport.width, viewport.height, 1.0f);
 	}
 
 	private void setLabels(Boolean on) {

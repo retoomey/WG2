@@ -90,7 +90,7 @@ public class Product {
     protected final SubtypeType mySubtypeType;
     protected DataRequest myDataRequest = null;
     /** Units of the actual data, if known  */
-    protected String myDataUnits = "Data";
+    protected String myDataUnits = "";
     // FIXME: need to sync access to this probably...
     protected TreeMap<String, Object> myHelperObjects = new TreeMap<String, Object>();
     // We're going to hide the record details

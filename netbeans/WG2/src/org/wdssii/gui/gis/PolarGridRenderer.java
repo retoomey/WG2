@@ -40,8 +40,8 @@ import org.wdssii.util.RadialUtil;
  * @author Robert Toomey
  *
  * Render a PolarGrid, a collection of ranged circles around a center point
- * FIXME:  worried about polygonData lock being possibly called out of order
- * from workerlock...hummm..check this.
+ * FIXME: worried about polygonData lock being possibly called out of order from
+ * workerlock...hummm..check this.
  *
  */
 public class PolarGridRenderer implements Feature3DRenderer {
@@ -53,9 +53,9 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	private final Object drawLock = new Object(); // Lock 2 (second)
 	/**
 	 * Offset array, one per Polygon
-	 * 
+	 *
 	 * I'm allowing appending to this object by one thread while reading
-	 * from another.  
+	 * from another.
 	 */
 	private GrowList<Integer> myOffsets;
 	/**
@@ -123,11 +123,11 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			int idx = 0;
 
 			//	int myMaxR = 500; // firstgate+(numgates*gatewidth)....for a radialset
-			int range = (Integer)p.getProperty(PolarGridMemento.RING_RANGE);
+			int range = (Integer) p.getProperty(PolarGridMemento.RING_RANGE);
 			int ringApart = range / 1000;
 			//		int numCircles;
 			int numCircles = (Integer) p.getProperty(PolarGridMemento.RING_COUNT);
-			log.debug("CREATING with number of rings..."+numCircles);
+			log.debug("CREATING with number of rings..." + numCircles);
 			if (numCircles < 1) {
 				numCircles = 1;
 			} // HAVE to have at least one
@@ -135,14 +135,14 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			LatLon center = p.getProperty(PolarGridMemento.CENTER);
 			Location ourCenter = new Location(center.getLatitude().degrees,
 				center.getLongitude().degrees, 0);
-			log.debug("Center is at "+ourCenter);
+			log.debug("Center is at " + ourCenter);
 
 //			if (ringApart > myMaxR) {
 //				numCircles = 1;
 //			} else {
 //				numCircles = (int) (0.5 + ((float) myMaxR) / ringApart);
 //			}
-			double elev = (Double)p.getProperty(PolarGridMemento.ELEV_DEGREES);
+			double elev = (Double) p.getProperty(PolarGridMemento.ELEV_DEGREES);
 			final double sinElevAngle = Math.sin(Math.toRadians(elev));
 			final double cosElevAngle = Math.cos(Math.toRadians(elev));
 			final int numSegments = 10;
@@ -279,13 +279,13 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			return true;
 		}
 		// If rings change we need a new worker...
-		int newRing = (Integer)new1.getProperty(PolarGridMemento.RING_COUNT);
-		int oldRing = (Integer)old.getProperty(PolarGridMemento.RING_COUNT);
+		int newRing = (Integer) new1.getProperty(PolarGridMemento.RING_COUNT);
+		int oldRing = (Integer) old.getProperty(PolarGridMemento.RING_COUNT);
 		if (newRing != oldRing) {
 			needsUpdate = true;
 		}
-		int newRange = (Integer)new1.getProperty(PolarGridMemento.RING_RANGE);
-		int oldRange = (Integer)old.getProperty(PolarGridMemento.RING_RANGE);
+		int newRange = (Integer) new1.getProperty(PolarGridMemento.RING_RANGE);
+		int oldRange = (Integer) old.getProperty(PolarGridMemento.RING_RANGE);
 		if (newRange != oldRange) {
 			needsUpdate = true;
 		}
@@ -357,7 +357,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 		synchronized (drawLock) {
 			if (isCreated() && (polygonData != null)) {
 				GL gl = dc.getGL();
-                                Color line = (Color)m.getProperty(PolarGridMemento.LINE_COLOR);
+				Color line = (Color) m.getProperty(PolarGridMemento.LINE_COLOR);
 				final float r = line.getRed() / 255.0f;
 				final float g = line.getGreen() / 255.0f;
 				final float b = line.getBlue() / 255.0f;
@@ -408,51 +408,35 @@ public class PolarGridRenderer implements Feature3DRenderer {
 					}
 				}
 
-				try {
-					// Pre non-opengl first...
-					TextRenderer aText = null;
-					Font font = new Font("Arial", Font.PLAIN, 14);
-					if (aText == null) {
-						aText = new TextRenderer(font, true, true);
-					}
-					Globe myGlobe = dc.getGlobe();
-					Rectangle2DIntersector i = new Rectangle2DIntersector();
-					// Get the iterator for the object updated LAST
-					Iterator<Vec4> points = myLabelPoints.iterator();
-					Iterator<String> strings = myLabelStrings.iterator();
-					final View myView = dc.getView();
+				// Pre non-opengl first...
+				TextRenderer aText = null;
+				Font font = new Font("Arial", Font.PLAIN, 14);
+				if (aText == null) {
+					aText = new TextRenderer(font, true, true);
+				}
+				Globe myGlobe = dc.getGlobe();
+				Rectangle2DIntersector i = new Rectangle2DIntersector();
+				// Get the iterator for the object updated LAST
+				Iterator<Vec4> points = myLabelPoints.iterator();
+				Iterator<String> strings = myLabelStrings.iterator();
+				final View myView = dc.getView();
 
-					gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT
-						| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT
-						| GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
-						| GL.GL_CURRENT_BIT);
-					attribsPushed = true;
-					gl.glEnable(GL.GL_BLEND);
-					gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-					gl.glDisable(GL.GL_DEPTH_TEST);
 
-					GLUtil.pushOrtho2D(dc);
-					gl.glDisable(GL.GL_TEXTURE_2D); // no textures
-					gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
-					aText.begin3DRendering();
-					while (strings.hasNext()) {
-						final Vec4 v = points.next();
-						final String l = strings.next();
-						final Vec4 s = myView.project(v);
-						Rectangle2D bounds = aText.getBounds(l);
-						bounds.setRect(bounds.getX() + s.x, bounds.getY() + s.y,
-							bounds.getWidth(), bounds.getHeight());
-						if (!i.intersectsAdd(bounds)) {
-							GLUtil.cheezyOutline(aText, l, Color.WHITE, Color.BLACK, (int) s.x, (int) s.y);
-						}
-					}
-					aText.end3DRendering();
-				} finally {
-					GLUtil.popOrtho2D(dc);
-					if (attribsPushed) {
-						gl.glPopAttrib();
+				GLUtil.pushOrtho2D(dc);
+				aText.begin3DRendering();
+				while (strings.hasNext()) {
+					final Vec4 v = points.next();
+					final String l = strings.next();
+					final Vec4 s = myView.project(v);
+					Rectangle2D bounds = aText.getBounds(l);
+					bounds.setRect(bounds.getX() + s.x, bounds.getY() + s.y,
+						bounds.getWidth(), bounds.getHeight());
+					if (!i.intersectsAdd(bounds)) {
+						GLUtil.cheezyOutline(aText, l, Color.WHITE, Color.BLACK, (int) s.x, (int) s.y);
 					}
 				}
+				aText.end3DRendering();
+				GLUtil.popOrtho2D(dc);
 			}
 		}
 	}

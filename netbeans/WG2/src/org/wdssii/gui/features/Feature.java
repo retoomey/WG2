@@ -4,6 +4,10 @@ import gov.nasa.worldwind.render.DrawContext;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
+import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.commands.FeatureChangeCommand;
+import org.wdssii.properties.Memento;
+import org.wdssii.properties.Mementor;
 
 /**
  * Feature will be anything that we display in a window. A feature will be
@@ -14,7 +18,7 @@ import javax.swing.JTextField;
  *
  * @author Robert Toomey
  */
-public class Feature {
+public class Feature implements Mementor {
 
 	/**
 	 * Used to get information back from a Feature factory to put into the
@@ -89,12 +93,22 @@ public class Feature {
 		}
 	}
 
+	/** Called when property of our memento is changed */
+	@Override
+	public void propertySetByGUI(String name, Memento m) {
+		FeatureMemento fm = (FeatureMemento)(m); // Check it
+		FeatureChangeCommand c = new FeatureChangeCommand(this, fm);
+		CommandManager.getInstance().executeCommand(c, true);
+	}
+
+
 	/**
 	 * Get a new memento copy of our settings. This is for modifying and sending
 	 * back to us to change a setting
 	 *
 	 * @return
 	 */
+	@Override
 	public FeatureMemento getNewMemento() {
 		FeatureMemento m = new FeatureMemento(mySettings);
 		return m;
@@ -103,6 +117,7 @@ public class Feature {
 	/**
 	 * Get our actual settings
 	 */
+	@Override
 	public FeatureMemento getMemento() {
 		return mySettings;
 	}

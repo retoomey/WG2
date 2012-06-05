@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import javax.swing.*;
@@ -13,18 +14,12 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import net.infonode.docking.*;
-import net.infonode.docking.properties.DockingWindowProperties;
-import net.infonode.docking.properties.ViewProperties;
-import net.infonode.docking.properties.ViewTitleBarProperties;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.DockWindow;
-import org.wdssii.gui.SourceManager.SourceCommand;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceFactory;
@@ -32,14 +27,16 @@ import org.wdssii.gui.sources.SourceList;
 import org.wdssii.gui.swing.*;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
+import org.wdssii.gui.views.WdssiiSDockedViewFactory.SDockView;
+import org.wdssii.xml.Tag;
+import org.wdssii.xml.config.Tag_sources;
 
 /**
- * SourcesView. Lots of duplicate code with FeaturesView, should probably break
- * up the code refactor here...
+ * SourcesView.
  *
  * @author Robert Toomey
  */
-public class SourcesView extends JThreadPanel implements CommandListener {
+public class SourcesView extends JThreadPanel implements SDockView, CommandListener {
 
 	public static final String ID = "wdssii.SourcesView";
 	private static Logger log = LoggerFactory.getLogger(SourcesView.class);
@@ -61,12 +58,7 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 	/**
 	 * Our factory, called by reflection to populate menus, etc...
 	 */
-	public static class Factory extends WdssiiDockedViewFactory {
-
-		/**
-		 * Create a sub-bock for gui controls, or a split pane
-		 */
-		public static final boolean myDockControls = true;
+	public static class Factory extends WdssiiSDockedViewFactory {
 
 		public Factory() {
 			super("Sources", "brick_add.png");
@@ -76,60 +68,6 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 		public Component getNewComponent() {
 			return new SourcesView(myDockControls);
 		}
-
-		@Override
-		public DockingWindow getNewDockingWindow() {
-			if (!myDockControls) {
-				// Get a single non-docked FeatureView component
-				return super.getNewDockingWindow();
-			} else {
-				Icon i = getWindowIcon();
-				String title = getWindowTitle();
-
-				SourcesView f = new SourcesView(myDockControls);
-
-				// Create a RootWindow in the view.  Anything added to this
-				// will be movable.
-				RootWindow root = DockWindow.createARootWindow();
-				View topWindow = new View(title, i, root);
-
-				// Inside the root window we'll add two views...
-				View controls = new View("Source Controls", i, f.getControlComponent());
-				View select = new View("Selection", i, f);
-
-				// The select is our 'root', so make it non-dragable.  Basically
-				// the main view will be the actual holder for this.  By making it a view,
-				// we allow the other view to be docked above it, etc..
-				ViewProperties vp = select.getViewProperties();
-				ViewTitleBarProperties tp = vp.getViewTitleBarProperties();
-				tp.setVisible(false);
-
-				// Since menu allows changing, make a new window properties
-				DockingWindowProperties org = controls.getWindowProperties();
-				org.setCloseEnabled(false);
-				org.setMaximizeEnabled(false);
-				org.setMinimizeEnabled(false);
-
-				SplitWindow w = new SplitWindow(false, select, controls);
-				w.setDividerLocation(.25f);
-				root.setWindow(w);
-
-				// Add a 'close' listener to our internal root so that if the
-				// control window is closed we redock instead.. (we could close
-				// it but we'll need some control to get it back then)
-				// Add a listener which shows dialogs when a window is closing or closed.
-				root.addListener(new DockingWindowAdapter() {
-
-					@Override
-					public void windowClosing(DockingWindow window)
-						throws OperationAbortedException {
-						window.dock();
-					}
-				});
-
-				return topWindow;
-			}
-		}
 	}
 	private SourceListTableModel mySourceListTableModel;
 	private RowEntryTable jObjects3DListTable;
@@ -137,6 +75,44 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 	private javax.swing.JToolBar jEditToolBar;
 	private javax.swing.JScrollPane jObjectScrollPane;
 	private javax.swing.JLabel jInfoLabel;
+
+	/**
+	 * Get the items for an individual view
+	 */
+	@Override
+	public void addGlobalCustomTitleBarComponents(List addTo) {
+
+		// Interpolation button
+		Icon test = SwingIconFactory.getIconByName("cart_add.png");
+		JPopupMenu menu = new JPopupMenu();
+
+		JMenuItem item;
+		item = new JMenuItem("Add Source...");
+		item.addActionListener(new java.awt.event.ActionListener() {
+
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				addSourceFromDialog(evt);
+			}
+		});
+		menu.add(item);
+
+		item = new JMenuItem("Export Source List...");
+		item.addActionListener(new java.awt.event.ActionListener() {
+
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				exportSourceFromDialog(evt);
+			}
+		});
+		menu.add(item);
+
+
+		JwgDropDownButton b1 = new JwgDropDownButton(test);
+		b1.setToolTipText("Menu options");
+		b1.setMenu(menu);
+		addTo.add(b1);
+	}
 
 	@Override
 	public void updateInSwingThread(Object command) {
@@ -535,27 +511,10 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 	}
 
 	private JToolBar initToolBar() {
-		jEditToolBar = new javax.swing.JToolBar();
-		jEditToolBar.setFloatable(false);
-		jEditToolBar.setRollover(true);
-
-		JButton b = new JButton("+Source");
-		b.setFocusable(false);
-		b.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		b.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-		b.addActionListener(new java.awt.event.ActionListener() {
-
-			@Override
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				addActionPerformed(evt);
-			}
-		});
-		jEditToolBar.add(b);
-
-		return jEditToolBar;
+		return null;
 	}
 
-	private void addActionPerformed(java.awt.event.ActionEvent evt) {
+	private void addSourceFromDialog(java.awt.event.ActionEvent evt) {
 		// Open dialog for single file adding.....
 
 		// FeatureCreateCommand doit = new FeatureCreateCommand("VSlice");
@@ -564,13 +523,18 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 		doSingleProductOpenDialog();
 	}
 
+	private void exportSourceFromDialog(java.awt.event.ActionEvent evt) {
+		// Open dialog for single file adding.....
+		doExportSourceListDialog();
+	}
+
 	private void initComponents(boolean dockControls) {
 
 		setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
 		jInfoLabel = new JLabel("---");
 		JComponent controls = initControlGUI();
 		JComponent selection = initSelectGUI();
-		JComponent toolbar = initToolBar();
+		//JComponent toolbar = initToolBar();
 		JComponent rootComponent;
 		if (!dockControls) {
 			JSplitPane s = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -582,7 +546,7 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 			jObjectScrollPane.setBorder(null);
 		}
 
-		add(toolbar, new CC().dockNorth());
+		//add(toolbar, new CC().dockNorth());
 		add(jInfoLabel, new CC().dockNorth().growX());
 		add(rootComponent, new CC().growX().growY());
 		// growX().growY());
@@ -591,8 +555,14 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 		initTable();
 	}
 
-	public JComponent getControlComponent() {
+	@Override
+	public Component getControlComponent() {
 		return jSourceGUIPanel;
+	}
+
+	@Override
+	public String getControlTitle() {
+		return "Selection";
 	}
 
 	public JComponent getToolBar() {
@@ -642,6 +612,48 @@ public class SourcesView extends JThreadPanel implements CommandListener {
 			d += "Files";
 			return d;
 		}
+	}
+
+	public void doExportSourceListDialog() {
+		// Experimental....begin ability to save stuff...
+		// For the moment, regular java save dialog...
+		// this will be hacked at first, lots to do low level to get this working...
+
+		JFileChooser fileopen = new JFileChooser();
+		fileopen.setFileFilter(new FileFilter() {
+
+			@Override
+			public boolean accept(File f) {
+				String t = f.getName().toLowerCase();
+				// FIXME: need to get these from the Builders
+				return (f.isDirectory() || t.endsWith(".xml"));
+			}
+
+			@Override
+			public String getDescription() {
+				return "XML file containing list of sources";
+			}
+		});
+		fileopen.setDialogTitle("Export Table Selection");
+		int ret = fileopen.showSaveDialog(null);
+		if (ret == JFileChooser.APPROVE_OPTION) {
+			File file = fileopen.getSelectedFile();
+			try {
+				String temp = file.toString();
+				if (!(temp.endsWith(".xml"))) {
+					file = new File(temp + ".xml");
+				}
+				URL aURL = file.toURI().toURL();
+				log.debug("Trying to write output to " + aURL.toString());
+				Tag root = SourceList.theSources.getTag();
+				if (root != null) {
+					root.writeAsRoot(aURL);
+				}
+
+			} catch (MalformedURLException ex) {
+			}
+		}
+
 	}
 
 	/**

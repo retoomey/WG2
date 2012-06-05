@@ -6,6 +6,9 @@ import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.xml.Tag;
+import org.wdssii.xml.config.Tag_source;
+import org.wdssii.xml.config.Tag_sources;
 
 /**
  *  A list of various sources.  Could be WDSSII Index, CFRadial file, etc....
@@ -164,5 +167,53 @@ public class SourceList {
             //}
         }
         return first;
+    }
+
+    /** We generate a Tag for this source list */
+    public Tag getTag(){
+	Tag_sources sources = new Tag_sources();
+	for(Source s:mySources){
+             Tag_source t = new Tag_source();
+	     t.name = s.getVisibleName();
+	     t.url = s.getURLString();
+	     sources.sources.add(t);
+        }
+	return sources;
+    }
+
+    /** Get the visible name of this source */
+    public String getVisibleName(String key){
+        Source s = getSource(key);
+        if (s != null) {
+	   return s.getVisibleName();
+	}
+	return "";
+    }
+
+    /** About to try to connect to a source */
+    public boolean aboutToConnect(String key, boolean start){
+        Source s = getSource(key);
+        if (s != null) {
+	   return s.aboutToConnect(start);
+	}
+	return false;
+
+    }
+
+    /** Connect to a source */
+    public boolean connectSource(String key){
+        Source s = getSource(key);
+        if (s != null) {
+	   return s.connect();
+	}
+	return false;
+    }
+
+    /** Disconnect from a source */
+    public void disconnectSource(String key){
+        Source s = getSource(key);
+        if (s != null) {
+	   s.disconnect();
+	}
     }
 }

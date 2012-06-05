@@ -1,16 +1,13 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.sources.Source;
-import org.wdssii.gui.sources.SourceList;
 
 /**
  * A source is 'selected'.  Usually this just updates GUI controls for this
  * source
  * @author Robert Toomey
  */
-public class SourceSelectCommand extends SourceManager.SourceCommand {
-    private String mySourceKey = null;
+public class SourceSelectCommand extends SourceCommand {
     Source mySource = null;
     
     /** Select an LLHArea by known keyname */
@@ -26,9 +23,9 @@ public class SourceSelectCommand extends SourceManager.SourceCommand {
     @Override
     public boolean execute() {
         if (mySourceKey != null){
-            SourceList.theSources.setSelected(mySourceKey);
+            myList.setSelected(mySourceKey);
         }else{
-            SourceList.theSources.setSelected(mySource);
+            myList.setSelected(mySource);
         }
       //  CommandManager.getInstance().getEarthBall().updateOnMinTime();
         return true;

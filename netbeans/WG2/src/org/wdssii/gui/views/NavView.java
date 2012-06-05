@@ -17,7 +17,6 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.SourceManager.SourceCommand;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;

@@ -6,6 +6,7 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import javax.swing.SwingUtilities;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +34,14 @@ public class Application {
 		// Add the netbeans preference manager
 		PreferencesManager.introduce(new XMLPrefHandler());
 
-		DockWindow.startWindows();
+		// DockWindows are in the swing thread
+		SwingUtilities.invokeLater(new Runnable() {
 
+			@Override
+			public void run() {
+				DockWindow.startWindows();
+			}
+		});
 	}
 
 	public static void main(String[] args) {
@@ -82,17 +89,17 @@ public class Application {
 	/**
 	 * Initialize the logback system. If we're bound to it.
 	 *
-	 * If SLF4J is bound to logback in the current environment, then we manually
-	 * assign the logback.xml file. If deployed as a jar, we put the logback.xml
-	 * in the same directory. I don't want it inside the jar so that it can
-	 * easily be modified for debugging without having to know how to get it
-	 * in/out of the jar. Jars assume the classpath is only the jar typically by
-	 * default.
+	 * If SLF4J is bound to logback in the current environment, then we
+	 * manually assign the logback.xml file. If deployed as a jar, we put
+	 * the logback.xml in the same directory. I don't want it inside the jar
+	 * so that it can easily be modified for debugging without having to
+	 * know how to get it in/out of the jar. Jars assume the classpath is
+	 * only the jar typically by default.
 	 *
 	 * So basically: 1. For deployment there is a user.dir such as
-	 * "WG2-timestamp" and the logback.xml file will be in this folder with the
-	 * deployed jar. 2. For development in the IDE the user.dir will be the root
-	 * IDE folder where I have a debug logback.xml by default.
+	 * "WG2-timestamp" and the logback.xml file will be in this folder with
+	 * the deployed jar. 2. For development in the IDE the user.dir will be
+	 * the root IDE folder where I have a debug logback.xml by default.
 	 */
 	public static String initializeLogger() {
 		String message = null;

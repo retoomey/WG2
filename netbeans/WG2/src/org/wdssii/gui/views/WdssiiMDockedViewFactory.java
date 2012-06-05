@@ -6,11 +6,7 @@ import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import net.infonode.docking.DockingWindow;
-import net.infonode.docking.RootWindow;
-import net.infonode.docking.SplitWindow;
-import net.infonode.docking.TabWindow;
-import net.infonode.docking.View;
+import net.infonode.docking.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.DockWindow;
@@ -18,8 +14,10 @@ import org.wdssii.gui.swing.SwingIconFactory;
 
 /**
  * A docked factory handling adding of new sub-docked Views
- * Handles simple add right now, will probably extend to include layout
- * ability, listing of subviews, etc.
+ * 
+ * Docked windows are all children of a single control window. 
+ * Dynamic windows can be created that are listed/owned by this main docking
+ * window.
  * 
  * @author Robert Toomey
  */
@@ -28,10 +26,7 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
 	private static Logger log = LoggerFactory.getLogger(WdssiiMDockedViewFactory.class);
 
 	/** Interface for creating parts of a multi dock view */
-	public static interface MDockView {
-
-		/** Get the global title controls for the main dock window */
-		public void addGlobalCustomTitleBarComponents(List l);
+	public static interface MDockView extends DockView {
 
 		/** Get the controls for an individual dock window instance */
 		public void addCustomTitleBarComponents(List l);

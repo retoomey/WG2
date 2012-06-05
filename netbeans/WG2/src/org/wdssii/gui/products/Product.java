@@ -20,6 +20,7 @@ import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.products.volumes.IndexRecordVolume;
 import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.sources.SourceList;
 import org.wdssii.index.HistoricalIndex.Direction;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.index.IndexSubType;
@@ -580,7 +581,7 @@ public class Product {
      * @return string
      */
     public String getProductInfoString(boolean full) {
-        String shortName = SourceManager.getInstance().getNiceShortName(getIndexKey());
+        String shortName = SourceList.theSources.getVisibleName(getIndexKey());
         if (full) {
             return (String.format("%s %s %s %s", shortName, getDataType(), getSubType(), getTimeStamp()));
         } else {

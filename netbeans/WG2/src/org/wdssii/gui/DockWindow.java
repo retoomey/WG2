@@ -166,6 +166,11 @@ public class DockWindow {
 	 */
 //	private static RootWindowProperties properties = new RootWindowProperties();
 	private static RootWindowProperties properties = new RootWindowProperties();
+
+	// Seeing a strange intermittent startup bug with properties, checking to see if
+	// it's a sync issue...
+	private static final Object propSync = new Object();
+
 //		PropertiesUtil.createTitleBarStyleRootWindowProperties();
 //	private static RootWindowProperties titleBarStyleProperties = PropertiesUtil.createTitleBarStyleRootWindowProperties();
 	/**
@@ -335,7 +340,9 @@ public class DockWindow {
 			true);
 
 		// Default to the properties global
+		synchronized(propSync){
 		aWindow.getRootWindowProperties().addSuperObject(properties);
+		}
 
 		return aWindow;
 	}
@@ -343,6 +350,7 @@ public class DockWindow {
 	private void setUpGlobalProperties() {
 
 		// Make properties use the theme settings first...
+		synchronized(propSync){
 		properties.addSuperObject(currentTheme.getRootWindowProperties());
 
 		/*
@@ -384,6 +392,7 @@ public class DockWindow {
 		
 		// Lots of default properties to show the 'title bar' in the view
 		setupTitleBarStyleProperties(properties);
+		}
 
 	}
 
@@ -416,7 +425,9 @@ public class DockWindow {
 				true);
 		}
 
+		synchronized(propSync){
 		rootWindow.getRootWindowProperties().addSuperObject(properties);
+		}
 
 		// Enable the bottom window bar
 		rootWindow.getWindowBar(Direction.DOWN).setEnabled(true);
@@ -773,7 +784,9 @@ public class DockWindow {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
+		synchronized(propSync){
 					properties.getDockingWindowProperties().setCloseEnabled(true);
+		}
 				}
 			});
 
@@ -782,7 +795,9 @@ public class DockWindow {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
+		synchronized(propSync){
 					properties.getDockingWindowProperties().setCloseEnabled(false);
+		}
 				}
 			});
 
@@ -814,6 +829,7 @@ public class DockWindow {
 	 */
 	private void freezeLayout(boolean freeze) {
 		// Freeze window operations
+		synchronized(propSync){
 		properties.getDockingWindowProperties().setDragEnabled(!freeze);
 		properties.getDockingWindowProperties().setCloseEnabled(!freeze);
 		properties.getDockingWindowProperties().setMinimizeEnabled(
@@ -828,6 +844,7 @@ public class DockWindow {
 
 		// Freeze tab reordering inside tabbed panel
 		properties.getTabWindowProperties().getTabbedPanelProperties().setTabReorderEnabled(!freeze);
+		}
 	}
 
 	private JToolBar createWindowToolbar() {
@@ -1015,7 +1032,9 @@ public class DockWindow {
 		try {
 			DockingWindowsTheme theme = myWindowThemes[index];
 			if (currentTheme != null) {
+				synchronized(propSync){
 				properties.replaceSuperObject(currentTheme.getRootWindowProperties(), theme.getRootWindowProperties());
+				}
 			}
 			currentTheme = theme;
 			myCurrentThemeIndex = index;

@@ -1,7 +1,6 @@
 package org.wdssii.gui.commands;
 
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.SourceManager.SourceCommand;
 
 /** A source clear command clears all products in the GUI/index/cache of a given source
  * 
@@ -13,7 +12,7 @@ public class SourceClearCommand extends SourceCommand {
     @Override
     public boolean execute() {
 
-        if (validIndexNameOrSelected()) {
+        if (validSourceOrSelected()) {
             String toClear = getSourceKey();
 
             // 1. Remove any products from handler list matching us...

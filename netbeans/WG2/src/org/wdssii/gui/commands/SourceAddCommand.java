@@ -80,6 +80,13 @@ public class SourceAddCommand extends SourceClearCommand {
 	    myParams = params;
     }
 
+    /** Set if dialogs show up or not */
+    public void setConfirmReport(boolean c, boolean r, JComponent root){
+          myUserConfirm = c;
+          myUserReport = r;
+	  myParams.rootWindow = root;
+    }
+
     @Override
     public boolean execute() {
 

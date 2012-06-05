@@ -4,9 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.SourceManager.SourceCommand;
 import org.wdssii.gui.sources.Source;
-import org.wdssii.gui.sources.SourceList;
 
 public class SourceConnectCommand extends SourceCommand {
 
@@ -26,7 +24,7 @@ public class SourceConnectCommand extends SourceCommand {
         final String key = getSourceKey();
         final WdssiiCommand update = this;
         if (key != null) {
-            final Source s = SourceList.theSources.getSource(key);
+            final Source s = myList.getSource(key);
             final String nice = s.getVisibleName();
             //final String nice = SourceManager.getInstance().getNiceShortName(key);
             log.info("Connection attempt being made to source '" + nice + "' (" + key + ")");

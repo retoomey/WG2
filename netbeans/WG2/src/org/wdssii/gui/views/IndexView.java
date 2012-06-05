@@ -860,8 +860,9 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
             // Assuming realtime?  FIXME
             boolean realtime = true;
             boolean connect = true;
-            CommandManager.getInstance().executeCommand(
-                    new SourceAddCommand(name, path, realtime, connect), false);
+            SourceAddCommand c =  new SourceAddCommand(name, path, realtime, connect);
+	    c.setConfirmReport(false, true, this);
+            CommandManager.getInstance().executeCommand(c, false);
         }
     }
 

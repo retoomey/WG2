@@ -14,32 +14,27 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import net.infonode.docking.*;
-import net.infonode.docking.properties.DockingWindowProperties;
-import net.infonode.docking.properties.ViewProperties;
-import net.infonode.docking.properties.ViewTitleBarProperties;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.DockWindow;
-import org.wdssii.gui.gis.MapGUI;
 import org.wdssii.gui.commands.*;
-import org.wdssii.gui.features.*;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.gis.MapFeature;
+import org.wdssii.gui.gis.MapGUI;
 import org.wdssii.gui.gis.PolarGridFeature;
 import org.wdssii.gui.products.ProductFeature;
-import org.wdssii.gui.swing.JThreadPanel;
-import org.wdssii.gui.swing.RowEntryTable;
-import org.wdssii.gui.swing.RowEntryTableModel;
-import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
+import org.wdssii.gui.swing.*;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
+import org.wdssii.gui.views.WdssiiSDockedViewFactory.SDockView;
 
-public class FeaturesView extends JThreadPanel implements CommandListener {
+public class FeaturesView extends JThreadPanel implements SDockView, CommandListener {
 
 	public static final String ID = "wdssii.FeaturesView";
 	private static Logger log = LoggerFactory.getLogger(FeaturesView.class);
@@ -65,12 +60,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 	/**
 	 * Our factory, called by reflection to populate menus, etc...
 	 */
-	public static class Factory extends WdssiiDockedViewFactory {
-
-		/**
-		 * Create a sub-bock for gui controls, or a split pane
-		 */
-		public static final boolean myDockControls = true;
+	public static class Factory extends WdssiiSDockedViewFactory {
 
 		public Factory() {
 			super("Features", "brick_add.png");
@@ -78,65 +68,11 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 
 		@Override
 		public Component getNewComponent() {
-
-			// return the thing that is docked....
-			// This is actually not called since we bypass getNewDockingWindow
 			return new FeaturesView(myDockControls);
 		}
 
-		@Override
-		public DockingWindow getNewDockingWindow() {
-			if (!myDockControls) {
-				// Get a single non-docked FeatureView component
-				return super.getNewDockingWindow();
-			} else {
-				Icon i = getWindowIcon();
-				String title = getWindowTitle();
-
-				FeaturesView f = new FeaturesView(myDockControls);
-
-				// Create a RootWindow in the view.  Anything added to this
-				// will be movable.
-				RootWindow root = DockWindow.createARootWindow();
-				View topWindow = new View(title, i, root);
-
-				// Inside the root window we'll add two views...
-				View controls = new View("Feature Controls", i, f.getControlComponent());
-				View select = new View("Selection", i, f);
-
-				// The select is our 'root', so make it non-dragable.  Basically
-				// the main view will be the actual holder for this.  By making it a view,
-				// we allow the other view to be docked above it, etc..
-				ViewProperties vp = select.getViewProperties();
-				ViewTitleBarProperties tp = vp.getViewTitleBarProperties();
-				tp.setVisible(false);
-
-				// Since menu allows changing, make a new window properties
-				DockingWindowProperties org = controls.getWindowProperties();
-				org.setCloseEnabled(false);
-				org.setMaximizeEnabled(false);
-				org.setMinimizeEnabled(false);
-
-				SplitWindow w = new SplitWindow(false, select, controls);
-				root.setWindow(w);
-
-				// Add a 'close' listener to our internal root so that if the
-				// control window is closed we redock instead.. (we could close
-				// it but we'll need some control to get it back then)
-				// Add a listener which shows dialogs when a window is closing or closed.
-				root.addListener(new DockingWindowAdapter() {
-
-					@Override
-					public void windowClosing(DockingWindow window)
-						throws OperationAbortedException {
-						window.dock();
-					}
-				});
-
-				return topWindow;
-			}
-		}
 	}
+
 	private FeatureListTableModel myFeatureListTableModel;
 	private RowEntryTable jObjects3DListTable;
 	private Feature myLastSelectedFeature = null;
@@ -149,6 +85,62 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 	private javax.swing.JScrollPane jObjectScrollPane;
 	private javax.swing.JScrollPane jControlScrollPane;
 	private javax.swing.JLabel jInfoLabel;
+
+	/**
+	 * Get the items for an individual view
+	 */
+	@Override
+	public void addGlobalCustomTitleBarComponents(List addTo) {
+
+		// Interpolation button
+		Icon test = SwingIconFactory.getIconByName("cart_add.png");
+		JPopupMenu menu = new JPopupMenu();
+
+		JMenuItem item;
+		item = new JMenuItem("Add Slice");
+		item.addActionListener(new java.awt.event.ActionListener() {
+
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				jButton2ActionPerformed(evt);
+			}
+		});
+		menu.add(item);
+
+		item = new JMenuItem("Add Stick");
+		item.addActionListener(new java.awt.event.ActionListener() {
+
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				StickActionPerformed(evt);
+			}
+		});
+		menu.add(item);
+		item = new JMenuItem("Add Map from ESRI shapefile...");
+		item.addActionListener(new java.awt.event.ActionListener() {
+
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				jButton1ActionPerformed(evt);
+			}
+		});
+		menu.add(item);
+
+		item = new JMenuItem("Add Polargrid");
+		item.addActionListener(new java.awt.event.ActionListener() {
+
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				jPolarGridButtonActionPerformed(evt);
+			}
+		});
+		menu.add(item);
+
+		JwgDropDownButton b1 = new JwgDropDownButton(test);
+		b1.setToolTipText("Menu options");
+		b1.setMenu(menu);
+		addTo.add(b1);
+	}
 
 	/**
 	 * Storage for displaying the current feature list
@@ -343,7 +335,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 					Item i = new Item(name, entry);
 					popupmenu.add(i);
 					i.addActionListener(al);
-				}else{
+				} else {
 					String name = "This feature cannot be deleted";
 					Item i = new Item(name, entry);
 					popupmenu.add(i);
@@ -534,62 +526,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 	}
 
 	private JToolBar initToolBar() {
-		jEditToolBar = new javax.swing.JToolBar();
-		jEditToolBar.setFloatable(false);
-		jNewVSliceButton = new javax.swing.JButton("+Slice");
-		jNewStickButton = new javax.swing.JButton("+Stick");
-		jNewMapButton = new javax.swing.JButton("+Map");
-		jNewPolarGridButton = new javax.swing.JButton("+PolarGrid");
-		jEditToolBar.setRollover(true);
-
-		jNewStickButton.setFocusable(false);
-		jNewStickButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		jNewStickButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-		jNewStickButton.addActionListener(new java.awt.event.ActionListener() {
-
-			@Override
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				StickActionPerformed(evt);
-			}
-		});
-
-		jNewVSliceButton.setFocusable(false);
-		jNewVSliceButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		jNewVSliceButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-		jNewVSliceButton.addActionListener(new java.awt.event.ActionListener() {
-
-			@Override
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				jButton2ActionPerformed(evt);
-			}
-		});
-		jEditToolBar.add(jNewStickButton);
-		jEditToolBar.add(jNewVSliceButton);
-
-		jNewPolarGridButton.setFocusable(false);
-		jNewPolarGridButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		jNewPolarGridButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-		jNewPolarGridButton.addActionListener(new java.awt.event.ActionListener() {
-
-			@Override
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				jPolarGridButtonActionPerformed(evt);
-			}
-		});
-		jEditToolBar.add(jNewPolarGridButton);
-
-		jNewMapButton.setFocusable(false);
-		jNewMapButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-		jNewMapButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-		jNewMapButton.addActionListener(new java.awt.event.ActionListener() {
-
-			@Override
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				jButton1ActionPerformed(evt);
-			}
-		});
-		jEditToolBar.add(jNewMapButton);
-		return jEditToolBar;
+		return null;
 	}
 
 	private void initComponents(boolean dockControls) {
@@ -598,7 +535,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 		jInfoLabel = new JLabel("---");
 		JComponent controls = initFeatureControlGUI();
 		JComponent selection = initFeatureSelectGUI();
-		JComponent toolbar = initToolBar();
+	//	JComponent toolbar = initToolBar();
 		JComponent rootComponent;
 		if (!dockControls) {
 			JSplitPane s = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -610,7 +547,7 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 			jObjectScrollPane.setBorder(null);
 		}
 
-		add(toolbar, new CC().dockNorth());
+	//	add(toolbar, new CC().dockNorth());
 		add(jInfoLabel, new CC().dockNorth().growX());
 		add(rootComponent, new CC().growX().growY());
 		// growX().growY());
@@ -619,8 +556,14 @@ public class FeaturesView extends JThreadPanel implements CommandListener {
 		initTable();
 	}
 
-	public JComponent getControlComponent() {
+	@Override
+	public Component getControlComponent() {
 		return jControlScrollPane;
+	}
+
+	@Override
+	public String getControlTitle(){
+		return "Selection";
 	}
 
 	public JComponent getToolBar() {

@@ -1,18 +1,11 @@
 package org.wdssii.gui.commands;
 
-import java.util.ArrayList;
 import java.util.List;
-
-//import org.eclipse.jface.dialogs.IDialogConstants;
-//import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 import org.wdssii.gui.PreferencesManager;
-import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.sources.Source;
-import org.wdssii.gui.sources.SourceList;
-import org.wdssii.index.IndexWatcher;
 
 /** Called by name from WdssiiDynamic
  * 
@@ -67,7 +60,7 @@ public class SourceDeleteCommand extends SourceClearCommand {
         if (doJob) {
             // Get copy of current list...(iteration shouldn't get the ConcurrentModificationError)
             // This is important since we're spawning jobs that delete these
-            List<Source> list = SourceList.theSources.getSourcesCopy();
+            List<Source> list = myList.getSourcesCopy();
             for(Source s:list){
                 deleteSingleSource(s.getKey(), false);
             }
@@ -84,7 +77,7 @@ public class SourceDeleteCommand extends SourceClearCommand {
         boolean showDialog = p.getBoolean(PrefConstants.PREF_showDeleteCommandDialog);
         if (userConfirmAllowed && showDialog) {
 
-            String niceName = SourceManager.getInstance().getNiceShortName(toDelete);
+            String niceName = myList.getVisibleName(toDelete);
             JCheckBox checkbox = new JCheckBox("Do not show this message again.");
             String message = "Disconnect/Remove source " + niceName + "?";
             Object[] params = {message, checkbox};
@@ -103,7 +96,7 @@ public class SourceDeleteCommand extends SourceClearCommand {
             super.execute();
 
             // But we also remove the source completely from display....
-            removeIndexKey(toDelete);
+            removeSource(toDelete);
         }
 
         return doJob; // if job was done, fire GUI update
@@ -112,7 +105,7 @@ public class SourceDeleteCommand extends SourceClearCommand {
     @Override
     public boolean execute() {
         boolean success = false;
-        if (validIndexNameOrSelected()) {
+        if (validSourceOrSelected()) {
             String toDelete = getSourceKey();
             success = deleteSingleSource(toDelete, true);
         }

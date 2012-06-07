@@ -54,10 +54,6 @@ public class IndexWatcher implements HistoryListener {
         return myRealtime;
     }
 
-    public synchronized String getIndexLocation() {
-        return myPath;
-    }
-
     public synchronized String getPath() {
         return myPath;
     }

@@ -61,10 +61,6 @@ public class HistoricalIndex implements IndexRecordListener {
 	 * Set of datatype names to short strings, used to save memory on keys.
 	 */
 	private ArrayList<String> datatypeIntToString = new ArrayList<String>();
-	/**
-	 * Name of the manual, or local file index
-	 */
-	public static final String MANUAL = "LOCALFILES";
 
 	/**
 	 * Query result to gather a subset of records. The GUI uses this to pass
@@ -93,12 +89,7 @@ public class HistoricalIndex implements IndexRecordListener {
 	 */
 	public HistoricalIndex(String path, int aHistorySize) {
 		maxHistorySize = aHistorySize;
-		if (path.equals(MANUAL)) {
-			index = new ManualLoadIndex();
-			index.addRecordListener(this);
-		} else {
-			index = IndexFactory.createIndex(path, this);
-		}
+		index = IndexFactory.createIndex(path, this);
 		fireEvents = true;
 	}
 

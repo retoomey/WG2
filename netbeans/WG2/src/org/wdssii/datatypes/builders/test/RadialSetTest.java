@@ -136,9 +136,8 @@ public class RadialSetTest extends DataTypeTest {
         for (int v = 0; v < myNumVolumes; v++) {
             for (String e : myFakeElevs) {
 
-                String[] changes = new String[]{null};
-                IndexRecord rec = IndexRecord.createIndexRecord(d, paramList, changes, timeString + product + e, indexLocation);
-                index.addRecord(rec);
+           //     IndexRecord rec = IndexRecord.createIndexRecord(d, paramList, timeString + product + e, indexLocation);
+            //    index.addRecord(rec);
                 cal.add(Calendar.SECOND, mySecondsPerElev);
                 d = cal.getTime();
                 timeString = IndexRecord.getStringFromDate(d) + " ";

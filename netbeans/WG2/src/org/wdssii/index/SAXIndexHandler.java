@@ -1,6 +1,8 @@
 package org.wdssii.index;
 
 import java.util.Date;
+import java.util.List;
+import org.wdssii.util.StringUtil;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -99,10 +101,12 @@ public class SAXIndexHandler extends DefaultHandler {
     }
 
     private void addRecord() {
-        String[] paramList = new String[]{params.getText()};
-        String[] changes = new String[]{null};
+	String rawparams = params.getText();
+	List<String> p = StringUtil.splitOnFirst(rawparams, ' ');
+	String builder = p.get(0);
+	String builderParams = p.get(1);
         Date d = IndexRecord.getDateFromString(time.getText(), frac);
-        IndexRecord rec = IndexRecord.createIndexRecord(d, paramList, changes, selections.getText(), index.getIndexLocation());
+        IndexRecord rec = IndexRecord.createIndexRecord(d, builder, builderParams, selections.getText(), index.getIndexLocation());
         index.addRecord(rec);
     }
 }

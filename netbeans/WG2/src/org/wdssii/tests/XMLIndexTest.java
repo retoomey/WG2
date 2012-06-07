@@ -46,7 +46,7 @@ public class XMLIndexTest extends TestCase {
                 + "<selections>20010520-163923 Velocity 01.50 </selections>"
                 + "</item>" + "</codeindex>");
         writer.close();
-        index = new HistoricalIndex("xml:" + file.getAbsolutePath(), 0);
+        //index = new HistoricalIndex("xml:" + file.getAbsolutePath(), 0);
         file.delete();
     }
 

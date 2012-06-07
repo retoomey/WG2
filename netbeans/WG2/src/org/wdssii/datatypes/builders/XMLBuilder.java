@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.XMLInputFactory;
@@ -20,6 +21,7 @@ import org.wdssii.datatypes.builders.xml.ContoursXML;
 import org.wdssii.datatypes.builders.xml.DataTableXML;
 import org.wdssii.datatypes.builders.xml.DataTypeXML;
 import org.wdssii.index.IndexRecord;
+import org.wdssii.util.StringUtil;
 import org.wdssii.xml.Tag_datatype;
 
 /**
@@ -218,14 +220,16 @@ public class XMLBuilder extends Builder {
     }
 
     @Override
-    public URL createURLForRecord(IndexRecord rec, String[] params) {
+    public URL createURLForParams(String params, String indexLocation) {
+
+        List<String> paramList = StringUtil.split(params.trim());
         // Params 0 are of this form for a regular index:
-        // 0 - builder name 'W2ALGS'
-        // 1 - 'GzippedFile' or some other storage type
-        // 2 - Base path such as "http://www/warnings"
-        // 3 - 'xmldata' formatter_name
-        // 4 - short file such as '1999_ktlx.netcdf.gz'
-        String path = params[2] + "/" + params[4];
+        // 0 - 'GzippedFile' or some other storage type
+        // 1 - Base path such as "http://www/warnings"
+        // 2 - 'xmldata' formatter_name
+        // 3 - short file such as '1999_ktlx.netcdf.gz'
+	
+        String path = paramList.get(1) + "/" + paramList.get(3);
         URL url = null;
         try {
             url = new URL(path);

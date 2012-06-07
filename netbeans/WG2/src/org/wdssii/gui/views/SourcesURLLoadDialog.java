@@ -320,6 +320,7 @@ public class SourcesURLLoadDialog extends JDialog implements ActionListener {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setFileFilter(new SourceFileFilter());
 		chooser.setDialogTitle("Open local file");
+		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
 		int returnVal = chooser.showOpenDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {

@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataRequest;
@@ -27,6 +29,8 @@ import org.wdssii.storage.DataManager;
  * 
  */
 public abstract class Builder {
+
+    private static Logger log = LoggerFactory.getLogger(Builder.class);
 
     /** Info snagged from file/URL without reading ALL of it.
      * Used by GUI to pre-fetch Product, Choice and Time (selections) 
@@ -77,6 +81,10 @@ public abstract class Builder {
         public WdssiiJobStatus run(WdssiiJobMonitor monitor) {
             //	monitor.beginTask("DataRequest from "+myIndexRecord.getDataType(), IProgressMonitor.UNKNOWN);
             DataType dt = createDataType(myIndexRecord, monitor);
+	    if (dt == null){
+		   String b =  Builder.this.getClass().getSimpleName();
+		   log.error("Builder "+b+" failed to load this data"); 
+	    }
             myDataRequest.setReady(dt);
             return WdssiiJobStatus.OK_STATUS;
         }
@@ -155,7 +163,7 @@ public abstract class Builder {
      * @param params
      * @return 
      */
-    public URL createURLForRecord(IndexRecord rec, String[] params) {
+    public URL createURLForParams(String params, String indexLocation) {
         return null;  // No idea.
     }
 }

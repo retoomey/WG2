@@ -87,6 +87,7 @@ public abstract class SourceFactory {
 	 * @return factory for this URL, if any
 	 */
 	public static SourceFactory getFactoryForURL(URL aURL){
+		log.debug("Source factory getting factory for "+aURL);
 		SourceFactory worker = null;
 		for (SourceFactory f : factories) {
 	              if (f.canCreateFromURL(aURL)){;

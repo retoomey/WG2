@@ -63,13 +63,16 @@ public class ManualLoadIndex extends Index {
         String[][] aparams = new String[1][];
         aparams[0] = params;
     
-        IndexRecord rec = new IndexRecord(d, selections, aparams);
-        rec.setDataLocationURL(theURL);
-        addRecord(rec);
+       // IndexRecord rec = new IndexRecord(d, selections, aparams);
+       // rec.setDataLocationURL(theURL);
+       // addRecord(rec);
     }
 
     @Override
-    public boolean checkURL(URL url, URL fullurl, TreeMap<String, String> paramMap) {
+    public boolean checkURL(String protocol, URL url, URL fullurl, TreeMap<String, String> paramMap) {
         return true;
     }
+
+    @Override
+    public void loadInitialRecords(){}
 }

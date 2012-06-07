@@ -37,7 +37,10 @@ public class IndexSource extends Source implements HistoryListener {
 
 			boolean canHandle;
 			String t = f.getName().toLowerCase();
-			canHandle = ((t.endsWith(".xml")) || (t.endsWith(".xml.gz")));
+			// FIXME: Many get this from all of the Wdssii Index objects
+			canHandle = ((t.endsWith(".xml")) || 
+				     (t.endsWith(".xml.gz")) ||
+				     (f.isDirectory())); // will use fam to watch for fml files
 			return canHandle;
 		}
 
@@ -122,10 +125,6 @@ public class IndexSource extends Source implements HistoryListener {
 
 	public synchronized String getPath() {
 		return myPath;
-	}
-
-	public synchronized void setPath(String newPath) {
-		myPath = newPath;
 	}
 
 	@Override
@@ -316,6 +315,18 @@ public class IndexSource extends Source implements HistoryListener {
 	 */
 	@Override
 	public String getShownTypeName() {
-		return "W2 Index";
+		String name = "";
+		HistoricalIndex i = getIndex();
+		if (i != null) {
+                     Index anIndex = i.getIndex();
+		     if (anIndex != null){
+			    name= anIndex.getClass().getSimpleName();
+		     }
+		}
+		if (name.isEmpty()){
+			return "W2 Index";
+		}else{
+		    return "W2 Index("+name+")";
+		}
 	}
 }

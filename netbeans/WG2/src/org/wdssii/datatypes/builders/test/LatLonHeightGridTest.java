@@ -114,9 +114,8 @@ public class LatLonHeightGridTest extends DataTypeTest {
         String timeString = IndexRecord.getStringFromDate(d) + " ";
         for (int v = 0; v < myNumVolumes; v++) {
 
-            String[] changes = new String[]{null};
-            IndexRecord rec = IndexRecord.createIndexRecord(d, paramList, changes, timeString + product + "full3D", indexLocation);
-            index.addRecord(rec);
+           // IndexRecord rec = IndexRecord.createIndexRecord(d, paramList, timeString + product + "full3D", indexLocation);
+            //index.addRecord(rec);
             cal.add(Calendar.SECOND, mySecondsPerElev);
             d = cal.getTime();
             timeString = IndexRecord.getStringFromDate(d) + " ";

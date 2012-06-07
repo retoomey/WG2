@@ -2,14 +2,8 @@ package org.wdssii.index;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.TreeMap;
-
+import java.util.Map.Entry;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
@@ -26,140 +20,139 @@ import org.wdssii.core.PrototypeFactory;
  * @version $Id: IndexFactory.java,v 1.3 2009/06/02 20:18:30 lakshman Exp $
  * @see IndexRecord
  */
-public abstract class IndexFactory {
+public class IndexFactory {
 
-    private static Logger log = LoggerFactory.getLogger(IndexFactory.class);
-    private static final PrototypeFactory<Index> myFactory;
+	private static Logger log = LoggerFactory.getLogger(IndexFactory.class);
+	private static final PrototypeFactory<Index> myFactory;
 
-    /**
-     * Create the factory from Index.xml in the xml, OR use a stock set of built
-     * in defaults. This rarely changes, so this allows overriding without
-     * breaking if w2config is missing.
-     */
-    static {
-        myFactory = new PrototypeFactory<Index>(
-                "java/Index.xml");
-        myFactory.addDefault("xml", "org.wdssii.index.XMLIndex");
-        myFactory.addDefault("fam", "org.wdssii.index.FamIndex");
-        myFactory.addDefault("webindex", "org.wdssii.index.WebIndex");
-        myFactory.addDefault("test", "org.wdssii.index.TestIndex");
-    }
-    private static List<Index> toUpdate = new ArrayList<Index>();
-    // FIXME: we're gonna have to steal this and make it controllable (for the GUI)
-    private static TimerTask timerTask = new TimerTask() {
+	/**
+	 * Create the factory from Index.xml in the xml, OR use a stock set of
+	 * built in defaults. This rarely changes, so this allows overriding
+	 * without breaking if w2config is missing.
+	 */
+	static {
+		myFactory = new PrototypeFactory<Index>(
+			"java/Index.xml");
+		myFactory.addDefault("xml", "org.wdssii.index.XMLIndex");
+		myFactory.addDefault("fam", "org.wdssii.index.FamIndex");
+		myFactory.addDefault("webindex", "org.wdssii.index.WebIndex");
+		//    myFactory.addDefault("test", "org.wdssii.index.TestIndex");
+	}
+	private static List<Index> toUpdate = new ArrayList<Index>();
+	// FIXME: we're gonna have to steal this and make it controllable (for the GUI)
+	private static TimerTask timerTask = new TimerTask() {
 
-        @Override
-        public void run() {
-            for (Index index : toUpdate) {
-                index.update();
-            }
-        }
-    };
+		@Override
+		public void run() {
+			for (Index index : toUpdate) {
+				index.update();
+			}
+		}
+	};
 
-    static {
-        new Timer().schedule(timerTask, 1000 * 30, 1000 * 30); // every 30
-        // seconds
-    }
+	static {
+		new Timer().schedule(timerTask, 1000 * 30, 1000 * 30); // every 30
+		// seconds
+	}
 
-    /**
-     * Creates an index. Add listeners using addIndexRecordListener
-     */
-    public static Index createIndex(String url)
-            throws IllegalArgumentException, DataUnavailableException {
-        return createIndex(url, new HashSet<IndexRecordListener>());
-    }
+	/**
+	 * Creates an index. Add listeners using addIndexRecordListener
+	 */
+	public static Index createIndex(String url)
+		throws IllegalArgumentException, DataUnavailableException {
+		return createIndex(url, new HashSet<IndexRecordListener>());
+	}
 
-    /**
-     * convenience function when only one listener needs to be provided.
-     */
-    public static Index createIndex(String url, IndexRecordListener listener)
-            throws IllegalArgumentException, DataUnavailableException {
-        Set<IndexRecordListener> listeners = new HashSet<IndexRecordListener>();
-        listeners.add(listener);
-        return createIndex(url, listeners);
-    }
+	/**
+	 * convenience function when only one listener needs to be provided.
+	 */
+	public static Index createIndex(String url, IndexRecordListener listener)
+		throws IllegalArgumentException, DataUnavailableException {
+		Set<IndexRecordListener> listeners = new HashSet<IndexRecordListener>();
+		listeners.add(listener);
+		return createIndex(url, listeners);
+	}
 
-    /**
-     * Return 'true' if this URL can be read by an index
-     */
-    public static boolean checkURLForIndex(URL aURL) {
-        boolean valid;
-        try {
-            // Get params off the URL..
-            TreeMap<String, String> paramMap = new TreeMap<String, String>();
-            URL baseURL = Index.getParams(aURL, paramMap);
+	/**
+	 * Find the Index that can handle this URL
+	 */
+	public static Index findIndexForURL(URL aURL, boolean createNew) {
+		Index anIndex = null;
+		try {
+			// Get params off the URL..
+			TreeMap<String, String> paramMap = new TreeMap<String, String>();
+			URL baseURL = Index.getParams(aURL, paramMap);
 
-            // Find the protocol
-            String protocol = paramMap.get("p");
-            if (protocol == null) {
-                protocol = paramMap.get("protocol");
-            }
+			// Get the protocol param which is special
+			String protocol = paramMap.get("p");
+			if (protocol == null) {
+				protocol = paramMap.get("protocol");
+			}
 
-	    // We assume no protocol means it is regular xml
-            if (protocol == null) {
-                protocol = "xml"; 
-            }
-            log.info("URL protocol is:" + protocol);
+			// Find first index that can handle this URL
+			String name = null;
+			Iterator<Entry<String, Index>> i = myFactory.iterator();
+			while (i.hasNext()) {
+				Entry<String, Index> item = i.next();
+				Index index = item.getValue();
+				boolean valid = index.checkURL(protocol, baseURL, aURL, paramMap);
+				if (valid) {
+					anIndex = index;
+					name = item.getKey();
+					break;
+				}
+			}
+			if (anIndex == null) {
+				log.error("Don't know how to read data from this URL " + aURL);
+			} else {
+				log.info("Index " + name + " will handle " + aURL);
+			}
 
-            Index prototype = myFactory.getPrototypeMaster(protocol);
-            if (prototype == null) {
-                String error = ("No protocol named " + protocol);
-                log.error(error);
-                throw new IllegalArgumentException(error);
-            }
+			// Create a new index from the prototype. (Basically the index in our
+			// map is just an empty factory)
+			if ((anIndex != null) && createNew) {
+				anIndex = anIndex.newInstance(baseURL, aURL, paramMap, null);
+			}
 
-            valid = prototype.checkURL(baseURL, aURL, paramMap);
-            
-            //Index index = prototype.newInstance(baseURL, aURL, paramMap, listeners);
-            //toUpdate.add(index);
-        } catch (Exception e) {
-            // any exception warn and return gracefully
-            log.error("URL error: " + e.toString());
-            return false;
-        }
-        return valid;
-    }
+		} catch (Exception e) {
+			// any exception warn and return gracefully
+			log.error("Error finding index type for URL:" + e.toString());
+		}
+		return anIndex;
+	}
 
-    /**
-     * Creates an index. Existing records are supplied to the list of listeners
-     */
-    public static Index createIndex(String url,
-            Set<IndexRecordListener> listeners)
-            throws IllegalArgumentException, DataUnavailableException {
+	/**
+	 * Return 'true' if this URL can be read by an index
+	 */
+	public static boolean checkURLForIndex(URL aURL) {
+		Index anIndex = findIndexForURL(aURL, false); // don't create just check
+		return (anIndex != null);
+	}
 
-        // Should we create URL here, or higher up?
-        URL aURL = null;
-        try {
-            aURL = new URL(url);
-        } catch (MalformedURLException e) {
-            log.error("URL Malformed, can't create an index: " + e);
-            return null;
-        }
+	/**
+	 * Creates an index. Existing records are supplied to the list of
+	 * listeners
+	 */
+	public static Index createIndex(String url,
+		Set<IndexRecordListener> listeners)
+		throws IllegalArgumentException, DataUnavailableException {
 
-        // Get params off the URL..
-        TreeMap<String, String> paramMap = new TreeMap<String, String>();
-        URL baseURL = Index.getParams(aURL, paramMap);
-
-        // Find the protocol
-        String protocol = paramMap.get("p");
-        if (protocol == null) {
-            protocol = paramMap.get("protocol");
-        }
-	// We assume no protocol means it is regular xml
-        if (protocol == null) {
-            protocol = "xml"; 
-        }
-        log.info("URL protocol is:" + protocol);
-
-        Index prototype = myFactory.getPrototypeMaster(protocol);
-        if (prototype == null) {
-            String error = ("No protocol named " + protocol);
-            log.error(error);
-            throw new IllegalArgumentException(error);
-        }
-
-        Index index = prototype.newInstance(baseURL, aURL, paramMap, listeners);
-        toUpdate.add(index);
-        return index;
-    }
+		// Should we create URL here, or higher up?
+		URL aURL;
+		try {
+			aURL = new URL(url);
+		} catch (MalformedURLException e) {
+			log.error("URL Malformed, can't create an index: " + e);
+			return null;
+		}
+		// Create a new index
+		Index newIndex = findIndexForURL(aURL, true);
+		if (newIndex != null){
+			newIndex.addRecordListeners(listeners);
+		// Load the initial records...or wait until connection??
+		newIndex.loadInitialRecords();
+		}
+		toUpdate.add(newIndex);
+		return newIndex;
+	}
 }

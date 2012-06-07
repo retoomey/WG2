@@ -14,6 +14,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import org.wdssii.index.IndexRecord;
 import org.wdssii.storage.Array2Dfloat;
 import org.wdssii.storage.Array2DfloatAsTiles;
 import org.wdssii.storage.DataManager;
+import org.wdssii.util.StringUtil;
 
 import ucar.ma2.Array;
 import ucar.ma2.Index;
@@ -60,8 +62,10 @@ public class NetcdfBuilder extends Builder {
      */
     @Override
     public DataType createDataType(IndexRecord rec, WdssiiJobMonitor m) {
+	log.debug("trying to createDataType for IndexRecord "+rec);
         URL url = rec.getDataLocationURL(this);
         if (url == null) {
+	    log.debug("Data location URL is NULL");
             return null;
         }
 
@@ -73,6 +77,7 @@ public class NetcdfBuilder extends Builder {
      */
     public DataType createDataTypeFromURL(URL aURL, WdssiiJobMonitor m) {
 
+	log.debug("reading URL "+aURL.toString());
         if (m != null) {
             m.beginTask("NetcdfBuilder", WdssiiJobMonitor.UNKNOWN);
             m.subTask("Reading " + aURL.toString());
@@ -104,6 +109,7 @@ public class NetcdfBuilder extends Builder {
     private File downloadURLToTempFile(URL aURL, WdssiiJobMonitor m) {
         File localFile = null;
         String path = "";
+	log.debug("trying to make temp file for "+aURL.toString());
         try {
             // read from remote file and store it as uncompressed file,
             // so that netcdf doesn't need to uncompress a copy (saves IO)
@@ -143,6 +149,7 @@ public class NetcdfBuilder extends Builder {
         NetcdfFile ncfile = null;
         DataType obj = null;
 
+	log.debug("trying to netcdf read " +path);
         try {
             m.subTask("Opening " + path);
             log.info("Opening " + path + " for reading");
@@ -384,22 +391,36 @@ public class NetcdfBuilder extends Builder {
      *  @return
      */
     @Override
-    public URL createURLForRecord(IndexRecord rec, String[] params) {
+    public URL createURLForParams(String params, String indexLocation) {
+	List<String> paramList = StringUtil.split(params.trim());
         // Params 0 are of this form for a regular index:
-        // 0 - builder name such as 'netcdf'
-        // 1 - indexLocation such as C:/KTLX/
-        // 2 - Product such as 'Reflectivity'
-        // 3 - Choice such as '05.25'
-        // 4 - short file such as '1999_ktlx.netcdf.gz'
-        StringBuilder path = new StringBuilder(params[1]);
-        for (int i = 2; i < params.length; ++i) {
-            path.append('/').append(params[i]);
-        }
+        // 0 - indexLocation such as C:/KTLX/ or {indexLocation}
+        // 1-N  Each subfolder
+	String path = "";
+
+	int size = paramList.size();
+	for(int i=0;i<size;i++){
+             String use = paramList.get(i);
+
+	     // Force to always be relative path...
+             // some old files have absolute path
+	     if (i == 0){
+		  path = indexLocation;
+	     }else{
+	        path += use;
+	     }
+	     if (i < size-1){
+                path += "/";
+	     }
+	}
 
         URL url = null;
         try {
             url = new URL(path.toString());
+	   // a bit too noisy and slows reading down
+	   // log.error("SUCCESS URL IS "+url.toString());
         } catch (MalformedURLException e) {
+	   //log.error("URL FAILURE "+path);
         }
         return url;
     }

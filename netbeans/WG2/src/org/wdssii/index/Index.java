@@ -5,12 +5,14 @@ import java.net.URL;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
 import org.wdssii.core.DataUnavailableException;
 
 /**
  * the Index class connects to a data source and provides access to real-time
  * products as they come in.
+ * 
+ * FIXME: remove xml requirement from index...could be possible to create
+ * an index that doesn't use xml.  This functionality should be in XMLIndex
  * 
  * @author Lakshman
  * @see IndexRecord
@@ -25,9 +27,8 @@ public abstract class Index {
      */
     public abstract Index newInstance(URL url, URL fullurl, TreeMap<String, String> paramMap, Set<IndexRecordListener> listeners) throws DataUnavailableException;
 
-    
     /** Check URL for reading */
-    public abstract boolean checkURL(URL url, URL fullurl, TreeMap<String, String> paramMap);
+    public abstract boolean checkURL(String protocol, URL url, URL fullurl, TreeMap<String, String> paramMap);
     
     /**
      * The update() method will be called periodically. The implementation is
@@ -36,13 +37,14 @@ public abstract class Index {
     public abstract void update();
     /** Collection of listeners for responding to records */
     private Set<IndexRecordListener> listeners = new TreeSet<IndexRecordListener>();
-    /** Location of the index */
-    private String indexLocation = null;
     /** Last file/access/read of index was good */
     protected boolean lastReadSuccess = false;
     /** Set to true if index is created by GUI
      */
     private static boolean GUIMode = false;
+
+    /** Location of the index */
+    private URL myIndexBase=null;
 
     /**
      * @return is this program interactive?
@@ -69,14 +71,27 @@ public abstract class Index {
 
     /** the directory in which this index.xml or index.lb is located */
     public String getIndexLocation() {
-        return indexLocation;
+	if (myIndexBase != null){
+		return myIndexBase.toString();
+	}else{
+		return "";
+	}
+    }
+
+    /** The index base is used as a 'base' for getting a file by location.
+     * A 'base' could be something like http://www.myserver.com/ktlx
+     * where files are 
+     * http://www.myserver.com/ktlx/reflectivity/file1.tar.gz
+     * @return 
+     */
+    public URL getIndexBase(){
+	    return myIndexBase;
     }
 
     /** Create index with a set of RecordListeners */
     public Index(URL indexLocation, Set<IndexRecordListener> listeners) {
-        if (indexLocation != null) {
-            this.indexLocation = indexLocation.toString();
-        }
+        this.myIndexBase = indexLocation;
+
         if (listeners != null){
             this.listeners = listeners;
         }
@@ -85,6 +100,11 @@ public abstract class Index {
     /** Register a listener to be notified about new records in this index. */
     public void addRecordListener(IndexRecordListener listener) {
         listeners.add(listener);
+    }
+    public void addRecordListeners(Set<IndexRecordListener> listeners) {
+        if (listeners != null){
+            this.listeners = listeners;
+        }
     }
 
     /** Called by subclasses to add record */
@@ -199,5 +219,20 @@ public abstract class Index {
         String currentQuery = servicePath.getQuery();
         String newQuery = (currentQuery.length() == 0) ? query : (currentQuery + '&' + query);
         return new URL(servicePath, currentPath + "?" + newQuery);
+    }
+
+    /** Load the initial records of the index */
+    public abstract void loadInitialRecords();
+
+    /** Is this URL a local file? */
+    public static boolean isLocalFile(URL url) {
+        String scheme = url.getProtocol();
+        return "file".equalsIgnoreCase(scheme) && !hasHost(url);
+    }
+
+    /** Does this URL have a host */
+    public static boolean hasHost(URL url) {
+        String host = url.getHost();
+        return host != null && !"".equals(host);
     }
 }

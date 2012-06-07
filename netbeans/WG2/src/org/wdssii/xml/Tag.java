@@ -276,7 +276,7 @@ public abstract class Tag {
 			processedTag = true;
 			validateTag();
 			if (lastCounter > 0) {
-				log.debug("Tag " + this.tag() + " array " + lastArrayName + " had " + lastCounter + " hits************");
+			//	log.debug("Tag " + this.tag() + " array " + lastArrayName + " had " + lastCounter + " hits************");
 			}
 			cleanUp();
 		}

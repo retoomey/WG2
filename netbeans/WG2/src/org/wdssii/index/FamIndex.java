@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
 import org.wdssii.index.fam.FamIndexHelper;
+import org.wdssii.xml.index.Tag_item;
 
 /**
  * Index that reads a code_index.fam listing
@@ -27,6 +28,14 @@ public class FamIndex extends XMLIndex {
 	private boolean initComplete = false;
 	private final File indexDir;
 	private final FamIndexHelper helper;
+	/**
+	 * The JNotify id of our directory watcher
+	 */
+	private int myJNotifyWatchID;
+	/**
+	 * Do we have a watcher?
+	 */
+	private boolean myJNotifyConnected = false;
 
 	/**
 	 * meant for prototype factory use only.
@@ -39,20 +48,14 @@ public class FamIndex extends XMLIndex {
 
 	@Override
 	public void update() {
-		/*
-		 * if (!initComplete) { return; } lastReadSuccess = false;
-		 * File[] files = helper.getNewFiles(); boolean allRecordsOK =
-		 * true; for (File file : files) { allRecordsOK &=
-		 * addRecord(file); } // We'll assume if we get this far and all
-		 * the records read in we're OK lastReadSuccess = allRecordsOK;
-		 *
-		 */
 	}
 
 	public FamIndex(URL aURL, Set<IndexRecordListener> listeners)
 		throws DataUnavailableException {
 
-		super(aURL, aURL, listeners);
+		super(Index.getParent(aURL), Index.getParent(aURL), listeners);
+		log.error("*****************FAM IN IS " + aURL.toString());
+		log.error("****PARENT IS " + Index.getParent(aURL));
 		helper = null;
 		// We can link to any local directory.
 		// FIXME: could filter directories that don't end in '.fam', but why bother?
@@ -68,42 +71,6 @@ public class FamIndex extends XMLIndex {
 			}
 		}
 		indexDir = temp;
-		/*
-		 * lastReadSuccess = false; this.indexDir = aURL.toString(); try
-		 * { if (log.isInfoEnabled()) { log.info("Reading records from "
-		 * + path.getAbsolutePath() + " indexLocation=" +
-		 * getIndexLocation()); } helper =
-		 * FamIndexHelperFactory.newHelper(); saxParser =
-		 * SAXParserFactory.newInstance().newSAXParser(); // get files
-		 * in directory File[] files =
-		 * helper.getInitialFiles(indexDir.getAbsolutePath()); boolean
-		 * allRecordsOK = true; for (File file : files) { allRecordsOK
-		 * &= addRecord(file); }
-		 *
-		 * // We'll assume if we get this far and all the records read
-		 * in we're OK lastReadSuccess = allRecordsOK; } catch
-		 * (Exception e) { log.error("Failed to load index from " +
-		 * path, e); throw new DataUnavailableException(e); } // avoid
-		 * update() being called before we are complete initComplete =
-		 * true;
-		 */
-	}
-
-	private boolean addRecord(File file) {
-		/*
-		 * InputStream is = null; boolean success = false; try { is =
-		 * new FileInputStream(file); if
-		 * (file.getAbsolutePath().endsWith(".gz")) { is = new
-		 * GZIPInputStream(is); } saxParser.parse(is, new
-		 * SAXIndexHandler(this));
-		 *
-		 * success = true; } catch (Exception e) { log.warn("Unable to
-		 * read " + file, e); } finally { if (is != null) { try {
-		 * is.close(); } catch (Exception e2) { // ok } } } return
-		 * success;
-		 *
-		 */
-		return true;
 	}
 
 	@Override
@@ -132,7 +99,6 @@ public class FamIndex extends XMLIndex {
 		log.debug("FamIndex HANDLE " + url + "," + canHandle);
 		return canHandle;
 	}
-	private int wd;
 
 	private static class test implements JNotifyListener {
 
@@ -164,42 +130,71 @@ public class FamIndex extends XMLIndex {
 			if (baseName.length() < 2 || baseName.charAt(0) == '.') {
 				return false; // hidden file
 			}
-			return baseName.endsWith(".fml");
+			return baseName.toLowerCase().endsWith(".fml");
 		}
 	}
 
 	@Override
 	public void loadInitialRecords() {
-		/*
 		//	throw new UnsupportedOperationException("Not supported yet.");
 		// The 
 		log.debug("FAM WAS CALLED LOAD INITIAL RECORDS>>>>>********");
 		if (indexDir == null) {
-			log.warn("FAM doesn't have a directory to watch");
+			log.warn("no directory to load fml files or to watch");
 			return;
 		}
 
+		connectJNotify();
+		// It's possible JNotify will send messages while we are handling the initial files...
+		// so we'll have to synchronize properly for that case...
+		File[] files = indexDir.listFiles(new FmlFilesOnlyFilter());
+		Arrays.sort(files);
+		int counter = 0;
+		for (File f : files) {
+			Tag_item t = new Tag_item();
+			t.processAsRoot(f);
+			if (t.wasRead()) {
+				if (processItem(t)) {
+					counter++;
+				}
+			}
+		}
+	}
+
+	public void connectJNotify() {
 		// Just find any ".fml" files, sort and add records.
 		try {
 			// JNotify maps IN_CREATE and IN_MOVED_TO to these constants
 			final int mask = JNotify.FILE_CREATED | JNotify.FILE_RENAMED;
-			log.info("adding watch...");
-			this.wd = JNotify.addWatch(indexDir.getAbsolutePath(), mask, false, new test());
-			log.info("Successfully created inotify watch for " + indexDir
-				+ " wd=" + wd);
+			myJNotifyWatchID = JNotify.addWatch(indexDir.getAbsolutePath(), mask, false, new test());
+			log.info("JNotify watch added for " + indexDir + " (" + myJNotifyWatchID + ")");
+			myJNotifyConnected = true;
 		} catch (JNotifyException e) {
-			log.error("Make sure that the jnotify jar file and .so are in Tomcat's shared/lib");
-			log.error(
-				"Otherwise, you could try using WebIndexDirectoryListingDAO instead",
-				e);
-			throw new UnsupportedOperationException(e);
+			log.error("JNotify error connecting to " + indexDir + ", " + e.toString());
 		}
-		// existing files
-		//File[] files = new File(indexDir).listFiles(filenamePattern);
-		log.info("snagging files...");
-		File[] files = indexDir.listFiles(new FmlFilesOnlyFilter());
-		Arrays.sort(files);
-		//return files;
-		* */
+
+	}
+
+	public void disconnectJNotify() {
+		if (myJNotifyConnected) {
+			try {
+				JNotify.removeWatch(myJNotifyWatchID);
+				myJNotifyConnected = false;
+				log.info("JNotify watch removed for " + indexDir + " (" + myJNotifyWatchID + ")");
+			} catch (JNotifyException e) {
+				log.error("JNotify error disconnecting from " + indexDir + ", " + e.toString());
+			} finally {
+				myJNotifyConnected = false;
+				myJNotifyWatchID = -1;
+			}
+		}
+	}
+
+	/**
+	 * We need to remove any JNotify listeners
+	 */
+	@Override
+	public void aboutToDispose() {
+		disconnectJNotify();
 	}
 }

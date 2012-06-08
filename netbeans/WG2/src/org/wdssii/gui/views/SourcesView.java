@@ -592,13 +592,8 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
 		@Override
 		public boolean accept(File f) {
 			String t = f.getName().toLowerCase();
-			// FIXME: need to get these from the Sources, some sort of
-			// Factory
 			boolean canBeHandled = SourceFactory.canAnyHandleFileType(f);
 			return (f.isDirectory() || canBeHandled);
-
-//							|| t.endsWith(".netcdf") || t.endsWith(".nc") || t.endsWith(".netcdf.gz")
-//							|| t.endsWith(".xml") || t.endsWith(".xml.gz"));
 		}
 
 		@Override
@@ -634,7 +629,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
 				return "XML file containing list of sources";
 			}
 		});
-		fileopen.setDialogTitle("Export Table Selection");
+		fileopen.setDialogTitle("Export XML list of sources");
 		int ret = fileopen.showSaveDialog(null);
 		if (ret == JFileChooser.APPROVE_OPTION) {
 			File file = fileopen.getSelectedFile();

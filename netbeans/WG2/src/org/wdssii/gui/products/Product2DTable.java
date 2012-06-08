@@ -49,8 +49,10 @@ public class Product2DTable implements Feature3DRenderer {
 	}
 
 	public void updateTable() {
-		myTableModel.checkDataAvailability();
-		jProductDataTable.repaint();
+		if (myTableModel != null){
+		    myTableModel.checkDataAvailability();
+		    jProductDataTable.repaint();
+		}
 	}
 
 	public void centerToLocation(Location loc) {

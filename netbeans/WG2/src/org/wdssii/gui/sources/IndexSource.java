@@ -131,6 +131,7 @@ public class IndexSource extends Source implements HistoryListener {
 	public synchronized void disconnect() {
 		if (myIndex != null) {
 			myConnected = false;
+			myIndex.aboutToDispose();
 			myIndex = null;
 		}
 	}

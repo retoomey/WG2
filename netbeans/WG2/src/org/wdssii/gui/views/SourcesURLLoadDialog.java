@@ -71,7 +71,7 @@ public class SourcesURLLoadDialog extends JDialog implements ActionListener {
 	public SourcesURLLoadDialog(JFrame frame, boolean modal, String myMessage) {
 		super(frame, modal);
 
-		setTitle("Open Source");
+		setTitle("Open Source by URL Location");
 		Container content = getContentPane();
 
 		JPanel p;
@@ -319,7 +319,7 @@ public class SourcesURLLoadDialog extends JDialog implements ActionListener {
 		URL pickedFile = null;
 		JFileChooser chooser = new JFileChooser();
 		chooser.setFileFilter(new SourceFileFilter());
-		chooser.setDialogTitle("Open local file");
+		chooser.setDialogTitle("Open local file or FAM directory");
 		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
 		int returnVal = chooser.showOpenDialog(null);

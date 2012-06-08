@@ -661,4 +661,13 @@ public class HistoricalIndex implements IndexRecordListener {
 		//
 		return newRecord;
 	}
+
+	/** A clean up message to send when getting rid of */
+	public void aboutToDispose(){
+		if (index != null){
+			index.aboutToDispose();
+		}
+	}
 }
+
+

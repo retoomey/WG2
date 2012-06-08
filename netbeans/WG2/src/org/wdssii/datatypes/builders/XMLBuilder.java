@@ -7,12 +7,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
@@ -229,7 +227,8 @@ public class XMLBuilder extends Builder {
         // 2 - 'xmldata' formatter_name
         // 3 - short file such as '1999_ktlx.netcdf.gz'
 	
-        String path = paramList.get(1) + "/" + paramList.get(3);
+	// Lots of params wasted, it's old legacy data format...
+	String path = indexLocation+"/"+paramList.get(3);
         URL url = null;
         try {
             url = new URL(path);

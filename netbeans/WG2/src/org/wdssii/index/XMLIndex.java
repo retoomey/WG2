@@ -99,7 +99,7 @@ public class XMLIndex extends Index {
 				valid = false;
 			}
 		}
-		log.debug("XMLINDEX HANDLE "+url+","+valid);
+		log.debug("XMLINDEX HANDLE " + url + "," + valid);
 		return valid;
 	}
 
@@ -179,42 +179,8 @@ public class XMLIndex extends Index {
 		if (list != null) {
 			for (Tag_item i : list) {
 
-				// Params are in for format:
-				// buildername {list of params for builder}
-				ArrayList<Tag_params> params = i.paramss;
-				if (params == null) {
-					skipped++;
-					continue;
-				}
-				if (params.size() < 1) {
-					log.error("Missing params in xml item, ignoring record");
-					skipped++;
-					continue;
-				}
-				// FIXME: by doing array we slow down our reading
-				String rawparams = i.paramss.get(0).getText();
-				List<String> p = StringUtil.splitOnFirst(rawparams, ' ');
-				String builder = p.get(0);
-				String builderParams = p.get(1);
-
-				// Get the date from the <time> tag
-				Date d;
-				if (i.time != null) {
-					d = i.time.date;
-				} else {
-					d = new Date();
-				}
-
-				// a common thing in old index files, we just ignore it
-				if (builder.equals("Event")) {
-					skipped++;
-					continue;
-				}
-
-				IndexRecord rec = IndexRecord.createIndexRecord(d, builder, builderParams, i.selections.getText(), getIndexLocation());
-				if (rec != null) {
+				if (processItem(i)) {
 					counter++;
-					this.addRecord(rec);
 				} else {
 					skipped++;
 				}
@@ -222,5 +188,44 @@ public class XMLIndex extends Index {
 		}
 		log.debug("Total records(skipped) read " + counter + "(" + skipped + ")");
 		return counter;
+	}
+
+	public boolean processItem(Tag_item item) {
+		// Params are in for format:
+		// buildername {list of params for builder}
+		ArrayList<Tag_params> params = item.paramss;
+		if (params == null) {
+			return false;
+		}
+		if (params.size() < 1) {
+			log.error("Missing params in xml item, ignoring record");
+			return false;
+		}
+		// FIXME: by doing array we slow down our reading
+		String rawparams = item.paramss.get(0).getText();
+		List<String> p = StringUtil.splitOnFirst(rawparams, ' ');
+		String builder = p.get(0);
+		String builderParams = p.get(1);
+
+		// Get the date from the <time> tag
+		Date d;
+		if (item.time != null) {
+			d = item.time.date;
+		} else {
+			d = new Date();
+		}
+
+		// a common thing in old index files, we just ignore it
+		if (builder.equals("Event")) {
+			return false;
+		}
+
+		IndexRecord rec = IndexRecord.createIndexRecord(d, builder, builderParams, item.selections.getText(), getIndexLocation());
+		if (rec != null) {
+			this.addRecord(rec);
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

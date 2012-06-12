@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.GUISetting;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.VisualCollection;
+import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.commands.ProductLoadCommand;
 import org.wdssii.gui.commands.ProductLoadCommand.ProductLoadCaller;
 import org.wdssii.gui.products.Product;
@@ -79,7 +79,7 @@ public class TimeLooper extends Animator {
         Product prod = ProductManager.getInstance().getTopProduct();
         int myFrames = 0;
         if (prod != null) {
-            VisualCollection v = CommandManager.getInstance().getVisualCollection();
+            AnimateManager v = CommandManager.getInstance().getVisualCollection();
             myFrames = v.getLoopFrames();
             indexKey = prod.getIndexKey();
            // name = prod.getIndexDatatypeString();  // Note this name is lagged behind (time is wrong)

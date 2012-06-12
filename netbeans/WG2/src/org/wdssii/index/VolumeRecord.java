@@ -228,10 +228,10 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
 
         //IndexRecord latestAtSubtype = SourceManager.getRecord(indexKey,
         //		reference, Direction.LatestTime);
-        IndexRecord latestAtSubtype = index.getNextRecord(reference, Direction.LatestTime);
+        IndexRecord latestAtSubtype = index.getRecord(reference, Direction.LatestTime);
         //IndexRecord latestRecord = SourceManager.getRecord(indexKey,
         //		reference, Direction.LatestAllSubTypes);
-        IndexRecord latestRecord = index.getNextRecord(reference, Direction.LatestAllSubTypes);
+        IndexRecord latestRecord = index.getRecord(reference, Direction.LatestAllSubTypes);
 
         if (latestRecord != null) {
 
@@ -251,7 +251,7 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
             while (keepGoing) {
                 //IndexRecord previous = SourceManager.getRecord(indexKey,
                 //		current, Direction.PreviousSubType);
-                IndexRecord previous = index.getNextRecord(current, Direction.PreviousSubType);
+                IndexRecord previous = index.getRecord(current, Direction.PreviousSubType);
                 if ((previous != null)
                         && (mySubtypes.add(previous.getSubType()))) {
                     myList.add(previous);
@@ -311,7 +311,7 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
             while (keepGoing) {
                 //IndexRecord previous = SourceManager.getRecord(indexKey,
                 //		current, Direction.PreviousSubType);				
-                IndexRecord previous = index.getNextRecord(current, Direction.PreviousSubType);
+                IndexRecord previous = index.getRecord(current, Direction.PreviousSubType);
                 if ((previous != null)
                         //&& (previous.getSubType().compareTo(
                         //		current.getSubType()) < 0)) {
@@ -335,7 +335,7 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
             while (keepGoing) {
                 //IndexRecord next = SourceManager.getRecord(indexKey, current,
                 //		Direction.NextSubType);
-                IndexRecord next = index.getNextRecord(current, Direction.NextSubType);
+                IndexRecord next = index.getRecord(current, Direction.NextSubType);
                 if ((next != null) && (mySubtypes.add(next.getSubType()))) {
                     myList.add(next);
                     current = next;

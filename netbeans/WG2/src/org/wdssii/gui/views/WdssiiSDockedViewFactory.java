@@ -63,8 +63,7 @@ public abstract class WdssiiSDockedViewFactory extends WdssiiDockedViewFactory {
 				SDockView s = (SDockView) (f);
 
 				// Add global controls
-				List l = topWindow.getCustomTitleBarComponents();
-				s.addGlobalCustomTitleBarComponents(l);
+				s.addGlobalCustomTitleBarComponents(getCustomTitleBarComponents(topWindow));
 
 				// Inside the root window we'll add two views...
 				View controls = new View(title, i, s.getControlComponent());

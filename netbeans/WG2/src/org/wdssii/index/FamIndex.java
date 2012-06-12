@@ -12,7 +12,6 @@ import net.contentobjects.jnotify.JNotifyListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.DataUnavailableException;
-import org.wdssii.index.fam.FamIndexHelper;
 import org.wdssii.xml.index.Tag_item;
 
 /**
@@ -27,7 +26,6 @@ public class FamIndex extends XMLIndex {
 	private static Logger log = LoggerFactory.getLogger(FamIndex.class);
 	private boolean initComplete = false;
 	private final File indexDir;
-	private final FamIndexHelper helper;
 	/**
 	 * The JNotify id of our directory watcher
 	 */
@@ -43,7 +41,6 @@ public class FamIndex extends XMLIndex {
 	public FamIndex() {
 		super(null, null, null);
 		indexDir = null;
-		helper = null;
 	}
 
 	@Override
@@ -56,7 +53,6 @@ public class FamIndex extends XMLIndex {
 		super(Index.getParent(aURL), Index.getParent(aURL), listeners);
 		log.error("*****************FAM IN IS " + aURL.toString());
 		log.error("****PARENT IS " + Index.getParent(aURL));
-		helper = null;
 		// We can link to any local directory.
 		// FIXME: could filter directories that don't end in '.fam', but why bother?
 		boolean canHandle = false;

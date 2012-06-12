@@ -80,7 +80,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
 	 * Get the items for an individual view
 	 */
 	@Override
-	public void addGlobalCustomTitleBarComponents(List addTo) {
+	public void addGlobalCustomTitleBarComponents(List<Object> addTo) {
 
 		// Interpolation button
 		Icon test = SwingIconFactory.getIconByName("cart_add.png");

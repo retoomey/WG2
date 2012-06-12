@@ -421,6 +421,7 @@ public class HistoricalIndex implements IndexRecordListener {
 	public enum Direction {
 
 		PreviousSubType, // Move to previous time < current (if subtype numeric)
+		PreviousBaseSubType, // Move to the previous time < current (Base such as 0.50)
 		// Move to previous subtype, find closest time <= (if subtype non-numeric)
 		NextSubType, // Move to next time > current (if subtype numeric)
 		// Move to next subtype, find closest time <= (if subtype non-numeric)
@@ -435,7 +436,7 @@ public class HistoricalIndex implements IndexRecordListener {
 	 *
 	 * @return null if no record was found in that direction
 	 */
-	public IndexRecord getNextRecord(IndexRecord start, Direction direction) {
+	public IndexRecord getRecord(IndexRecord start, Direction direction) {
 
 		IndexRecord next = null;
 		if (start != null) {
@@ -464,6 +465,9 @@ public class HistoricalIndex implements IndexRecordListener {
 						}
 					}
 					break;
+					case PreviousBaseSubType:
+						next = getPreviousLowestRecord(start);
+						break;
 					case NextSubType: {
 						SubtypeType mode = IndexSubType.getSubtypeType(start.getSubType());
 						switch (mode) {
@@ -633,7 +637,7 @@ public class HistoricalIndex implements IndexRecordListener {
 		// The 'base' logic. FIXME: this is flawed.
 		// Hunt previous records until we get a subtype above us
 		do {
-			previous = getNextRecord(iter,
+			previous = getRecord(iter,
 				Direction.PreviousSubType);
 			if (previous != null) {
 				prevsubtype = previous.getSubType();

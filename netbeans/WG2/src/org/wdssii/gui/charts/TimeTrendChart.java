@@ -21,11 +21,11 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
-import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.Product.Navigation;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSlice;
@@ -375,7 +375,7 @@ public class TimeTrendChart extends ChartViewJFreeChart {
                         curHeight += deltaHeight;
                     }
                     //Date time = c.getTime(); // time for axis...
-                    c = c.getProduct(NavigationMessage.PreviousTime);
+                    c = c.getProduct(Navigation.PreviousTime);
                 } else {
                     // Fill with missing value???
                     for (int j = 0; j < numberHeight; j++) {

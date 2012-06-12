@@ -18,6 +18,17 @@ import org.wdssii.gui.swing.SwingIconFactory;
 public abstract class WdssiiDockedViewFactory {
 
 	/**
+	 * Util to get the custom title bar components from a DockWindow view,
+	 * We use this to put the forced cast in one place in case future
+	 * version of DockWindows cause a cast exception
+	 */
+	public static List<Object> getCustomTitleBarComponents(View v) {
+		@SuppressWarnings("unchecked")
+		List<Object> l = (List<Object>) v.getCustomTitleBarComponents();
+		return l;
+	}
+
+	/**
 	 * Interface for creating parts of a single dock view
 	 */
 	public static interface DockView {
@@ -25,7 +36,7 @@ public abstract class WdssiiDockedViewFactory {
 		/**
 		 * Get the global title controls for the main dock window
 		 */
-		public void addGlobalCustomTitleBarComponents(List l);
+		public void addGlobalCustomTitleBarComponents(List<Object> l);
 	}
 	/**
 	 * The title of the docking window
@@ -119,8 +130,7 @@ public abstract class WdssiiDockedViewFactory {
 		View v = new View(title, i, p);
 		if (v instanceof DockView) {
 			DockView d = (DockView) (v);
-			List l = v.getCustomTitleBarComponents();
-			d.addGlobalCustomTitleBarComponents(l);
+			d.addGlobalCustomTitleBarComponents(getCustomTitleBarComponents(v));
 		}
 		return v;
 	}

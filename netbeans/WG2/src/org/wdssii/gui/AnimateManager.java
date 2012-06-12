@@ -1,39 +1,32 @@
 package org.wdssii.gui;
 
 import java.util.ArrayList;
-
 import org.wdssii.core.WdssiiJob;
+import org.wdssii.gui.animators.Animator;
 import org.wdssii.gui.animators.Mover3D;
 import org.wdssii.gui.animators.TimeLooper;
-import org.wdssii.gui.animators.Animator;
-import org.wdssii.gui.commands.AnimateCommand.*;
+import org.wdssii.gui.commands.AnimateCommand.AnimateNotifyCancelCommand;
 
-/** A visual collection represents each 'earth ball view' in the display and the unique
- * stuff (our stuff) that's for that ball.  Well it 'will'.  This is an ALPHA class, not finalized yet in design.
- * 
- * Since the EarthBallView eventually can be killed/recreated, this will hold all the data for displaying properly
- * Not sure 100% what to call it. EarthBallMomento maybe? 
- * FIXME:  Decide on this thing.
- * 
- * FIXME: Currently holds the animator job.  For multiple windows this may need to go higher.
+/* Animate manager handles grouping all Animators...
+ * TimeLooper handles looping in the display...
  *  
  * @author Robert Toomey
  *
  */
-public class VisualCollection {
+public class AnimateManager {
 
     public ArrayList<Animator> myAnimatorList = new ArrayList<Animator>();
     /** The number of frames in a product based loop (non-time) */
     private int myLoopFrames = 10;
     /** Sync object for number of frames */
-    private Object myLoopFramesSync = new Object();
+    private final Object myLoopFramesSync = new Object();
     /** The RCP loop job that runs all the animator objects */
     private AnimatorJob myLoopJob = null;
     /** Sync object for the RCP loop job */
-    private Object myLoopJobSync = new Object();
+    private final Object myLoopJobSync = new Object();
 
     /** Create a new visual collection containing the default animators */
-    public VisualCollection() {
+    public AnimateManager() {
         // The basic animator list.  (Could be by reflection or xml)
         // No sync needed in constructor, only we have access to it
         myAnimatorList.add(new TimeLooper());
@@ -136,9 +129,9 @@ public class VisualCollection {
     public static class AnimatorJob extends WdssiiJob {
 
         private int myDwell = 0;
-        private VisualCollection myVisualCollection = null;
+        private AnimateManager myVisualCollection = null;
 
-        public AnimatorJob(VisualCollection v, String name) {
+        public AnimatorJob(AnimateManager v, String name) {
             super(name);
             myVisualCollection = v;
         }
@@ -161,6 +154,7 @@ public class VisualCollection {
 
                 // Yield for at least the dwell time.
                 try {
+		    // Not sure how I can't call this in a loop, some warnings are silly
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                 }

@@ -11,16 +11,17 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
-import org.wdssii.gui.SourceManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.products.volumes.IndexRecordVolume;
 import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.sources.IndexSource;
+import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceList;
+import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.HistoricalIndex.Direction;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.index.IndexSubType;
@@ -73,6 +74,18 @@ public class Product {
 		public ProductTimeWindowAge myState = ProductTimeWindowAge.IN_WINDOW;
 		public long myAgeSeconds = 0;
 		public String myAgeString = "In window";
+	}
+
+	/**
+	 * Ways of navigating from one product to another
+	 */
+	public enum Navigation {
+
+		PreviousSubType, NextSubType, PreviousTime, NextTime, LatestTime, PreviousLowestSubType,
+		LatestUp, // Virtual volume up
+		LatestDown, // Virtual volume down
+		LatestBase, // Virtual volume base
+		SyncCurrent
 	}
 
 	public enum ProductTimeWindowAge {
@@ -275,7 +288,7 @@ public class Product {
 			lr.atRecord = myRecord;
 			// FIXME: this isn't very efficient...make a routine for this
 			if (count > 0) {
-				IndexRecord latestTime = SourceManager.getRecord(myIndexKey, myRecord,
+				IndexRecord latestTime = getRecord(myIndexKey, myRecord,
 					Direction.LatestTime);
 				lr.list.add(latestTime);
 
@@ -288,7 +301,7 @@ public class Product {
 				IndexRecord last = latestTime;
 				for (int i = 1; i < count; i++) {
 					if (last != null) {
-						IndexRecord rec = SourceManager.getRecord(myIndexKey, last,
+						IndexRecord rec = getRecord(myIndexKey, last,
 							Direction.PreviousTime);
 						if (rec != null) {
 							lr.list.add(rec);
@@ -763,7 +776,7 @@ public class Product {
 	 * this routine only works for index-record products that change subtype
 	 * on each IndexRecord...
 	 */
-	public Product getProduct(NavigationMessage nav) {
+	public Product getProduct(Navigation nav) {
 		Product navigateTo = null;
 		IndexRecord newRecord = null; // do it by a record
 		newRecord = peekRecord(nav);
@@ -784,36 +797,36 @@ public class Product {
 	 * @param nav Navigation direction
 	 * @return IndexRecord of direction, if ANY
 	 */
-	public IndexRecord peekRecord(NavigationMessage nav) {
+	public IndexRecord peekRecord(Navigation nav) {
 		IndexRecord newRecord = null;
 
 		switch (nav) {
 
 			// Standard movement by index record
 			case PreviousTime:
-				newRecord = SourceManager.getRecord(myIndexKey, myRecord,
+				newRecord = getRecord(myIndexKey, myRecord,
 					Direction.PreviousTime);
 				break;
 			case NextTime:
-				newRecord = SourceManager.getRecord(myIndexKey, myRecord,
+				newRecord = getRecord(myIndexKey, myRecord,
 					Direction.NextTime);
 				break;
 			case PreviousSubType:
-				newRecord = SourceManager.getRecord(myIndexKey, myRecord,
+				newRecord = getRecord(myIndexKey, myRecord,
 					Direction.PreviousSubType);
 				break;
 			case NextSubType:
-				newRecord = SourceManager.getRecord(myIndexKey, myRecord,
+				newRecord = getRecord(myIndexKey, myRecord,
 					Direction.NextSubType);
 				break;
 			case PreviousLowestSubType:
-				newRecord = SourceManager.getPreviousLatestRecord(myIndexKey,
-					myRecord);
+				newRecord = getRecord(myIndexKey, myRecord,
+					Direction.PreviousBaseSubType);
 				break;
 
 			// Union of latest time and latest virtual volume
 			case LatestTime:
-				newRecord = SourceManager.getRecord(myIndexKey, myRecord,
+				newRecord = getRecord(myIndexKey, myRecord,
 					Direction.LatestTime);
 				break;
 
@@ -943,13 +956,13 @@ public class Product {
 
 		// First try to get the latest record that matches the subtype of the other product,
 		// for example...subtype of other is "0.50" we want to match to it
-		IndexRecord r = SourceManager.getInstance().getRecordLatestUpToDate(
+		IndexRecord r = getRecordLatestUpToDate(
 			myIndexKey, myRecord.getDataType(),
 			someOtherProduct.getSubType(), d);
 
 		if (r == null) {
 			// If the subtype is not found, then try to just match time, but keep OUR subtype
-			r = SourceManager.getInstance().getRecordLatestUpToDate(
+			r = getRecordLatestUpToDate(
 				myIndexKey, myRecord.getDataType(),
 				myRecord.getSubType(), d);
 		}
@@ -968,5 +981,59 @@ public class Product {
 			return r.getProductReadout(p, aRect, dc);
 		}
 		return new ProductReadout();
+	}
+
+	// Given an index key, record and direction, try to get the next record
+	// (used for product navigation)
+	public static IndexRecord getRecord(String indexKey,
+		IndexRecord current, Direction direction) {
+
+		IndexRecord newRecord = null;
+
+		// Bad design still assuming wdssii only sources...
+		// Trying to decide if IndexRecord should exist for everything
+		// or if it will eventually be contained inside something
+		Source s = SourceList.theSources.getSource(indexKey);
+		if (s instanceof IndexSource) { // bad design still
+			HistoricalIndex anIndex = ((IndexSource) s).getIndex();
+			if (anIndex != null) {
+				newRecord = anIndex.getRecord(current, direction);
+				// Do we still need this?
+				if (newRecord != null) {
+					s.getKey();
+					newRecord.setSourceName(s.getKey());
+				}
+			}
+		}
+		return newRecord;
+	}
+
+	// Get latest record up to given time, but not greater (used for product
+	// synchronization
+	// This doesn't use 'direction' because of the extra parameters needed...
+	public IndexRecord getRecordLatestUpToDate(String indexKey,
+		String dataType, String subType, Date time) {
+
+		IndexRecord newRecord = null;
+
+		// Bad design still assuming wdssii only sources...
+		// Trying to decide if IndexRecord should exist for everything
+		// or if it will eventually be contained inside something
+		Source s = SourceList.theSources.getSource(indexKey);
+		if (s instanceof IndexSource) { // bad design still
+			HistoricalIndex anIndex = ((IndexSource) s).getIndex();
+			if (anIndex != null) {
+
+				// First try record matching datatype, subtype and time...
+				newRecord = anIndex.getLatestUpToDate(dataType, subType, time);
+
+				// Do we still need this?
+				if (newRecord != null) {
+					s.getKey();
+					newRecord.setSourceName(s.getKey());
+				}
+			}
+		}
+		return newRecord;
 	}
 }

@@ -861,6 +861,7 @@ public abstract class Tag {
 			} else if (theType.equals("java.util.ArrayList")) {
 
 				try{
+					@SuppressWarnings("unchecked")
 					ArrayList<? extends Tag> a = (ArrayList<? extends Tag>)(f.get(this));
 					for(Tag t:a){
 				            // process these later...

@@ -2,6 +2,8 @@ package org.wdssii.gui.sources;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -400,6 +402,27 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
                 jProductsListTableValueChanged(e);
             }
         });
+
+	myProductsTable.addMouseListener(new MouseAdapter(){
+		  @Override
+		  public void mouseClicked(MouseEvent e){
+			 if(e.getClickCount() == 2){
+				 JTable target = (JTable)e.getSource();
+				 int row = target.getSelectedRow();
+        if (myProductListTableModel != null) {
+            ProductListTableData d = myProductListTableModel.getDataForRow(row);
+	    log.error("BLEH: "+d.datatype);
+        HistoricalIndex anIndex = mySource.getIndex();
+
+        if (anIndex != null) {
+	IndexRecord r = anIndex.getLastRecordByTime(d.datatype);
+
+	}
+
+        } //
+			 } 
+		  }
+	});
 
         myChoicesTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 

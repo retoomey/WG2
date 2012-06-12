@@ -716,7 +716,7 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
         }
         // Finally try to add it.
         if (params != null) {
-            SourceManager.getInstance().addSingleURL(aURL, product, choice, d, params);
+          //  SourceManager.getInstance().addSingleURL(aURL, product, choice, d, params);
             clearInfo();
             JOptionPane.showMessageDialog(this, "Added file to local file index",
                     "Add success", JOptionPane.INFORMATION_MESSAGE);

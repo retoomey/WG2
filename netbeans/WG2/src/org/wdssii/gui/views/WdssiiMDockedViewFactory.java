@@ -29,7 +29,7 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
 	public static interface MDockView extends DockView {
 
 		/** Get the controls for an individual dock window instance */
-		public void addCustomTitleBarComponents(List l);
+		public void addCustomTitleBarComponents(List<Object> l);
 	}
 
 	public WdssiiMDockedViewFactory(String title, String icon) {
@@ -66,7 +66,8 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
 		Icon i = getWindowIcon();
 		View topWindow = new View(title + "s", i, holder);
 		MDockView m = getTempComponent();
-		List l = topWindow.getCustomTitleBarComponents();
+
+		List<Object> l = getCustomTitleBarComponents(topWindow);
 		m.addGlobalCustomTitleBarComponents(l);
 		addCreationButton(l);
 
@@ -94,7 +95,7 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
 		View v = new View(title + "-" + c, i, p);
 		if (p instanceof MDockView) {
 			MDockView m = (MDockView) (p);
-			m.addCustomTitleBarComponents(v.getCustomTitleBarComponents());
+			m.addCustomTitleBarComponents(getCustomTitleBarComponents(v));
 		}
 
 		DockingWindow base = rootW.getWindow();
@@ -122,7 +123,7 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
 	}
 
 	/** Add the standard button on main container that allows creating a new sub-view */
-	public void addCreationButton(List addTo) {
+	public void addCreationButton(List<Object> addTo) {
 
 		JButton test = new JButton();
 		Icon i = SwingIconFactory.getIconByName("brick_add.png");

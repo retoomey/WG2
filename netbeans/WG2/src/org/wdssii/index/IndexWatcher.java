@@ -103,7 +103,6 @@ public class IndexWatcher implements HistoryListener {
                     //myPath = anIndex.getIndexLocation();
                 }
                 myIndex.addHistoryListener(this);
-                ManualLoadIndex m = (ManualLoadIndex)(anIndex);
                 success = true;
             }
         } else {

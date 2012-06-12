@@ -3,7 +3,6 @@ package org.wdssii.gui.products.navigators;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.AnimateCommand;
 import org.wdssii.gui.commands.ProductJumpToCommand;
-import org.wdssii.gui.commands.WdssiiCommand;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveLatestBase;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveLatestDown;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveLatestTime;
@@ -14,6 +13,7 @@ import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousLowestSubTy
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousSubType;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousTime;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveSyncCurrent;
+import org.wdssii.gui.commands.WdssiiCommand;
 
 /** The ProductNavigator is a helper class of Product that handles all navigation
  * stuff in the Navigation view.

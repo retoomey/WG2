@@ -43,7 +43,9 @@ public class PrototypeFactory<X extends Object> {
 		if (!myMap.containsKey(name)) {
 			X theClass;
 			try {
-				theClass = (X) Class.forName(className).newInstance();
+				@SuppressWarnings("unchecked")
+				X tryIt = (X) Class.forName(className).newInstance();
+				theClass = tryIt;
 				register(name, theClass);
 			} catch (Exception e) {
 				log.error(e.toString());

@@ -90,7 +90,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 	 * Get the items for an individual view
 	 */
 	@Override
-	public void addGlobalCustomTitleBarComponents(List addTo) {
+	public void addGlobalCustomTitleBarComponents(List<Object> addTo) {
 
 		// Interpolation button
 		Icon test = SwingIconFactory.getIconByName("cart_add.png");

@@ -31,7 +31,7 @@ public class CommandManager implements Singleton {
 
     private static CommandManager instance = null;
     private static Logger log = LoggerFactory.getLogger(CommandManager.class);
-    private VisualCollection myVisualCollection = new VisualCollection();
+    private AnimateManager myVisualCollection = new AnimateManager();
     public static String CommandPath = "org.wdssii.gui.commands.";
     private final Object myViewLock = new Object();
 
@@ -39,28 +39,6 @@ public class CommandManager implements Singleton {
      We purge null references when we send messages out.
      */
     private TreeMap<String, WeakReference<CommandListener>> myNamedViews = new TreeMap<String, WeakReference<CommandListener>>();
-
-    // You should not create NavigationAction
-    // yourself. Any class method using a NavigationAction must have that
-    // method called from the WorldManager. ActionListeners have no
-    // implied ordering of response, and each listener acts independently
-    // which we do not want (among other issues).
-    // Downside: We couple with this class heavily.
-    // Upside: We couple with this class heavily.
-    // FIXME: These fields will be a superset of the IndexRecord Direction
-    // fields
-    // would be nice to have it automatically do that.
-    // FIXME: These should be subclasses of WDSSIICommand in order to be scriptable
-    public enum NavigationMessage {
-
-        PreviousSubType, NextSubType, PreviousTime, NextTime, LatestTime, PreviousLowestSubType, // the
-        // 'base'
-        LatestUp, // Virtual volume up
-        LatestDown, // Virtual volume down
-        LatestBase, // Virtual volume base
-        SyncCurrent
-        // The 'current' centered record
-    }
 
     private CommandManager() {
         // Exists only to defeat instantiation.
@@ -108,13 +86,8 @@ public class CommandManager implements Singleton {
         }
     }
 
-    /*
-    public void deregisterView(String name, ViewPart aView) {
-    // getEarthBall()s.add(aView);
-    }
-     */
     // Stuff 'per' earth ball.  The EarthBall view isn't really this since it can be created/destoryed
-    public VisualCollection getVisualCollection() {
+    public AnimateManager getVisualCollection() {
         return myVisualCollection;
     }
 
@@ -137,16 +110,6 @@ public class CommandManager implements Singleton {
 
     public void setLayerEnabled(String name, boolean flag) {
         getEarthBall().setLayerEnabled(name, flag);
-    }
-
-    public void cacheManagerNotify() {
-      /*  WdssiiView view = getNamedViewed(CacheView.ID);
-        if (view instanceof CacheView) {
-            CacheView pcv = (CacheView) (view);
-            pcv.update();
-        }
-         * 
-         */
     }
 
     @Override

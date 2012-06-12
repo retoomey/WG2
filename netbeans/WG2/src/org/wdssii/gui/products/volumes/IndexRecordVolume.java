@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
-import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.ProductMoveCommand;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.Product.Navigation;
 import org.wdssii.gui.products.ProductButtonStatus;
 import org.wdssii.gui.sources.IndexSource;
 import org.wdssii.gui.sources.Source;
@@ -299,7 +299,7 @@ public class IndexRecordVolume extends ProductVolume {
 		if (myRootProduct != null) {
 
 			// FIXME: shouldn't be using peekRecord....crap.
-			IndexRecord newRecord = myRootProduct.peekRecord(NavigationMessage.NextSubType);
+			IndexRecord newRecord = myRootProduct.peekRecord(Navigation.NextSubType);
 			if (newRecord != null) {
 				Date aDate = newRecord.getTime();
 				String subtype = newRecord.getSubType();
@@ -351,7 +351,7 @@ public class IndexRecordVolume extends ProductVolume {
 
 		if (myRootProduct != null) {
 
-			IndexRecord newRecord = myRootProduct.peekRecord(NavigationMessage.PreviousSubType);
+			IndexRecord newRecord = myRootProduct.peekRecord(Navigation.PreviousSubType);
 			if (newRecord != null) {
 				Date aDate = newRecord.getTime();
 				String subtype = newRecord.getSubType();

@@ -2,11 +2,9 @@ package org.wdssii.gui.commands;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.CommandManager.NavigationMessage;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.Product.Navigation;
 import org.wdssii.gui.products.ProductButtonStatus;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.index.IndexRecord;
@@ -49,7 +47,7 @@ public class ProductMoveCommand extends ProductCommand {
 
             // Navigation to the top product
             ProductManager.getInstance().navigate(
-                    NavigationMessage.PreviousLowestSubType);
+                    Navigation.PreviousLowestSubType);
             return true;
         }
 
@@ -71,7 +69,7 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public boolean execute() {
             ProductManager.getInstance().navigate(
-                    NavigationMessage.LatestBase);
+                    Navigation.LatestBase);
             return true;
         }
 
@@ -92,7 +90,7 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public boolean execute() {
             ProductManager.getInstance().navigate(
-                    NavigationMessage.LatestUp);
+                    Navigation.LatestUp);
             return true;
         }
 
@@ -113,7 +111,7 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public boolean execute() {
             ProductManager.getInstance().navigate(
-                    NavigationMessage.LatestDown);
+                    Navigation.LatestDown);
             return true;
         }
 
@@ -134,7 +132,7 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public boolean execute() {
             ProductManager.getInstance().navigate(
-                    NavigationMessage.NextSubType);
+                    Navigation.NextSubType);
             return true;
         }
 
@@ -155,7 +153,7 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public boolean execute() {
             ProductManager.getInstance().navigate(
-                    NavigationMessage.PreviousSubType);
+                    Navigation.PreviousSubType);
             return true;
         }
 
@@ -176,7 +174,7 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public boolean execute() {
             ProductManager.getInstance().navigate(
-                    NavigationMessage.PreviousTime);
+                    Navigation.PreviousTime);
             return true;
         }
 
@@ -196,7 +194,7 @@ public class ProductMoveCommand extends ProductCommand {
 
             if (p != null) {
 
-                IndexRecord newRecord = p.peekRecord(NavigationMessage.PreviousTime);
+                IndexRecord newRecord = p.peekRecord(Navigation.PreviousTime);
                 if (newRecord != null) {
                     Date aDate = newRecord.getTime();
                     label = buttonFormat.format(aDate);
@@ -234,7 +232,7 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public boolean execute() {
             ProductManager.getInstance().navigate(
-                    NavigationMessage.SyncCurrent);
+                    Navigation.SyncCurrent);
             return true;
         }
 
@@ -293,7 +291,7 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public boolean execute() {
             ProductManager.getInstance().navigate(
-                    NavigationMessage.NextTime);
+                    Navigation.NextTime);
             return true;
         }
 
@@ -313,7 +311,7 @@ public class ProductMoveCommand extends ProductCommand {
 
             if (p != null) {
 
-                IndexRecord newRecord = p.peekRecord(NavigationMessage.NextTime);
+                IndexRecord newRecord = p.peekRecord(Navigation.NextTime);
                 icon = RIGHT_ARROW_ICON;
                 enabled = false;
 
@@ -354,7 +352,7 @@ public class ProductMoveCommand extends ProductCommand {
         @Override
         public boolean execute() {
             ProductManager.getInstance().navigate(
-                    NavigationMessage.LatestTime);
+                    Navigation.LatestTime);
             return true;
         }
 
@@ -374,7 +372,7 @@ public class ProductMoveCommand extends ProductCommand {
 
             if (p != null) {
 
-                IndexRecord newRecord = p.peekRecord(NavigationMessage.LatestTime);
+                IndexRecord newRecord = p.peekRecord(Navigation.LatestTime);
                 icon = RIGHT_ARROW_END_ICON;
                 enabled = false;
 

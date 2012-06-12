@@ -22,6 +22,7 @@ import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeatureFilter;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.Product.Navigation;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.volumes.ProductVolume;
@@ -30,7 +31,6 @@ import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceList;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.HistoricalIndex;
-import org.wdssii.index.Index;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.xml.*;
 import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
@@ -164,7 +164,7 @@ public class ProductManager implements Singleton {
      * Navigate usually called by the navigation buttons. A button has been
      * clicked, load next product, sync, etc..
      */
-    public void navigate(CommandManager.NavigationMessage message) {
+    public void navigate(Navigation message) {
 
         Product p = getTopProduct();
         if (p == null) {
@@ -322,7 +322,6 @@ public class ProductManager implements Singleton {
         int aSize = myProductCache.getCacheSize();
         PreferencesManager p = PreferencesManager.getInstance();
         p.setValue(PrefConstants.PREF_cacheSize, aSize);
-        CommandManager.getInstance().cacheManagerNotify(); // added product it changed
     }
 
     /**
@@ -891,7 +890,6 @@ public class ProductManager implements Singleton {
                     // Problem with this is if cache size can change on the fly we need to trim
                     // to the new lower size actually.  This only works with new cache == old
                     myProductCache.put(productCacheKey, theProduct);
-                    CommandManager.getInstance().cacheManagerNotify(); // Raised product it changed
                 } else {
                     log.error("Wasn't able to create the product for data.  Nothing will show");
                 }
@@ -899,7 +897,6 @@ public class ProductManager implements Singleton {
                 // Product already found in cache.  Raise it in the LRU to top
             } else {
                 theProduct.updateDataTypeIfLoaded();
-                CommandManager.getInstance().cacheManagerNotify(); // Raised product it changed
             }
         }
         return (theProduct);
@@ -930,7 +927,6 @@ public class ProductManager implements Singleton {
     public void clearProductCache() {
         myProductCache.clear();
         //  myLRUStack.clear();
-        CommandManager.getInstance().cacheManagerNotify(); // added product it changed
     }
 
     /**

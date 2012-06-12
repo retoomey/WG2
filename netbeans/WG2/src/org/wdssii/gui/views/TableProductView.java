@@ -128,12 +128,12 @@ public class TableProductView extends JThreadPanel implements MDockView, Command
 
 	/** Get the items for the view group */
 	@Override
-	public void addGlobalCustomTitleBarComponents(List addTo) {
+	public void addGlobalCustomTitleBarComponents(List<Object> addTo) {
 	}
 
 	/** Get the items for an individual view */
 	@Override
-	public void addCustomTitleBarComponents(List addTo) {
+	public void addCustomTitleBarComponents(List<Object> addTo) {
 		// ---------------------------------------------------------
 		// The product follow menu
 		addTo.add(ProductFollowCommand.getDropButton(this));

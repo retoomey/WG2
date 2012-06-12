@@ -295,7 +295,13 @@ public class FeatureList {
 		while (iter.hasNext()) {
 			Feature f = iter.next();
 			if (f.getClass() == c) {  // Humm subclass won't work, right?
-				holder.add((T) f);
+				try {
+					@SuppressWarnings("unchecked")
+					T tryIt = (T) f;
+					holder.add(tryIt);
+				} catch (Exception e) {
+					// Allow it....
+				}
 			}
 		}
 		return holder;
@@ -311,7 +317,13 @@ public class FeatureList {
 		while (itr.hasPrevious()) {
 			Feature f = itr.previous();
 			if (matcher.matches(f)) {
-				holder = (T) f;
+				try {
+					@SuppressWarnings("unchecked")
+					T tryCast = (T) f;
+					holder = tryCast;
+				} catch (Exception e) {
+					// Allow it...just return null
+				}
 				break;
 			}
 		}

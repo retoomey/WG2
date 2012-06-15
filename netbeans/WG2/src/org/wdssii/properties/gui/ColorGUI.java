@@ -22,7 +22,7 @@ public class ColorGUI extends PropertyGUI {
 		super(f, property);
 		// Create colored button...
 		JButton b = new JButton("     ");
-		b.setBackground((Color) f.getMemento().getProperty(property));
+		b.setBackground((Color) f.getMemento().getPropertyValue(property));
 
 		// Humm is this ok?
 		final JComponent myRoot = dialogRoot;
@@ -44,7 +44,7 @@ public class ColorGUI extends PropertyGUI {
 
 	@Override
 	public void update(Memento use) {
-		value.setBackground((Color) use.getProperty(property));
+		value.setBackground((Color) use.getPropertyValue(property));
 	}
 
 	/**

@@ -66,9 +66,9 @@ public abstract class WdssiiSDockedViewFactory extends WdssiiDockedViewFactory {
 				s.addGlobalCustomTitleBarComponents(getCustomTitleBarComponents(topWindow));
 
 				// Inside the root window we'll add two views...
-				View controls = new View(title, i, s.getControlComponent());
 				String ct = s.getControlTitle();
-				View select = new View(ct, i, f);
+				View controls = new View(ct, i, s.getControlComponent());
+				View select = new View(ct+" selection", i, f);
 
 				// The select is our 'root', so make it non-dragable.  Basically
 				// the main view will be the actual holder for this.  By making it a view,

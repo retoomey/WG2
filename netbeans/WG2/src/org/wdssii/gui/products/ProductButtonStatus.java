@@ -1,7 +1,6 @@
 package org.wdssii.gui.products;
 
 import org.wdssii.gui.commands.WdssiiCommand;
-import org.wdssii.index.IndexRecord;
 
 /** Button status used to update the product navigation buttons.
  * It is up to the navigation GUI to use the IconString and color info
@@ -20,7 +19,6 @@ public class ProductButtonStatus {
     private int myGreen = 0;
     private int myBlue = 0;
     private String myIconString = "";
-    private IndexRecord myRecord = null;
     private WdssiiCommand myCommand = null;
     private boolean myEnabled = true;
 
@@ -59,14 +57,6 @@ public class ProductButtonStatus {
         return myToolTip;
     }
 
-    public void setValidRecord(boolean flag) {
-        myValid = flag;
-    }
-
-    public boolean getValidRecord() {
-        return myValid;
-    }
-
     public void setColor(int red, int green, int blue) {
         myRed = red;
         myGreen = green;
@@ -100,13 +90,5 @@ public class ProductButtonStatus {
 
     public boolean getEnabled() {
         return myEnabled;
-    }
-
-    public void setIndexRecord(IndexRecord record) {
-        myRecord = record;
-    }
-
-    public IndexRecord getIndexRecord() {
-        return myRecord;
     }
 }

@@ -1,13 +1,15 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.CommandManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.AnimateManager;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.ProductButtonStatus;
 
 /** The root class of the animation commands.  This command turns on the animation/loop state of the GUI
  */
 public class AnimateCommand extends WdssiiCommand {
-
+    private static Logger log = LoggerFactory.getLogger(AnimateCommand.class);
     boolean myHaveFlag = false;
     boolean myOn = false;
 
@@ -30,7 +32,6 @@ public class AnimateCommand extends WdssiiCommand {
 
         } else {
             v.toggleLoopEnabled();
-
         }
         return true;
     }

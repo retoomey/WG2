@@ -260,7 +260,7 @@ public class MapRenderer implements Feature3DRenderer {
 
 			if (isCreated() && (polygonData != null)) {
 				GL gl = dc.getGL();
-				Color line = m.getProperty(MapMemento.LINE_COLOR);
+				Color line = m.getPropertyValue(MapMemento.LINE_COLOR);
 				final float r = line.getRed() / 255.0f;
 				final float g = line.getGreen() / 255.0f;
 				final float b = line.getBlue() / 255.0f;
@@ -291,7 +291,7 @@ public class MapRenderer implements Feature3DRenderer {
 						attribsPushed = true;
 						FloatBuffer z = polygonData.getRawBuffer();
 						gl.glColor4f(r,g,b,a);
-						Integer t = m.getProperty(MapMemento.LINE_THICKNESS);
+						Integer t = m.getPropertyValue(MapMemento.LINE_THICKNESS);
 				                gl.glLineWidth(t);
 						GLUtil.renderArrays(dc, z, myOffsets, GL.GL_LINE_LOOP);
 

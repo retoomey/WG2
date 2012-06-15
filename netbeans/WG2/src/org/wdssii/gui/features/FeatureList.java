@@ -53,12 +53,15 @@ public class FeatureList {
 		theFeatures.addFeature(testTwo);
 		Feature legend = new LegendFeature(theFeatures);
 		theFeatures.addFeature(legend);
+		Feature loop = new LoopFeature(theFeatures);
+		theFeatures.addFeature(loop);
 	}
 	/**
 	 * The features we contain. Not adding a public interface here for
 	 * synchronization purposes
 	 */
 	private ArrayList<Feature> myFeatures = new ArrayList<Feature>();
+	private final Object featureSync = new Object();
 
 	public FeatureList() {
 	}
@@ -74,7 +77,9 @@ public class FeatureList {
 	 * Add a new Feature to our list
 	 */
 	public void addFeature(Feature f) {
-		myFeatures.add(f);
+		synchronized (featureSync) {
+			myFeatures.add(f);
+		}
 		setSelected(f);  // When created, select it
 	}
 
@@ -93,10 +98,12 @@ public class FeatureList {
 	 */
 	public void remove3DRenderer(Feature3DRenderer r) {
 		if (r != null) {
-			Iterator<Feature> iter = myFeatures.iterator();
-			while (iter.hasNext()) {
-				Feature f = iter.next();
-				f.removeRenderer(r);
+			synchronized (featureSync) {
+				Iterator<Feature> iter = myFeatures.iterator();
+				while (iter.hasNext()) {
+					Feature f = iter.next();
+					f.removeRenderer(r);
+				}
 			}
 		}
 	}
@@ -111,15 +118,24 @@ public class FeatureList {
 			if (canDelete) {
 				final String group = f.getFeatureGroup();
 				Feature selected = getSelected(group);
-				myFeatures.remove(f);
+				synchronized (featureSync) {
+					myFeatures.remove(f);
+				}
 
 				if (selected == f) {
 					Feature newSelection = getFirstFeature(group);
+					// If deleted last of group, remove group...
 					if (newSelection == null) {
 						mySelections.remove(group);
-					} else {
-						setSelected(newSelection);
+						synchronized (featureSync) {
+							if (myFeatures.size() > 0) {
+								newSelection = myFeatures.get(0);
+							}
+						}
 					}
+					// Select nothing or the new one of the same group...
+					// or the first of all features if group empty...
+					setSelected(newSelection);
 				}
 			} else {
 				log.error("Tried to delete a feature that is not deletable");
@@ -132,9 +148,11 @@ public class FeatureList {
 	 */
 	public void removeFeatures(FeatureFilter filter) {
 		ArrayList<Feature> toDelete = new ArrayList<Feature>();
-		for (Feature f : myFeatures) {
-			if (filter.matches(f)) {
-				toDelete.add(f);
+		synchronized (featureSync) {
+			for (Feature f : myFeatures) {
+				if (filter.matches(f)) {
+					toDelete.add(f);
+				}
 			}
 		}
 		for (Feature f : toDelete) {
@@ -146,11 +164,13 @@ public class FeatureList {
 	 * Get a Feature matching a given key
 	 */
 	public Feature getFeature(String key) {
-		Iterator<Feature> i = myFeatures.iterator();
-		while (i.hasNext()) {
-			Feature f = i.next();
-			if (f.getKey().equals(key)) {
-				return f;
+		synchronized (featureSync) {
+			Iterator<Feature> i = myFeatures.iterator();
+			while (i.hasNext()) {
+				Feature f = i.next();
+				if (f.getKey().equals(key)) {
+					return f;
+				}
 			}
 		}
 		return null;
@@ -175,8 +195,10 @@ public class FeatureList {
 
 		if (f != null) {
 			mySelections.put(f.getFeatureGroup(), f);
-			myFeatures.remove(f);
-			myFeatures.add(f);
+			synchronized (featureSync) {
+				myFeatures.remove(f);
+				myFeatures.add(f);
+			}
 			f.wasSelected();
 		}
 	}
@@ -184,8 +206,10 @@ public class FeatureList {
 	public void setDrawLast(Feature f) {
 		if (f != null) {
 			// Make sure this selected object draws last and over all others
-			myFeatures.remove(f);
-			myFeatures.add(f);
+			synchronized (featureSync) {
+				myFeatures.remove(f);
+				myFeatures.add(f);
+			}
 		}
 	}
 
@@ -204,12 +228,14 @@ public class FeatureList {
 	 * Selected this key for group
 	 */
 	public void setSelected(String key) {
-		Iterator<Feature> i = myFeatures.iterator();
-		while (i.hasNext()) {
-			Feature f = i.next();
-			if (f.getKey().equals(key)) {
-				setSelected(f);
-				break;
+		synchronized (featureSync) {
+			Iterator<Feature> i = myFeatures.iterator();
+			while (i.hasNext()) {
+				Feature f = i.next();
+				if (f.getKey().equals(key)) {
+					setSelected(f);
+					break;
+				}
 			}
 		}
 	}
@@ -226,23 +252,28 @@ public class FeatureList {
 
 	public Feature getFirstFeature(Class c) {
 		Feature first = null;
-		Iterator<Feature> i = myFeatures.iterator();
-		while (i.hasNext()) {
-			Feature f = i.next();
-			if (f.getClass() == c) {
-				first = f;
+		synchronized (featureSync) {
+			Iterator<Feature> i = myFeatures.iterator();
+			while (i.hasNext()) {
+				Feature f = i.next();
+				if (f.getClass() == c) {
+					first = f;
+				}
 			}
 		}
 		return first;
+
 	}
 
 	public Feature getFirstFeature(String g) {
 		Feature first = null;
-		Iterator<Feature> i = myFeatures.iterator();
-		while (i.hasNext()) {
-			Feature f = i.next();
-			if (f.getFeatureGroup().equals(g)) {
-				first = f;
+		synchronized (featureSync) {
+			Iterator<Feature> i = myFeatures.iterator();
+			while (i.hasNext()) {
+				Feature f = i.next();
+				if (f.getFeatureGroup().equals(g)) {
+					first = f;
+				}
 			}
 		}
 		return first;
@@ -264,6 +295,7 @@ public class FeatureList {
 	/**
 	 * Get all visible/onlymode features in a group. All that should be
 	 * shown.
+	 *
 	 */
 	public List<Feature> getActiveFeatureGroup(String g) {
 		ArrayList<Feature> holder = new ArrayList<Feature>();
@@ -277,11 +309,13 @@ public class FeatureList {
 				holder.add(selected);
 			}
 		} else {
-			Iterator<Feature> i = myFeatures.iterator();
-			while (i.hasNext()) {
-				Feature f = i.next();
-				if (f.getVisible() && (f.getFeatureGroup().equals(g))) {
-					holder.add(f);
+			synchronized (featureSync) {
+				Iterator<Feature> i = myFeatures.iterator();
+				while (i.hasNext()) {
+					Feature f = i.next();
+					if (f.getVisible() && (f.getFeatureGroup().equals(g))) {
+						holder.add(f);
+					}
 				}
 			}
 		}
@@ -291,16 +325,18 @@ public class FeatureList {
 
 	public <T> ArrayList<T> getFeatureGroup(Class c) {
 		ArrayList<T> holder = new ArrayList<T>();
-		Iterator<Feature> iter = myFeatures.iterator();
-		while (iter.hasNext()) {
-			Feature f = iter.next();
-			if (f.getClass() == c) {  // Humm subclass won't work, right?
-				try {
-					@SuppressWarnings("unchecked")
-					T tryIt = (T) f;
-					holder.add(tryIt);
-				} catch (Exception e) {
-					// Allow it....
+		synchronized (featureSync) {
+			Iterator<Feature> iter = myFeatures.iterator();
+			while (iter.hasNext()) {
+				Feature f = iter.next();
+				if (f.getClass() == c) {  // Humm subclass won't work, right?
+					try {
+						@SuppressWarnings("unchecked")
+						T tryIt = (T) f;
+						holder.add(tryIt);
+					} catch (Exception e) {
+						// Allow it....
+					}
 				}
 			}
 		}
@@ -313,18 +349,20 @@ public class FeatureList {
 	 */
 	public <T> T getTopMatch(FeatureFilter matcher) {
 		T holder = null;
-		ListIterator<Feature> itr = myFeatures.listIterator(myFeatures.size());
-		while (itr.hasPrevious()) {
-			Feature f = itr.previous();
-			if (matcher.matches(f)) {
-				try {
-					@SuppressWarnings("unchecked")
-					T tryCast = (T) f;
-					holder = tryCast;
-				} catch (Exception e) {
-					// Allow it...just return null
+		synchronized (featureSync) {
+			ListIterator<Feature> itr = myFeatures.listIterator(myFeatures.size());
+			while (itr.hasPrevious()) {
+				Feature f = itr.previous();
+				if (matcher.matches(f)) {
+					try {
+						@SuppressWarnings("unchecked")
+						T tryCast = (T) f;
+						holder = tryCast;
+					} catch (Exception e) {
+						// Allow it...just return null
+					}
+					break;
 				}
-				break;
 			}
 		}
 

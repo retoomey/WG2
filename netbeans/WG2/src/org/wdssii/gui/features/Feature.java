@@ -126,14 +126,14 @@ public class Feature implements Mementor {
 	 * Get visible state
 	 */
 	public Boolean getVisible() {
-		return mySettings.getProperty(FeatureMemento.VISIBLE);
+		return mySettings.getPropertyValue(FeatureMemento.VISIBLE);
 	}
 
 	/**
 	 * Get if can be deleted from FeatureList
 	 */
 	public Boolean getDeletable() {
-		return mySettings.getProperty(FeatureMemento.CAN_DELETE);
+		return mySettings.getPropertyValue(FeatureMemento.CAN_DELETE);
 	}
 
 	/**
@@ -154,7 +154,7 @@ public class Feature implements Mementor {
 	 * Get visible state
 	 */
 	public Boolean getOnlyMode() {
-		return mySettings.getProperty(FeatureMemento.ONLY);
+		return mySettings.getPropertyValue(FeatureMemento.ONLY);
 	}
 
 	/**

@@ -151,8 +151,8 @@ public class LLHArea extends AVListImpl implements Movable {
 
 	/** Called by the Feature to change us */
 	public void setFromMemento(FeatureMemento f) {
-		visible = (Boolean)f.getProperty(FeatureMemento.VISIBLE);
-		only = (Boolean)f.getProperty(FeatureMemento.ONLY);
+		visible = (Boolean)f.getPropertyValue(FeatureMemento.VISIBLE);
+		only = (Boolean)f.getPropertyValue(FeatureMemento.ONLY);
 		if (f instanceof LLHAreaMemento) {
 			setFromMemento((LLHAreaMemento) (f));
 		}

@@ -22,6 +22,14 @@ public class FeatureSelectCommand extends FeatureCommand {
         myFeature = area;
     }
 
+    public Feature getFeature(){
+	    if (myFeature != null){
+		    return myFeature;
+	    }else{
+		    return FeatureList.theFeatures.getFeature(myFeatureKey);
+	    }
+    }
+
     @Override
     public boolean execute() {
         if (myFeature != null){

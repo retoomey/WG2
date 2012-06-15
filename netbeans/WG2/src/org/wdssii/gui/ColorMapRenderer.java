@@ -497,7 +497,7 @@ public class ColorMapRenderer implements Feature3DRenderer {
 		// Pass in viewport to avoid getting width from context, since it
 		// could be wrong for lightweight
 		java.awt.Rectangle viewport = dc.getView().getViewport();
-		Boolean on = m.getProperty(LegendMemento.SHOWLABELS);
+		Boolean on = m.getPropertyValue(LegendMemento.SHOWLABELS);
 		setLabels(on);
 		paintToOpenGL(dc.getGL(), viewport.width, viewport.height, 1.0f);
 	}

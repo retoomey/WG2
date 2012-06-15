@@ -8,10 +8,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A collection of properties that belong together.
- * 
- * Could call this a PropertySet as well.
- * I'm reinventing the wheel here, but haven't found a library I like
- * that does everything I want.
+ *
+ * Could call this a PropertySet as well. I'm reinventing the wheel here, but
+ * haven't found a library I like that does everything I want.
  *
  * @author Robert Toomey
  */
@@ -37,6 +36,13 @@ public class Memento {
 		public Property(Object o, boolean u) {
 			this(o);
 			use = u;
+		}
+
+		/**
+		 * Get the value stored inside us
+		 */
+		public <T extends Object> T getValue() {
+			return (T) value;
 		}
 	}
 	/**
@@ -100,20 +106,24 @@ public class Memento {
 		}
 	}
 
-	public <T extends Object> T getProperty(String key) {
+	public Property getProperty(String key) {
+		return myProperties.get(key);
+	}
+
+	public <T extends Object> T getPropertyValue(String key) {
 		Property f = myProperties.get(key);
 		if (f != null) {
-			// Can't test here because java loses generic information at
-			// compile time...caller is able to test it. I don't consider
-			// it a big deal since the debugger will catch it and it would
-			// be an easy fix.
-			@SuppressWarnings("unchecked")
-			T r = (T) f.value;
+			T r;
+			try {
+				@SuppressWarnings("unchecked")
+				T p = (T) f.getValue();
+				r = p;
+			} catch (Exception e) {
+				r = null;
+			}
 
 			return r;
 		}
 		return null;
 	}
-
-	
 }

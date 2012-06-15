@@ -215,7 +215,6 @@ public class ProductMoveCommand extends ProductCommand {
             }
             status.setButtonText(label);
             status.setToolTip(tip);
-            status.setValidRecord(p != null);
             status.setIconString(icon);
             status.setEnabled(enabled);
             if (useColor) {
@@ -276,7 +275,6 @@ public class ProductMoveCommand extends ProductCommand {
             }
             status.setButtonText(label);
             status.setToolTip(tip);
-            status.setValidRecord(p != null);
             status.setIconString(icon);
             status.setEnabled(enabled);
             if (useColor) {
@@ -336,7 +334,6 @@ public class ProductMoveCommand extends ProductCommand {
             }
             status.setButtonText(label);
             status.setToolTip(tip);
-            status.setValidRecord(p != null);
             status.setIconString(icon);
             status.setEnabled(enabled);
             if (useColor) {
@@ -397,7 +394,6 @@ public class ProductMoveCommand extends ProductCommand {
             }
             status.setButtonText(label);
             status.setToolTip(tip);
-            status.setValidRecord(p != null);
             status.setIconString(icon);
             status.setEnabled(enabled);
             if (useColor) {

@@ -53,7 +53,6 @@ public class ProductJumpToCommand extends ProductCommand {
         }
         status.setButtonText(label);
         status.setToolTip(tip);
-        status.setValidRecord(p != null);
         status.setIconString(ProductMoveCommand.BLANK_FILL_ICON);
         status.setEnabled(enabled);
 

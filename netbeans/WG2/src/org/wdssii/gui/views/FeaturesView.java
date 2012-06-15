@@ -53,7 +53,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
 	@Override
 	public void updateInSwingThread(Object command) {
-		updateTable();
+		updateTable(command);
 		updateLabel();
 	}
 
@@ -380,7 +380,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 		setUpSortingColumns();
 
 		// Initial update (some stuff created on start up statically)
-		updateTable();
+		updateTable(null);
 		updateLabel();
 	}
 	// Disable for now since this does nothing yet
@@ -413,8 +413,19 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 		}
 	}
 
-	public void updateTable() {
+	public void updateTable(Object info) {
 
+		// We only want to change selection when the user directly
+		// changes one, not from other updates like from looping
+		boolean changeSelection = false;
+		Feature fromSelect = null;
+		if (info instanceof FeatureSelectCommand){
+			FeatureSelectCommand c = (FeatureSelectCommand)(info);
+			changeSelection = true;
+			fromSelect = c.getFeature();
+			log.debug("******SELECTCOMMAND "+fromSelect);
+			
+		}
 		final FeatureList flist = FeatureList.theFeatures;
 
 		/**
@@ -447,9 +458,15 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
 		int currentLine = 0;
 		int select = -1;
+		int oldSelect = -1;
 		ArrayList<FeatureListTableData> newList = new ArrayList<FeatureListTableData>();
-		Feature selectedFeature = null;
 		Feature topFeature = flist.getTopSelected();
+		//log.debug("Top selected in was "+topFeature);
+		if (changeSelection){
+		if (fromSelect != topFeature){
+		//	log.error("**********NOT THE SAME "+fromSelect+", "+topFeature);
+		} 
+		}
 
 		for (Feature d : f) {
 			FeatureListTableData d2 = new FeatureListTableData();
@@ -463,12 +480,26 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 			newList.add(d2);
 			if (topFeature == d) {
 				select = currentLine;
-				selectedFeature = d;
+			}
+			if (myLastSelectedFeature == d){
+				oldSelect = currentLine;
 			}
 			currentLine++;
 		}
 		myFeatureListTableModel.setDataTypes(newList);
 		myFeatureListTableModel.fireTableDataChanged();
+
+		// Keep old selection unless it's gone...
+		if (!changeSelection){ 
+			// Use old selection if exists...
+			if (oldSelect > 0){
+			   select = oldSelect; 
+			   topFeature = myLastSelectedFeature;
+			}
+		}else{
+
+			//log.debug("CHANGE SELECTION IS TRUE");
+		}
 
 		if (select > -1) {
 			select = jObjects3DListTable.convertRowIndexToView(select);
@@ -479,16 +510,19 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 			// because it still fires and event when you set it false
 			myFeatureListTableModel.setRebuilding(true);
 			jObjects3DListTable.setRowSelectionInterval(select, select);
+		//	log.debug("Select row of "+select);
 
-			if (myLastSelectedFeature != selectedFeature) {
+			if (myLastSelectedFeature != topFeature) {
+		 //       log.debug("LAST/top "+myLastSelectedFeature+","+topFeature);
+		//	log.debug("Change out gui "+changeSelection+", "+oldSelect);
 				jFeatureGUIPanel.removeAll();
-				selectedFeature.setupFeatureGUI(jFeatureGUIPanel);
+				topFeature.setupFeatureGUI(jFeatureGUIPanel);
 				jFeatureGUIPanel.validate();
 				jFeatureGUIPanel.repaint();
 				jControlScrollPane.revalidate();
-				myLastSelectedFeature = selectedFeature;
+				myLastSelectedFeature = topFeature;
 			} else {
-				selectedFeature.updateGUI();
+				topFeature.updateGUI();
 			}
 
 			myFeatureListTableModel.setRebuilding(false);
@@ -563,7 +597,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
 	@Override
 	public String getControlTitle(){
-		return "Selection";
+		return "Feature Controls";
 	}
 
 	public JComponent getToolBar() {

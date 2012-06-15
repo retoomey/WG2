@@ -140,7 +140,6 @@ public class IndexRecordVolume extends ProductVolume {
 		}
 
 		if (newRecord != null) {
-			status.setIndexRecord(newRecord);
 			Date aDate = newRecord.getTime();
 			String subtype = newRecord.getSubType();
 			String label = String.format("%s", subtype);
@@ -179,7 +178,6 @@ public class IndexRecordVolume extends ProductVolume {
 		}
 
 		if (newRecord != null) {
-			status.setIndexRecord(newRecord);
 			Date aDate = newRecord.getTime();
 			String subtype = newRecord.getSubType();
 			String label = String.format("%s", subtype);
@@ -269,7 +267,6 @@ public class IndexRecordVolume extends ProductVolume {
 		}
 		status.setButtonText(label);
 		status.setToolTip(tip);
-		status.setValidRecord(myRootProduct != null);
 		status.setIconString(icon);
 		status.setEnabled(enabled);
 		if (useColor) {
@@ -323,7 +320,6 @@ public class IndexRecordVolume extends ProductVolume {
 		}
 		status.setButtonText(label);
 		status.setToolTip(tip);
-		status.setValidRecord(myRootProduct != null);
 		status.setIconString(icon);
 		status.setEnabled(enabled);
 		if (useColor) {
@@ -374,7 +370,6 @@ public class IndexRecordVolume extends ProductVolume {
 		}
 		status.setButtonText(label);
 		status.setToolTip(tip);
-		status.setValidRecord(myRootProduct != null);
 		status.setIconString(icon);
 		status.setEnabled(enabled);
 		if (useColor) {
@@ -444,7 +439,6 @@ public class IndexRecordVolume extends ProductVolume {
 		}
 		status.setButtonText(label);
 		status.setToolTip(tip);
-		status.setValidRecord(myRootProduct != null);
 		status.setIconString(icon);
 		status.setEnabled(enabled);
 		if (useColor) {

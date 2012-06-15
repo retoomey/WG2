@@ -82,7 +82,6 @@ public abstract class Animator {
     }
 
     public void setDwellTime(long ms) {
-        System.out.println("Set animator dwell: " + ms);
         myDwell = ms;
     }
 }

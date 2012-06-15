@@ -250,7 +250,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
                 setVisible(true);
                 setText(p.getButtonText());
                 setToolTipText(p.getToolTip());
-                setEnabled(p.getValidRecord());
                 Color background;
                 if (p.getUseColor()) {
                     background = new Color(p.getRed(), p.getGreen(), p.getBlue());

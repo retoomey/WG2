@@ -47,8 +47,8 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
     @Override
     public void updateGUI() {
         MapMemento m = (MapMemento) myFeature.getNewMemento();
-	Integer t = m.getProperty(MapMemento.LINE_THICKNESS);
-	Color c = m.getProperty(MapMemento.LINE_COLOR);
+	Integer t = m.getPropertyValue(MapMemento.LINE_THICKNESS);
+	Color c = m.getPropertyValue(MapMemento.LINE_COLOR);
         jLineThicknessSpinner.setValue(t);
         myLineColorGUI.update(m);
     }
@@ -86,7 +86,7 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
                 jLineThicknessStateChanged(evt);
             }
         });
-	Integer l = m.getProperty(MapMemento.LINE_THICKNESS);
+	Integer l = m.getPropertyValue(MapMemento.LINE_THICKNESS);
         SpinnerNumberModel model = new SpinnerNumberModel(l.intValue(), //initial value
                 1, // min of the max value
                 15, // max of the max value
@@ -123,7 +123,7 @@ public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
     private void jLineThicknessStateChanged(ChangeEvent evt) {
         int value = (Integer) jLineThicknessSpinner.getValue();
         MapMemento m = (MapMemento) myFeature.getNewMemento();
-	Integer r = m.getProperty(MapMemento.LINE_THICKNESS);
+	Integer r = m.getPropertyValue(MapMemento.LINE_THICKNESS);
         if (r != value) {
 	    m.setProperty(MapMemento.LINE_THICKNESS, value);
             FeatureChangeCommand c = new FeatureChangeCommand(myFeature, m);

@@ -29,7 +29,6 @@ import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.gui.views.WdssiiSDockedViewFactory.SDockView;
 import org.wdssii.xml.Tag;
-import org.wdssii.xml.config.Tag_sources;
 
 /**
  * SourcesView.
@@ -562,7 +561,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
 
 	@Override
 	public String getControlTitle() {
-		return "Selection";
+		return "Source Controls";
 	}
 
 	public JComponent getToolBar() {

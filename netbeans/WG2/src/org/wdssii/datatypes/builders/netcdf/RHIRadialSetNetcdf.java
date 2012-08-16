@@ -1,10 +1,14 @@
 package org.wdssii.datatypes.builders.netcdf;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
+import org.wdssii.datatypes.RHIRadialSet;
+import org.wdssii.datatypes.RHIRadialSet.RHIRadialSetMemento;
 import org.wdssii.datatypes.Radial;
-import org.wdssii.datatypes.RadialSet.RadialSetMemento;
 import org.wdssii.datatypes.builders.NetcdfBuilder;
+import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
 import org.wdssii.storage.Array1Dfloat;
@@ -12,20 +16,20 @@ import org.wdssii.storage.Array2Dfloat;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.wdssii.datatypes.RadialSet;
-import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 
 /**
  * Create a RadialSet from a Netcdf file
  * 
+ * This is a RadialSet which handles RHI, or 
+ * Range Height Indicator radial sets, which have fixed azimuth and
+ * changing elevation.
+ * 
  * @author Robert Toomey
  */
-public class RadialSetNetcdf extends DataTypeNetcdf {
+public class RHIRadialSetNetcdf extends DataTypeNetcdf {
 
     /** The log for errors */
-    private static Logger log = LoggerFactory.getLogger(RadialSetNetcdf.class);
+    private static Logger log = LoggerFactory.getLogger(RHIRadialSetNetcdf.class);
 
     /** Try to create a RadialSet by reflection.  This is called from NetcdfBuilder by reflection	
      * @param ncfile	the Netcdf file to read from
@@ -34,17 +38,17 @@ public class RadialSetNetcdf extends DataTypeNetcdf {
     @Override
     public DataType createFromNetcdf(NetcdfFile ncfile, boolean sparse) {
 
-        RadialSetMemento m = new RadialSetMemento();
-        m.datametric = RadialSet.createDataMetric();
+        RHIRadialSetMemento m = new RHIRadialSetMemento();
+        m.datametric = RHIRadialSet.createDataMetric();
         this.fillFromNetcdf(m, ncfile, sparse);
-        return new RadialSet(m);
+        return new RHIRadialSet(m);
     }
 
     @Override
     public void fillNetcdfFileInfo(NetcdfFile ncfile, NetcdfFileInfo info){
         super.fillNetcdfFileInfo(ncfile, info);
         try{
-            float elev = ncfile.findGlobalAttribute("Elevation").getNumericValue().floatValue();
+            float elev = ncfile.findGlobalAttribute("Azimuth").getNumericValue().floatValue();
             info.Choice = Float.toString(elev);
         }catch(Exception e){
             info.Choice="Missing";
@@ -58,16 +62,16 @@ public class RadialSetNetcdf extends DataTypeNetcdf {
         /** Let super fill in the defaults */
         super.fillFromNetcdf(m, ncfile, sparse);
 
-        if (m instanceof RadialSetMemento) {
-            RadialSetMemento r = (RadialSetMemento) (m);
+        if (m instanceof RHIRadialSetMemento) {
+            RHIRadialSetMemento r = (RHIRadialSetMemento) (m);
             try {
                 
-                Variable v_az = ncfile.findVariable("Azimuth");
+                Variable v_az = ncfile.findVariable("Elevation");
                 Variable v_bw = ncfile.findVariable("BeamWidth");
-                Variable v_as = ncfile.findVariable("AzimuthalSpacing");
+                Variable v_as = ncfile.findVariable("ElevationalSpacing");
                 Variable v_gw = ncfile.findVariable("GateWidth");
                 Variable v_ny = ncfile.findVariable("NyquistVelocity");
-                float elev = ncfile.findGlobalAttribute("Elevation").getNumericValue().floatValue();
+                float elev = ncfile.findGlobalAttribute("Azimuth").getNumericValue().floatValue();
                 float distToFirstGate = ncfile.findGlobalAttribute("RangeToFirstGate").getNumericValue().floatValue();
                 float nyquist = DataType.MissingData;
 

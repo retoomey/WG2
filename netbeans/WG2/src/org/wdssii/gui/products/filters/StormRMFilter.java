@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeQuery;
-import org.wdssii.datatypes.RadialSet.RadialSetQuery;
+import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetQuery;
 import org.wdssii.gui.GUISetting;
-import org.wdssii.gui.products.volumes.RadialSetVolume;
+import org.wdssii.gui.products.volumes.PPIRadialSetVolume;
 import org.wdssii.gui.products.volumes.ProductVolume;
 
 /** A filter that applys Storm Relative Motion to a RadialSet or RadialSetVolume 
@@ -18,7 +18,7 @@ public class StormRMFilter extends DataFilter {
     public float myDegrees = 0.0f;
     // We can store the SRM deltas for a single RadialSet.  This is fine, since
     // each product handler has a unique filter instance...
-    public RadialSetVolume myLastRadialVolume = null;
+    public PPIRadialSetVolume myLastRadialVolume = null;
     ArrayList<ArrayList<Float>> myDeltaList = null;
     public boolean myDirtySRM = true;
 
@@ -27,8 +27,8 @@ public class StormRMFilter extends DataFilter {
     public void prepFilterForVolume(ProductVolume v) {
         if (v != null) {
 
-            if (v instanceof RadialSetVolume) {
-                RadialSetVolume r = (RadialSetVolume) (v);
+            if (v instanceof PPIRadialSetVolume) {
+                PPIRadialSetVolume r = (PPIRadialSetVolume) (v);
 
                 // Only recalculate if the volume changed or settings changed...
                 if ((myLastRadialVolume != r) || (myDirtySRM)) {
@@ -55,11 +55,11 @@ public class StormRMFilter extends DataFilter {
     @Override
     public void f(DataTypeQuery q) {
         if (isEnabled()) {
-            if (q instanceof RadialSetQuery) {
+            if (q instanceof PPIRadialSetQuery) {
                 try {
                     if (DataType.isRealDataValue(q.outDataValue)) {
                         if (myDeltaList != null) {  // FIXME: check ranges
-                            RadialSetQuery r = (RadialSetQuery) (q);
+                            PPIRadialSetQuery r = (PPIRadialSetQuery) (q);
                             ArrayList<Float> radial = myDeltaList.get(r.outRadialSetNumber);
                             if (radial != null) {
                                 float delta = radial.get(r.outHitRadialNumber);

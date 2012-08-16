@@ -16,99 +16,169 @@ import org.wdssii.gui.GridVisibleArea;
 import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.util.RadialUtil;
 
-/** A radial set is a collection of radials.
+/*
+ * This is the original RadialSet which handles PPI, or Plan Position Indicator
+ * radial sets, which have fixed elevation and rotating azimuth. 
  * 
  * @author lakshman
- * 
+ *
  */
-public class RadialSet extends DataType implements Table2DView {
+public class PPIRadialSet extends DataType implements Table2DView {
 
-	private static Logger log = LoggerFactory.getLogger(RadialSet.class);
-	/** Elevation in degrees of this radial set */
+	private static Logger log = LoggerFactory.getLogger(PPIRadialSet.class);
+	/**
+	 * Elevation in degrees of this radial set
+	 */
 	private final float elevDegs;
-	/** Elevation in radians of this radial set */
+	/**
+	 * Elevation in radians of this radial set
+	 */
 	private final float elevRads;
-	/** Tan of elevation, cached for the beam height distance function */
+	/**
+	 * Tan of elevation, cached for the beam height distance function
+	 */
 	private final float tanElevation;
-	/** Sin of the elevation cached for getLocation and other needs */
+	/**
+	 * Sin of the elevation cached for getLocation and other needs
+	 */
 	private final float sinElevation;
-	/** Cos of the elevation cached for getLocation and other needs */
+	/**
+	 * Cos of the elevation cached for getLocation and other needs
+	 */
 	private final float cosElevation;
-	/** Our radials */
+	/**
+	 * Our radials
+	 */
 	protected Radial[] radials;
-	/** Cache the radar location CPoint for speed */
+	/**
+	 * Cache the radar location CPoint for speed
+	 */
 	private final CPoint radarLocation;
-	/** Cross product of z and y vector */
+	/**
+	 * Cross product of z and y vector
+	 */
 	private final CVector myUx;
-	/** Y-azis vector north-ward relative to RadialSet center */
+	/**
+	 * Y-azis vector north-ward relative to RadialSet center
+	 */
 	private final CVector myUy;
-	/** Z-axis perpendicular to the earth's surface */
+	/**
+	 * Z-axis perpendicular to the earth's surface
+	 */
 	private final CVector myUz;
-	/** Range to the first gate of the RadialSet in Kms */
+	/**
+	 * Range to the first gate of the RadialSet in Kms
+	 */
 	private final float rangeToFirstGate;
-	/** The maximum number of gates of all Radial */
+	/**
+	 * The maximum number of gates of all Radial
+	 */
 	private final int myMaxGateNumber;
 	// This is a radial set lookup that finds an exact match for a radial given an azimuth.  Need this for the vslice/isosurface
 	// in the GUI.
-	/** A sorted array of end azimuth, each corresponding to azimuthRadials below, this gives us a o(nlogn) binary
-	 * search of radials given an angle (which for 360 radials is about 8 searches per angle .
-	 * Memory cost: one Float, one Radial reference per Radial, typically O(365) 
-	 * Speed cost: Typically 8 searches O(log(360)) */
+	/**
+	 * A sorted array of end azimuth, each corresponding to azimuthRadials
+	 * below, this gives us a o(nlogn) binary search of radials given an
+	 * angle (which for 360 radials is about 8 searches per angle . Memory
+	 * cost: one Float, one Radial reference per Radial, typically O(365)
+	 * Speed cost: Typically 8 searches O(log(360))
+	 */
 	private float[] angleToRadial;
-	/** Radials corresponding the angleToRadial above (these are sorted by increasing end azimuth). */
+	/**
+	 * Radials corresponding the angleToRadial above (these are sorted by
+	 * increasing end azimuth).
+	 */
 	private Radial[] azimuthRadials;
 
-	/** Passed in by builder objects to use to initialize ourselves.
-	 * This allows us to have final field access from builders.
+	/**
+	 * Passed in by builder objects to use to initialize ourselves. This
+	 * allows us to have final field access from builders.
 	 */
-	public static class RadialSetMemento extends DataTypeMemento {
+	public static class PPIRadialSetMemento extends DataTypeMemento {
 
-		/** Elevation in degrees of this radial set */
+		/**
+		 * Elevation in degrees of this radial set
+		 */
 		public float elevation;
-		/** Our radials */
+		/**
+		 * Our radials
+		 */
 		public Radial[] radials;
-		/** Cache the radar location CPoint for speed */
+		/**
+		 * Cache the radar location CPoint for speed
+		 */
 		public CPoint radarLocation;
-		/** Cross product of z and y vector */
+		/**
+		 * Cross product of z and y vector
+		 */
 		public CVector myUx;
-		/** Y-azis vector north-ward relative to RadialSet center */
+		/**
+		 * Y-azis vector north-ward relative to RadialSet center
+		 */
 		public CVector myUy;
-		/** Z-axis perpendicular to the earth's surface */
+		/**
+		 * Z-axis perpendicular to the earth's surface
+		 */
 		public CVector myUz;
-		/** Range to the first gate of the RadialSet in Kms */
+		/**
+		 * Range to the first gate of the RadialSet in Kms
+		 */
 		public float rangeToFirstGate;
-		/** The maximum number of gates of all Radial */
+		/**
+		 * The maximum number of gates of all Radial
+		 */
 		public int maxGateNumber = 0;
 	};
 
-	/** The query object for RadialSets. */
-	public static class RadialSetQuery extends DataTypeQuery {
+	/**
+	 * The query object for RadialSets.
+	 */
+	public static class PPIRadialSetQuery extends DataTypeQuery {
 
-		/** Query by SphericalLocation, has priority over inLocation.. Try to use this when
-		 * passing the same location to multiple radial sets of a volume...saves calculation, use
-		 * the locationToSpherical function */
+		/**
+		 * Query by SphericalLocation, has priority over inLocation..
+		 * Try to use this when passing the same location to multiple
+		 * radial sets of a volume...saves calculation, use the
+		 * locationToSpherical function
+		 */
 		public SphericalLocation inSphere = null;
-		/** Used by the GUI to tell which RadialSet in a RadialSetVolume query was in */
+		/**
+		 * Used by the GUI to tell which RadialSet in a RadialSetVolume
+		 * query was in
+		 */
 		public int outRadialSetNumber = -1;
-		/** The radial index the last query found.  This is found by binary search of sorted end azimuth.
-		 * This may be outside the Radial azimuth range if outInAzimuth is false. 
-		 * Radial 1: 0-2 degrees, Radial 2: 5-8 degrees.
-		 * 4 degrees --> Radial 2, outInAzimuth = false
-		 * 5 degrees --> Radial 2, outInAzimuth = true
+		/**
+		 * The radial index the last query found. This is found by
+		 * binary search of sorted end azimuth. This may be outside the
+		 * Radial azimuth range if outInAzimuth is false. Radial 1: 0-2
+		 * degrees, Radial 2: 5-8 degrees. 4 degrees --> Radial 2,
+		 * outInAzimuth = false 5 degrees --> Radial 2, outInAzimuth =
+		 * true
 		 */
 		public int outHitRadialNumber;
-		/** Our we within the azimuth of the hit radial number? Some stuff might need to know this,
-		 * do we in vslice smear azimuth or show blank gaps? */
+		/**
+		 * Our we within the azimuth of the hit radial number? Some
+		 * stuff might need to know this, do we in vslice smear azimuth
+		 * or show blank gaps?
+		 */
 		public boolean outInAzimuth;
-		/** The radial gate number the last query found.  Note this is only set if data is HIT by location exactly */
+		/**
+		 * The radial gate number the last query found. Note this is
+		 * only set if data is HIT by location exactly
+		 */
 		public int outHitGateNumber;
-		/** Is the gate in range? The query assumes an infinite size RadialSet for gate calculation */
+		/**
+		 * Is the gate in range? The query assumes an infinite size
+		 * RadialSet for gate calculation
+		 */
 		public boolean outInRange;
-		/** The azimuth for query in degrees */
+		/**
+		 * The azimuth for query in degrees
+		 */
 		public float outAzimuthDegrees;
 	};
 
-	public RadialSet(RadialSetMemento m) {
+	public PPIRadialSet(PPIRadialSetMemento m) {
 		super(m);
 		this.elevDegs = m.elevation;
 		this.elevRads = (float) Math.toRadians(elevDegs);
@@ -125,9 +195,10 @@ public class RadialSet extends DataType implements Table2DView {
 		createAzimuthSearch();
 	}
 
-	/** Create a sorted list of end azimuth numbers, which allows us to binary
-	 * search for a Radial by azimuth very quickly.  Note that this doesn't
-	 * mean the RadialSet is sorted.
+	/**
+	 * Create a sorted list of end azimuth numbers, which allows us to
+	 * binary search for a Radial by azimuth very quickly. Note that this
+	 * doesn't mean the RadialSet is sorted.
 	 */
 	protected final void createAzimuthSearch() {
 		// This assumes no two radials have the same end angle, even if they do,
@@ -160,8 +231,10 @@ public class RadialSet extends DataType implements Table2DView {
 		}
 	}
 
-	/** Return a double used to sort a volume of this DataType.  For example,
+	/**
+	 * Return a double used to sort a volume of this DataType. For example,
 	 * for RadialSets this would be the elevation value.
+	 *
 	 * @return value in volume
 	 */
 	@Override
@@ -189,7 +262,9 @@ public class RadialSet extends DataType implements Table2DView {
 		return tanElevation;
 	}
 
-	/** meters */
+	/**
+	 * meters
+	 */
 	public float getRangeToFirstGateKms() {
 		return rangeToFirstGate;
 	}
@@ -237,8 +312,8 @@ public class RadialSet extends DataType implements Table2DView {
 	}
 
 	/**
-	 * number of gates of first radial, or 0 if there is no radial.
-	 * This is set to the maximum gate number of all read in radials.
+	 * number of gates of first radial, or 0 if there is no radial. This is
+	 * set to the maximum gate number of all read in radials.
 	 */
 	public int getNumGates() {
 		//	if (radials.length > 0)
@@ -271,7 +346,9 @@ public class RadialSet extends DataType implements Table2DView {
 		return radials[index];
 	}
 
-	/** @return 0 if vcp is unknown. */
+	/**
+	 * @return 0 if vcp is unknown.
+	 */
 	int getVCP() {
 		try {
 			return Integer.parseInt(getAttribute("vcp").toString());
@@ -281,32 +358,42 @@ public class RadialSet extends DataType implements Table2DView {
 		}
 	}
 
-	/** A Spherical coordinate location centered around our RadialSet center.
-	 * Used for speed in VSlice/Isosurface calculations.  Filled in by our locationToSphere method
-	 *  The trick is that all radial sets in a volume will give the same result for a given location.
+	/**
+	 * A Spherical coordinate location centered around our RadialSet center.
+	 * Used for speed in VSlice/Isosurface calculations. Filled in by our
+	 * locationToSphere method The trick is that all radial sets in a volume
+	 * will give the same result for a given location.
 	 */
 	public static class SphericalLocation {
 
-		/** Angle in degrees */
+		/**
+		 * Angle in degrees
+		 */
 		public double azimuthDegs;
-		/** Angle in degrees */
+		/**
+		 * Angle in degrees
+		 */
 		public double elevDegs;
-		/** Distance in Kms */
+		/**
+		 * Distance in Kms
+		 */
 		public double range;
-		/** True if we cached this stuff. Will be the same value for all
+		/**
+		 * True if we cached this stuff. Will be the same value for all
 		 * RadialSets for a particular sample location
 		 */
 		private boolean cachedSinCos = false;
 		private double elevSin;
 		private double elevCos;
 
-		/** Given the tan of an elevation, get the weight in height from the
-		 * actual beam at our elevDegs.  For example, if inElev == elevDegs, 
-		 * then the value is zero, if inElev < elevDegs the value is -,
-		 * if inElev > elevDegs the value is +
-		 * 
+		/**
+		 * Given the tan of an elevation, get the weight in height from
+		 * the actual beam at our elevDegs. For example, if inElev ==
+		 * elevDegs, then the value is zero, if inElev < elevDegs the
+		 * value is -, if inElev > elevDegs the value is +
+		 *
 		 * @param inElevTan The tan of the other elevation
-		 * @return 
+		 * @return
 		 */
 		public double getHeightWeight(double inElevTan) {
 			// Trig so slow, cache it...
@@ -320,30 +407,31 @@ public class RadialSet extends DataType implements Table2DView {
 		}
 	}
 
-	/** In volumes, a location is used to query multiple radial sets that share the
-	 * same center location, ux, uy, uz, etc.  This takes a location in space
-	 * and caches all of the calculations in relation to the volume. This speeds
-	 * up VSlice/Isosurface rendering calculations.
-	 * 
+	/**
+	 * In volumes, a location is used to query multiple radial sets that
+	 * share the same center location, ux, uy, uz, etc. This takes a
+	 * location in space and caches all of the calculations in relation to
+	 * the volume. This speeds up VSlice/Isosurface rendering calculations.
+	 *
 	 * This then is passed into the query function.
 	 */
 	public void locationToSphere(Location l, SphericalLocation out) {
 
 		// The direct way, but slower...crazy amounts of newing and memory fluctuation
 		// during render
-	/*	CPoint pt = l.getCPoint();
-		CVector fromConeApex = pt.minus(radarLocation);
-		CVector vxy = fromConeApex.crossProduct(myUz);
-		double norm = fromConeApex.norm();
-		out.elev = Math.asin(fromConeApex.dotProduct(myUz) / norm) * 180 / Math.PI;
-		out.range = norm;
-		// Get azimuth for a location (always for filters in GUI)
-		// The atan2 gives us 0 at north, 90 to west. Radar is 0 to north, 90 to east
-		double dotx2 = vxy.dotProduct(myUx);
-		double doty2 = vxy.dotProduct(myUy);
-		double az2 = (float)(360.0 - (Math.toDegrees(Math.atan2(doty2, dotx2))));
-		float azimuth = Radial.normalizeAzimuth((float) az2);
-		out.azimuth = azimuth;
+	/*
+		 * CPoint pt = l.getCPoint(); CVector fromConeApex =
+		 * pt.minus(radarLocation); CVector vxy =
+		 * fromConeApex.crossProduct(myUz); double norm =
+		 * fromConeApex.norm(); out.elev =
+		 * Math.asin(fromConeApex.dotProduct(myUz) / norm) * 180 /
+		 * Math.PI; out.range = norm; // Get azimuth for a location
+		 * (always for filters in GUI) // The atan2 gives us 0 at north,
+		 * 90 to west. Radar is 0 to north, 90 to east double dotx2 =
+		 * vxy.dotProduct(myUx); double doty2 = vxy.dotProduct(myUy);
+		 * double az2 = (float)(360.0 -
+		 * (Math.toDegrees(Math.atan2(doty2, dotx2)))); float azimuth =
+		 * Radial.normalizeAzimuth((float) az2); out.azimuth = azimuth;
 		 */
 
 		// All the math expanded (avoids new allows some short cuts for speed)
@@ -382,13 +470,14 @@ public class RadialSet extends DataType implements Table2DView {
 		out.elevDegs = Math.asin(dotz / out.range) * 180 / Math.PI;
 	}
 
-	/** For a given location, get the information into a data object.
-	 * For speed the data object is typically pre-created and reused
-	 * Note: This method is overloading DataType's function, not overriding.
-	 * The object has to actually be a RadialSetQuery or cast to it for this
-	 * to get called instead.
+	/**
+	 * For a given location, get the information into a data object. For
+	 * speed the data object is typically pre-created and reused Note: This
+	 * method is overloading DataType's function, not overriding. The object
+	 * has to actually be a RadialSetQuery or cast to it for this to get
+	 * called instead.
 	 */
-	public void queryData(RadialSetQuery q) {
+	public void queryData(PPIRadialSetQuery q) {
 
 		boolean haveLocation = false;
 
@@ -419,39 +508,38 @@ public class RadialSet extends DataType implements Table2DView {
 				if (q.inNeedInterpolationWeight) {
 					// FIXME: math could be cached in a for speed in volumes
 
-					/* Math for height calculation....
-					This is first part of the lat/lon/height weights so I can do true
-					bilinear/trilinear interpolation.  Bleh..  Here's the math:
-					 * 
-					Line 1:  Line from sample point straight down to ground...The height
-					Polar to cartesion of the 'sample' point...
-					e = a.elev;
-					(r*cos(e), r*sin(e));
-					Point 2:
-					(r*cos(e), 0)
-					==> X = r*cos(e); the vertical line....
-					
-					Line 2 (radial beam)
-					Point 1:
-					(0,0);
-					Point 2:
-					(R*cos(elevation), R*sin(elevation);
-					
-					y = mx+b where
-					z = elevation;
-					m = tan(z);
-					b = 0;
-					==> y = x*tan(z); // For radar beam line...
-					
-					x1 = r*cos(e);              // Sample point
-					y1 = r*sin(e);
-					x2 = r*cos(e);              // Point on the 'beam'
-					y2 = r*cos(e)*tan(z);
-					
-					// Now the distance from the beam point to the sample point...
-					(x2-x1)^2 = 0;
-					(y2-y1)^2 = (r*cos(e)*tan(z)-(r*sin(e)))^2
-					distance = abs(r*(cos(e)*tan(z)-sin(e)));
+					/*
+					 * Math for height calculation.... This
+					 * is first part of the lat/lon/height
+					 * weights so I can do true
+					 * bilinear/trilinear interpolation.
+					 * Bleh.. Here's the math:
+					 *
+					 * Line 1: Line from sample point
+					 * straight down to ground...The height
+					 * Polar to cartesion of the 'sample'
+					 * point... e = a.elev; (r*cos(e),
+					 * r*sin(e)); Point 2: (r*cos(e), 0) ==>
+					 * X = r*cos(e); the vertical line....
+					 *
+					 * Line 2 (radial beam) Point 1: (0,0);
+					 * Point 2: (R*cos(elevation),
+					 * R*sin(elevation);
+					 *
+					 * y = mx+b where z = elevation; m =
+					 * tan(z); b = 0; ==> y = x*tan(z); //
+					 * For radar beam line...
+					 *
+					 * x1 = r*cos(e); // Sample point y1 =
+					 * r*sin(e); x2 = r*cos(e); // Point on
+					 * the 'beam' y2 = r*cos(e)*tan(z);
+					 *
+					 * // Now the distance from the beam
+					 * point to the sample point...
+					 * (x2-x1)^2 = 0; (y2-y1)^2 =
+					 * (r*cos(e)*tan(z)-(r*sin(e)))^2
+					 * distance =
+					 * abs(r*(cos(e)*tan(z)-sin(e)));
 					 */
 					// Calculate the weight for interpolation in height
 					// We convert from radial polar space to cartesian and get 
@@ -514,62 +602,68 @@ public class RadialSet extends DataType implements Table2DView {
 					// Valid data must be in azimuth and range...? Note for vslice this will make black gaps in azimuth
 					//if ((q.outInAzimuth) && (q.outInRange)){
 					if (q.outInRange) {
-						/* Experiment, playing with range interpolation to see how it looks...
-						float dataCore = gates.get(gateNumber);
-						q.outDataValue = dataCore;
-						
-						if (DataType.isRealDataValue(q.outDataValue)){
-						if (q.inNeedInterpolationWeight) {
-						double weight1 = gate - gateNumber; // .5 = center, 0 floor, 1 to
-						q.outDataValue = dataCore;
-						if (weight1 >= .5) {
-						if (gateNumber + 1 < gates.size()) {
-						float dataUp1 = gates.get(gateNumber + 1);
-						if (DataType.isRealDataValue(dataUp1)){
-						// at weight == 1, 50% up, 50% core   0
-						// at weight = .5, 0% up, 100% core.  .5
-						// y2 = 1
-						// y1 = .5
-						// y = weight1
-						// R1 core
-						// R2 .5*dataUp1;
-						
-						float i1 = (float) ((1 - weight1) / .5) * dataCore;
-						//float i2 = (float) (((weight1 - .5) / .5) * (.5 * dataUp1));
-						float i2 = (float) (((weight1 - .5) / .5) * (dataUp1));
-						q.outDataValue = i1 + i2;
-						//q.outDataValue = 1000;
-						return;
-						}
-						} else {
-						//  q.outDataValue = dataCore;
-						return;
-						}
-						} else {
-						if (gateNumber - 1 > 0) {
-						float dataDown = gates.get(gateNumber - 1);
-						if (DataType.isRealDataValue(dataDown)){
-						// y2 = .5
-						// y1 = 0
-						// y = weight1
-						// R2 core
-						// R1 .5*dataDown;
-						
-						float i1 = (float) (((.5 - weight1) / .5) * (.5 * dataDown));
-						float i2 = (float) (((weight1) / .5) * (dataCore));
-						// q.outDataValue = i1 + i2;
-						
-						return;
-						}
-						} else {
-						// q.outDataValue = dataCore;
-						return;
-						}
-						
-						}
-						} 
-						}
-						}else{
+						/*
+						 * Experiment, playing with
+						 * range interpolation to see
+						 * how it looks... float
+						 * dataCore =
+						 * gates.get(gateNumber);
+						 * q.outDataValue = dataCore;
+						 *
+						 * if
+						 * (DataType.isRealDataValue(q.outDataValue)){
+						 * if
+						 * (q.inNeedInterpolationWeight)
+						 * { double weight1 = gate -
+						 * gateNumber; // .5 = center, 0
+						 * floor, 1 to q.outDataValue =
+						 * dataCore; if (weight1 >= .5)
+						 * { if (gateNumber + 1 <
+						 * gates.size()) { float dataUp1
+						 * = gates.get(gateNumber + 1);
+						 * if
+						 * (DataType.isRealDataValue(dataUp1)){
+						 * // at weight == 1, 50% up,
+						 * 50% core 0 // at weight = .5,
+						 * 0% up, 100% core. .5 // y2 =
+						 * 1 // y1 = .5 // y = weight1
+						 * // R1 core // R2 .5*dataUp1;
+						 *
+						 * float i1 = (float) ((1 -
+						 * weight1) / .5) * dataCore;
+						 * //float i2 = (float)
+						 * (((weight1 - .5) / .5) * (.5
+						 * * dataUp1)); float i2 =
+						 * (float) (((weight1 - .5) /
+						 * .5) * (dataUp1));
+						 * q.outDataValue = i1 + i2;
+						 * //q.outDataValue = 1000;
+						 * return; } } else { //
+						 * q.outDataValue = dataCore;
+						 * return; } } else { if
+						 * (gateNumber - 1 > 0) { float
+						 * dataDown =
+						 * gates.get(gateNumber - 1); if
+						 * (DataType.isRealDataValue(dataDown)){
+						 * // y2 = .5 // y1 = 0 // y =
+						 * weight1 // R2 core // R1
+						 * .5*dataDown;
+						 *
+						 * float i1 = (float) (((.5 -
+						 * weight1) / .5) * (.5 *
+						 * dataDown)); float i2 =
+						 * (float) (((weight1) / .5) *
+						 * (dataCore)); //
+						 * q.outDataValue = i1 + i2;
+						 *
+						 * return; } } else { //
+						 * q.outDataValue = dataCore;
+						 * return; }
+						 *
+						 * }
+						 * }
+						 * }
+						 * }else{
 						 */
 						q.outDataValue = gates.get(gateNumber);
 						return;
@@ -581,9 +675,11 @@ public class RadialSet extends DataType implements Table2DView {
 		return;
 	}
 
-	/** Create an SRM delta value for each radial we have. This method is called by the 
-	 * GUI Storm Relative Motion filter. Keeping the logic in RadialSet.  The GUI filter
-	 * allows us to show SRM without modifying the original RadialSet.
+	/**
+	 * Create an SRM delta value for each radial we have. This method is
+	 * called by the GUI Storm Relative Motion filter. Keeping the logic in
+	 * RadialSet. The GUI filter allows us to show SRM without modifying the
+	 * original RadialSet.
 	 */
 	public ArrayList<Float> createSRMDeltas(float speedMS, float dirDegrees) {
 		ArrayList<Float> srmDeltas = new ArrayList<Float>();
@@ -598,7 +694,9 @@ public class RadialSet extends DataType implements Table2DView {
 		return srmDeltas;
 	}
 
-	/** debugging output */
+	/**
+	 * debugging output
+	 */
 	@Override
 	public String toStringDB() {
 		String s = "RadialSet " + getTypeName() + " at " + elevDegs + " has "
@@ -758,7 +856,7 @@ public class RadialSet extends DataType implements Table2DView {
 
 	@Override
 	public boolean getCell(Location input, CellQuery output) {
-		RadialSetQuery q = new RadialSetQuery();
+		PPIRadialSetQuery q = new PPIRadialSetQuery();
 		q.inLocation = input;
 		q.inUseHeight = false;
 		queryData(q);
@@ -791,7 +889,7 @@ public class RadialSet extends DataType implements Table2DView {
 			// rng_ref reference (centered) range (km) of gridded data
 			// This is the center row...., header value...
 			int centerRow = g.startRow + (g.numRows / 2);
-	                float rangeRef = getRowRangeKms(centerRow);
+			float rangeRef = getRowRangeKms(centerRow);
 
 			// azm_ref reference (centered) degree of gridded data
 			// This is the center col...., header value...
@@ -815,11 +913,11 @@ public class RadialSet extends DataType implements Table2DView {
 			out.write(String.format("drng=%6.2f dazm=%6.2f\n", dazm, drng));
 
 			// bw, ebw...
- 	                float bw = getBeamWidthKms();
- 	                float ebw = bw;
+			float bw = getBeamWidthKms();
+			float ebw = bw;
 			out.write(String.format("bw=%6.2f ebw=%6.2f\n", bw, ebw));
 
- 	                float elev = this.getElevationDegs();
+			float elev = this.getElevationDegs();
 			out.write(String.format("elevdegs=%6.2f\n", elev));
 
 			// Output left to right, decreasing range increasing azimuth

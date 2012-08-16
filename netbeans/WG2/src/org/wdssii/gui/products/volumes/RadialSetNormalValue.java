@@ -2,7 +2,7 @@ package org.wdssii.gui.products.volumes;
 
 import java.util.ArrayList;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.datatypes.RadialSet;
+import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.products.FilterList;
@@ -32,10 +32,10 @@ public class RadialSetNormalValue extends VolumeValue {
 		}
 
 		float v1 = DataType.MissingData;
-		RadialSet.RadialSetQuery q = new RadialSet.RadialSetQuery();
+		PPIRadialSet.PPIRadialSetQuery q = new PPIRadialSet.PPIRadialSetQuery();
 		q.inLocation = loc;
 		q.outDataValue = DataType.MissingData;
-		RadialSet.SphericalLocation buffer = new RadialSet.SphericalLocation();
+		PPIRadialSet.SphericalLocation buffer = new PPIRadialSet.SphericalLocation();
 
 		// Poor man's vslice..just grab the first thing NOT missing lol...
 		// This is actually slowest when there isn't any data...
@@ -50,7 +50,7 @@ public class RadialSetNormalValue extends VolumeValue {
 			for (int i = 0; i < p.size(); i++) {
 				DataType dt = p.get(i).getRawDataType();
 				if (dt != null) {
-					RadialSet r = (RadialSet) (dt);
+					PPIRadialSet r = (PPIRadialSet) (dt);
 					if (r != null) {
 						// First time, get the location in object spherical coordinates.  This doesn't
 						// change for any of the radials in the set.

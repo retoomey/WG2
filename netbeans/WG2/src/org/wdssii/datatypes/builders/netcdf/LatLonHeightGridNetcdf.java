@@ -23,7 +23,7 @@ import ucar.nc2.Variable;
 public class LatLonHeightGridNetcdf extends DataTypeNetcdf {
 
     /** The log for errors */
-    private static Logger log = LoggerFactory.getLogger(RadialSetNetcdf.class);
+    private static Logger log = LoggerFactory.getLogger(PPIRadialSetNetcdf.class);
 
     /** Try to create a LatLonHeightGrid by reflection.  This is called from NetcdfBuilder by reflection	
      * @param ncfile	the Netcdf file to read from

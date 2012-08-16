@@ -5,8 +5,8 @@ import java.util.Date;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.Radial;
-import org.wdssii.datatypes.RadialSet;
-import org.wdssii.datatypes.RadialSet.RadialSetMemento;
+import org.wdssii.datatypes.PPIRadialSet;
+import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetMemento;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
 import org.wdssii.index.Index;
@@ -33,10 +33,10 @@ public class RadialSetTest extends DataTypeTest {
 
     @Override
     public DataType createTest(IndexRecord sourceRecord, boolean sparse) {
-        RadialSetMemento m = new RadialSetMemento();
-        m.datametric = RadialSet.createDataMetric();
+        PPIRadialSetMemento m = new PPIRadialSetMemento();
+        m.datametric = PPIRadialSet.createDataMetric();
         this.fill(sourceRecord, m, sparse);
-        return new RadialSet(m);
+        return new PPIRadialSet(m);
     }
 
     /** Fill a memento */
@@ -88,8 +88,8 @@ public class RadialSetTest extends DataTypeTest {
                 }
             }
         }
-        if (m instanceof RadialSetMemento) {
-            RadialSetMemento r = (RadialSetMemento) (m);
+        if (m instanceof PPIRadialSetMemento) {
+            PPIRadialSetMemento r = (PPIRadialSetMemento) (m);
 
             r.elevation = elev;
             r.rangeToFirstGate = distToFirstGate / 1000;

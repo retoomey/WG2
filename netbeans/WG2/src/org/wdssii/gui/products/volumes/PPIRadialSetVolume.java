@@ -6,7 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.datatypes.RadialSet;
+import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.FilterList;
@@ -23,9 +23,9 @@ import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
  * @author Robert Toomey
  *
  */
-public class RadialSetVolume extends IndexRecordVolume {
+public class PPIRadialSetVolume extends IndexRecordVolume {
 
-	private static Logger log = LoggerFactory.getLogger(RadialSetVolume.class);
+	private static Logger log = LoggerFactory.getLogger(PPIRadialSetVolume.class);
 
 	/**
 	 * Synchronize access to myRadials
@@ -168,8 +168,8 @@ public class RadialSetVolume extends IndexRecordVolume {
 			for (Product r : myRadials) {
 				DataType d = r.getRawDataType();
 				if (d != null) {
-					if (d instanceof RadialSet) {
-						RadialSet radial = (RadialSet) (d);
+					if (d instanceof PPIRadialSet) {
+						PPIRadialSet radial = (PPIRadialSet) (d);
 						ArrayList<Float> values = radial.createSRMDeltas(speed, degrees);
 						list.add(values);
 					}

@@ -5,8 +5,8 @@ import java.util.Date;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.datatypes.RadialSet;
-import org.wdssii.datatypes.RadialSet.RadialSetMemento;
+import org.wdssii.datatypes.PPIRadialSet;
+import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetMemento;
 import org.wdssii.datatypes.builders.test.DataTypeTest;
 import org.wdssii.datatypes.builders.test.LatLonHeightGridTest;
 import org.wdssii.datatypes.builders.test.RadialSetTest;
@@ -31,8 +31,8 @@ public class TestBuilder extends Builder {
 
     @Override
     public DataType createDataType(IndexRecord rec, WdssiiJobMonitor w) {
-        RadialSetMemento m = new RadialSetMemento();
-        return new RadialSet(m);
+        PPIRadialSetMemento m = new PPIRadialSetMemento();
+        return new PPIRadialSet(m);
     }
 
     @Override

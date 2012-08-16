@@ -18,7 +18,7 @@ import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
 import org.wdssii.gui.commands.ProductToggleFilterCommand.ProductFilterFollowerView;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.commands.*;
-import org.wdssii.gui.products.volumes.RadialSetVolume;
+import org.wdssii.gui.products.volumes.PPIRadialSetVolume;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
@@ -202,7 +202,7 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
 		// Hack in my experiment I guess...until it works don't bother
 		// doing all the fancy GUI work...will have to manually refresh
 		// by moving.
-		RadialSetVolume.myExperiment = (myInterps[1].equals(item));
+		PPIRadialSetVolume.myExperiment = (myInterps[1].equals(item));
 		if (myChart != null) {
 			myChart.updateChart();
 		}

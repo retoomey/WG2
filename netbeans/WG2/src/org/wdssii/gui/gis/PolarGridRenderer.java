@@ -20,7 +20,7 @@ import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.datatypes.RadialSet;
+import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
@@ -300,8 +300,8 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			prod = tph.getProduct();
 			if (prod != null) {
 				DataType d = prod.getRawDataType();
-				if (d instanceof RadialSet) {
-					RadialSet radial = (RadialSet) (d);
+				if (d instanceof PPIRadialSet) {
+					PPIRadialSet radial = (PPIRadialSet) (d);
 					Location l = radial.getLocation();
 					double latDegs = l.getLatitude();
 					double lonDegs = l.getLongitude();

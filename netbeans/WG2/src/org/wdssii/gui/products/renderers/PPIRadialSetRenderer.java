@@ -17,8 +17,8 @@ import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
-import org.wdssii.datatypes.RadialSet;
-import org.wdssii.datatypes.RadialSet.RadialSetQuery;
+import org.wdssii.datatypes.PPIRadialSet;
+import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetQuery;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.*;
@@ -33,9 +33,9 @@ import org.wdssii.util.RadialUtil;
  *  @author Robert Toomey
  *
  */
-public class RadialSetRenderer extends ProductRenderer {
+public class PPIRadialSetRenderer extends ProductRenderer {
 
-	private static Logger log = LoggerFactory.getLogger(RadialSetRenderer.class);
+	private static Logger log = LoggerFactory.getLogger(PPIRadialSetRenderer.class);
 	/**
 	 *  Offsets for the quad strips drawing the radials
 	 */
@@ -54,7 +54,7 @@ public class RadialSetRenderer extends ProductRenderer {
 	protected Array1DOpenGL readout;
 	protected int updateCounter = 0;
 
-	public RadialSetRenderer() {
+	public PPIRadialSetRenderer() {
 		super(true);
 	}
 
@@ -67,7 +67,7 @@ public class RadialSetRenderer extends ProductRenderer {
 		try {
 
 			// Make sure and always start monitor
-			RadialSet aRadialSet = (RadialSet) aProduct.getRawDataType();
+			PPIRadialSet aRadialSet = (PPIRadialSet) aProduct.getRawDataType();
 			monitor.beginTask("RadialSetRenderer", aRadialSet.getNumRadials());
 			//	long end1 = System.currentTimeMillis() - start;
 			//	float seconds1 = (float) ((end1 * 1.0) / 1000.0);
@@ -220,7 +220,7 @@ public class RadialSetRenderer extends ProductRenderer {
 				gcdSinCache = null;
 				gcdCosCache = null;
 			}
-			RadialSetQuery rq = new RadialSetQuery();
+			PPIRadialSetQuery rq = new PPIRadialSetQuery();
 
 			// System.out.println("end height cache....");
 			for (int i = 0; i < numRadials; i++) {

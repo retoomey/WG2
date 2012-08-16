@@ -10,8 +10,8 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.datatypes.Radial;
-import org.wdssii.datatypes.RadialSet;
-import org.wdssii.datatypes.RadialSet.RadialSetMemento;
+import org.wdssii.datatypes.PPIRadialSet;
+import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetMemento;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
@@ -46,10 +46,10 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
     @Override
     public DataType createFromNetcdf(NetcdfFile ncfile, boolean sparse) {
 
-        RadialSetMemento m = new RadialSetMemento();
-        m.datametric = RadialSet.createDataMetric();
+        PPIRadialSetMemento m = new PPIRadialSetMemento();
+        m.datametric = PPIRadialSet.createDataMetric();
         this.fillFromNetcdf(m, ncfile, sparse);
-        return new RadialSet(m);
+        return new PPIRadialSet(m);
     }
 
     @Override
@@ -226,8 +226,8 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
         /** Let super fill in the defaults */
         super.fillFromNetcdf(m, ncfile, sparse);
 
-        if (m instanceof RadialSetMemento) {
-            RadialSetMemento r = (RadialSetMemento) (m);
+        if (m instanceof PPIRadialSetMemento) {
+            PPIRadialSetMemento r = (PPIRadialSetMemento) (m);
             try {
 
                 Variable tTimeVar = ncfile.findVariable("time");

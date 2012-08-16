@@ -180,6 +180,10 @@ public class NetcdfBuilder extends Builder {
                 // "SparseRadialSet" --> "RadialSet"
                 // "SparseWindField" --> "WindField"
                 boolean sparse = false;
+
+		// RadialSet becomes PPIRadialSet....
+		if (dataType.equalsIgnoreCase("RadialSet")){ dataType = "PPIRadialSet"; }
+		if (dataType.equalsIgnoreCase("SparseRadialSet")){ dataType = "SparsePPIRadialSet"; }
                 if (dataType.contains("Sparse")) {
                     String oldName = dataType;
                     dataType = dataType.replaceFirst("Sparse", ""); // "SparseRadialSet" handled by "RadialSet"

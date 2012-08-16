@@ -2,7 +2,7 @@ package org.wdssii.gui.products.volumes;
 
 import java.util.ArrayList;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.datatypes.RadialSet;
+import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.products.FilterList;
@@ -39,8 +39,8 @@ public class RadialSetBIValue extends VolumeValue {
 		float w1r;
 
 		float D = .01f;
-		RadialSet.RadialSetQuery q = new RadialSet.RadialSetQuery();
-		RadialSet.RadialSetQuery q2 = new RadialSet.RadialSetQuery();
+		PPIRadialSet.PPIRadialSetQuery q = new PPIRadialSet.PPIRadialSetQuery();
+		PPIRadialSet.PPIRadialSetQuery q2 = new PPIRadialSet.PPIRadialSetQuery();
 		Location lminus = new Location(loc.getLatitude(), loc.getLongitude() - D, loc.getHeightKms());
 		Location lplus = new Location(loc.getLatitude(), loc.getLongitude() + D, loc.getHeightKms());
 		q.inLocation = lminus;
@@ -50,8 +50,8 @@ public class RadialSetBIValue extends VolumeValue {
 		q.outDataValue = DataType.MissingData;
 		q2.outDataValue = DataType.MissingData;
 
-		RadialSet.SphericalLocation buffer = new RadialSet.SphericalLocation();
-		RadialSet.SphericalLocation buffer2 = new RadialSet.SphericalLocation();
+		PPIRadialSet.SphericalLocation buffer = new PPIRadialSet.SphericalLocation();
+		PPIRadialSet.SphericalLocation buffer2 = new PPIRadialSet.SphericalLocation();
 
 		// Poor man's vslice..just grab the first thing NOT missing lol...
 		// This is actually slowest when there isn't any data...
@@ -68,7 +68,7 @@ public class RadialSetBIValue extends VolumeValue {
 			for (int i = 0; i < p.size(); i++) {
 				DataType dt = p.get(i).getRawDataType();
 				if (dt != null) {
-					RadialSet r = (RadialSet) (dt);
+					PPIRadialSet r = (PPIRadialSet) (dt);
 					if (r != null) {
 						// First time, get the location in object spherical coordinates.  This doesn't
 						// change for any of the radials in the set.
@@ -96,7 +96,7 @@ public class RadialSetBIValue extends VolumeValue {
 
 								DataType dt2 = p.get(i - 1).getRawDataType();
 								if (dt2 != null) {
-									RadialSet r2 = (RadialSet) (dt2);
+									PPIRadialSet r2 = (PPIRadialSet) (dt2);
 									if (r2 != null) {
 										float v2 = oldValue;
 										float v2r = oldValueR;

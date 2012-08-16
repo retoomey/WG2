@@ -20,11 +20,10 @@ import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.products.volumes.RadialSetVolume;
 import org.wdssii.gui.swing.JThreadPanel;
-import org.wdssii.gui.swing.JwgDropDownButton;
 import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
 import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
 import org.wdssii.xml.wdssiiConfig.Tag_setup;
-import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
 
 /** The Chart view interface lets us wrap around an RCP view or netbean view 
  * without being coupled to those libraries 
@@ -54,6 +53,7 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
 		updateGUI();
 	}
 
+	
 	/** Our factory, called by reflection to populate menus, etc...*/
 	public static class Factory extends WdssiiMDockedViewFactory {
 
@@ -157,40 +157,16 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
 		});
 		addTo.add(jVirtualToggleButton);
 
-		// Interpolation button
-		Icon test = SwingIconFactory.getIconByName("layers.png");
-		JPopupMenu menu = new JPopupMenu();
-		ActionListener menuAction = new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				jPopupMenuActionPerformed(e);
-			}
-		};
-
-		ButtonGroup group = new ButtonGroup();
-		// Should use Radio buttons but they usually look nasty in menus
-		JCheckBoxMenuItem item;
-		boolean selectedOne = false;
-		for (String s : myInterps) {
-			item = new JCheckBoxMenuItem(s);
-			if (!selectedOne) {
-				item.setSelected(true);
-				selectedOne = true;
-			}
-			item.addActionListener(menuAction);
-			group.add(item);
-			menu.add(item);
+		if (myChart != null){
+			myChart.addCustomTitleBarComponents(addTo);
 		}
 
-		JwgDropDownButton b1 = new JwgDropDownButton(test);
-		b1.setToolTipText("Choose the type of interpolation");
-		b1.setMenu(menu);
-		addTo.add(b1);
 
 		// ---------------------------------------------------------
 		// The product follow menu
 		addTo.add(ProductFollowCommand.getDropButton(this));
+
+		//addTo.add(VolumeValueCommand.getDropButton(this));
 
 		// ---------------------------------------------------------
 		// The 3D object follow menu
@@ -399,4 +375,5 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
 		}
 		return use;
 	}
+
 }

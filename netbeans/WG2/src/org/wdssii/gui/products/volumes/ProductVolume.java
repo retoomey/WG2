@@ -5,21 +5,16 @@ import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
-
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-
+import java.util.ArrayList;
+import java.util.List;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
-import org.wdssii.gui.products.FilterList;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductButtonStatus;
-import org.wdssii.gui.products.VolumeSlice2DOutput;
-import org.wdssii.gui.products.VolumeSlice3DOutput;
-import org.wdssii.gui.products.VolumeSliceInput;
+import org.wdssii.gui.products.*;
 import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
 
 /** The ProductVolume handles the 'up', 'down' and 'base' controls in the
@@ -39,11 +34,11 @@ public class ProductVolume {
 
         @Override
         public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
-                FilterList list, boolean useFilters) {
+                FilterList list, boolean useFilters, VolumeValue v) {
             return true;
         }
     }
-    
+
     public static ProductNAVolume nullVolume = new ProductNAVolume();
     
     /** The key that uniquely defines this volume (for caching/updating purposes) */
@@ -67,9 +62,20 @@ public class ProductVolume {
         return new DataValueRecord();
     }
 
+    /** The menu list of VolumeValue choices.  This lets user choose between different types of interpolation, for example */
+    public List<String> getValueNameList(){
+	    ArrayList<String> stuff = new ArrayList<String>();
+	    return stuff;
+    }
+
+    /** Get a VolumeValue given a name */
+    public VolumeValue getVolumeValue(String name){
+	return null;
+    }
+
     // filler function, will have to be more advanced..
     public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
-            FilterList list, boolean useFilters) {
+            FilterList list, boolean useFilters, VolumeValue v) {
         //ArrayList<DataFilter> list){
 
         // Get value as fast as possible...
@@ -121,7 +127,8 @@ public class ProductVolume {
             boolean useFilters, // ArrayList<DataFilter> list /* Data filter list to use*/)
             double vert,
             DataValueRecord rec,
-            ProductVolume pv) {
+            ProductVolume pv,
+	    VolumeValue volumevalue) {
 
         // Grid indices with elements show a 5 col, 2 row quad.  Note overlapping points, top row
         // of quads is done differently
@@ -260,7 +267,7 @@ public class ProductVolume {
                         //  getValueAt(currentLat + (deltaLat / 2.0),
                         //         currentLon + (deltaLon / 2.0), currentHeight - deltaHeight - (deltaHeight / 2.0),
                         //         data, rec, list, useFilters);
-                        pv.getValueAt(buffer, data, rec, list, useFilters);
+                        pv.getValueAt(buffer, data, rec, list, useFilters, volumevalue);
                     } catch (Exception e) {
                     }
                     // data.red = data.green = data.blue = 1.0;
@@ -284,7 +291,7 @@ public class ProductVolume {
                         buffer.init(currentLat + (deltaLat / 2.0), currentLon + (deltaLon / 2.0), (currentHeight - (deltaHeight / 2.0)) / 1000.0);
                         // getValueAt(currentLat + (deltaLat / 2.0), currentLon + (deltaLon / 2.0),
                         //         currentHeight - (deltaHeight / 2.0), data, rec, list, useFilters);
-                        pv.getValueAt(buffer, data, rec, list, useFilters);
+                        pv.getValueAt(buffer, data, rec, list, useFilters, volumevalue);
                     } catch (Exception e) {
                     }
                     // data.red = data.green = data.blue = 1.0;
@@ -313,7 +320,7 @@ public class ProductVolume {
             boolean useFilters, // ArrayList<DataFilter> list /* Data filter list to use*/)
             double vert)
     {
-         generateVSlice(g, dest, gb, list, useFilters, vert, null, nullVolume);
+         generateVSlice(g, dest, gb, list, useFilters, vert, null, nullVolume, null);
     }
     
     /** Generate a 3D slice of this volume's data.  Putting it here because things like
@@ -325,13 +332,14 @@ public class ProductVolume {
             Globe gb, // Nasa globe for projection... not sure I want to directly depend on this class.
             FilterList list,
             boolean useFilters, // ArrayList<DataFilter> list /* Data filter list to use*/)
-            double vert) {
+            double vert,
+	    VolumeValue volumevalue) {
 
         // Generates a 2D array of colors as well as a 3D index/vertex array at once.
         // Have code together to ensure consistency.
         DataValueRecord rec = getNewDataValueRecord();
 
-        generateVSlice(g, dest, gb, list, useFilters, vert, rec, this);       
+        generateVSlice(g, dest, gb, list, useFilters, vert, rec, this, volumevalue);       
     }
 
     /** Generate a 2D slice.  Differs from 3D in info... */
@@ -339,7 +347,8 @@ public class ProductVolume {
             VolumeSliceInput g,
             VolumeSlice2DOutput dest,
             FilterList list,
-            boolean useFilters) {
+            boolean useFilters,
+	    VolumeValue volumevalue) {
 
         if (g == null) {
             return;
@@ -380,7 +389,7 @@ public class ProductVolume {
                 try {
                     buffer.init(currentLat, currentLon, currentHeight / 1000.0f);
                     // getValueAt(currentLat, currentLon, currentHeight, data, rec, list, useFilters);
-                    getValueAt(buffer, data, rec, list, useFilters);
+                    getValueAt(buffer, data, rec, list, useFilters, volumevalue);
                 } catch (Exception e) {
                     warning = true;
                     message = e.toString();

@@ -100,7 +100,7 @@ public class LatLonGridVolume extends IndexRecordVolume {
      */
     @Override
     public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
-            FilterList list, boolean useFilters) {
+            FilterList list, boolean useFilters, VolumeValue v) {
 
         // Maybe this could be a filter in the color map...  You could clip anything by height heh heh..
         // It would make sense for it to be a filter

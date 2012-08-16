@@ -601,7 +601,8 @@ public class LLHAreaSlice extends LLHArea {
 			myCurrentGrid.endLat, myCurrentGrid.endLon,
 			myCurrentGrid.bottomHeight, myCurrentGrid.topHeight);
 		// Let the volume generate the 3D slice output
-		myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true, dc.getVerticalExaggeration());
+		// FIXME: Need to be able to change volumevalue
+		myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true, dc.getVerticalExaggeration(), null);
 	}
 
 	/** Update the current grid that is the GIS location of the slice */

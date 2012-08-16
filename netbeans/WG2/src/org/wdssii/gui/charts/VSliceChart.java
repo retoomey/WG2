@@ -6,6 +6,7 @@ import gov.nasa.worldwind.globes.Globe;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -29,27 +30,68 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.commands.VolumeValueCommand;
+import org.wdssii.gui.commands.VolumeValueCommand.VolumeValueFollowerView;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeatureFilter;
 import org.wdssii.gui.features.LLHAreaFeature;
-import org.wdssii.gui.products.ProductFeature;
-import org.wdssii.gui.products.FilterList;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.VolumeSlice2DOutput;
-import org.wdssii.gui.products.VolumeSliceInput;
+import org.wdssii.gui.products.*;
 import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.products.volumes.VolumeValue;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSlice;
 
-public class VSliceChart extends ChartViewJFreeChart {
+public class VSliceChart extends ChartViewJFreeChart implements VolumeValueFollowerView {
 
 	private static Logger log = LoggerFactory.getLogger(VSliceChart.class);
+	private ProductVolume myVolume = null;
+	/**
+	 * Keep volume value setting per chart
+	 */
+	public String myCurrentVolumeValue = "";
+
+	// Volume value follower
+	@Override
+	public void setCurrentVolumeValue(String changeTo) {
+		myCurrentVolumeValue = changeTo;
+		if (myVolume != null) {
+			regenerateSlice(true); // Force update
+		}
+	}
+
+	@Override
+	public String getCurrentVolumeValue() {
+
+		if (myVolume != null) {
+			VolumeValue v = myVolume.getVolumeValue(myCurrentVolumeValue);
+			if (v != null){
+				myCurrentVolumeValue = v.getName();
+			}
+			return myCurrentVolumeValue;
+		}
+		return "";
+	}
+
+	@Override
+	public java.util.List<String> getValueNameList() {
+
+		// We get this from the current volume...
+		java.util.List<String> s;
+		if (myVolume == null) {
+			s = new ArrayList<String>();
+			s.add("No volume data");
+		} else {
+			s = myVolume.getValueNameList();
+		}
+
+		return s;
+	}
 
 	/**
-	 * A NumberAxis that forces auto range (zoom out or menu picked) to be the
-	 * default height/range of the LLHAreaSlice we are following
+	 * A NumberAxis that forces auto range (zoom out or menu picked) to be
+	 * the default height/range of the LLHAreaSlice we are following
 	 */
 	public static class VSliceNumberAxis extends NumberAxis {
 
@@ -67,7 +109,8 @@ public class VSliceChart extends ChartViewJFreeChart {
 		}
 
 		/**
-		 * Zoom out auto-adjust should go to the FULL vslice we're following..
+		 * Zoom out auto-adjust should go to the FULL vslice we're
+		 * following..
 		 */
 		@Override
 		protected void autoAdjustRange() {
@@ -111,8 +154,8 @@ public class VSliceChart extends ChartViewJFreeChart {
 	 */
 	private String myCurrentKey;
 	/**
-	 * The last GIS key. This is the key part that deals with the 'shape' of the
-	 * VSlice without product/volume
+	 * The last GIS key. This is the key part that deals with the 'shape' of
+	 * the VSlice without product/volume
 	 */
 	private String myGISKey = "";
 	private VSliceFixedGridPlot myPlot = null;
@@ -127,7 +170,9 @@ public class VSliceChart extends ChartViewJFreeChart {
 		myJFreeChart.addSubtitle(myPlot.myText);
 	}
 
-	/** Return an LLHAreaFeature that contains a LLHAreaSlice */
+	/**
+	 * Return an LLHAreaFeature that contains a LLHAreaSlice
+	 */
 	public static class VSliceFilter implements FeatureFilter {
 
 		@Override
@@ -169,14 +214,19 @@ public class VSliceChart extends ChartViewJFreeChart {
 	 */
 	@Override
 	public void updateChart() {
+		regenerateSlice(false);
+	}
 
+	public void regenerateSlice(boolean force) {
 		// The LLHAreaSlice is the geometry in the 3d window we are
 		// matching our coordinates to.  It can be valid without
 		// any product/volume information.
+		myPlot.setCurrentVolumeValueName(myCurrentVolumeValue);
 		LLHAreaSlice slice = getVSliceToPlot();
 		if (slice == null) {
 			// If there isn't a 3D slice LLHArea object geometry to follow,
 			// clear us...
+			myVolume = null;
 			myPlot.setVolumeAndSlice(null, null, null);
 			myJFreeChart.setTitle("No slice in 3d window");
 			myJFreeChart.fireChartChanged();
@@ -229,6 +279,7 @@ public class VSliceChart extends ChartViewJFreeChart {
 		if ((volume == null) || (aList == null)) {
 			// If there isn't a valid data source, clear us out...
 			// clear us...
+			myVolume = null;
 			myPlot.setVolumeAndSlice(slice, null, null);
 			myJFreeChart.setTitle("No volume data");
 			myJFreeChart.fireChartChanged();
@@ -256,21 +307,27 @@ public class VSliceChart extends ChartViewJFreeChart {
 		}
 		myCurrentKey = key;
 
-		if (!keyDifferent) {
+		if (!force && !keyDifferent) {
 			return;
 		}
 
 		// if (keyDifferent) {
 		//     System.out.println("VSLICE KEY CHANGE");
 		// }
+		myVolume = volume;
+		// Try to keep the setting PER chart...note if volume
+		// type changed it will go to last setting for that type
+		if (myVolume != null) {
+			//	myVolume.setCurrentVolumeValue(myCurrentVolumeValue);
+		}
 		myPlot.setVolumeAndSlice(slice, volume, aList);
 		myJFreeChart.setTitle(titleKey);
 		myJFreeChart.fireChartChanged();
 	}
 
 	/**
-	 * Terrain XYZDataset is a JFreeChart dataset where we sample the terrain
-	 * 'height' along the range.
+	 * Terrain XYZDataset is a JFreeChart dataset where we sample the
+	 * terrain 'height' along the range.
 	 */
 	public static class TerrainXYZDataset implements XYZDataset {
 
@@ -294,9 +351,9 @@ public class VSliceChart extends ChartViewJFreeChart {
 		private double rangeLower;
 
 		/*
-		 * We dynamically resample the terrain data depending on zoom level.
-		 * This is called with the current lat/lon of the chart so that the
-		 * terrain can be resampled by zoom
+		 * We dynamically resample the terrain data depending on zoom
+		 * level. This is called with the current lat/lon of the chart
+		 * so that the terrain can be resampled by zoom
 		 */
 		public void syncToRange(ValueAxis x,
 			double startLat,
@@ -411,18 +468,19 @@ public class VSliceChart extends ChartViewJFreeChart {
 	}
 
 	/**
-	 * Fixed grid draws a background of vslice at current zoom level. We render
-	 * the vslice grid directly in the render function of the plot. Why not use
-	 * a JFreeChart block renderer? Well we want a set grid resolution, but
-	 * 'infinite' sampling resolution as we zoom in. Freechart has a 'fixed'
-	 * data grid. However we do call super here so that we can add regular
-	 * freechart stuff over our vslice. Think of the vslice as a very special
-	 * background to the plot.
+	 * Fixed grid draws a background of vslice at current zoom level. We
+	 * render the vslice grid directly in the render function of the plot.
+	 * Why not use a JFreeChart block renderer? Well we want a set grid
+	 * resolution, but 'infinite' sampling resolution as we zoom in.
+	 * Freechart has a 'fixed' data grid. However we do call super here so
+	 * that we can add regular freechart stuff over our vslice. Think of the
+	 * vslice as a very special background to the plot.
 	 */
 	public static class VSliceFixedGridPlot extends XYPlot {
 
 		private TextTitle myText;
 		private ProductVolume myVolume;
+		private String myCurrentVolumeValueName;
 		private LLHAreaSlice mySlice;
 		private FilterList myList;
 		private TerrainXYZDataset myTerrain;
@@ -434,6 +492,10 @@ public class VSliceChart extends ChartViewJFreeChart {
 		private VSliceFixedGridPlot(TerrainXYZDataset dataset, ValueAxis domainAxis, ValueAxis rangeAxis, XYItemRenderer renderer) {
 			super(dataset, domainAxis, rangeAxis, renderer);
 			myTerrain = dataset;
+		}
+
+		public void setCurrentVolumeValueName(String name) {
+			myCurrentVolumeValueName = name;
 		}
 
 		@Override
@@ -510,7 +572,11 @@ public class VSliceChart extends ChartViewJFreeChart {
 
 				if (myVolume != null) {
 
-					myVolume.generate2DGrid(subGrid, my2DSlice, myList, false);
+					VolumeValue v = myVolume.getVolumeValue(myCurrentVolumeValueName);
+					if (v != null) {
+						myCurrentVolumeValueName = v.getName();
+					}
+					myVolume.generate2DGrid(subGrid, my2DSlice, myList, false, v);
 					int[] data = my2DSlice.getColor2dFloatArray(0);
 
 					// Render the dynamic 'grid' of data. Note that unlike
@@ -622,11 +688,13 @@ public class VSliceChart extends ChartViewJFreeChart {
 		/*
 		 * NumberAxis colorScale = new NumberAxis("Color");
 		 * colorScale.setAutoRange(true); PaintScaleLegend p = new
-		 * PaintScaleLegend(scale, colorScale); p.setSubdivisionCount(20);
-		 * p.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT); p.setAxisOffset(5D);
-		 * //	p.setMargin(new RectangleInsets(5D, 5D, 5D, 5D)); p.setFrame(new
-		 * BlockBorder(Color.red)); //	p.setPadding(new RectangleInsets(10D,
-		 * 10D, 10D, 10D)); chart.addSubtitle(p);
+		 * PaintScaleLegend(scale, colorScale);
+		 * p.setSubdivisionCount(20);
+		 * p.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+		 * p.setAxisOffset(5D); //	p.setMargin(new RectangleInsets(5D,
+		 * 5D, 5D, 5D)); p.setFrame(new BlockBorder(Color.red)); //
+		 * p.setPadding(new RectangleInsets(10D, 10D, 10D, 10D));
+		 * chart.addSubtitle(p);
 		 */
 		//NumberAxis xAxis3 = new NumberAxis("Number2");
 		//	xAxis3.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
@@ -640,18 +708,20 @@ public class VSliceChart extends ChartViewJFreeChart {
 	@Override
 	public Object getNewGUIBox(Object parent) {
 		/*
-		 * final Composite box = new Composite((Composite) parent, SWT.NONE);
-		 * box.setLayout(new RowLayout());
+		 * final Composite box = new Composite((Composite) parent,
+		 * SWT.NONE); box.setLayout(new RowLayout());
 		 *
-		 * // SRV Text srv = new Text(box, SWT.LEFT); srv.setText("HeightKMs:");
-		 * srv.setEditable(false); final Spinner speedSpin = new Spinner(box,
-		 * 0); speedSpin.setMaximum(200); speedSpin.setMinimum(-200);
+		 * // SRV Text srv = new Text(box, SWT.LEFT);
+		 * srv.setText("HeightKMs:"); srv.setEditable(false); final
+		 * Spinner speedSpin = new Spinner(box, 0);
+		 * speedSpin.setMaximum(200); speedSpin.setMinimum(-200);
 		 * speedSpin.setSelection(12);
 		 *
-		 * // Add listeners for GUI elements speedSpin.addSelectionListener(new
-		 * SelectionListener() {
+		 * // Add listeners for GUI elements
+		 * speedSpin.addSelectionListener(new SelectionListener() {
 		 *
-		 * @Override public void widgetDefaultSelected(SelectionEvent arg0) { }
+		 * @Override public void widgetDefaultSelected(SelectionEvent
+		 * arg0) { }
 		 *
 		 * @Override public void widgetSelected(SelectionEvent arg0) {
 		 * //myCutOff = speedSpin.getSelection(); //myDirtySRM = true;
@@ -744,5 +814,13 @@ public class VSliceChart extends ChartViewJFreeChart {
 			}
 		}
 
+	}
+
+	/**
+	 * Get extra menu items for the chart
+	 */
+	@Override
+	public void addCustomTitleBarComponents(java.util.List<Object> addTo) {
+		addTo.add(VolumeValueCommand.getDropButton(this));
 	}
 }

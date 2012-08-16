@@ -367,7 +367,7 @@ public class TimeTrendChart extends ChartViewJFreeChart {
 
                         buffer.init(startLat, startLon, curHeight/1000.0f);
                         //v.getValueAt(startLat, startLon, curHeight, output, null, null, false);
-                        v.getValueAt(buffer, output, null, null, false);
+                        v.getValueAt(buffer, output, null, null, false, null);
                         colorCounter = (3 * numberOfTimes * (numberHeight - j - 1)) + (3 * i);
                         colors[colorCounter++] = output.redF();
                         colors[colorCounter++] = output.greenF();

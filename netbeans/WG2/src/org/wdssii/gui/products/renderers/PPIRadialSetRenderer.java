@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetQuery;
+import org.wdssii.datatypes.Radial;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.*;
@@ -33,25 +33,10 @@ import org.wdssii.util.RadialUtil;
  *  @author Robert Toomey
  *
  */
-public class PPIRadialSetRenderer extends ProductRenderer {
+public class PPIRadialSetRenderer extends RadialSetRenderer {
 
 	private static Logger log = LoggerFactory.getLogger(PPIRadialSetRenderer.class);
-	/**
-	 *  Offsets for the quad strips drawing the radials
-	 */
-	private GrowList<Integer> myOffsets;
-	/**
-	 * Verts for the RadialSet
-	 */
-	protected Array1DOpenGL verts;
-	/**
-	 * Cooresponding colors
-	 */
-	protected Array1DOpenGL colors;
-	/**
-	 * Colors as readout information
-	 */
-	protected Array1DOpenGL readout;
+	
 	protected int updateCounter = 0;
 
 	public PPIRadialSetRenderer() {
@@ -65,114 +50,26 @@ public class PPIRadialSetRenderer extends ProductRenderer {
 		int ccounter = 0;
 
 		try {
-
 			// Make sure and always start monitor
 			PPIRadialSet aRadialSet = (PPIRadialSet) aProduct.getRawDataType();
 			monitor.beginTask("RadialSetRenderer", aRadialSet.getNumRadials());
-			//	long end1 = System.currentTimeMillis() - start;
-			//	float seconds1 = (float) ((end1 * 1.0) / 1000.0);
-			// System.out.println("RADIAL SET BUILDER SECONDS " + seconds1);
-			//myProduct = aProduct;
-			//	ColorMap aColorMap = aProduct.getColorMap();
-			FilterList aList = aProduct.getFilterList();
-
-			// if (aColorMap == null){
-			// System.out.println("Missing color map, generating based on values");
-			// }
-			// / Try to create the opengl stuff for a radial set...
-			int numRadials = aRadialSet.getNumRadials();
-
-			// System.out.println("There are " + numRadials + " Radials");
-
-			// if number_of_radials == 0 error.... FIXME
-
-			// Get the location of the radar and the elevation of this
-			// radial
-			// set
-			Location radarLoc = aRadialSet.getRadarLocation();
-			// Precompute the sin/cos of the elevation angle of the radar.
-			final float RAD = 0.017453293f;
-			double sinElevAngle = aRadialSet.getElevationSin();
-			double cosElevAngle = aRadialSet.getElevationCos();
-
-			float firstGateKms = aRadialSet.getRangeToFirstGateKms();
-
-			// "Counter" loop. Faster to calculate than reallocate memory,
-			// Radial sets have missing parts no way to quick count it that
-			// I can see. We also find the maximum number of gates and
-			// create
-			// a attenuation height cache
-
-			int maxGateCount = 0;
-			for (int i = 0; i < numRadials; i++) {
-
-				// Get each radial from center out to end
-				Radial aRadial = aRadialSet.getRadial(i);
-
-				// If missing, just continue on
-				int numGates = aRadial.getNumGates();
-
-				if (numGates == 0) {
-					continue;
-				}
-
-				boolean needNewStrip = true;
-
-				//float[] values = aRadial.getValues();
-				Array1Dfloat values = aRadial.getValues();
-
-				if (maxGateCount < numGates) {
-					maxGateCount = numGates;
-				}
-
-				values.begin();
-				for (int j = 0; j < numGates; j++) {
-					//double value = values[j];
-					float value = values.get(j);
-					// value = -10+( ((float)(j)/(float)(numGates))
-					// *(99+10));
-					// if (value < -90000) { // needs to be missing value
-					// FIXME
-						/*
-					 *  if (value == DataType.MissingData){ value = 20; }
-					 */
-					if (value == DataType.MissingData) {
-						needNewStrip = true;
-					} else {
-						if (needNewStrip) {
-							counter += 6; // 2 * 3
-							ccounter += 8; // 2*4
-						}
-						counter += 6;
-						ccounter += 8;
-						needNewStrip = false;
-					}
-				}
-				values.end();
-			}
-			// --------------End counter loop
-
-			// System.out.println("Counted gates, total of " + counter);
 			Globe myGlobe = dc.getGlobe(); // FIXME: says may be null???
+			FilterList aList = aProduct.getFilterList();
+			final Location radarLoc = aRadialSet.getRadarLocation();
+			final double sinElevAngle = aRadialSet.getFixedAngleSin();
+			final double cosElevAngle = aRadialSet.getFixedAngleCos();
+			final float firstGateKms = aRadialSet.getRangeToFirstGateKms();
+			final int maxGateCount = aRadialSet.getNumGates();
+			final int numRadials = aRadialSet.getNumRadials();
 
-			// The opengl thread can draw anytime..
-			verts = new Array1DOpenGL(counter, 0.0f);   // FIXME: could 'combine' both into one array I think...
-			colors = new Array1DOpenGL(ccounter / 4, 0.0f); // use one 'float' per color...
-
-			// READOUT
-			readout = new Array1DOpenGL(ccounter / 4, 0.0f);  // use one 'float' per color...
-
-			myOffsets = new GrowList<Integer>();
-
-			// Start a batch 'set'.  This allows internal array to optimize loading
+			allocateMemory(aRadialSet);
 			verts.begin();
 			colors.begin();
 			readout.begin();
 
-			// colors.rewind(); // do I need this?
-
 			// Once buffers exist and myOffsets exists, we 'turn on' the drawing thread:
 			setIsCreated();
+
 			int idx = 0;
 			int idy = 0;
 			int idREAD = 0;
@@ -193,33 +90,9 @@ public class PPIRadialSetRenderer extends ProductRenderer {
 			// why bother to attenuate anyway?
 			// This is a hideous thing created because otherwise superres
 			// brings us to a crawl
-			double[] heights;
-			double[] gcdSinCache;
-			double[] gcdCosCache;
-			// System.out.println("Begin height cache....");
-			if (numRadials > 0) {
-				heights = new double[maxGateCount + 1];
-				// gcdCache = new double[maxGateCount+1];
-				gcdSinCache = new double[maxGateCount + 1];
-				gcdCosCache = new double[maxGateCount + 1];
-				Radial aRadial = aRadialSet.getRadial(0);
-				double rangeMeters = firstGateKms * 1000.0;
-				double gateWidthMeters = aRadial.getGateWidthKms() * 1000.0;
-				//	System.out.println("Gate width meters is "+gateWidthMeters);
-				for (int i = 0; i <= maxGateCount; i++) {
-					heights[i] = RadialUtil.getAzRanElHeight(rangeMeters,
-									sinElevAngle);
-					double gcd = RadialUtil.getGCD(rangeMeters,
-									cosElevAngle, heights[i]);
-					gcdSinCache[i] = RadialUtil.getGCDSin(gcd);
-					gcdCosCache[i] = RadialUtil.getGCDCos(gcd);
-					rangeMeters += gateWidthMeters;
-				}
-			} else {
-				heights = null; // avoid error
-				gcdSinCache = null;
-				gcdCosCache = null;
-			}
+			Radial firstRadial = (numRadials > 0)? aRadialSet.getRadial(0): null;
+			RadialATHeightGateCache c = new RadialATHeightGateCache(aRadialSet, firstRadial, maxGateCount, sinElevAngle, cosElevAngle);
+
 			PPIRadialSetQuery rq = new PPIRadialSetQuery();
 
 			// System.out.println("end height cache....");
@@ -239,21 +112,21 @@ public class PPIRadialSetRenderer extends ProductRenderer {
 				}
 
 				// Reset range to starting gate
-				float startRAD = aRadial.getStartAzimuthDegs() * RAD;
-				float endRAD = aRadial.getEndAzimuthDegs() * RAD;
-				double sinStartRAD = Math.sin(startRAD);
-				double cosStartRAD = Math.cos(startRAD);
-				double sinEndRAD = Math.sin(endRAD);
-				double cosEndRAD = Math.cos(endRAD);
+				float startAzimuthRAD = aRadial.getStartRadians();
+				float endAzimuthRAD = aRadial.getEndRadians();
+				double sinStartAzRAD = Math.sin(startAzimuthRAD);
+				double cosStartAzRAD = Math.cos(startAzimuthRAD);
+				double sinEndAzRAD = Math.sin(endAzimuthRAD);
+				double cosEndAzRAD = Math.cos(endAzimuthRAD);
 
 				float rangeKms = firstGateKms;
 				float gateWidthKms = aRadial.getGateWidthKms();
-				RadialUtil.getAzRan1(gate, radarLoc, sinStartRAD,
-								cosStartRAD, rangeKms, sinElevAngle, cosElevAngle,
-								heights[0], gcdSinCache[0], gcdCosCache[0]);
-				RadialUtil.getAzRan1(gate1, radarLoc, sinEndRAD, cosEndRAD,
-								rangeKms, sinElevAngle, cosElevAngle, heights[0],
-								gcdSinCache[0], gcdCosCache[0]);
+				RadialUtil.getAzRan1(gate, radarLoc, sinStartAzRAD,
+								cosStartAzRAD, rangeKms, sinElevAngle, cosElevAngle,
+								c.heights[0], c.gcdSinCache[0], c.gcdCosCache[0]);
+				RadialUtil.getAzRan1(gate1, radarLoc, sinEndAzRAD, cosEndAzRAD,
+								rangeKms, sinElevAngle, cosElevAngle, c.heights[0],
+								c.gcdSinCache[0], c.gcdCosCache[0]);
 				boolean needNewStrip = true;
 
 				// We could create each 'radial' in a thread...drawing could
@@ -264,14 +137,14 @@ public class PPIRadialSetRenderer extends ProductRenderer {
 
 					rangeKms += gateWidthKms;
 					// rangeKms += gateWidthKms;
-					RadialUtil.getAzRan1(gate2, radarLoc, sinEndRAD,
-									cosEndRAD, rangeKms, sinElevAngle,
-									cosElevAngle, heights[j + 1],
-									gcdSinCache[j + 1], gcdCosCache[j + 1]);
-					RadialUtil.getAzRan1(gate3, radarLoc, sinStartRAD,
-									cosStartRAD, rangeKms, sinElevAngle,
-									cosElevAngle, heights[j + 1],
-									gcdSinCache[j + 1], gcdCosCache[j + 1]);
+					RadialUtil.getAzRan1(gate2, radarLoc, sinEndAzRAD,
+									cosEndAzRAD, rangeKms, sinElevAngle,
+									cosElevAngle, c.heights[j + 1],
+									c.gcdSinCache[j + 1], c.gcdCosCache[j + 1]);
+					RadialUtil.getAzRan1(gate3, radarLoc, sinStartAzRAD,
+									cosStartAzRAD, rangeKms, sinElevAngle,
+									cosElevAngle, c.heights[j + 1],
+									c.gcdSinCache[j + 1], c.gcdCosCache[j + 1]);
 
 					// Do the stuff creating the gate in opengl
 					//double value = values[j];
@@ -314,7 +187,10 @@ public class PPIRadialSetRenderer extends ProductRenderer {
 							verts.set(idx++, (float) point.y);
 							verts.set(idx++, (float) point.z);
 
-							Vec4 point1 = myGlobe.computePointFromPosition(Angle.fromDegrees(gate1.getLatitude()), Angle.fromDegrees(gate1.getLongitude()), gate1.getHeightKms() * 1000);
+							Vec4 point1 = myGlobe.computePointFromPosition(
+								   Angle.fromDegrees(gate1.getLatitude()), 
+								   Angle.fromDegrees(gate1.getLongitude()), 
+								   gate1.getHeightKms() * 1000);
 
 // READOUT EXPERIMENT
 //out.putUnsignedBytes(readout, idREAD++);
@@ -332,7 +208,7 @@ public class PPIRadialSetRenderer extends ProductRenderer {
 						Vec4 point3 = myGlobe.computePointFromPosition(
 										Angle.fromDegrees(gate3.getLatitude()),
 										Angle.fromDegrees(gate3.getLongitude()),
-										gate2.getHeightKms() * 1000);
+										gate3.getHeightKms() * 1000);
 
 // READOUT EXPERIMENT
 //out.putUnsignedBytes(readout, idREAD++);
@@ -347,7 +223,7 @@ public class PPIRadialSetRenderer extends ProductRenderer {
 						Vec4 point2 = myGlobe.computePointFromPosition(
 										Angle.fromDegrees(gate2.getLatitude()),
 										Angle.fromDegrees(gate2.getLongitude()),
-										gate3.getHeightKms() * 1000);
+										gate2.getHeightKms() * 1000);
 
 // READOUT EXPERIMENT
 //out.putUnsignedBytes(readout, idREAD++);

@@ -9,8 +9,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.geom.CPoint;
-import org.wdssii.geom.CVector;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.GridVisibleArea;
 import org.wdssii.storage.Array1Dfloat;
@@ -23,59 +21,12 @@ import org.wdssii.util.RadialUtil;
  * @author lakshman
  *
  */
-public class PPIRadialSet extends DataType implements Table2DView {
+public class PPIRadialSet extends RadialSet implements Table2DView {
 
 	private static Logger log = LoggerFactory.getLogger(PPIRadialSet.class);
-	/**
-	 * Elevation in degrees of this radial set
-	 */
-	private final float elevDegs;
-	/**
-	 * Elevation in radians of this radial set
-	 */
-	private final float elevRads;
-	/**
-	 * Tan of elevation, cached for the beam height distance function
-	 */
-	private final float tanElevation;
-	/**
-	 * Sin of the elevation cached for getLocation and other needs
-	 */
-	private final float sinElevation;
-	/**
-	 * Cos of the elevation cached for getLocation and other needs
-	 */
-	private final float cosElevation;
-	/**
-	 * Our radials
-	 */
-	protected Radial[] radials;
-	/**
-	 * Cache the radar location CPoint for speed
-	 */
-	private final CPoint radarLocation;
-	/**
-	 * Cross product of z and y vector
-	 */
-	private final CVector myUx;
-	/**
-	 * Y-azis vector north-ward relative to RadialSet center
-	 */
-	private final CVector myUy;
-	/**
-	 * Z-axis perpendicular to the earth's surface
-	 */
-	private final CVector myUz;
-	/**
-	 * Range to the first gate of the RadialSet in Kms
-	 */
-	private final float rangeToFirstGate;
-	/**
-	 * The maximum number of gates of all Radial
-	 */
-	private final int myMaxGateNumber;
-	// This is a radial set lookup that finds an exact match for a radial given an azimuth.  Need this for the vslice/isosurface
-	// in the GUI.
+	
+	// This is a radial set lookup that finds an exact match for a radial given an azimuth.  
+	// Need this for the vslice/isosurface in the GUI.
 	/**
 	 * A sorted array of end azimuth, each corresponding to azimuthRadials
 	 * below, this gives us a o(nlogn) binary search of radials given an
@@ -94,40 +45,7 @@ public class PPIRadialSet extends DataType implements Table2DView {
 	 * Passed in by builder objects to use to initialize ourselves. This
 	 * allows us to have final field access from builders.
 	 */
-	public static class PPIRadialSetMemento extends DataTypeMemento {
-
-		/**
-		 * Elevation in degrees of this radial set
-		 */
-		public float elevation;
-		/**
-		 * Our radials
-		 */
-		public Radial[] radials;
-		/**
-		 * Cache the radar location CPoint for speed
-		 */
-		public CPoint radarLocation;
-		/**
-		 * Cross product of z and y vector
-		 */
-		public CVector myUx;
-		/**
-		 * Y-azis vector north-ward relative to RadialSet center
-		 */
-		public CVector myUy;
-		/**
-		 * Z-axis perpendicular to the earth's surface
-		 */
-		public CVector myUz;
-		/**
-		 * Range to the first gate of the RadialSet in Kms
-		 */
-		public float rangeToFirstGate;
-		/**
-		 * The maximum number of gates of all Radial
-		 */
-		public int maxGateNumber = 0;
+	public static class PPIRadialSetMemento extends RadialSetMemento {
 	};
 
 	/**
@@ -180,18 +98,7 @@ public class PPIRadialSet extends DataType implements Table2DView {
 
 	public PPIRadialSet(PPIRadialSetMemento m) {
 		super(m);
-		this.elevDegs = m.elevation;
-		this.elevRads = (float) Math.toRadians(elevDegs);
-		this.tanElevation = (float) Math.tan(elevRads);
-		this.sinElevation = (float) Math.sin(elevRads);
-		this.cosElevation = (float) Math.cos(elevRads);
-		this.radials = m.radials;
-		this.radarLocation = m.radarLocation;
-		this.myUx = m.myUx;
-		this.myUy = m.myUy;
-		this.myUz = m.myUz;
-		this.rangeToFirstGate = m.rangeToFirstGate;
-		this.myMaxGateNumber = m.maxGateNumber;
+
 		createAzimuthSearch();
 	}
 
@@ -212,8 +119,8 @@ public class PPIRadialSet extends DataType implements Table2DView {
 
 				@Override
 				public int compare(Radial o1, Radial o2) {
-					double u1 = o1.getEndAzimuthDegs();
-					double u2 = o2.getEndAzimuthDegs();
+					double u1 = o1.getEndDegrees();
+					double u2 = o2.getEndDegrees();
 					if (u1 < u2) {
 						return -1;
 					}
@@ -226,135 +133,8 @@ public class PPIRadialSet extends DataType implements Table2DView {
 
 			// Create the angle list from the sorted radials...
 			for (int i = 0; i < angleToRadial.length; i++) {
-				angleToRadial[i] = azimuthRadials[i].getEndAzimuthDegs();
+				angleToRadial[i] = azimuthRadials[i].getEndDegrees();
 			}
-		}
-	}
-
-	/**
-	 * Return a double used to sort a volume of this DataType. For example,
-	 * for RadialSets this would be the elevation value.
-	 *
-	 * @return value in volume
-	 */
-	@Override
-	public double sortInVolume() {
-		return elevDegs;
-	}
-
-	public float getElevationDegs() {
-		return elevDegs;
-	}
-
-	public float getElevationRads() {
-		return elevRads;
-	}
-
-	public float getElevationSin() {
-		return sinElevation;
-	}
-
-	public float getElevationCos() {
-		return cosElevation;
-	}
-
-	public float getElevationTan() {
-		return tanElevation;
-	}
-
-	/**
-	 * meters
-	 */
-	public float getRangeToFirstGateKms() {
-		return rangeToFirstGate;
-	}
-
-	/**
-	 * beamwidth of first radial, or 1 degree if there is no radial.
-	 */
-	public float getBeamWidthKms() {
-		if (radials.length > 0) {
-			return getRadial(0).getBeamWidth();
-		}
-		return 1;
-	}
-
-	/**
-	 * nyquist of first radial, or 0 if there is no radial.
-	 */
-	public float getNyquistMetersPerSecond() {
-		if (radials.length > 0) {
-			return getRadial(0).getNyquistMetersPerSecond();
-		}
-		return 0;
-	}
-
-	/**
-	 * mean azimuthal spacing of all radials.
-	 */
-	public float getAzimuthalSpacing() {
-		float as = 0;
-		for (Radial r : radials) {
-			as += r.getAzimuthalSpacingDegs();
-		}
-		float result = (radials.length <= 1) ? as : (as / radials.length);
-		return result;
-	}
-
-	/**
-	 * gatewidth of first radial, or 1 km if there is no radial.
-	 */
-	public float getGateWidthKms() {
-		if (radials.length > 0) {
-			return getRadial(0).getGateWidthKms();
-		}
-		return 1.0f;
-	}
-
-	/**
-	 * number of gates of first radial, or 0 if there is no radial. This is
-	 * set to the maximum gate number of all read in radials.
-	 */
-	public int getNumGates() {
-		//	if (radials.length > 0)
-		//		return getRadial(0).getNumGates();
-		//	return 0;
-		return myMaxGateNumber;
-	}
-
-	public int getNumRadials() {
-		if (radials != null) {
-			return radials.length;
-		} else {
-			return 0;
-		}
-	}
-
-	public Location getRadarLocation() {
-		return originLocation;
-	}
-
-	public Radial[] getSortedAzimuthRadials() {
-		return azimuthRadials;
-	}
-
-	public Radial[] getRadials() {
-		return radials;
-	}
-
-	public Radial getRadial(int index) {
-		return radials[index];
-	}
-
-	/**
-	 * @return 0 if vcp is unknown.
-	 */
-	int getVCP() {
-		try {
-			return Integer.parseInt(getAttribute("vcp").toString());
-		} catch (Exception e) {
-			// number format, null, etc.
-			return 0;
 		}
 	}
 
@@ -408,69 +188,6 @@ public class PPIRadialSet extends DataType implements Table2DView {
 	}
 
 	/**
-	 * In volumes, a location is used to query multiple radial sets that
-	 * share the same center location, ux, uy, uz, etc. This takes a
-	 * location in space and caches all of the calculations in relation to
-	 * the volume. This speeds up VSlice/Isosurface rendering calculations.
-	 *
-	 * This then is passed into the query function.
-	 */
-	public void locationToSphere(Location l, SphericalLocation out) {
-
-		// The direct way, but slower...crazy amounts of newing and memory fluctuation
-		// during render
-	/*
-		 * CPoint pt = l.getCPoint(); CVector fromConeApex =
-		 * pt.minus(radarLocation); CVector vxy =
-		 * fromConeApex.crossProduct(myUz); double norm =
-		 * fromConeApex.norm(); out.elev =
-		 * Math.asin(fromConeApex.dotProduct(myUz) / norm) * 180 /
-		 * Math.PI; out.range = norm; // Get azimuth for a location
-		 * (always for filters in GUI) // The atan2 gives us 0 at north,
-		 * 90 to west. Radar is 0 to north, 90 to east double dotx2 =
-		 * vxy.dotProduct(myUx); double doty2 = vxy.dotProduct(myUy);
-		 * double az2 = (float)(360.0 -
-		 * (Math.toDegrees(Math.atan2(doty2, dotx2)))); float azimuth =
-		 * Radial.normalizeAzimuth((float) az2); out.azimuth = azimuth;
-		 */
-
-		// All the math expanded (avoids new allows some short cuts for speed)
-		// Remember in a GUI volume render we typically call this in a monster loop
-		// while the user is dragging so every ms counts...
-
-		// pt = q.inLocation.getCPoint();
-		double r = Location.EarthRadius + l.getHeightKms(); // kms
-		double phi = l.getLongitude() * Math.PI / 180.0; // radians();
-		double beta = l.getLatitude() * Math.PI / 180.0; // .radians();
-		double x = r * Math.cos(phi) * Math.cos(beta);
-		double y = r * Math.sin(phi) * Math.cos(beta);
-		double z = r * Math.sin(beta);
-
-		//CVector fromConeApex = pt.minus(radarLocation);
-		double coneX = x - radarLocation.x;  // Cheaper
-		double coneY = y - radarLocation.y;
-		double coneZ = z - radarLocation.z;
-
-		//CVector vxy = fromConeApex.crossProduct(myUz);
-		double crossX = coneY * myUz.z - coneZ * myUz.y;
-		double crossY = coneZ * myUz.x - coneX * myUz.z;
-		double crossZ = coneX * myUz.y - coneY * myUz.x;
-
-		//double norm = fromConeApex.norm();
-		out.range = Math.sqrt(coneX * coneX + coneY * coneY + coneZ * coneZ);
-
-		// Calculate the azimuth of the location in respect to the radar center
-		//double dotx = vxy.dotProduct(myUx);
-		double dotx = crossX * myUx.x + crossY * myUx.y + crossZ * myUx.z;
-		double doty = crossX * myUy.x + crossY * myUy.y + crossZ * myUy.z;
-		double az = (360.0 - (Math.toDegrees(Math.atan2(doty, dotx))));
-		out.azimuthDegs = Radial.normalizeAzimuthDegs((float) az);
-
-		double dotz = coneX * myUz.x + coneY * myUz.y + coneZ * myUz.z;
-		out.elevDegs = Math.asin(dotz / out.range) * 180 / Math.PI;
-	}
-
-	/**
 	 * For a given location, get the information into a data object. For
 	 * speed the data object is typically pre-created and reused Note: This
 	 * method is overloading DataType's function, not overriding. The object
@@ -500,9 +217,9 @@ public class PPIRadialSet extends DataType implements Table2DView {
 			// Get the elevation of the point (estimate)
 			if (q.inUseHeight) {
 				Radial first = getRadial(0);
-				double bw = first.getBeamWidth();
+				double bw = first.getBeamWidthDegrees();
 				//double elev = Math.asin(fromConeApex.dotProduct(myUz) / norm) * 180 / Math.PI;
-				double elev_diff = a.elevDegs - elevDegs;
+				double elev_diff = a.elevDegs - getFixedAngleDegs();
 
 				// We want the interpolation weight (for bi/tri-linear)
 				if (q.inNeedInterpolationWeight) {
@@ -551,7 +268,7 @@ public class PPIRadialSet extends DataType implements Table2DView {
 					// double d2R = elevRads;
 					// double h = a.range * (Math.cos(eR) * Math.sin(d2R) / Math.cos(d2R) - Math.sin(eR));
 					// double h = a.range * (Math.cos(eR) * Math.tan(d2R) - Math.sin(eR));
-					double h = a.getHeightWeight(tanElevation);
+					double h = a.getHeightWeight(getFixedAngleTan());
 
 					// if (h < 0) {
 					//     h = -h;
@@ -672,37 +389,6 @@ public class PPIRadialSet extends DataType implements Table2DView {
 			}
 		}
 		q.outDataValue = MissingData;
-		return;
-	}
-
-	/**
-	 * Create an SRM delta value for each radial we have. This method is
-	 * called by the GUI Storm Relative Motion filter. Keeping the logic in
-	 * RadialSet. The GUI filter allows us to show SRM without modifying the
-	 * original RadialSet.
-	 */
-	public ArrayList<Float> createSRMDeltas(float speedMS, float dirDegrees) {
-		ArrayList<Float> srmDeltas = new ArrayList<Float>();
-		if (azimuthRadials != null) {
-			for (Radial r : azimuthRadials) {
-				float aglRadians = (float) Math.toRadians((r.getMidAzimuthDegs() - dirDegrees));
-				float vr = (float) (Math.cos(aglRadians) * speedMS);
-				vr = ((int) (vr * 2.0f + 0.5f)) * 0.5f;
-				srmDeltas.add(vr);
-			}
-		}
-		return srmDeltas;
-	}
-
-	/**
-	 * debugging output
-	 */
-	@Override
-	public String toStringDB() {
-		String s = "RadialSet " + getTypeName() + " at " + elevDegs + " has "
-			+ radials.length + " radials." + " the first:\n"
-			+ getRadial(0).toStringDB() + super.toStringDB();
-		return s;
 	}
 
 	// Table2D implementation --------------------------------------------------------
@@ -745,7 +431,7 @@ public class PPIRadialSet extends DataType implements Table2DView {
 		if (col < getNumRadials()) { // Do we need this check?
 			Radial aRadial = getRadial((col));
 			if (aRadial != null) {
-				azDegs = aRadial.getStartAzimuthDegs();
+				azDegs = aRadial.getStartDegrees();
 			}
 		}
 		return azDegs;
@@ -778,14 +464,14 @@ public class PPIRadialSet extends DataType implements Table2DView {
 		if (r != null) {
 			int count = getNumGates();
 			if (count > 0) {
-				final float RAD = 0.017453293f;
 				Location center = getRadarLocation();
 				int irow = getNumRows() - row - 1;
 				float rangeKms = getRangeToFirstGateKms();
 				float w = r.getGateWidthKms();
-				float startRAD = r.getStartAzimuthDegs() * RAD;
-				float endRAD = r.getEndAzimuthDegs() * RAD;
-
+				float startRAD = r.getStartRadians();
+				float endRAD = r.getEndRadians();
+                                float elevSin = getFixedAngleSin();
+				float elevCos = getFixedAngleCos();
 				// FIXME clean this up.
 				switch (type) {
 					case CENTER: {
@@ -795,8 +481,8 @@ public class PPIRadialSet extends DataType implements Table2DView {
 							center,
 							Math.sin((startRAD + endRAD) / 2.0f), // Precomputed azimuth sin and cos around	
 							Math.cos((startRAD + endRAD) / 2.0f), fullRangeKms, // at range in kilometers
-							sinElevation, // sin of the elevation (precomputed)
-							cosElevation // cos of the elevation (precomputed)
+							elevSin, // sin of the elevation (precomputed)
+							elevCos // cos of the elevation (precomputed)
 							);
 					}
 					break;
@@ -806,8 +492,8 @@ public class PPIRadialSet extends DataType implements Table2DView {
 							center,
 							Math.sin(startRAD), // Precomputed azimuth sin and cos around	
 							Math.cos(startRAD), fullRangeKms, // at range in kilometers
-							sinElevation, // sin of the elevation (precomputed)
-							cosElevation // cos of the elevation (precomputed)
+							elevSin, // sin of the elevation (precomputed)
+							elevCos // cos of the elevation (precomputed)
 							);
 					}
 					break;
@@ -817,8 +503,8 @@ public class PPIRadialSet extends DataType implements Table2DView {
 							center,
 							Math.sin(endRAD), // Precomputed azimuth sin and cos around	
 							Math.cos(endRAD), fullRangeKms, // at range in kilometers
-							sinElevation, // sin of the elevation (precomputed)
-							cosElevation // cos of the elevation (precomputed)
+							elevSin, // sin of the elevation (precomputed)
+							elevCos // cos of the elevation (precomputed)
 							);
 					}
 					break;
@@ -828,8 +514,8 @@ public class PPIRadialSet extends DataType implements Table2DView {
 							center,
 							Math.sin(startRAD), // Precomputed azimuth sin and cos around	
 							Math.cos(startRAD), fullRangeKms, // at range in kilometers
-							sinElevation, // sin of the elevation (precomputed)
-							cosElevation // cos of the elevation (precomputed)
+							elevSin, // sin of the elevation (precomputed)
+							elevCos // cos of the elevation (precomputed)
 							);
 					}
 					break;
@@ -840,8 +526,8 @@ public class PPIRadialSet extends DataType implements Table2DView {
 							center,
 							Math.sin(endRAD), // Precomputed azimuth sin and cos around	
 							Math.cos(endRAD), fullRangeKms, // at range in kilometers
-							sinElevation, // sin of the elevation (precomputed)
-							cosElevation // cos of the elevation (precomputed)
+							elevSin, // sin of the elevation (precomputed)
+							elevCos // cos of the elevation (precomputed)
 							);
 					}
 					break;
@@ -860,7 +546,7 @@ public class PPIRadialSet extends DataType implements Table2DView {
 		q.inLocation = input;
 		q.inUseHeight = false;
 		queryData(q);
-		boolean withinTable = false;
+		boolean withinTable;
 		int row = q.outHitGateNumber;
 		int col = q.outHitRadialNumber;
 		output.row = getNumRows() - row - 1;
@@ -917,7 +603,7 @@ public class PPIRadialSet extends DataType implements Table2DView {
 			float ebw = bw;
 			out.write(String.format("bw=%6.2f ebw=%6.2f\n", bw, ebw));
 
-			float elev = this.getElevationDegs();
+			float elev = this.getFixedAngleDegs();
 			out.write(String.format("elevdegs=%6.2f\n", elev));
 
 			// Output left to right, decreasing range increasing azimuth
@@ -928,7 +614,7 @@ public class PPIRadialSet extends DataType implements Table2DView {
 					this.getCellValue(row, col, q);
 					float v = q.value;
 					out.write(String.format(" %6.3f", v));
-					if (++linebreak > 6) {
+					if (++linebreak > g.numCols) {
 						out.write("\n");
 						linebreak = 0;
 					}
@@ -951,5 +637,27 @@ public class PPIRadialSet extends DataType implements Table2DView {
 			log.info("Output file was written as " + aURL.getFile());
 		}
 
+	}
+
+	/**
+	 * Create an SRM delta value for each radial we have. This method is
+	 * called by the GUI Storm Relative Motion filter. Keeping the logic in
+	 * RadialSet. The GUI filter allows us to show SRM without modifying the
+	 * original RadialSet.
+	 */
+	public ArrayList<Float> createSRMDeltas(float speedMS, float dirDegrees) {
+		/*
+		ArrayList<Float> srmDeltas = new ArrayList<Float>();
+		if (azimuthRadials != null) {
+			for (Radial r : azimuthRadials) {
+				float aglRadians = (float) Math.toRadians((r.getMidAzimuthDegs() - dirDegrees));
+				float vr = (float) (Math.cos(aglRadians) * speedMS);
+				vr = ((int) (vr * 2.0f + 0.5f)) * 0.5f;
+				srmDeltas.add(vr);
+			}
+		}
+		return srmDeltas;
+		*/ 
+		return null;
 	}
 }

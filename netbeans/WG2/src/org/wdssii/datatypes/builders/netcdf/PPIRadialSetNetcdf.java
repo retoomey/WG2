@@ -1,10 +1,14 @@
 package org.wdssii.datatypes.builders.netcdf;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
-import org.wdssii.datatypes.Radial;
+import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetMemento;
+import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.builders.NetcdfBuilder;
+import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
 import org.wdssii.storage.Array1Dfloat;
@@ -12,10 +16,6 @@ import org.wdssii.storage.Array2Dfloat;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.wdssii.datatypes.PPIRadialSet;
-import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 
 /**
  * Create a RadialSet from a Netcdf file
@@ -95,7 +95,7 @@ public class PPIRadialSetNetcdf extends DataTypeNetcdf {
                 }
 
                 // Valid for all info but the radials
-                r.elevation = elev;
+                r.fixedAngleDegs = elev;
                 r.rangeToFirstGate = distToFirstGate / 1000;
                 // set up the co-ordinate system
                 r.radarLocation = r.originLocation.getCPoint();
@@ -116,22 +116,12 @@ public class PPIRadialSetNetcdf extends DataTypeNetcdf {
                 }
 
                 r.radials = new Radial[num_radials];
-                //Index radial_index = az_values.getIndex();
                 for (int i = 0; i < num_radials; ++i) {
-                   // radial_index.set(i);
-                   // float az = az_values.getFloat(radial_index);
-                   // float bw = bw_values.getFloat(radial_index);
-                   // float as = (as_values == null) ? bw : as_values.getFloat(radial_index);
-                   // float gw = gw_values.getFloat(radial_index) / 1000; // meters to kms
-                   // float ny = (ny_values == null) ? nyquist : ny_values.getFloat(radial_index);
-
-                    //radial_index.set(i);
                     float az = az_values.getFloat(i);
                     float bw = bw_values.getFloat(i);
                     float as = (as_values == null) ? bw : as_values.getFloat(i);
                     float gw = gw_values.getFloat(i) / 1000; // meters to kms
                     float ny = (ny_values == null) ? nyquist : ny_values.getFloat(i);
-
                     
                     // This wraps around the column of the 2D array, _not_ a copy
                     Array1Dfloat col = values.getCol(i);

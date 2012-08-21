@@ -91,7 +91,7 @@ public class RadialSetTest extends DataTypeTest {
         if (m instanceof PPIRadialSetMemento) {
             PPIRadialSetMemento r = (PPIRadialSetMemento) (m);
 
-            r.elevation = elev;
+            r.fixedAngleDegs = elev;
             r.rangeToFirstGate = distToFirstGate / 1000;
             r.radarLocation = r.originLocation.getCPoint();
             r.myUz = r.radarLocation.minus(new CPoint(0, 0, 0)).unit();

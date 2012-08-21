@@ -1,23 +1,20 @@
 package org.wdssii.gui.products.renderers;
 
-import java.awt.Point;
-import javax.media.opengl.GL;
-
-import org.wdssii.datatypes.Table2DView.LocationType;
-import org.wdssii.geom.Location;
-import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.GridVisibleArea;
-
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
+import java.awt.Point;
 import java.awt.Rectangle;
+import javax.media.opengl.GL;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView;
+import org.wdssii.datatypes.Table2DView.LocationType;
+import org.wdssii.geom.Location;
+import org.wdssii.gui.GridVisibleArea;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 

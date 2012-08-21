@@ -307,7 +307,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
                     int end = sweep_end_ray_index.getInt(s);
                     log.debug("SWEEP start ray: " + s + "  " + start + ", end ray: " + end + ",  angle " + current);
                     if (s == 0) {  // Gonna try to display first sweep of volume
-                        r.elevation = current;
+                        r.fixedAngleDegs = current;
                         startRay = start;
                         endRay = end;
                     }

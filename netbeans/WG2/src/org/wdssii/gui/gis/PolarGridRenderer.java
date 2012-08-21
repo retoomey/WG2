@@ -317,7 +317,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 					}
 
 					Double oldElev = old.getPropertyValue(PolarGridMemento.ELEV_DEGREES);
-					double newElev = radial.getElevationDegs();
+					double newElev = radial.getFixedAngleDegs();
 					if (oldElev != newElev) {
 						needsUpdate = true;
 						new1.setProperty(PolarGridMemento.ELEV_DEGREES, newElev);

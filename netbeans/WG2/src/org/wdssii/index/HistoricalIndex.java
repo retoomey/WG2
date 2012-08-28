@@ -28,9 +28,15 @@ import org.wdssii.index.IndexSubType.SubtypeType;
 public class HistoricalIndex implements IndexRecordListener {
 
 	/**
+	 * Zero is special case for keeping all records and never deleting, this
+	 * should be used only for set archives otherwise memory will fill up.
+	 * FIXME: Might actually disable autoupdate for this case
+	 */
+	public static int HISTORY_ARCHIVE = 0;
+	/**
 	 * The size of our history
 	 */
-	private int maxHistorySize = 0;
+	private int maxHistorySize = HISTORY_ARCHIVE;
 	/**
 	 * The current count of all records we have.
 	 */
@@ -111,6 +117,9 @@ public class HistoricalIndex implements IndexRecordListener {
 	 * Get the maximum history size in records
 	 */
 	public int getMaxHistorySize() {
+		if (maxHistorySize == 0){
+			return currentHistorySize;
+		}
 		return maxHistorySize;
 	}
 
@@ -161,8 +170,10 @@ public class HistoricalIndex implements IndexRecordListener {
 	public void handleRecord(IndexRecord rec) {
 
 		// First, trim the history to make room for this record
-		if (currentHistorySize + 1 > maxHistorySize) {
-			removeOldestRecords();
+		if (maxHistorySize != HISTORY_ARCHIVE) {
+			if (currentHistorySize + 1 > maxHistorySize) {
+				removeOldestRecords();
+			}
 		}
 		addRecord(rec);
 	}
@@ -200,6 +211,9 @@ public class HistoricalIndex implements IndexRecordListener {
 	 * Remove the oldest records to make room for new ones
 	 */
 	private void removeOldestRecords() {
+		if (maxHistorySize == HISTORY_ARCHIVE) {
+			return; // early abort;
+		}
 		if (currentHistorySize + 1 > maxHistorySize) {
 
 			if (currentHistorySize > 0) {
@@ -666,12 +680,12 @@ public class HistoricalIndex implements IndexRecordListener {
 		return newRecord;
 	}
 
-	/** A clean up message to send when getting rid of */
-	public void aboutToDispose(){
-		if (index != null){
+	/**
+	 * A clean up message to send when getting rid of
+	 */
+	public void aboutToDispose() {
+		if (index != null) {
 			index.aboutToDispose();
 		}
 	}
 }
-
-

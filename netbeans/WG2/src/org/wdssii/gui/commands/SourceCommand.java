@@ -60,10 +60,10 @@ public abstract class SourceCommand extends DataCommand {
 	/**
 	 * Add an index
 	 */
-	protected String add(String shortName, URL url, boolean realtime) {
+	protected String add(String shortName, URL url, boolean realtime, int historyValue) {
 		String success = "";
 		// FIXME: more generalized
-		IndexSource s = new IndexSource(shortName, url);
+		IndexSource s = new IndexSource(shortName, url, historyValue);
 		myList.addSource(s);
 		return s.getKey();
 	}

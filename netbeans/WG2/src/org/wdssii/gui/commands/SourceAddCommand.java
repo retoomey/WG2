@@ -25,8 +25,10 @@ public class SourceAddCommand extends SourceClearCommand {
 	public URL sourceURL;
 	public boolean realTime = false;
 	public boolean connect = false;
+	public int history = IndexSource.HISTORY_ARCHIVE;
+	
 	public Source createSource(){
-		return new IndexSource(niceName, sourceURL);
+		return new IndexSource(niceName, sourceURL, history);
 	}
     }
 
@@ -55,13 +57,14 @@ public class SourceAddCommand extends SourceClearCommand {
     }
 
     /** Add a source from a given path.  This will try to guess the type */
-    public SourceAddCommand(String niceName, String path, boolean realtime, boolean connect) {
+    public SourceAddCommand(String niceName, String path, boolean realtime, boolean connect, int historyValue) {
         try {
 // Only IndexSource right now
             SourceAddParams params = new SourceAddParams();
 	    params.connect = connect;
 	    params.realTime = realtime;
 	    params.niceName= niceName;
+	    params.history = historyValue;
 	    myParams = params;
             URL aURL = new URL(path);
 	    params.sourceURL = aURL;
@@ -113,7 +116,7 @@ public class SourceAddCommand extends SourceClearCommand {
             }
             if (doJob) {
 
-                String newKey = add(myParams.niceName, myParams.sourceURL, myParams.realTime);  // Don't lag here.
+                String newKey = add(myParams.niceName, myParams.sourceURL, myParams.realTime, myParams.history);  // Don't lag here.
                 updateGUI = true;  // Add needs a 'unconnected' icon and name in list.
                 if (myUserReport) {
                     if (newKey != null) {

@@ -3,6 +3,7 @@ package org.wdssii.gui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.commands.SourceAddCommand;
+import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.Index;
 
 /**
@@ -41,7 +42,7 @@ public class SourceManager implements Singleton {
 		try {
 			CommandManager c = CommandManager.getInstance();
 			boolean connect = true;
-			c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml", false, connect), false);
+			c.executeCommand(new SourceAddCommand("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml", false, connect, HistoricalIndex.HISTORY_ARCHIVE), false);
 		} catch (Exception e) {
 			// Recover
 		}

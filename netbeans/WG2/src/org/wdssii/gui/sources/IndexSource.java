@@ -24,6 +24,12 @@ public class IndexSource extends Source implements HistoryListener {
 
 	private static Logger log = LoggerFactory.getLogger(IndexSource.class);
 
+	/** Zero is special case for keeping all records and never deleting,
+	 * this should be used only for set archives otherwise memory will fill
+	 * up.  FIXME: Might actually disable autoupdate for this case
+	 */
+	public static int HISTORY_ARCHIVE = 0;
+
 	/**
 	 * The small helper object for making this source
 	 */
@@ -90,14 +96,16 @@ public class IndexSource extends Source implements HistoryListener {
 	private SourceGUI myControls;
 	protected boolean myRealtime;
 	protected String myPath;
+	protected int myHistory;
 	protected boolean myLastReadSuccess = false;
 	protected volatile boolean myConnecting = false;
 	protected volatile boolean myConnected = false;
 
-	public IndexSource(String niceName, URL aURL) {
+	public IndexSource(String niceName, URL aURL, int historyValue) {
 		super(niceName, aURL);
 		myPath = aURL.toString();
 		myRealtime = true;
+		myHistory = historyValue;
 	}
 
 	@Override
@@ -165,7 +173,7 @@ public class IndexSource extends Source implements HistoryListener {
 		if (myIndex == null) {
 
 			try {
-				myIndex = new HistoricalIndex(myPath, IndexCollection.myDefaultHistorySize);
+				myIndex = new HistoricalIndex(myPath, myHistory);
 			} catch (Exception e) {
 				log.error("Index could not be created: '" + myPath + "'");
 				myIndex = null;

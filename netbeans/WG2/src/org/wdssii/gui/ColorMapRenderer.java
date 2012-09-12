@@ -167,6 +167,14 @@ public class ColorMapRenderer implements Feature3DRenderer {
 		return success;
 	}
 
+	@Override
+	public void pick(DrawContext dc, Point p, FeatureMemento m) {
+	}
+
+	@Override
+	public void preRender(DrawContext dc, FeatureMemento m) {
+	}
+
 	/**
 	 * Combine some of the drawing logic. This is slower, but as the color
 	 * key gets more advanced this will try to share drawing logic

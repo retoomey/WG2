@@ -14,6 +14,8 @@ import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousSubType;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousTime;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveSyncCurrent;
 import org.wdssii.gui.commands.WdssiiCommand;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.views.WorldWindView;
 
 /** The ProductNavigator is a helper class of Product that handles all navigation
  * stuff in the Navigation view.
@@ -156,7 +158,8 @@ public class ProductNavigator {
         ProductJumpToCommand p= new ProductJumpToCommand();
         // For now, directly link to the single world view we have.
         // This will change if/when we go multiple groups/earthballs 
-        p.setTargetListener( CommandManager.getInstance().getEarthBall());
+	WorldWindView w = FeatureList.theFeatures.getWWView();
+        p.setTargetListener(w);
         return p;
     }
 }

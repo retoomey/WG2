@@ -277,7 +277,7 @@ public class ProductManager implements Singleton {
             //Position p = event.getPosition();
             Point point = event.getScreenPoint();
             readout = String.format("(%d, %d)", point.x, point.y);
-            WorldWindView earth = CommandManager.getInstance().getEarthBall();
+	    WorldWindView earth = FeatureList.theFeatures.getWWView();
             if (earth != null) {
                 earth.getColor(point.x, point.y);
             }

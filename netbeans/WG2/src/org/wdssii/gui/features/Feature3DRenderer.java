@@ -1,6 +1,7 @@
 package org.wdssii.gui.features;
 
 import gov.nasa.worldwind.render.DrawContext;
+import java.awt.Point;
 
 /**
  * A Feature3DRenderer renders something in the 3D world view
@@ -10,6 +11,10 @@ import gov.nasa.worldwind.render.DrawContext;
  */
 public interface Feature3DRenderer {
 
+	public void preRender(DrawContext dc, FeatureMemento m);
+
 	public void draw(DrawContext dc, FeatureMemento m);
+
+	public void pick(DrawContext dc, Point p, FeatureMemento m);
 	
 }

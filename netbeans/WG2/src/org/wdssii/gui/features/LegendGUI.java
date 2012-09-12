@@ -18,10 +18,11 @@ public class LegendGUI extends javax.swing.JPanel implements FeatureGUI {
 	 * The LegendFeature we are using
 	 */
 	private LegendFeature myFeature;
-	//private JSpinner jLineThicknessSpinner;
-	//private JButton jColorLabel;
-	//private FeatureGUIFactory.FeaturePropertyGUI myShowLabelsGUI;
 	private BooleanGUI myShowLabelsGUI;
+	private BooleanGUI myShowCompassGUI;
+	private BooleanGUI myShowScaleGUI;
+	private BooleanGUI myShowInsetGUI;
+	private BooleanGUI myShowControlsGUI;
 
 	/**
 	 * Creates new LegendGUI
@@ -37,11 +38,11 @@ public class LegendGUI extends javax.swing.JPanel implements FeatureGUI {
 	@Override
 	public void updateGUI() {
 		LegendMemento m = (LegendMemento) myFeature.getNewMemento();
-		//Integer t = m.getProperty(MapMemento.LINE_THICKNESS);
-		//Color c = m.getProperty(MapMemento.LINE_COLOR);
-		//jLineThicknessSpinner.setValue(t);
-		//jColorLabel.setBackground(c);
 		myShowLabelsGUI.update(m);
+		myShowCompassGUI.update(m);
+		myShowScaleGUI.update(m);
+		myShowInsetGUI.update(m);
+		myShowControlsGUI.update(m);
 	}
 
 	@Override
@@ -65,39 +66,19 @@ public class LegendGUI extends javax.swing.JPanel implements FeatureGUI {
 		setLayout(new MigLayout(new LC(), null, null));
 		CC mid = new CC().growX().width("min:pref:");
 
-//		myShowLabelsGUI = new FeaturePropertyBooleanGUI(myFeature, LegendMemento.SHOWLABELS, "Show Labels", this);
-		myShowLabelsGUI = new BooleanGUI(myFeature, LegendMemento.SHOWLABELS, "Show Labels", this);
+		myShowLabelsGUI = new BooleanGUI(myFeature, LegendMemento.SHOWLABELS, "Colorkey Labels", this);
 		myShowLabelsGUI.addToMigLayout(this);
-		//"w min:pref:, growx");
-	/*
-		 * MapMemento m = (MapMemento) myFeature.getNewMemento();
-		 *
-		 * // Create max spinner jLineThicknessSpinner = new JSpinner();
-		 * jLineThicknessSpinner.addChangeListener(new ChangeListener()
-		 * {
-		 *
-		 * @Override public void
-		 * stateChanged(javax.swing.event.ChangeEvent evt) {
-		 * jLineThicknessStateChanged(evt); } }); Integer l =
-		 * m.getProperty(MapMemento.LINE_THICKNESS); SpinnerNumberModel
-		 * model = new SpinnerNumberModel(l.intValue(), //initial value
-		 * 1, // min of the max value 15, // max of the max value 1); //
-		 * 1 step. jLineThicknessSpinner.setModel(model); add(new
-		 * JLabel("Line Thickness"), "growx");
-		 * add(jLineThicknessSpinner, mid); add(new JLabel("Pixels"),
-		 * "wrap");
-		 *
-		 * // Create colored button... jColorLabel = new JButton(" ");
-		 * jColorLabel.addActionListener(new ActionListener() {
-		 *
-		 * @Override public void actionPerformed(ActionEvent ae) {
-		 * jColorButtonChanged(ae); } }); int h =
-		 * jColorLabel.getHeight(); Color lc =
-		 * m.getProperty(MapMemento.LINE_COLOR);
-		 * jColorLabel.setBackground(lc); add(new JLabel("Line Color"),
-		 * "growx"); add(jColorLabel, mid); add(new JLabel("Color"),
-		 * "growx, wrap");
-		 *
-		 */
+
+		myShowCompassGUI = new BooleanGUI(myFeature, LegendMemento.SHOWCOMPASS, "Compass", this);
+		myShowCompassGUI.addToMigLayout(this);
+
+		myShowScaleGUI = new BooleanGUI(myFeature, LegendMemento.SHOWSCALE, "Scale Bar", this);
+		myShowScaleGUI.addToMigLayout(this);
+
+		myShowInsetGUI = new BooleanGUI(myFeature, LegendMemento.SHOWWORLDINSET, "World Inset Map", this);
+		myShowInsetGUI.addToMigLayout(this);
+
+		myShowControlsGUI = new BooleanGUI(myFeature, LegendMemento.SHOWVIEWCONTROLS, "Navigation Controls", this);
+		myShowControlsGUI.addToMigLayout(this);
 	}
 }

@@ -91,7 +91,7 @@ public class CommandManager implements Singleton {
         return myVisualCollection;
     }
 
-    public WorldWindView getEarthBall() {
+    private WorldWindView getEarthBall() {
         return ((WorldWindView) getNamedCommandListener(WorldWindView.ID));
     }
 

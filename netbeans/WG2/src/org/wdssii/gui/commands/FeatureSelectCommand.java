@@ -1,12 +1,11 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 
 /**
  * Command to select any feature in a window
- * @author rtoomey
+ * @author Robert Toomey
  */
 public class FeatureSelectCommand extends FeatureCommand {
     private String myFeatureKey = null;
@@ -37,7 +36,7 @@ public class FeatureSelectCommand extends FeatureCommand {
         }else{
             FeatureList.theFeatures.setSelected(myFeatureKey);
         }
-        CommandManager.getInstance().getEarthBall().updateOnMinTime();
+	FeatureList.theFeatures.updateOnMinTime();
         return true;
     }
 }

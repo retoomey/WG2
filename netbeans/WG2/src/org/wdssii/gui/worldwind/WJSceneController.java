@@ -1,95 +1,200 @@
 package org.wdssii.gui.worldwind;
 
-import java.util.logging.Level;
-
-import gov.nasa.worldwind.AbstractSceneController;
+import gov.nasa.worldwind.BasicSceneController;
 import gov.nasa.worldwind.layers.Layer;
+import gov.nasa.worldwind.layers.ViewControlsLayer;
+import gov.nasa.worldwind.pick.PickedObject;
+import gov.nasa.worldwind.pick.PickedObjectList;
 import gov.nasa.worldwind.render.DrawContext;
-import gov.nasa.worldwind.util.Logging;
+import gov.nasa.worldwind.render.OrderedRenderable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LegendFeature;
+import org.wdssii.gui.gis.MapFeature;
+import org.wdssii.gui.gis.PolarGridFeature;
+import org.wdssii.gui.products.ProductFeature;
 
 /*
- * @author Robert Toomey
- * We want to control the mixing of our product layers and/or have special needs and the world wind layers.  
+ * @author Robert Toomey We want to control the mixing of our product layers
+ * and/or have special needs and the world wind layers.
  */
-public class WJSceneController extends AbstractSceneController {
+public class WJSceneController extends BasicSceneController {
 
-    @Override
-    public void doRepaint(DrawContext dc) {
-        this.initializeFrame(dc);
-        try {
-            this.applyView(dc);
-            this.createTerrain(dc);
-            this.clearFrame(dc);
-            this.pick(dc);
-            this.clearFrame(dc);
-            this.draw(dc);
+	private static Logger log = LoggerFactory.getLogger(WJSceneController.class);
 
-        } finally {
-            this.finalizeFrame(dc);
-        }
-    }
+//	@Override
+//	public void drawOrderedSurfaceRenderables(DrawContext dc) {
+//	}
+	@Override
+	public PickedObjectList getPickedObjectList() {
+		PickedObjectList l = super.getPickedObjectList();
+		if (l != null) {
+			PickedObject o = l.getTopPickedObject();
+		}
+		return l;
+	}
 
-    @Override
-    protected void draw(DrawContext dc) {
-        try {
+	@Override
+	protected void preRender(DrawContext dc) {
+		// Pre-render the layers.
+		if (dc.getLayers() != null) {
+			for (Layer layer : dc.getLayers()) {
+				try {
+					if (!(layer instanceof ViewControlsLayer)) {
+						dc.setCurrentLayer(layer);
+						layer.preRender(dc);
+					}
+				} catch (Exception e) {
+					// Don't abort; continue on to the next layer.
+				}
+			}
 
-            // The worldwind layers...humm
-            if (dc.getLayers() != null) {
-                for (Layer layer : dc.getLayers()) {
-                    try {
-                        if (layer != null) {
-                            // if (layer instanceof Experimental){
-                            // System.out.println("Skipping experimental tile layer");
-                            // }else{
-                            layer.render(dc);
-                            // }
-                        }
-                    } catch (Exception e) {
-                        String message = Logging.getMessage(
-                                "SceneController.ExceptionWhileRenderingLayer",
-                                (layer != null ? layer.getClass().getName()
-                                : Logging.getMessage("term.unknown")));
-                        Logging.logger().log(Level.SEVERE, message, e);
-                        // Don't abort; continue on to the next layer.
-                    }
-                }
-            }
+			dc.setCurrentLayer(null);
+		}
 
-            // Ordered Renderables (2d overlays)
-            //while (dc.getOrderedRenderables().peek() != null) {
-            //	dc.getOrderedRenderables().poll().render(dc);
-            //}
+		// Make sure orderedRenderables added properly
+		FeatureList f = ProductManager.getInstance().getFeatureList();
+		f.preRenderFeatureGroup(dc, LegendFeature.LegendGroup);
 
-            while (dc.getOrderedSurfaceRenderables().peek() != null) {
-                dc.getOrderedSurfaceRenderables().poll().render(dc);
-            }
 
-            /*
-             * // Diagnostic displays. if (dc.getSurfaceGeometry() != null &&
-             * dc.getModel() != null && (dc.getModel().isShowWireframeExterior()
-             * || dc.getModel().isShowWireframeInterior() ||
-             * dc.getModel().isShowTessellationBoundingVolumes())) { Model model
-             * = dc.getModel();
-             * 
-             * float[] previousColor = new float[4];
-             * dc.getGL().glGetFloatv(GL.GL_CURRENT_COLOR, previousColor, 0);
-             * 
-             * for (SectorGeometry sg : dc.getSurfaceGeometry()) { if
-             * (model.isShowWireframeInterior() ||
-             * model.isShowWireframeExterior()) sg.renderWireframe(dc,
-             * model.isShowWireframeInterior(),
-             * model.isShowWireframeExterior());
-             * 
-             * if (model.isShowTessellationBoundingVolumes()) {
-             * dc.getGL().glColor3d(1, 0, 0); sg.renderBoundingVolume(dc); } }
-             * 
-             * dc.getGL().glColor4fv(previousColor, 0); }
-             */
-        } catch (Throwable e) {
-            Logging.logger().log(
-                    Level.SEVERE,
-                    Logging.getMessage("BasicSceneController.ExceptionDuringRendering"),
-                    e);
-        }
-    }
+		// Pre-render the deferred/ordered surface renderables.
+		this.preRenderOrderedSurfaceRenderables(dc);
+	}
+
+	@Override
+	protected void draw(DrawContext dc) {
+		//super.draw(dc);
+		//if (true) {
+		//		return;
+		//	}
+		try {
+			// Hack, draw all worldwind layers but 3d 
+			if (dc.getLayers() != null) {
+				for (Layer layer : dc.getLayers()) {
+					try {
+						if (layer != null) {
+							if (!(layer instanceof LLHAreaLayer)) {
+								dc.setCurrentLayer(layer);
+								layer.render(dc);
+							}
+						}
+					} catch (Exception e) {
+					}
+				}
+			}
+			dc.setCurrentLayer(null);
+
+			// Get the current product list
+			FeatureList f = ProductManager.getInstance().getFeatureList();
+			f.renderFeatureGroup(dc, ProductFeature.ProductGroup);
+
+			// For now...
+			//f.renderFeatureGroup(dc, LLHAreaFeature.LLHAreaGroup);
+			// Hack, draw 3d layer 
+			if (dc.getLayers() != null) {
+				for (Layer layer : dc.getLayers()) {
+					try {
+						if (layer != null) {
+							if (layer instanceof LLHAreaLayer) {
+								dc.setCurrentLayer(layer);
+								layer.render(dc);
+								break;
+							}
+						}
+					} catch (Exception e) {
+					}
+				}
+			}
+			dc.setCurrentLayer(null);
+
+			// Have to draw last, so that stipple works 'behind' product...
+			// It's 'behind' but actually renders on top..lol
+			f.renderFeatureGroup(dc, MapFeature.MapGroup);
+			f.renderFeatureGroup(dc, PolarGridFeature.PolarGridGroup);
+			f.renderFeatureGroup(dc, LegendFeature.LegendGroup);
+
+			// Draw the deferred/ordered surface renderables.
+			// This is all the 2d stuff on top...
+			this.drawOrderedSurfaceRenderables(dc);
+
+			if (this.screenCreditController != null) {
+				this.screenCreditController.render(dc);
+			}
+
+			// Draw the deferred/ordered renderables.
+			dc.setOrderedRenderingMode(true);
+			while (dc.peekOrderedRenderables() != null) {
+				OrderedRenderable test = dc.peekOrderedRenderables();
+				try {
+					dc.pollOrderedRenderables().render(dc);
+				} catch (Exception e) {
+				}
+			}
+			dc.setOrderedRenderingMode(false);
+
+		} catch (Throwable e) {
+		}
+	}
+
+	@Override
+	protected void pickLayers(DrawContext dc) {
+		if (dc.getLayers() != null) {
+			for (Layer layer : dc.getLayers()) {
+				try {
+					if (layer != null && layer.isPickEnabled()) {
+						dc.setCurrentLayer(layer);
+						layer.pick(dc, dc.getPickPoint());
+					}
+				} catch (Exception e) {
+					// Don't abort; continue on to the next layer.
+				}
+			}
+
+			dc.setCurrentLayer(null);
+
+			FeatureList f = ProductManager.getInstance().getFeatureList();
+			f.pickFeatureGroup(dc, dc.getPickPoint(), LegendFeature.LegendGroup);
+		}
+	}
+
+	protected void testdraw(DrawContext dc) {
+		try {
+			// Draw the layers.
+			if (dc.getLayers() != null) {
+				for (Layer layer : dc.getLayers()) {
+					try {
+						if (layer != null) {
+							dc.setCurrentLayer(layer);
+							layer.render(dc);
+						}
+					} catch (Exception e) {
+						// Don't abort; continue on to the next layer.
+					}
+				}
+
+				dc.setCurrentLayer(null);
+			}
+
+			// Draw the deferred/ordered surface renderables.
+			this.drawOrderedSurfaceRenderables(dc);
+
+			if (this.screenCreditController != null) {
+				this.screenCreditController.render(dc);
+			}
+
+			// Draw the deferred/ordered renderables.
+			dc.setOrderedRenderingMode(true);
+			while (dc.peekOrderedRenderables() != null) {
+				try {
+					dc.pollOrderedRenderables().render(dc);
+				} catch (Exception e) {
+				}
+			}
+			dc.setOrderedRenderingMode(false);
+
+		} catch (Throwable e) {
+		}
+	}
 }

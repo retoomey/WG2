@@ -1,9 +1,8 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.features.FeatureList;
 
-/** LLHAreaDeleteCommand deletes one of the objects in the 3D Objects list
+/** FeatureDeleteCommand deletes one of the objects in a FeatureList
  * 
  * @author Robert Toomey
  */
@@ -18,7 +17,7 @@ public class FeatureDeleteCommand extends FeatureCommand {
     @Override
     public boolean execute() {
         FeatureList.theFeatures.removeFeature(myFeatureKey);
-        CommandManager.getInstance().getEarthBall().updateOnMinTime();
+	FeatureList.theFeatures.updateOnMinTime();
         return true;
     }
 }

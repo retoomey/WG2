@@ -1,6 +1,5 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
@@ -32,7 +31,7 @@ public class FeatureChangeCommand extends FeatureCommand {
     public boolean execute() {
         // Eventually theFeatures will be per world ball....
         FeatureList.theFeatures.setMemento(myFeatureKey, myChange);
-        CommandManager.getInstance().getEarthBall().updateOnMinTime();
+	FeatureList.theFeatures.updateOnMinTime();
         return true;
     }
 }

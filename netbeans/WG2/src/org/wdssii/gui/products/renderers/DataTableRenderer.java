@@ -4,27 +4,24 @@ import gov.nasa.worldwind.Locatable;
 import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.Annotation;
 import gov.nasa.worldwind.render.BasicAnnotationRenderer;
-import java.awt.Point;
-
 import gov.nasa.worldwind.render.DrawContext;
-
 import gov.nasa.worldwind.terrain.SectorGeometryList;
 import gov.nasa.worldwind.util.OGLStackHandler;
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.wdssii.gui.CommandManager;
-
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.gui.ColorMap;
+import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
+import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.renderers.icons.BaseIconAnnotation;
@@ -212,7 +209,7 @@ public class DataTableRenderer extends ProductRenderer {
             // Humm..need to make sure this is OUR icon
             BaseIconAnnotation b = (BaseIconAnnotation) (o);
             hovered = b;
-            CommandManager.getInstance().getEarthBall().repaint();
+	    FeatureList.theFeatures.repaintViews();
         }
     }
 

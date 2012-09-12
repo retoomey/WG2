@@ -14,12 +14,14 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.FeatureCommand;
+import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.products.VolumeSlice3DOutput;
 import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.worldwind.WorldwindUtil;
 
 /**
@@ -191,9 +193,14 @@ public class LLHAreaSlice extends LLHArea {
 
 	public double getRangeKms() {
 		// FIXME: cleaner way of this?....fetch radius of current globe..
-		double radius = CommandManager.getInstance().getEarthBall().getWwd().getModel().getGlobe().getRadius();
-		double length = LatLon.greatCircleDistance(myLeftLocation, myRightLocation).radians * radius;
-		return length;
+		// This should clean up later...bad design on my part.
+		WorldWindView v = FeatureList.theFeatures.getWWView();
+		if (v != null){
+		      double radius = v.getWwd().getModel().getGlobe().getRadius();
+		      double length = LatLon.greatCircleDistance(myLeftLocation, myRightLocation).radians * radius;
+		      return length;
+		}
+		return 1.0f; // bleh
 	}
 
 	public double getHeightKms() {

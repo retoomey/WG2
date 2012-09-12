@@ -11,6 +11,7 @@ import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
@@ -168,9 +169,6 @@ public class ProductTableModel extends SimpleTableModel {
 
 	@Override
 	public void handleScrollAdjust(AdjustmentEvent e) {
-		WorldWindView v = CommandManager.getInstance().getEarthBall();
-		if (v != null) {
-			v.updateOnMinTime();
-		}
+		FeatureList.theFeatures.updateOnMinTime();
 	}
 }

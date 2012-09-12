@@ -1,6 +1,7 @@
 package org.wdssii.gui.views;
 
 import com.sun.opengl.util.j2d.TextRenderer;
+import gov.nasa.worldwind.Configuration;
 import gov.nasa.worldwind.Model;
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.WorldWindow;
@@ -19,8 +20,6 @@ import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.view.orbit.FlyToOrbitViewAnimator;
 import gov.nasa.worldwind.view.orbit.OrbitView;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import javax.media.opengl.GL;
 import javax.swing.JPanel;
@@ -35,15 +34,15 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
-import org.wdssii.gui.commands.Snapshot3DWorldCommand;
+import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.volumes.LLHAreaLayerController;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
-import org.wdssii.gui.worldwind.ProductLayer;
 import org.wdssii.gui.worldwind.ReadoutStatusBar;
+import org.wdssii.gui.worldwind.WJSceneController;
 import org.wdssii.gui.worldwind.WorldwindUtil;
 
 /**
@@ -73,8 +72,6 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 	}
 	/** The WorldWindow we contain.  Eventually we might want multiple of these */
 	private WorldWindow myWorld;
-	/** The worldwind layer that holds our radar products */
-	private ProductLayer myProducts;
 	/** The Readout */
 	private ReadoutStatusBar myStatusBar;
 	private TextRenderer myText = null;
@@ -98,7 +95,12 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 
 		@Override
 		public Component getNewComponent() {
-			return new WorldWindView();
+
+			// For now, single feature list wants this worldwindview set
+			// Hack it in...
+			WorldWindView newView = new WorldWindView();
+			FeatureList.theFeatures.setWorldWindView(newView);
+			return newView;
 		}
 	}
 
@@ -126,6 +128,11 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 			jPanel1.add(info, new CC().growX().growY());
 		} else {
 			// Basic worldwind setup...
+
+			// Always use our scene controller...
+			String name = WJSceneController.class.getName();
+			Configuration.setValue(AVKey.SCENE_CONTROLLER_CLASS_NAME, name);
+			
 			Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
 			if (USE_HEAVYWEIGHT) {
 				myWorld = new WorldWindowGLCanvas();
@@ -171,8 +178,8 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 		LayerList theLayers = myWorld.getModel().getLayers();
 
 		/** The layer for standard products */
-		myProducts = new ProductLayer();
-		theLayers.add(myProducts);
+		//myProducts = new ProductLayer();
+		//theLayers.add(myProducts);
 
 		/** The layer for all 3D objects */
 		myVolumeLayer = new LLHAreaLayer();
@@ -451,8 +458,10 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 				// Redraw didn't fail so we are good to go...
 				Position p = WorldwindUtil.start;
 				Location l = new Location(p.latitude.degrees, p.longitude.degrees, p.elevation);
-				WorldWindView e = CommandManager.getInstance().getEarthBall();
-				CommandManager.getInstance().getEarthBall().gotoLocation(l, true);
+				WorldWindView e = FeatureList.theFeatures.getWWView();
+				if (e != null){
+				     e.gotoLocation(l, true);
+				}
 				WorldwindUtil.inPosition = true;
 			}
 		};

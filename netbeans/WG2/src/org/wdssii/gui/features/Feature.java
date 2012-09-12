@@ -1,6 +1,7 @@
 package org.wdssii.gui.features;
 
 import gov.nasa.worldwind.render.DrawContext;
+import java.awt.Point;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
@@ -232,6 +233,18 @@ public class Feature implements Mementor {
 		}
 	}
 
+        /**
+	 * preRender a feature
+	 */
+	public void preRender(DrawContext dc) {
+		if (myRenderers != null) {
+			FeatureMemento m = getMemento();
+			for (Feature3DRenderer r : myRenderers) {
+				r.preRender(dc, m);
+			}
+		}
+	}
+
 	/**
 	 * Render a feature
 	 */
@@ -240,6 +253,18 @@ public class Feature implements Mementor {
 			FeatureMemento m = getMemento();
 			for (Feature3DRenderer r : myRenderers) {
 				r.draw(dc, m);
+			}
+		}
+	}
+
+	/**
+	 * Pick a feature
+	 */
+	public void pick(DrawContext dc, Point p) {
+		if (myRenderers != null) {
+			FeatureMemento m = getMemento();
+			for (Feature3DRenderer r : myRenderers) {
+				r.pick(dc, p, m);
 			}
 		}
 	}

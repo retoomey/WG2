@@ -1,10 +1,13 @@
 package org.wdssii.gui.features;
 
+import gov.nasa.worldwind.layers.LayerList;
 import gov.nasa.worldwind.render.DrawContext;
+import java.awt.Point;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.gis.MapFeature;
+import org.wdssii.gui.views.WorldWindView;
 
 /**
  * FeatureList holds a list of the features of a particular window It will
@@ -16,6 +19,10 @@ public class FeatureList {
 
 	private static Logger log = LoggerFactory.getLogger(FeatureList.class);
 
+	/** Every FeatureList can have a world wind earthball view.  This might become
+	 more general later and become a list.  */ 
+	private WorldWindView myWorldWindView;
+	
 	/**
 	 * A simple filter to return boolean for mass actions such as deletion
 	 */
@@ -51,8 +58,6 @@ public class FeatureList {
 		theFeatures.addFeature(testOne);
 		Feature testTwo = new MapFeature(theFeatures, "shapefiles/usa/tx/txcnty.shp");
 		theFeatures.addFeature(testTwo);
-		Feature legend = new LegendFeature(theFeatures);
-		theFeatures.addFeature(legend);
 		Feature loop = new LoopFeature(theFeatures);
 		theFeatures.addFeature(loop);
 	}
@@ -64,6 +69,33 @@ public class FeatureList {
 	private final Object featureSync = new Object();
 
 	public FeatureList() {
+	}
+
+	/** Set the world wind view that we use */
+	public void setWorldWindView(WorldWindView v){
+		myWorldWindView = v;
+		LayerList ll = v.getLayerList();
+		LegendFeature legend = LegendFeature.createLegend(this, ll);
+		addFeature(legend);
+	}
+
+	/** Update any graphical views that use this featurelist */
+	public void updateOnMinTime(){
+		if (myWorldWindView != null){
+			myWorldWindView.updateOnMinTime();
+		}
+	}
+
+	public void repaintViews(){
+		if (myWorldWindView != null){
+			myWorldWindView.repaint();
+		}
+	}
+
+	/** Get the world wind view this feature list belongs too, if any.
+	 For now at least we have to have one*/
+	public WorldWindView getWWView(){
+		return myWorldWindView;
 	}
 
 	public void setMemento(String key, FeatureMemento m) {
@@ -280,6 +312,20 @@ public class FeatureList {
 	}
 
 	/**
+	 * preRender all features that are in the given group
+	 */
+	public void preRenderFeatureGroup(DrawContext dc, String g) {
+
+		List<Feature> list = getActiveFeatureGroup(g);
+		Iterator<Feature> iter = list.iterator();
+		while (iter.hasNext()) {
+			Feature f = iter.next();
+			f.preRender(dc);
+		}
+	}
+
+
+	/**
 	 * Render all features that are in the given group
 	 */
 	public void renderFeatureGroup(DrawContext dc, String g) {
@@ -289,6 +335,19 @@ public class FeatureList {
 		while (iter.hasNext()) {
 			Feature f = iter.next();
 			f.render(dc);
+		}
+	}
+
+	/**
+	 * Pick all features that are in the given group
+	 */
+	public void pickFeatureGroup(DrawContext dc, Point p, String g) {
+
+		List<Feature> list = getActiveFeatureGroup(g);
+		Iterator<Feature> iter = list.iterator();
+		while (iter.hasNext()) {
+			Feature f = iter.next();
+			f.pick(dc, p);
 		}
 	}
 

@@ -614,7 +614,7 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
 					this.getCellValue(row, col, q);
 					float v = q.value;
 					out.write(String.format(" %6.3f", v));
-					if (++linebreak > g.numCols) {
+					if (++linebreak >= g.numCols) {
 						out.write("\n");
 						linebreak = 0;
 					}

@@ -9,6 +9,7 @@ import gov.nasa.worldwind.globes.ElevationModel;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
+import java.awt.Point;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import javax.media.opengl.GL;
@@ -21,8 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.features.Feature3DRenderer;
+import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.gis.MapFeature.MapMemento;
 import org.wdssii.storage.Array1DOpenGL;
@@ -88,6 +89,14 @@ public class MapRenderer implements Feature3DRenderer {
 	 */
 	public void setIsCreated(boolean flag) {
 		myCreated = flag;
+	}
+
+	@Override
+	public void pick(DrawContext dc, Point p, FeatureMemento m) {
+	}
+
+	@Override
+	public void preRender(DrawContext dc, FeatureMemento m) {
 	}
 
 	/**
@@ -342,7 +351,7 @@ public class MapRenderer implements Feature3DRenderer {
 				keepWorking = false;
 			}
 		}
-		CommandManager.getInstance().getEarthBall().updateOnMinTime();
+		FeatureList.theFeatures.updateOnMinTime();
 		return keepWorking;
 	}
 }

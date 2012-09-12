@@ -9,6 +9,7 @@ import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -22,9 +23,9 @@ import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.Feature3DRenderer;
+import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.gis.PolarGridFeature.PolarGridMemento;
 import org.wdssii.gui.products.Product;
@@ -90,6 +91,14 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	 */
 	public void setIsCreated(boolean flag) {
 		myCreated = flag;
+	}
+
+	@Override
+	public void pick(DrawContext dc, Point p, FeatureMemento m) {
+	}
+
+	@Override
+	public void preRender(DrawContext dc, FeatureMemento m) {
 	}
 
 	/**
@@ -501,7 +510,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 				keepWorking = false;
 			}
 		}
-		CommandManager.getInstance().getEarthBall().updateOnMinTime();
+		FeatureList.theFeatures.updateOnMinTime();
 		return keepWorking;
 	}
 }

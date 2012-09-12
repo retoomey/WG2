@@ -85,7 +85,7 @@ public class LLHAreaFeature extends Feature {
     private WorldWindow getWorld() {
         WorldWindow world = null;
 
-        WorldWindView v = CommandManager.getInstance().getEarthBall();
+        WorldWindView v = list().getWWView();
         if (v != null) {
             world = v.getWwd();
         }

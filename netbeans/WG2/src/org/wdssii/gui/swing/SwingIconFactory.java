@@ -9,6 +9,7 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.wdssii.gui.swing.icon.DownArrowIcon;
@@ -41,6 +42,13 @@ public class SwingIconFactory {
            }
         }
         return image;
+    }
+
+    /** Find a file in the icon path */
+    public static String getIconPath(String name) {
+        java.net.URL imgURL = DownArrowIcon.class.getResource(name);
+	String test = imgURL.getFile();
+	return test;
     }
 
     /** Load an image icon from the nbm.viems directory.

@@ -1,6 +1,7 @@
 package org.wdssii.gui.products;
 
 import gov.nasa.worldwind.render.DrawContext;
+import java.awt.Point;
 import java.net.URL;
 import javax.swing.JScrollPane;
 import org.slf4j.Logger;
@@ -132,5 +133,13 @@ public class Product2DTable implements Feature3DRenderer {
 				}
 			}
 		}
+	}
+
+	@Override
+	public void pick(DrawContext dc, Point p, FeatureMemento m) {
+	}
+
+	@Override
+	public void preRender(DrawContext dc, FeatureMemento m) {
 	}
 }

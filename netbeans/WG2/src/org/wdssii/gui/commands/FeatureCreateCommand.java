@@ -1,12 +1,11 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
 
 /**
- *
- * @author rtoomey
+ * Create a new feature in a feature list
+ * @author Robert Toomey
  */
 public class FeatureCreateCommand extends FeatureCommand {
 
@@ -25,7 +24,7 @@ public class FeatureCreateCommand extends FeatureCommand {
         if (success){
             FeatureList.theFeatures.addFeature(A);
         }
-        CommandManager.getInstance().getEarthBall().updateOnMinTime();
+	FeatureList.theFeatures.updateOnMinTime();
         return true;
     }
 }

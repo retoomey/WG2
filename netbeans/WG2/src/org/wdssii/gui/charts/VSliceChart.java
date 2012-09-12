@@ -364,7 +364,7 @@ public class VSliceChart extends ChartViewJFreeChart implements VolumeValueFollo
 			rangeLower = r.getLowerBound();
 			rangeKM = r.getUpperBound() - r.getLowerBound();
 			rangeDelta = rangeKM / (sampleSize - 1);
-			WorldWindView eb = CommandManager.getInstance().getEarthBall();
+		 	WorldWindView eb = FeatureList.theFeatures.getWWView();
 			Globe globe = eb.getWwd().getModel().getGlobe();
 			ElevationModel m = globe.getElevationModel();
 			double deltaLat = (endLat - startLat) / (sampleSize - 1);

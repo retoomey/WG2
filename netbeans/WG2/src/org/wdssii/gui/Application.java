@@ -149,6 +149,13 @@ public class Application {
 	public static void addNativeLibrariesOrDie(String rootdir) {
 		// FIXME: move/cleanup native locations?
 		String arch = System.getProperty("os.arch");
+                
+                // Newer machines, mac in particular returning
+                // x86_86 instead of amd64
+                if (arch.equalsIgnoreCase("x86_64")){
+                    arch = "amd64";
+                }
+                
 		rootdir += "/release/modules/lib/" + arch;
 		log.info("Native library directory is: " + rootdir);
 		try {

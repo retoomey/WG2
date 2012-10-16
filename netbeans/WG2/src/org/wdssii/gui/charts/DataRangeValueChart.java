@@ -32,7 +32,6 @@ import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.volumes.LLHArea;
-import org.wdssii.gui.volumes.LLHAreaSlice;
 
 /** A chart that displays the data value of a product in its Y axis, and a
  * distance in its X.  Uses a Slice
@@ -170,8 +169,8 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
         Product p = null;
 
         // If we found a product, we can do the slice range.....
-        LLHAreaSlice slice = getVSliceToPlot();
-        if (slice != null) {
+       // LLHAreaSlice slice = getVSliceToPlot();
+        /*if (slice != null) {
             LatLon l = slice.getLeftLocation();
             LatLon r = slice.getRightLocation();
             key.append(l);
@@ -212,6 +211,7 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
             // We should probably have a 'create series' object that takes a list of products?
             // While it may be slower, it will be easier to manage and subclass in the future
             int count = 0;
+            */
 
   /*          ArrayList<rangeAxisInfo> newAxisList = new ArrayList<rangeAxisInfo>();
 
@@ -290,7 +290,7 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
             updatePlotToAxis(newAxisList);
 
 */
-        }
+       // }
     }
 
     /** Add a new domain axis info to a given list.  Merge if possible (depending on settings) */
@@ -364,7 +364,7 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
     }
 
     /** Return the LLHAreaSlice that we are currently drawing a plot for */
-    public LLHAreaSlice getVSliceToPlot() {
+   /* public LLHAreaSlice getVSliceToPlot() {
         // -------------------------------------------------------------------------
         // Hack snag the current slice and product...
         // Hack for now....we grab first 3d object in our FeatureList
@@ -378,5 +378,5 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
             }
         }
         return slice;
-    }
+    }*/
 }

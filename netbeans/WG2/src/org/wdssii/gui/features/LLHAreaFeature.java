@@ -5,7 +5,6 @@ import java.util.TreeMap;
 import javax.swing.JComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.*;
 
@@ -31,8 +30,7 @@ public class LLHAreaFeature extends Feature {
     private FeatureGUI myControls;
 
     static {
-        myFactoryList.put("Slice", new LLHAreaSliceFactory());
-        myFactoryList.put("Box", new LLHAreaBoxFactory());
+        myFactoryList.put("Set", new LLHAreaSetFactory());
         myFactoryList.put("Stick", new LLHAreaHeightStickFactory());
     }
     /**
@@ -69,6 +67,14 @@ public class LLHAreaFeature extends Feature {
         return success;
     }
 
+    	@Override
+	public FeatureMemento getNewMemento() {
+            if (myLLHArea != null){
+                return myLLHArea.getMemento();
+            }else{
+                return super.getNewMemento();
+            }
+	}
     @Override
     public void setMemento(FeatureMemento m) {
         super.setMemento(m);
@@ -112,7 +118,7 @@ public class LLHAreaFeature extends Feature {
         if (myFactory != null) {
 
             if (myControls == null) {
-                myControls = myFactory.createGUI(myLLHArea, source);
+                myControls = myFactory.createGUI(this, myLLHArea, source);
             }
 
             // Set the layout and add our controls

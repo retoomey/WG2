@@ -2,27 +2,20 @@ package org.wdssii.gui.volumes;
 
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
-import gov.nasa.worldwind.examples.util.ShapeUtils;
-import gov.nasa.worldwind.geom.*;
-import gov.nasa.worldwind.globes.Globe;
-import java.util.Arrays;
-import java.util.List;
+import javax.swing.JComponent;
 import org.wdssii.gui.features.Feature.FeatureTableInfo;
+import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.LLHAreaFeature;
-import org.wdssii.gui.worldwind.WorldwindUtil;
 
-/** Factory which creates a box for rendering purposes.  This is used for the isosurface
- * @author Robert Toomey
- *
- */
-public class LLHAreaBoxFactory extends LLHAreaFactory {
+/** Factory which creates a 'slice'.  Two lat/lon points and a fixed height range between them*/
+public class LLHAreaSetFactory extends LLHAreaFactory {
 
     /** Counter for default name */
     static int counter = 1;
 
     @Override
     public String getFactoryNameDisplay() {
-        return "Box";
+        return "Set";
     }
 
     @Override
@@ -31,12 +24,13 @@ public class LLHAreaBoxFactory extends LLHAreaFactory {
         boolean success = true;
 
         // Create the visible object in world window
-        String name = getFactoryNameDisplay() + String.valueOf(counter++);
+        String name = "Set" + String.valueOf(counter++);
+        
         data.visibleName = name;
         data.keyName = name;
         data.visible = true;
 
-        LLHArea poly = new LLHArea(f);
+        LLHAreaSet poly = new LLHAreaSet(f);       
         poly.setAttributes(getDefaultAttributes());
         poly.setValue(AVKey.DISPLAY_NAME, name);
         poly.setAltitudes(0.0,  LLHArea.DEFAULT_HEIGHT_METERS);
@@ -45,5 +39,15 @@ public class LLHAreaBoxFactory extends LLHAreaFactory {
 
         setName(name);
         return success;
+    }
+    
+    @Override
+    public FeatureGUI createGUI(LLHAreaFeature f, LLHArea a, JComponent parent){
+        if (a instanceof LLHAreaSet){
+            LLHAreaSet slice = (LLHAreaSet)(a);
+            LLHAreaSetGUI gui = new LLHAreaSetGUI(f, slice);          
+            return gui;
+        }
+        return super.createGUI(f, a, parent);
     }
 }

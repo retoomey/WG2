@@ -63,13 +63,7 @@ public class LoopGUI extends javax.swing.JPanel implements FeatureGUI {
 		// it.  I think this gives enough control without adding too much code
 		// (you have to create each control there's not a loop somewhere that turns
 		// each property into a GUI)
-
-		/**
-		 * Completely control the layout within the scrollpane. Probably
-		 * don't want to fill here, let the controls do default sizes
-		 */
 		setLayout(new MigLayout(new LC(), null, null));
-		CC mid = new CC().growX().width("min:pref:");
 
 		myNumFramesGUI = new IntegerGUI(myFeature, LoopMemento.NUM_OF_FRAMES, "Number of Frames", this,
 			2, 100, 1, "");
@@ -87,6 +81,5 @@ public class LoopGUI extends javax.swing.JPanel implements FeatureGUI {
 
 		myRockLoopGUI = new BooleanGUI(myFeature, LoopMemento.ROCK_LOOP, "Rock Loop", this);
 		myRockLoopGUI.addToMigLayout(this);
-
 	}
 }

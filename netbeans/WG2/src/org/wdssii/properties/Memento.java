@@ -41,6 +41,7 @@ public class Memento {
 		/**
 		 * Get the value stored inside us
 		 */
+                @SuppressWarnings("unchecked")
 		public <T extends Object> T getValue() {
 			return (T) value;
 		}

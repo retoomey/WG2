@@ -28,7 +28,6 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.Product.Navigation;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.volumes.LLHArea;
-import org.wdssii.gui.volumes.LLHAreaSlice;
 
 public class TimeTrendChart extends ChartViewJFreeChart {
 
@@ -128,7 +127,7 @@ public class TimeTrendChart extends ChartViewJFreeChart {
      */
     public static class VSliceDataset implements XYZDataset {
 
-        LLHAreaSlice myVSlice;
+        //LLHAreaSlice myVSlice;
         int numOfCols = 0;
         int numOfRows = 0;
         float[] myColors = null;
@@ -243,9 +242,9 @@ public class TimeTrendChart extends ChartViewJFreeChart {
             // ignore
         }
 
-        public void setVSlice(LLHAreaSlice slice) {
-            myVSlice = slice;
-        }
+        //public void setVSlice(LLHAreaSlice slice) {
+        //    myVSlice = slice;
+        //}
     }
     static int counter = 0;
     // We use this so that we only update when the vslice CHANGES.
@@ -271,7 +270,7 @@ public class TimeTrendChart extends ChartViewJFreeChart {
     }
 
     /** Return the LLHAreaSlice that we are currently drawing a plot for */
-    public LLHAreaSlice getVSliceToPlot() {
+   /* public LLHAreaSlice getVSliceToPlot() {
         // -------------------------------------------------------------------------
         // Hack snag the current slice and product...
         // Hack for now....we grab first 3d object in our FeatureList
@@ -286,13 +285,13 @@ public class TimeTrendChart extends ChartViewJFreeChart {
         }
         return slice;
     }
-
+*/
     /** Called during dragging of vslice to explicitly update the chart.  The chart checks for
      * changes and only draws when the vslice if different
      */
     @Override
     public void updateChart() {
-        myDataset.setVSlice(getVSliceToPlot());
+        //myDataset.setVSlice(getVSliceToPlot());
 
         // On update, pull top product (for now)
         // FIXME: This should be a util
@@ -304,8 +303,8 @@ public class TimeTrendChart extends ChartViewJFreeChart {
         // We'll probably need a thread for this to lazy update the table,
         // some products are HUGE...
 
-        LLHAreaSlice slice = getVSliceToPlot();
-        if (slice != null) {
+       // LLHAreaSlice slice = getVSliceToPlot();
+       /* if (slice != null) {
             int numberHeight = 50; // fairly cheap
             int numberOfTimes = 10;// the pig volumes
             LatLon l = slice.getLeftLocation();
@@ -400,6 +399,7 @@ public class TimeTrendChart extends ChartViewJFreeChart {
         // Gotta read each product over time...hummmm
         // FIXME: Need some sort of threaded interface for reading in data values...
         myJFreeChart.setTitle("Showing (Refresh" + counter++ + ")");
+        */
     }
 
     /** Static method to create a vslice chart */

@@ -30,10 +30,13 @@ public class IntegerGUI extends PropertyGUI {
 		// Create spinner
 		JSpinner s = new JSpinner();
 		Integer v = ((Integer) f.getMemento().getPropertyValue(property));
-		int vin = v.intValue();
+                int vin = min;
+                if (v != null){
+                    vin = v.intValue();
+                }
 
 		SpinnerNumberModel model = new SpinnerNumberModel(
-			v.intValue(), //initial value
+			vin, //initial value
 			min, // min of the max value
 			max, // max of the max value
 			step); // 1 step.

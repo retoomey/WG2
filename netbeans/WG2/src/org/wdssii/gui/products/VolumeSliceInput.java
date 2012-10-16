@@ -1,9 +1,5 @@
 package org.wdssii.gui.products;
 
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.Globe;
-
 /** VolumeSliceInput is a holder class for the unique layout in 3D space of a vertical or cappi slice.
  * VolumeProducts use this to create visual sliced representations of their data.
  * 

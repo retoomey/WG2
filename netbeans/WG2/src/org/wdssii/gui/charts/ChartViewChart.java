@@ -1,5 +1,7 @@
 package org.wdssii.gui.charts;
 
+import gov.nasa.worldwind.geom.LatLon;
+import gov.nasa.worldwind.render.DrawContext;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,98 +32,105 @@ import org.wdssii.gui.commands.ProductFollowCommand;
  */
 public class ChartViewChart {
 
-	private static Logger log = LoggerFactory.getLogger(ChartViewChart.class);
+    private static Logger log = LoggerFactory.getLogger(ChartViewChart.class);
 
-	/**
-	 * Update chart when needed (check should be done by chart)
-	 */
-	public void updateChart() {
-	}
-	
-	/** The current volume we follow, 99.9% of charts will do this */
-	private boolean myUseVirtualVolume;
-	/**
-	 * The current use product filters toggle
-	 */
-	private boolean myUseProductFilters;
-	/**
-	 * The current product we follow, 99.9% of charts will do this
-	 */
-	private String myCurrentProduct = ProductFollowCommand.top;
+    /**
+     * Update chart when needed (check should be done by chart)
+     */
+    public void updateChart() {
+    }
+    /**
+     * The current volume we follow, 99.9% of charts will do this
+     */
+    private boolean myUseVirtualVolume;
+    /**
+     * The current use product filters toggle
+     */
+    private boolean myUseProductFilters;
+    /**
+     * The current product we follow, 99.9% of charts will do this
+     */
+    private String myCurrentProduct = ProductFollowCommand.top;
 
-	/**
-	 * Set if this chart should use virtual volumes
-	 */
-	public final void setUseVirtualVolume(boolean flag) {
-		myUseVirtualVolume = flag;
-	}
+    /**
+     * Set if this chart should use virtual volumes
+     */
+    public final void setUseVirtualVolume(boolean flag) {
+        myUseVirtualVolume = flag;
+    }
 
-	/**
-	 * Get if this chart uses virtual volumes
-	 */
-	public final boolean getUseVirtualVolume() {
-		return myUseVirtualVolume;
-	}
+    /**
+     * Get if this chart uses virtual volumes
+     */
+    public final boolean getUseVirtualVolume() {
+        return myUseVirtualVolume;
+    }
 
-	/**
-	 * Set the key of the product to follow
-	 */
-	public void setUseProductKey(String p) {
-		myCurrentProduct = p;
-	}
+    /**
+     * Set the key of the product to follow
+     */
+    public void setUseProductKey(String p) {
+        myCurrentProduct = p;
+    }
 
-	/**
-	 * Get the key of the product to follow
-	 */
-	public String getUseProductKey() {
-		return myCurrentProduct;
-	}
+    /**
+     * Get the key of the product to follow
+     */
+    public String getUseProductKey() {
+        return myCurrentProduct;
+    }
 
-	/**
-	 * Generate the Chart itself. Basically the stuff that will draw the
-	 * chart in the composite
-	 */
-	public Object getNewGUIForChart(Object parent) {
-		// FIXME: maybe some text? "Hey this isn't working?"
-		//Composite nothing = new Composite((Composite)parent, SWT.NONE);
-		//return nothing;
-		return null;
-	}
+    /**
+     * Generate the Chart itself. Basically the stuff that will draw the chart
+     * in the composite
+     */
+    public Object getNewGUIForChart(Object parent) {
+        // FIXME: maybe some text? "Hey this isn't working?"
+        //Composite nothing = new Composite((Composite)parent, SWT.NONE);
+        //return nothing;
+        return null;
+    }
 
-	/**
-	 * Generate the GUI controls for this chart, allowing more changes
-	 */
-	public Object getNewGUIBox(Object parent) {
-		// FIXME: maybe some text? "Hey this isn't working?"
-		//Composite nothing = new Composite((Composite)parent, SWT.NONE);
-		//return nothing;
-		return null;
-	}
+    /**
+     * Generate the GUI controls for this chart, allowing more changes
+     */
+    public Object getNewGUIBox(Object parent) {
+        // FIXME: maybe some text? "Hey this isn't working?"
+        //Composite nothing = new Composite((Composite)parent, SWT.NONE);
+        //return nothing;
+        return null;
+    }
 
-	/**
-	 * Get extra menu items for the chart
-	 */
-	public void addCustomTitleBarComponents(List<Object> addTo) {
-	}
+    /**
+     * Get extra menu items for the chart
+     */
+    public void addCustomTitleBarComponents(List<Object> addTo) {
+    }
 
-	/**
-	 * Generate a snapshot of this chart, if possible
-	 */
-	public void takeSnapshot(String name) {
-		log.info("Snapshot not implemented for this chart. :(");
-	}
+    /**
+     * Generate a snapshot of this chart, if possible
+     */
+    public void takeSnapshot(String name) {
+        log.info("Snapshot not implemented for this chart. :(");
+    }
 
-	/**
-	 * Set if this chart uses product filters
-	 */
-	public void setUseProductFilters(boolean flag) {
-		myUseProductFilters = flag;
-	}
+    /**
+     * Set if this chart uses product filters
+     */
+    public void setUseProductFilters(boolean flag) {
+        myUseProductFilters = flag;
+    }
 
-	/**
-	 * Get if this chart uses the product filters
-	 */
-	public final boolean getUseProductFilters() {
-		return myUseProductFilters;
-	}
+    /**
+     * Get if this chart uses the product filters
+     */
+    public final boolean getUseProductFilters() {
+        return myUseProductFilters;
+    }
+
+    // All the 3D render stuff of the Chrt
+    // Render in 3D
+    public void drawChartInLLHArea(DrawContext dc, List<LatLon> locations, double[] altitudes, List<Boolean> edgeFlags) {
+
+    }
 }

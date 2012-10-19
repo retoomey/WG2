@@ -501,7 +501,6 @@ public class DockWindow {
 		addViewByID("SourcesView");
 
 		addViewByID("LayersView");
-		addViewByID("TableProductView");
 		addViewByID("ChartView");
 		addViewByID("FeaturesView");
 
@@ -528,7 +527,6 @@ public class DockWindow {
 		DockingWindow chart = getViewByID("ChartView");
 		DockingWindow debug = getViewByID("DebugView");
 		DockingWindow features = getViewByID("FeaturesView");
-		DockingWindow tview = getViewByID("TableProductView");
 
 		// TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
 		TabWindow sourceProducts = new TabWindow(new DockingWindow[]{sources, features, index});
@@ -536,7 +534,7 @@ public class DockWindow {
 
 		// SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
 
-		TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart, layers, tview});
+		TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart, layers});
 		rootWindow.setWindow(
 			new SplitWindow(true, 0.5f,
 			new SplitWindow(false, 0.7f, earth, nav), stuff));
@@ -554,7 +552,7 @@ public class DockWindow {
 	 * Initializes the frame and shows it.
 	 */
 	private void showFrame() {
-		myRootFrame.getContentPane().add(createToolBar(), BorderLayout.NORTH);
+		//myRootFrame.getContentPane().add(createToolBar(), BorderLayout.NORTH);
 		myRootFrame.getContentPane().add(rootWindow, BorderLayout.CENTER);
 		myRootFrame.setJMenuBar(createMenuBar());
 		myRootFrame.setSize(900, 700);

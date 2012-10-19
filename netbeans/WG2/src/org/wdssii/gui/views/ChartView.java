@@ -1,8 +1,6 @@
 package org.wdssii.gui.views;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,13 +12,12 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.SingletonManager;
 import org.wdssii.gui.charts.ChartViewChart;
 import org.wdssii.gui.charts.VSliceChart;
+import org.wdssii.gui.commands.*;
+import org.wdssii.gui.commands.ChartCreateCommand.ChartFollowerView;
 import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
 import org.wdssii.gui.commands.ProductToggleFilterCommand.ProductFilterFollowerView;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
-import org.wdssii.gui.commands.*;
-import org.wdssii.gui.products.volumes.PPIRadialSetVolume;
 import org.wdssii.gui.swing.JThreadPanel;
-import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
 import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
 import org.wdssii.xml.wdssiiConfig.Tag_setup;
@@ -42,22 +39,33 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
     // FIXME: probably should update on ANY data command...
 
     public void ProductCommandUpdate(ProductCommand command) {
-        updateGUI(); // load, delete, etc..
+        updateGUI(command); // load, delete, etc..
     }
 
     public void FeatureCommandUpdate(FeatureCommand command) {
-        updateGUI();
+        updateGUI(command);
     }
     // Update when we toggle virtual/regular volume button
 
     public void VolumeSetTypeCommandUpdate(VolumeSetTypeCommand command) {
-        updateGUI();
+        updateGUI(command);
+    }
+
+    public void SourceCommandUpdate(SourceCommand command) {
+        updateGUI(command);
+    }
+
+    public void AnimateCommandUpdate(AnimateCommand command) {
+        updateGUI(command);
     }
 
     /**
      * Our factory, called by reflection to populate menus, etc...
      */
-    public static class Factory extends WdssiiMDockedViewFactory {
+    public static class Factory extends WdssiiMDockedViewFactory implements CommandListener, ChartFollowerView {
+
+        public static ChartView container;
+        private String myCurrentChartChoice = ChartSetTypeCommand.getFirstChartChoice();
 
         public Factory() {
             super("Chart", "chart_bar.png");
@@ -65,17 +73,33 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
 
         @Override
         public Component getNewComponent() {
-            return new ChartView("Chart");
+            return new ChartView("Chart", myCurrentChartChoice); // Ignored
         }
 
         @Override
         public Component getNewSubViewComponent(int counter) {
-            return new ChartView("Chart-" + counter);
+            return new ChartView("Chart-" + counter, myCurrentChartChoice);
         }
 
         @Override
         public MDockView getTempComponent() {
             return new ChartView();
+        }
+
+        /**
+         * Add the standard button on main container that allows creating a new
+         * sub-view
+         */
+        @Override
+        public void addCreationButton(List<Object> addTo) {
+            addTo.add(ChartCreateCommand.getDropButton(this));
+        }
+
+        @Override
+        public void addChart(String name) {
+            myCurrentChartChoice = name;
+            addNewSubView();
+
         }
     }
     private JToggleButton jVirtualToggleButton;
@@ -124,10 +148,10 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
         myTitle = "Top chart object, not a real chart.";
     }
 
-    public ChartView(String title) {
+    public ChartView(String title, String chartName) {
         myTitle = title;
         initComponents();
-        initCharts();
+        initCharts(chartName);
     }
 
     private void initComponents() {
@@ -159,92 +183,19 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
      */
     @Override
     public void addCustomTitleBarComponents(List<Object> addTo) {
-
-        // Virtual Volume toggle
-        jVirtualToggleButton = new JToggleButton();
-        Icon i = SwingIconFactory.getIconByName("brick_add.png");
-        jVirtualToggleButton.setIcon(i);
-        jVirtualToggleButton.setToolTipText("Toggle virtual/nonvirtual volume");
-        jVirtualToggleButton.setFocusable(false);
-        jVirtualToggleButton.setBorderPainted(false);
-        jVirtualToggleButton.setOpaque(false);
-        jVirtualToggleButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jVirtualToggleButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jVirtualToggleButton.addActionListener(new java.awt.event.ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jVirtualToggleButtonActionPerformed(evt);
-            }
-        });
-        addTo.add(jVirtualToggleButton);
-
         if (myChart != null) {
             myChart.addCustomTitleBarComponents(addTo);
         }
 
-
         // ---------------------------------------------------------
         // The product follow menu
         addTo.add(ProductFollowCommand.getDropButton(this));
-
-        //addTo.add(VolumeValueCommand.getDropButton(this));
-
-        // ---------------------------------------------------------
-        // The 3D object follow menu
-	/*
-         test = SwingIconFactory.getIconByName("application_cascade.png");
-         JwgDropDownButton b3 = new JwgDropDownButton(test) {
-		
-         @Override
-         public void generateMenu() {
-         // Because the list dynamically changes
-         //ProductFollowCommand f = new ProductFollowCommand();
-         //f.setTargetListener(ChartView.this);
-         //JPopupMenu menu = WdssiiCommand.getSwingMenuFor(f);
-         //setMenu(menu);
-         }
-         };
-         b3.setToolTipText("Choose 3D object to follow");
-         addTo.add(b3);
-         * 
-         */
-
-        //b2.setFocusable(false);
-        //b2.setMargin(new Insets(0,0,0,0));
-
-        //JButton b = ButtonFactory.createFlatHighlightButton(test, "HELLO", 0, null);
-        //b.setFocusable(false);
-        //addTo.add(b);
-
     }
 
-    private void jPopupMenuActionPerformed(java.awt.event.ActionEvent evt) {
-        String item = evt.getActionCommand();
-        // Hack in my experiment I guess...until it works don't bother
-        // doing all the fancy GUI work...will have to manually refresh
-        // by moving.
-        PPIRadialSetVolume.myExperiment = (myInterps[1].equals(item));
-        if (myChart != null) {
-            myChart.updateChart();
-        }
-    }
-
-    private void jVirtualToggleButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        AbstractButton abstractButton = (AbstractButton) evt.getSource();
-        boolean selected = abstractButton.getModel().isSelected();
-        VolumeSetTypeCommand vToggle = new VolumeSetTypeCommand(this, selected);
-
-        vToggle.setToggleState(selected);
-        CommandManager.getInstance().executeCommand(vToggle, true);
-    }
-
-    public final void initCharts() {
+    public final void initCharts(String chartName) {
 
         CommandManager.getInstance().addListener(myTitle, this);
-
-        // The command class handles the chart list for us.
-        createChart(ChartSetTypeCommand.getFirstChartChoice());
-
+        createChart(chartName);
         updateGUI();
     }
     // ProductFollowerView methods -----------------------------------
@@ -286,24 +237,48 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
                 ArrayList<Tag_chart> list = doc.charts.charts;
                 if (list != null) {
 
+                    ChartViewChart chart = null;
+
+                    // Try to create chart using XML file....
                     for (Tag_chart c : list) {
                         if ((c.gName != null) && (c.gName.compareTo(factoryChoice) == 0)) {
                             Class<?> aClass = null;
                             try {
-                                //System.out.println("NAME TO CREATE IS "+name);
                                 aClass = Class.forName("org.wdssii.gui.charts." + c.name + "Chart");
                                 Method createMethod = aClass.getMethod("create" + c.name + "Chart", new Class[]{});
-                                ChartViewChart chart = (ChartViewChart) createMethod.invoke(null, new Object[]{});
-                                log.debug("Generated chart by reflection " + c.name);
-                                setChart(chart);
+                                chart = (ChartViewChart) createMethod.invoke(null, new Object[]{});
+                                log.debug("Generated chart by factory lookup " + c.gName + " to " + c.name);
+                                //setChart(chart);
                                 myCurrentChoice = c.gName;
                             } catch (Exception e) {
                                 log.error("Couldn't create WdssiiChart by name '"
                                         + c.name + "' because " + e.toString());
-                                setChart(null);
+                                myCurrentChoice = "";
+                                //  setChart(null);
                             }
                         }
                     }
+
+                    // Try to create chart from pure class name...
+                    // Not sure I really need an xml file for charts..could create a listing simply
+                    // by jar hunting.  Only matters if we have plugins someday.
+                    if (chart == null) {
+                        try {
+                            Class<?> aClass = null;
+                            aClass = Class.forName("org.wdssii.gui.charts." + factoryChoice + "Chart");
+                            Method createMethod = aClass.getMethod("create" + factoryChoice + "Chart", new Class[]{});
+                            chart = (ChartViewChart) createMethod.invoke(null, new Object[]{});
+                            log.debug("Generated chart by reflection " + factoryChoice);
+                            //setChart(chart);
+                            myCurrentChoice = factoryChoice;
+                        } catch (Exception e) {
+                            log.error("Couldn't create WdssiiChart by name '"
+                                    + factoryChoice + "' because " + e.toString());
+                            setChart(null);
+                        }
+
+                    }
+                    setChart(chart);
                     // bet I'm gonna get sync errors here....maybe not, we shouldn't
                     // be still reading in the xml by this time.  Could be though.
 

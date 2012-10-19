@@ -114,7 +114,7 @@ public class ProductFollowCommand extends ProductCommand {
 				// Because the list dynamically changes
 				ProductFollowCommand f = new ProductFollowCommand();
 				f.setTargetListener(target);
-				JPopupMenu menu = WdssiiCommand.getSwingMenuFor(f);
+				JPopupMenu menu = WdssiiCommand.getSwingCheckMenuFor(f);
 				setMenu(menu);
 			}
 		};

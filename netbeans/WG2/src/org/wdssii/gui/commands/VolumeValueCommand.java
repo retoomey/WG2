@@ -128,7 +128,7 @@ public class VolumeValueCommand extends WdssiiCommand {
 				// Because the list dynamically changes
 				VolumeValueCommand f = new VolumeValueCommand();
 				f.setTargetListener(target);
-				JPopupMenu menu = WdssiiCommand.getSwingMenuFor(f);
+				JPopupMenu menu = WdssiiCommand.getSwingCheckMenuFor(f);
 				setMenu(menu);
 			}
 		};

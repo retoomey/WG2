@@ -4,7 +4,7 @@ import gov.nasa.worldwind.geom.LatLon;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
-import java.util.ListIterator;
+import java.util.List;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -31,15 +31,18 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.volumes.LLHArea;
+import org.wdssii.gui.volumes.LLHAreaSet;
 
-/** A chart that displays the data value of a product in its Y axis, and a
- * distance in its X.  Uses a Slice
- * Uses LLHAreaSlice...
- * 
- * Some of this chart should probably be pulled out as a superclass.  Any chart
- * doing a range/height of a set of products in the display could use the code here
- * 
+/**
+ * A chart that displays the data value of a product in its Y axis, and a
+ * distance in its X. Uses a Slice Uses LLHAreaSlice...
+ *
+ * Some of this chart should probably be pulled out as a superclass. Any chart
+ * doing a range/height of a set of products in the display could use the code
+ * here
+ *
  * @author Robert Toomey
  *
  */
@@ -50,7 +53,10 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
     private String myChartKey;
     private NumberAxis myRangeAxis = null;
 
-    /** Internal range axis info.  Used to generate the corresponding JFreeChart range axis */
+    /**
+     * Internal range axis info. Used to generate the corresponding JFreeChart
+     * range axis
+     */
     private static class rangeAxisInfo {
 
         public rangeAxisInfo(String u, double l, double up) {
@@ -107,11 +113,13 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
 
     }
 
-    /** Static method to create a DataRangeValueChart chart, called by reflection */
+    /**
+     * Static method to create a DataRangeValueChart chart, called by reflection
+     */
     public static DataRangeValueChart createDataRangeValueChart() {
         //	XYDataset xydataset = createDataset1();
         //JFreeChart jfreechart = ChartFactory.createXYLineChart("Annotation Demo 2", "Date", "Price Per Unit", xydataset, PlotOrientation.VERTICAL, false, true, false);
-        DataRangeValueChart jfreechart = create("Readout Range", "Range KMs", "Value", null, PlotOrientation.VERTICAL, false, true, false);
+        DataRangeValueChart jfreechart = create("Readout Range", "Distance KMs", "Value", null, PlotOrientation.VERTICAL, false, true, false);
 
         XYPlot xyplot = (XYPlot) jfreechart.myJFreeChart.getPlot();
 
@@ -169,16 +177,19 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
         Product p = null;
 
         // If we found a product, we can do the slice range.....
-       // LLHAreaSlice slice = getVSliceToPlot();
-        /*if (slice != null) {
-            LatLon l = slice.getLeftLocation();
-            LatLon r = slice.getRightLocation();
+        LLHAreaSet slice = getVSliceToPlot();
+        if (slice != null) {
+            List<LatLon> list = slice.getLocations();
+            
+            LatLon l = list.get(0);
+            LatLon r = list.get(1);
             key.append(l);
             key.append(r);
             String newChartKey = key.toString();
             if (myChartKey != null) {
+                // System.out.println("New key "+newChartKey+" " +myChartKey);
                 if (newChartKey.compareTo(myChartKey) == 0) {
-                    System.out.println("Chart not updated..vslice the same...");
+                    //System.out.println("Chart not updated..vslice the same..."+newChartKey);
                     return;
                 }
             }
@@ -194,30 +205,31 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
             double deltaLat = (endLat - startLat) / myNumSamples;
             double deltaLon = (endLon - startLon) / myNumSamples;
 
-            double kmsPerMove = slice.getRangeKms() / myNumSamples;
+            double kmsPerMove = slice.getRangeKms(0, 1) / myNumSamples;
 
-            myRangeAxis.setRange(new Range(0, slice.getRangeKms() / 1000.0));
+            myRangeAxis.setRange(new Range(0, slice.getRangeKms(0, 1) / 1000.0));
             //	System.out.println("Updated range to "+slice.getRangeKms()/1000.0);
             //XYPlot plot = (XYPlot)(getPlot());
 
             //XYSeriesCollection xyseriescollection = new XYSeriesCollection();
 
             // Reverse iterator for draw list.  We plot in reverse order of the drawing...
-           // ListIterator<ProductHandler> iter = current.getDrawIterator();
-           // while (iter.hasNext()) {
-           //     iter.next();  // Move to end of list.
-           // }
+            // ListIterator<ProductHandler> iter = current.getDrawIterator();
+            // while (iter.hasNext()) {
+            //     iter.next();  // Move to end of list.
+            // }
 
             // We should probably have a 'create series' object that takes a list of products?
             // While it may be slower, it will be easier to manage and subclass in the future
             int count = 0;
-            */
 
-  /*          ArrayList<rangeAxisInfo> newAxisList = new ArrayList<rangeAxisInfo>();
 
-            while (iter.hasPrevious()) {
-                ProductHandler h = iter.previous();
-                if (h.getIsVisible()) {
+            ArrayList<rangeAxisInfo> newAxisList = new ArrayList<rangeAxisInfo>();
+            ProductFeature h = ProductManager.getInstance().getTopProductFeature();
+           
+           // while (iter.hasPrevious()) {
+               // ProductHandler h = iter.previous();
+                if (h.getVisible()) {
                     p = h.getProduct();
                     if (p != null) {
 
@@ -232,6 +244,7 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
                         double curLon = startLon;
                         double curKms = startKms;
 
+                        int countReal = 0;
                         for (int i = 1; i < myNumSamples; i++) {
 
                             Location loc = new Location(curLat, curLon, 0);
@@ -239,6 +252,8 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
 
                             // FIXME: how to handle missing data?
                             if (DataType.isRealDataValue((float) (value))) {
+                                countReal++;
+                               // System.out.println("ADD "+value);
                                 xyseries.add(curKms / 1000.0, value);
                                 if (value > max) {
                                     max = value;
@@ -255,7 +270,7 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
                             curLon += deltaLon;
                             curKms += kmsPerMove;
                         }
-
+                        System.out.println("COUNT REAL IS "+countReal);
                         // Set the Y axis range to the color map (typically larger)
                         double colorMax = cm.getMaxValue();
                         double colorMin = cm.getMinValue();
@@ -277,23 +292,26 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
 
 
                         //	goooop...need to understand setDataset in order to get it to use the correct Axis
-                        //XYSeriesCollection xyseriescollection = new XYSeriesCollection();
-                        //	xyseriescollection.addSeries(xyseries); // I think this is per range axis...
+                        XYSeriesCollection xyseriescollection = new XYSeriesCollection();
+                        	xyseriescollection.addSeries(xyseries); // I think this is per range axis...
                         //plot.setDataset(count, xyseriescollection);
                         count++;
 
                     }
                 }
 
-            }
+          //  }
             //	plot.setDataset(0, xyseriescollection);
             updatePlotToAxis(newAxisList);
 
-*/
-       // }
+
+        }
     }
 
-    /** Add a new domain axis info to a given list.  Merge if possible (depending on settings) */
+    /**
+     * Add a new domain axis info to a given list. Merge if possible (depending
+     * on settings)
+     */
     public void updateAxis(ArrayList<rangeAxisInfo> list, rangeAxisInfo newOne, XYSeries series) {
 
         // We 'combine' any two axis with same units, but expand the drawing range to include
@@ -363,20 +381,23 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
         //}
     }
 
-    /** Return the LLHAreaSlice that we are currently drawing a plot for */
-   /* public LLHAreaSlice getVSliceToPlot() {
+    /**
+     * Return the LLHAreaSlice that we are currently drawing a plot for
+     */
+    public LLHAreaSet getVSliceToPlot() {
         // -------------------------------------------------------------------------
         // Hack snag the current slice and product...
-        // Hack for now....we grab first 3d object in our FeatureList
-        LLHAreaSlice slice = null;
-        LLHAreaFeature f = (LLHAreaFeature) FeatureList.theFeatures.getFirstFeature(LLHAreaFeature.class);
-        
-        if (f != null){
-            LLHArea area = f.getLLHArea(); 
-            if (area instanceof LLHAreaSlice){
-                slice = (LLHAreaSlice) (area);
+        // Hack for now....we grab first 3d object in our FeatureList that is vslice
+        // This has the effect of following the top selected vslice...
+
+        LLHAreaSet slice = null;
+        LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new VSliceChart.VSliceFilter());
+        if (f != null) {
+            LLHArea area = f.getLLHArea();
+            if (area instanceof LLHAreaSet) {
+                slice = (LLHAreaSet) (area);
             }
         }
         return slice;
-    }*/
+    }
 }

@@ -68,6 +68,7 @@ public class ChartViewChart {
 
     /**
      * Set the key of the product to follow
+     * Should be called only within GUI thread
      */
     public void setUseProductKey(String p) {
         myCurrentProduct = p;

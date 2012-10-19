@@ -15,6 +15,9 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import javax.media.opengl.GL;
+import javax.swing.AbstractButton;
+import javax.swing.Icon;
+import javax.swing.JToggleButton;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -39,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.FeatureCommand;
+import org.wdssii.gui.commands.VolumeSetTypeCommand;
 import org.wdssii.gui.commands.VolumeValueCommand;
 import org.wdssii.gui.commands.VolumeValueCommand.VolumeValueFollowerView;
 import org.wdssii.gui.features.Feature;
@@ -48,6 +52,7 @@ import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.*;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.products.volumes.VolumeValue;
+import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSet;
@@ -57,6 +62,7 @@ public class VSliceChart extends ChartViewJFreeChart implements VolumeValueFollo
 
     private static Logger log = LoggerFactory.getLogger(VSliceChart.class);
     private ProductVolume myVolume = null;
+    private JToggleButton jVirtualToggleButton;
     //hack for first attempt..will need a list of charts
     public static VSliceChart created = null;
     /**
@@ -223,7 +229,9 @@ public class VSliceChart extends ChartViewJFreeChart implements VolumeValueFollo
                 LLHAreaFeature a = (LLHAreaFeature) f;
                 LLHArea area = a.getLLHArea();
                 if (area instanceof LLHAreaSet) {
-                    return true;
+                    if (area.getLocations().size() > 1) {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -756,7 +764,7 @@ public class VSliceChart extends ChartViewJFreeChart implements VolumeValueFollo
     public static VSliceChart createVSliceChart() {
 
         // The range in KM for the VSlice
-        VSliceNumberAxis rangeAxis = new VSliceNumberAxis("Range KM", true);
+        VSliceNumberAxis rangeAxis = new VSliceNumberAxis("Distance KM", true);
         rangeAxis.setLowerMargin(0.0);
         rangeAxis.setUpperMargin(0.0);
         rangeAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits());
@@ -935,7 +943,36 @@ public class VSliceChart extends ChartViewJFreeChart implements VolumeValueFollo
      */
     @Override
     public void addCustomTitleBarComponents(java.util.List<Object> addTo) {
+        // Virtual Volume toggle
+        jVirtualToggleButton = new JToggleButton();
+        Icon i = SwingIconFactory.getIconByName("brick_add.png");
+        jVirtualToggleButton.setIcon(i);
+        jVirtualToggleButton.setToolTipText("Toggle virtual/nonvirtual volume");
+        jVirtualToggleButton.setFocusable(false);
+        jVirtualToggleButton.setBorderPainted(false);
+        jVirtualToggleButton.setOpaque(false);
+        jVirtualToggleButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jVirtualToggleButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jVirtualToggleButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jVirtualToggleButtonActionPerformed(evt);
+            }
+        });
+        addTo.add(jVirtualToggleButton);
+
+
+
         addTo.add(VolumeValueCommand.getDropButton(this));
+    }
+
+    private void jVirtualToggleButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        AbstractButton abstractButton = (AbstractButton) evt.getSource();
+        boolean selected = abstractButton.getModel().isSelected();
+        VolumeSetTypeCommand vToggle = new VolumeSetTypeCommand(this, selected);
+
+        vToggle.setToggleState(selected);
+        CommandManager.getInstance().executeCommand(vToggle, true);
     }
 
     // --------------------------------------------------------------------

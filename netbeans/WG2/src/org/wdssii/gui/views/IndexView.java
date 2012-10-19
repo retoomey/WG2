@@ -64,7 +64,7 @@ public class IndexView extends JThreadPanel implements CommandListener, CONUSJPa
 	public static class Factory extends WdssiiDockedViewFactory {
 
 		public Factory() {
-			super("Bookmark", "cart_add.png");
+			super("Catalog", "cart_add.png");
 		}
 
 		@Override

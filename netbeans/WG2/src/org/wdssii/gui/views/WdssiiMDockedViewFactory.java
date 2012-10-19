@@ -85,19 +85,9 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
 		return(counter++);
 	}
 
-	/** Create a new subview, add to management */
-	private View addNewSubView() {
-		Icon i = getWindowIcon();
-		String title = getWindowTitle();
-
-		int c = getNewViewCounter();
-		Component p = getNewSubViewComponent(c);
-		View v = new View(title + "-" + c, i, p);
-		if (p instanceof MDockView) {
-			MDockView m = (MDockView) (p);
-			m.addCustomTitleBarComponents(getCustomTitleBarComponents(v));
-		}
-
+        /** Add view already created */
+        protected void addNewSubView(View v){
+            Icon i = getWindowIcon();
 		DockingWindow base = rootW.getWindow();
 
 		// Depending on how user has moved stuff around, should be one of three
@@ -119,7 +109,22 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
 				log.error("Unknown window type...We should handle this type (FIXME)");
 			}
 		}
-		return v;
+        }
+        
+	/** Create a new subview, add to management */
+	public View addNewSubView() {
+		Icon i = getWindowIcon();
+		String title = getWindowTitle();
+
+		int c = getNewViewCounter();
+		Component p = getNewSubViewComponent(c);
+		View v = new View(title + "-" + c, i, p);
+		if (p instanceof MDockView) {
+			MDockView m = (MDockView) (p);
+			m.addCustomTitleBarComponents(getCustomTitleBarComponents(v));
+		}
+                addNewSubView(v);
+                return v;
 	}
 
 	/** Add the standard button on main container that allows creating a new sub-view */
@@ -128,7 +133,7 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
 		JButton test = new JButton();
 		Icon i = SwingIconFactory.getIconByName("brick_add.png");
 		test.setIcon(i);
-		test.setToolTipText("Add new chart");
+		test.setToolTipText("Add new subwindow");
 		test.setFocusable(false);
 		test.setOpaque(false);
 		test.addActionListener(new java.awt.event.ActionListener() {

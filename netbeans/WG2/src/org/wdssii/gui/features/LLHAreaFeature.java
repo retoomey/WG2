@@ -2,7 +2,6 @@ package org.wdssii.gui.features;
 
 import gov.nasa.worldwind.WorldWindow;
 import java.util.TreeMap;
-import javax.swing.JComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.views.WorldWindView;
@@ -25,9 +24,6 @@ public class LLHAreaFeature extends Feature {
      * The factory we were created with
      */
     private LLHAreaFactory myFactory;
-    
-    /** The GUI for this feature */
-    private FeatureGUI myControls;
 
     static {
         myFactoryList.put("Set", new LLHAreaSetFactory());
@@ -104,46 +100,14 @@ public class LLHAreaFeature extends Feature {
     }
 
     /**
-     * Activate our GUI within the given JComponent. The JComponent is assumed
-     * empty. We should assign the layout we want to it. The caller is trusting
-     * us to handle this properly.
-     *
-     * @param source
+     * Create a new GUI for this feature
      */
     @Override
-    public void setupFeatureGUI(JComponent source) {
-
-        // FIXME: general FeatureFactory..move code up into Feature
-        boolean success = false;
+    public FeatureGUI createNewControls() {
         if (myFactory != null) {
-
-            if (myControls == null) {
-                myControls = myFactory.createGUI(this, myLLHArea, source);
-            }
-
-            // Set the layout and add our controls
-            if (myControls != null) {
-                myControls.activateGUI(source);
-                updateGUI();
-                success = true;
-            }
-        }
-
-        /**
-         * Fill in with default stuff if GUI failed or doesn't exist
-         */
-        if (!success) {
-            super.setupFeatureGUI(source);
-        }
-    }
-
-    /**
-     * Update our current GUI controls
-     */
-    @Override
-    public void updateGUI() {
-        if (myControls != null) {
-            myControls.updateGUI();
+            return myFactory.createGUI(this, myLLHArea);
+        } else {
+            return super.createNewControls();
         }
     }
 }

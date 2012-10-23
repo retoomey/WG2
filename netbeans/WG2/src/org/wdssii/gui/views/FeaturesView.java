@@ -74,14 +74,26 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     private FeatureListTableModel myFeatureListTableModel;
     private RowEntryTable jObjects3DListTable;
     private Feature myLastSelectedFeature = null;
-    private javax.swing.JButton jNewMapButton;
-    private javax.swing.JButton jNewVSliceButton;
-    private javax.swing.JButton jNewStickButton;
-    private javax.swing.JButton jNewPolarGridButton;
+    /**
+     * Holds the regular controls of selected feature
+     */
     private JPanel jFeatureGUIPanel;
+    /**
+     * Holds the optional table for selected feature
+     */
+    private JPanel jFeatureGUITablePanel;
     private javax.swing.JToolBar jEditToolBar;
     private javax.swing.JScrollPane jObjectScrollPane;
+    private JComponent jControls;
+    /**
+     * Scroll bar for regular controls for feature
+     */
     private javax.swing.JScrollPane jControlScrollPane;
+    /**
+     * Scroll bar for features table, for example...attribute table for maps,
+     * point table for the data point line
+     */
+    //private javax.swing.JScrollPane jTableScrollPane;
     private javax.swing.JLabel jInfoLabel;
 
     /**
@@ -507,15 +519,19 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
                 //       log.debug("LAST/top "+myLastSelectedFeature+","+topFeature);
                 //	log.debug("Change out gui "+changeSelection+", "+oldSelect);
                 jFeatureGUIPanel.removeAll();
-                try{
-                    topFeature.setupFeatureGUI(jFeatureGUIPanel);
-                }catch(Exception e){
-                    log.debug("Exception setting up GUI for feature "+e.toString());
+                jFeatureGUITablePanel.removeAll();
+                try {
+                    topFeature.setupFeatureGUI(jFeatureGUIPanel, jFeatureGUITablePanel);
+                } catch (Exception e) {
+                    log.debug("Exception setting up GUI for feature " + e.toString());
                     log.debug("GUI for this feature needs to be fixed.");
                 }
                 jFeatureGUIPanel.validate();
                 jFeatureGUIPanel.repaint();
+                jFeatureGUITablePanel.validate();
+                jFeatureGUITablePanel.repaint();
                 jControlScrollPane.revalidate();
+               // jTableScrollPane.revalidate();
                 myLastSelectedFeature = topFeature;
             } else {
                 topFeature.updateGUI();
@@ -527,6 +543,8 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             setEmptyControls();
             jFeatureGUIPanel.validate();
             jFeatureGUIPanel.repaint();
+            jFeatureGUITablePanel.validate();
+            jFeatureGUITablePanel.repaint();
             myLastSelectedFeature = null;
         }
         jObjects3DListTable.repaint();
@@ -537,12 +555,36 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     }
 
     private JComponent initFeatureControlGUI() {
+        // Single no table area split
+        // jFeatureGUIPanel = new JPanel();
+        // jControlScrollPane = new JScrollPane();
+        // jControlScrollPane.setViewportView(jFeatureGUIPanel);
+        // jFeatureGUIPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        // setEmptyControls();
+        // return jControlScrollPane;
+
+        JSplitPane split = new JSplitPane();
+        split.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+
+        // The top part of feature controls
         jFeatureGUIPanel = new JPanel();
+        jFeatureGUIPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         jControlScrollPane = new JScrollPane();
         jControlScrollPane.setViewportView(jFeatureGUIPanel);
-        jFeatureGUIPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        split.setTopComponent(jControlScrollPane);
+
+        // The optional bottom part of feature controls
+        jFeatureGUITablePanel = new JPanel();
+        jFeatureGUITablePanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+      //  jTableScrollPane = new JScrollPane();
+      //  jTableScrollPane.setViewportView(jFeatureGUITablePanel);
+       // split.setBottomComponent(jTableScrollPane);
+        split.setBottomComponent(jFeatureGUITablePanel);
+        split.setDividerLocation(200);
+
         setEmptyControls();
-        return jControlScrollPane;
+        return split;
+
     }
 
     /**
@@ -551,6 +593,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     private JComponent initFeatureSelectGUI() {
 
         jObjectScrollPane = new JScrollPane();
+        jObjectScrollPane.setBorder(null);
         jInfoLabel = new JLabel("---");
         return jObjectScrollPane;
     }
@@ -563,24 +606,21 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
         setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         jInfoLabel = new JLabel("---");
-        JComponent controls = initFeatureControlGUI();
+        jControls = initFeatureControlGUI();
         JComponent selection = initFeatureSelectGUI();
-        //	JComponent toolbar = initToolBar();
         JComponent rootComponent;
         if (!dockControls) {
             JSplitPane s = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                    selection, controls);
+                    selection, jControls);
             s.setResizeWeight(.50);
             rootComponent = s;
         } else {
-            rootComponent = jObjectScrollPane;
-            jObjectScrollPane.setBorder(null);
+            rootComponent = selection;
         }
 
         //	add(toolbar, new CC().dockNorth());
         add(jInfoLabel, new CC().dockNorth().growX());
         add(rootComponent, new CC().growX().growY());
-        // growX().growY());
 
         // to size correct, init table last, nope not it
         initTable();
@@ -588,7 +628,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
     @Override
     public Component getControlComponent() {
-        return jControlScrollPane;
+        return jControls;
     }
 
     @Override
@@ -611,6 +651,13 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         t.setEditable(false);
         jFeatureGUIPanel.setLayout(new java.awt.BorderLayout());
         jFeatureGUIPanel.add(t, java.awt.BorderLayout.CENTER);
+
+        jFeatureGUITablePanel.removeAll();
+        JTextField t2 = new javax.swing.JTextField();
+        t2.setText("Secondary controls");
+        t2.setEditable(false);
+        jFeatureGUITablePanel.setLayout(new java.awt.BorderLayout());
+        jFeatureGUITablePanel.add(t2, java.awt.BorderLayout.CENTER);
     }
 
     private void StickActionPerformed(java.awt.event.ActionEvent evt) {
@@ -625,12 +672,6 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             FeatureList.theFeatures.addFeature(testOne);
         }
         updateGUI();
-    }
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        FeatureCreateCommand doit = new FeatureCreateCommand("Slice");
-        CommandManager.getInstance().executeCommand(doit, true);
-        //FeatureList.theFeatures.addFeature(new LLHAreaFeature(0));
     }
 
     private void addSetActionPerformed(java.awt.event.ActionEvent evt) {

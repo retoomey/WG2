@@ -99,7 +99,7 @@ public class Source {
         myURL = u;
     }
     
-    public void setupSourceGUI(JComponent source) {
+    public boolean setupSourceGUI(JComponent source, JComponent source2) {
 
         // Set the layout and add our controls
         source.setLayout(new java.awt.BorderLayout());
@@ -110,6 +110,7 @@ public class Source {
         source.doLayout();
 
         updateGUI();
+        return false;
     }
 
     public void updateGUI() {

@@ -6,13 +6,20 @@
  */
 package org.wdssii.gui.volumes;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import gov.nasa.worldwind.geom.LatLon;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -21,6 +28,21 @@ import javax.swing.table.TableColumnModel;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+import org.geotools.data.DefaultTransaction;
+import org.geotools.data.Transaction;
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.feature.FeatureCollections;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.slf4j.LoggerFactory;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.swing.RowEntryTable;
@@ -43,6 +65,8 @@ import org.wdssii.properties.gui.IntegerGUI;
  */
 public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
 
+    private static org.slf4j.Logger log = LoggerFactory.getLogger(LLHAreaSetGUI.class);
+    
     private IntegerGUI myTopHeightGUI;
     private IntegerGUI myBottomHeightGUI;
     private IntegerGUI myRowsGUI;
@@ -76,17 +100,23 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
     }
 
     @Override
-    public void activateGUI(JComponent parent) {
+    public void activateGUI(JComponent parent, JComponent secondary) {
         parent.setLayout(new java.awt.BorderLayout());
         parent.add(this, java.awt.BorderLayout.CENTER);
+        secondary.setLayout(new java.awt.BorderLayout());
+        secondary.add(jObjectScrollPane, java.awt.BorderLayout.CENTER);
         doLayout();
     }
 
     @Override
-    public void deactivateGUI(JComponent parent) {
+    public void deactivateGUI(JComponent parent, JComponent secondary) {
         parent.remove(this);
     }
 
+    public JComponent getSecondaryControls(){
+        return jObjects3DListTable;
+    }
+    
     private void setupComponents() {
 
         /**
@@ -98,17 +128,23 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
         JToolBar toolbar = new JToolBar();
         toolbar.setFloatable(false);
         JButton test = new JButton("Refresh");
-        test.addActionListener(new ActionListener(){
-
+        test.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 updateTable(null);
             }
-            
+        });
+        toolbar.add(test);
+        test = new JButton("Test");
+        test.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                testShapefile();
+            }
         });
         toolbar.add(test);
         add(toolbar, new CC().growX().wrap());
-        
+
         myRowsGUI = new IntegerGUI(myFeature, LLHAreaSetMemento.GRID_ROWS, "Rows", this,
                 10, 100, 1, "");
         myRowsGUI.addToMigLayout(this);
@@ -123,8 +159,133 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
         myBottomHeightGUI.addToMigLayout(this);
 
         initTable();
-        add(jObjectScrollPane, new CC().spanX(3));
+       // add(jObjectScrollPane, new CC().spanX(3));
         updateTable(null);
+
+    }
+
+      /**
+     * Here is how you can use a SimpleFeatureType builder to create the schema for your shapefile
+     * dynamically.
+     * <p>
+     * This method is an improvement on the code used in the main method above (where we used
+     * DataUtilities.createFeatureType) because we can set a Coordinate Reference System for the
+     * FeatureType and a a maximum field length for the 'name' field dddd
+     */
+    private static SimpleFeatureType createFeatureType() {
+
+        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        builder.setName("Location");
+        builder.setCRS(DefaultGeographicCRS.WGS84); // <- Coordinate reference system
+
+        // add attributes in order
+        builder.add("Location", Point.class);
+        builder.length(15).add("Name", String.class); // <- 15 chars width for name field
+
+        // build the type
+        final SimpleFeatureType LOCATION = builder.buildFeatureType();
+
+        return LOCATION;
+    }
+    
+    public void testShapefile() {
+
+        /*
+         * We use the DataUtilities class to create a FeatureType that will describe the data in our
+         * shapefile.
+         * 
+         * See also the createFeatureType method below for another, more flexible approach.
+         */
+        try {
+           // final SimpleFeatureType TYPE = DataUtilities.createType("Location",
+           //         "location:Point:srid=4326," + // <- the geometry attribute: Point type
+           //         "name:String," + // <- a String attribute
+           //         "number:Integer" // a number attribute
+           //         );
+            
+            final SimpleFeatureType TYPE = createFeatureType();
+
+            /*
+             * We create a FeatureCollection into which we will put each Feature created from a record
+             * in the input csv data file
+             */
+            SimpleFeatureCollection collection = FeatureCollections.newCollection();
+            /*
+             * GeometryFactory will be used to create the geometry attribute of each feature (a Point
+             * object for the location)
+             */
+            GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+
+            SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(TYPE);
+
+            List<LatLon> list = myLLHAreaSet.getLocations();
+            int i = 0;
+            int counter = 1;
+            for (LatLon l : list) {
+                LLHAreaSetTableData d = new LLHAreaSetTableData();
+                double latitude = l.latitude.degrees;
+                double longitude = l.longitude.degrees;
+                /* Longitude (= x coord) first ! */
+                Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+
+                featureBuilder.add(point);
+                featureBuilder.add("TestName");
+              //  featureBuilder.add(counter);
+                SimpleFeature feature = featureBuilder.buildFeature(null);
+                collection.add(feature);
+
+            }
+
+            /*
+             * Get an output file name and create the new shapefile
+             */
+            File newFile = new File("D:/test1.shp");
+
+            ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
+
+            Map<String, Serializable> params = new HashMap<String, Serializable>();
+            params.put("url", newFile.toURI().toURL());
+            params.put("create spatial index", Boolean.TRUE);
+
+            ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
+            newDataStore.createSchema(TYPE);
+
+            /*
+             * You can comment out this line if you are using the createFeatureType method (at end of
+             * class file) rather than DataUtilities.createType
+             */
+            newDataStore.forceSchemaCRS(DefaultGeographicCRS.WGS84);
+            /*
+             * Write the features to the shapefile
+             */
+            Transaction transaction = new DefaultTransaction("create");
+
+            String typeName = newDataStore.getTypeNames()[0];
+            SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
+
+            if (featureSource instanceof SimpleFeatureStore) {
+                SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
+
+                featureStore.setTransaction(transaction);
+                try {
+                    featureStore.addFeatures(collection);
+                    transaction.commit();
+
+                } catch (Exception problem) {
+                    // problem.printStackTrace();
+                    log.debug("****************ERROR WRITING IS "+problem.toString());
+                    transaction.rollback();
+
+                } finally {
+                    transaction.close();
+                }
+                
+            } else {
+                log.debug(typeName + " does not support read/write access");
+            }
+        } catch (Exception e) {
+            log.debug("GOT EXCEPTION HERE "+e.toString());
+        }
 
     }
 
@@ -185,7 +346,7 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
 
                 switch (trueCol) {
                     case LLHAreaSetTableModel.OBJ_NUMBER:
-                        info = Integer.toString(row+1);
+                        info = Integer.toString(row + 1);
                         break;
                     case LLHAreaSetTableModel.OBJ_LATITUDE:
                         info = Double.toString(e.lat);
@@ -220,15 +381,17 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
         jObjectScrollPane.setViewportView(jObjects3DListTable);
 
         LLHAreaSetTableCellRenderer p = new LLHAreaSetTableCellRenderer();
-        jObjects3DListTable.setDefaultRenderer(LLHAreaSetTableData.class, p);
+        jObjects3DListTable
+                .setDefaultRenderer(LLHAreaSetTableData.class, p);
 
         int count = myTable.getColumnCount();
         TableColumnModel cm = myTable.getColumnModel();
         JCheckBox aBox = new JCheckBox();
         Dimension d = aBox.getMinimumSize();
         // IconHeaderRenderer r = new IconHeaderRenderer();
-
-        for (int i = 0; i < count; i++) {
+        for (int i = 0;
+                i < count;
+                i++) {
             TableColumn col = cm.getColumn(i);
             // Make all headers draw the same to be consistent.
             // col.setHeaderRenderer(r);
@@ -255,82 +418,83 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
              */
         }
 
-
-        jObjects3DListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+        jObjects3DListTable.getSelectionModel()
+                .addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 //  jObjects3DListTableValueChanged(e);
             }
         });
 
-        jObjects3DListTable.addMouseListener(new RowEntryTableMouseAdapter(jObjects3DListTable, myModel) {
-            class Item extends JMenuItem {
+        jObjects3DListTable.addMouseListener(
+                new RowEntryTableMouseAdapter(jObjects3DListTable, myModel) {
+                    class Item extends JMenuItem {
 
-                private final LLHAreaSetTableData d;
+                        private final LLHAreaSetTableData d;
 
-                public Item(String s, LLHAreaSetTableData line) {
-                    super(s);
-                    d = line;
-                }
+                        public Item(String s, LLHAreaSetTableData line) {
+                            super(s);
+                            d = line;
+                        }
 
-                public LLHAreaSetTableData getData() {
-                    return d;
-                }
-            };
+                        public LLHAreaSetTableData getData() {
+                            return d;
+                        }
+                    };
 
-            @Override
-            public JPopupMenu getDynamicPopupMenu(Object line, int row, int column) {
-
-                // FIXME: Code a bit messy, we're just hacking the text value
-                // for now.  Probably will need a custom JPopupMenu that has
-                // our Objects3DTableData in it.
-                ActionListener al = new ActionListener() {
                     @Override
-                    public void actionPerformed(ActionEvent e) {
-                        Item i = (Item) (e.getSource());
-                        String text = i.getText();
-                        if (text.startsWith("Delete")) {
-                            //i.getData().index;
-                            
-                            // FeatureDeleteCommand del = new FeatureDeleteCommand(i.getData().keyName);
-                            // CommandManager.getInstance().executeCommand(del, true);
+                    public JPopupMenu getDynamicPopupMenu(Object line, int row, int column) {
+
+                        // FIXME: Code a bit messy, we're just hacking the text value
+                        // for now.  Probably will need a custom JPopupMenu that has
+                        // our Objects3DTableData in it.
+                        ActionListener al = new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                Item i = (Item) (e.getSource());
+                                String text = i.getText();
+                                if (text.startsWith("Delete")) {
+                                    //i.getData().index;
+                                    // FeatureDeleteCommand del = new FeatureDeleteCommand(i.getData().keyName);
+                                    // CommandManager.getInstance().executeCommand(del, true);
+                                }
+                            }
+                        };
+                        JPopupMenu popupmenu = new JPopupMenu();
+                        LLHAreaSetTableData entry = (LLHAreaSetTableData) (line);
+                        // if (entry.candelete) {
+                        String name = "Delete point " + (row + 1);
+                        Item i = new Item(name, entry);
+                        popupmenu.add(i);
+                        i.addActionListener(al);
+                        // } else {
+                        //    String name = "This feature cannot be deleted";
+                        //    Item i = new Item(name, entry);
+                        //     popupmenu.add(i);
+                        // }
+                        return popupmenu;
+                    }
+
+                    @Override
+                    public void handleClick(Object stuff, int orgRow, int orgColumn) {
+
+                        if (stuff instanceof LLHAreaSetTableData) {
+                            LLHAreaSetTableData entry = (LLHAreaSetTableData) (stuff);
+
+                            switch (orgColumn) {
+
+                                default:
+                                    break;
+                            }
                         }
                     }
-                };
-                JPopupMenu popupmenu = new JPopupMenu();
-                LLHAreaSetTableData entry = (LLHAreaSetTableData) (line);
-                // if (entry.candelete) {
-                     String name = "Delete point "+(row+1);
-                     Item i = new Item(name, entry);
-                     popupmenu.add(i);
-                     i.addActionListener(al);
-                // } else {
-                //    String name = "This feature cannot be deleted";
-                //    Item i = new Item(name, entry);
-                //     popupmenu.add(i);
-                // }
-                return popupmenu;
-            }
-
-            @Override
-            public void handleClick(Object stuff, int orgRow, int orgColumn) {
-
-                if (stuff instanceof LLHAreaSetTableData) {
-                    LLHAreaSetTableData entry = (LLHAreaSetTableData) (stuff);
-
-                    switch (orgColumn) {
-
-                        default:
-                            break;
-                    }
-                }
-            }
-        });
+                });
 
         // setUpSortingColumns();
 
         // Initial update (some stuff created on start up statically)
-        updateTable(null);
+        updateTable(
+                null);
         //updateLabel();
     }
 
@@ -343,12 +507,12 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
         int currentLine = 0;
         int select = -1;
         int oldSelect = -1;
-        
+
         //myLLHAreaSet.getLocationList(); GUI thread different
         ArrayList<LLHAreaSetTableData> aList = new ArrayList<LLHAreaSetTableData>();
         List<LatLon> list = myLLHAreaSet.getLocations();
         int i = 0;
-        for (LatLon l:list){
+        for (LatLon l : list) {
             LLHAreaSetTableData d = new LLHAreaSetTableData();
             d.lat = l.latitude.degrees;  // possible jitter...
             d.lon = l.longitude.degrees;
@@ -388,7 +552,7 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
          //log.debug("CHANGE SELECTION IS TRUE");
          }
          * */
-         myLLHAreaSetTableModel.setDataTypes(aList);
-         myLLHAreaSetTableModel.fireTableDataChanged();
+        myLLHAreaSetTableModel.setDataTypes(aList);
+        myLLHAreaSetTableModel.fireTableDataChanged();
     }
 }

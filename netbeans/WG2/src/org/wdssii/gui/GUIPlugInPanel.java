@@ -20,10 +20,10 @@ public interface GUIPlugInPanel {
     /**
      * Activate the GUI into the given container
      */
-    public void activateGUI(JComponent parent);
+    public void activateGUI(JComponent parent, JComponent secondary);
 
     /**
      * Deactivate the GUI from given container
      */
-    public void deactivateGUI(JComponent parent);	
+    public void deactivateGUI(JComponent parent, JComponent secondary);	
 }

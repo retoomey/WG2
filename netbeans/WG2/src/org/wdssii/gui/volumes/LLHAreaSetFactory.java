@@ -42,12 +42,12 @@ public class LLHAreaSetFactory extends LLHAreaFactory {
     }
     
     @Override
-    public FeatureGUI createGUI(LLHAreaFeature f, LLHArea a, JComponent parent){
+    public FeatureGUI createGUI(LLHAreaFeature f, LLHArea a){
         if (a instanceof LLHAreaSet){
             LLHAreaSet slice = (LLHAreaSet)(a);
-            LLHAreaSetGUI gui = new LLHAreaSetGUI(f, slice);          
+            LLHAreaSetGUI gui = new LLHAreaSetGUI(f, slice);  
             return gui;
         }
-        return super.createGUI(f, a, parent);
+        return super.createGUI(f, a);
     }
 }

@@ -46,14 +46,14 @@ public class LegendGUI extends javax.swing.JPanel implements FeatureGUI {
 	}
 
 	@Override
-	public void activateGUI(JComponent parent) {
+	public void activateGUI(JComponent parent, JComponent secondary) {
 		parent.setLayout(new java.awt.BorderLayout());
 		parent.add(this, java.awt.BorderLayout.CENTER);
 		doLayout();
 	}
 
 	@Override
-	public void deactivateGUI(JComponent parent) {
+	public void deactivateGUI(JComponent parent, JComponent secondary) {
 		parent.remove(this);
 	}
 

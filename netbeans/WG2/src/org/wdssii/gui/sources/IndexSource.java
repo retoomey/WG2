@@ -258,7 +258,7 @@ public class IndexSource extends Source implements HistoryListener {
 	}
 
 	@Override
-	public void setupSourceGUI(JComponent source) {
+	public boolean setupSourceGUI(JComponent source, JComponent source2) {
 
 		// FIXME: general FeatureFactory..move code up into Feature
 		boolean success = false;
@@ -271,7 +271,7 @@ public class IndexSource extends Source implements HistoryListener {
 
 		// Set the layout and add our controls
 		if (myControls != null) {
-			myControls.activateGUI(source);
+			myControls.activateGUI(source, source2);
 			updateGUI();
 			success = true;
 		}
@@ -281,8 +281,9 @@ public class IndexSource extends Source implements HistoryListener {
 		 * Fill in with default stuff if GUI failed or doesn't exist
 		 */
 		if (!success) {
-			super.setupSourceGUI(source);
+			return super.setupSourceGUI(source, source2);
 		}
+                return false;
 	}
 
 	@Override

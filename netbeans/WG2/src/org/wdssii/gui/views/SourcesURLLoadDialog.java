@@ -238,7 +238,7 @@ public class SourcesURLLoadDialog extends JDialog implements ActionListener {
 			if (factory != null) {
 				clearParamPanel();
 				GUIPlugInPanel p = factory.createParamsGUI(this);
-				p.activateGUI(myGUIHolder);
+				p.activateGUI(myGUIHolder, null);
 				myExtrasPanel = p;
 				myTypeTextField.setText(factory.getDialogDescription());
 				showButton = false;
@@ -259,7 +259,7 @@ public class SourcesURLLoadDialog extends JDialog implements ActionListener {
 
 	private void clearParamPanel() {
 		if (myExtrasPanel != null) {
-			myExtrasPanel.deactivateGUI(myGUIHolder);
+			myExtrasPanel.deactivateGUI(myGUIHolder, null);
 			myExtrasPanel = null;
 		}
 		myGUIHolder.removeAll();

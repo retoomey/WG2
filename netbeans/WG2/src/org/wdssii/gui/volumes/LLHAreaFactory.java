@@ -34,7 +34,7 @@ public abstract class LLHAreaFactory {
     public abstract boolean create(WorldWindow wwd, LLHAreaFeature f, FeatureTableInfo info);
 
     /** Create a GUI for an LLHArea */
-    public FeatureGUI createGUI(LLHAreaFeature f, LLHArea a, JComponent parent){
+    public FeatureGUI createGUI(LLHAreaFeature f, LLHArea a){
         return null;
     }
     

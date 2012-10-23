@@ -21,275 +21,335 @@ import org.wdssii.properties.Mementor;
  */
 public class Feature implements Mementor {
 
-	/**
-	 * Used to get information back from a Feature factory to put into the
-	 * standard GUI table
-	 */
-	public static class FeatureTableInfo {
+    /**
+     * Used to get information back from a Feature factory to put into the
+     * standard GUI table
+     */
+    public static class FeatureTableInfo {
 
-		public boolean visible;
-		public boolean onlyMode;
-		public String visibleName;
-		public String keyName;
-		public String message;
-		public Object created;
-	}
-	/**
-	 * Our feature group
-	 */
-	private final String myFeatureGroup;
-	/**
-	 * Our feature list we belong too
-	 */
-	private final FeatureList myFeatureList;
-	private FeatureMemento mySettings = new FeatureMemento();
-	/**
-	 * What is our name?
-	 */
-	private String myName = "";
-	/**
-	 * What is our key?
-	 */
-	private String myKey = "";
-	/**
-	 * What is our message?
-	 */
-	private String myMessage = "";
-	/** Generic Feature3DRenderers */
-	ArrayList<Feature3DRenderer> myRenderers;
+        public boolean visible;
+        public boolean onlyMode;
+        public String visibleName;
+        public String keyName;
+        public String message;
+        public Object created;
+    }
+    /**
+     * Our feature group
+     */
+    private final String myFeatureGroup;
+    /**
+     * Our feature list we belong too
+     */
+    private final FeatureList myFeatureList;
+    private FeatureMemento mySettings = new FeatureMemento();
+    /**
+     * What is our name?
+     */
+    private String myName = "";
+    /**
+     * What is our key?
+     */
+    private String myKey = "";
+    /**
+     * What is our message?
+     */
+    private String myMessage = "";
+    /**
+     * Generic Feature3DRenderers
+     */
+    ArrayList<Feature3DRenderer> myRenderers;
+    /**
+     * The GUI for this feature
+     */
+    private FeatureGUI myControls;
 
-	/** Create a feature with a default memento */
-	public Feature(FeatureList f, String g) {
-		this(f, g, new FeatureMemento());
-	}
+    /**
+     * Create a feature with a default memento
+     */
+    public Feature(FeatureList f, String g) {
+        this(f, g, new FeatureMemento());
+    }
 
-	/**
-	 * Typically called by subclass to add an enhanced memento with more
-	 * settings in it.
-	 *
-	 * @param g The group we're in
-	 * @param settings Memento from subclass
-	 */
-	public Feature(FeatureList f, String g, FeatureMemento settings) {
-		myFeatureList = f;
-		myFeatureGroup = g;
-		mySettings = settings;
-	}
+    /**
+     * Typically called by subclass to add an enhanced memento with more
+     * settings in it.
+     *
+     * @param g The group we're in
+     * @param settings Memento from subclass
+     */
+    public Feature(FeatureList f, String g, FeatureMemento settings) {
+        myFeatureList = f;
+        myFeatureGroup = g;
+        mySettings = settings;
+    }
 
-	/** All features belong to a FeatureList */
-	public FeatureList list() {
-		return myFeatureList;
-	}
+    /**
+     * All features belong to a FeatureList
+     */
+    public FeatureList list() {
+        return myFeatureList;
+    }
 
-	/**
-	 * Get our feature group
-	 */
-	public String getFeatureGroup() {
-		return myFeatureGroup;
-	}
+    /**
+     * Get our feature group
+     */
+    public String getFeatureGroup() {
+        return myFeatureGroup;
+    }
 
-	public void setMemento(FeatureMemento m) {
-		if (m != null) {
-			mySettings.syncToMemento(m);
-		}
-	}
+    public void setMemento(FeatureMemento m) {
+        if (m != null) {
+            mySettings.syncToMemento(m);
+        }
+    }
 
-	/** Called when property of our memento is changed */
-	@Override
-	public void propertySetByGUI(String name, Memento m) {
-		FeatureMemento fm = (FeatureMemento)(m); // Check it
-		FeatureChangeCommand c = new FeatureChangeCommand(this, fm);
-		CommandManager.getInstance().executeCommand(c, true);
-	}
+    /**
+     * Called when property of our memento is changed
+     */
+    @Override
+    public void propertySetByGUI(String name, Memento m) {
+        FeatureMemento fm = (FeatureMemento) (m); // Check it
+        FeatureChangeCommand c = new FeatureChangeCommand(this, fm);
+        CommandManager.getInstance().executeCommand(c, true);
+    }
 
+    /**
+     * Get a new memento copy of our settings. This is for modifying and sending
+     * back to us to change a setting
+     *
+     * @return
+     */
+    @Override
+    public FeatureMemento getNewMemento() {
+        FeatureMemento m = new FeatureMemento(mySettings);
+        return m;
+    }
 
-	/**
-	 * Get a new memento copy of our settings. This is for modifying and sending
-	 * back to us to change a setting
-	 *
-	 * @return
-	 */
-	@Override
-	public FeatureMemento getNewMemento() {
-		FeatureMemento m = new FeatureMemento(mySettings);
-		return m;
-	}
+    /**
+     * Get our actual settings
+     */
+    @Override
+    public FeatureMemento getMemento() {
+        return mySettings;
+    }
 
-	/**
-	 * Get our actual settings
-	 */
-	@Override
-	public FeatureMemento getMemento() {
-		return mySettings;
-	}
+    /**
+     * Get visible state
+     */
+    public Boolean getVisible() {
+        return mySettings.getPropertyValue(FeatureMemento.VISIBLE);
+    }
 
-	/**
-	 * Get visible state
-	 */
-	public Boolean getVisible() {
-		return mySettings.getPropertyValue(FeatureMemento.VISIBLE);
-	}
+    /**
+     * Get if can be deleted from FeatureList
+     */
+    public Boolean getDeletable() {
+        return mySettings.getPropertyValue(FeatureMemento.CAN_DELETE);
+    }
 
-	/**
-	 * Get if can be deleted from FeatureList
-	 */
-	public Boolean getDeletable() {
-		return mySettings.getPropertyValue(FeatureMemento.CAN_DELETE);
-	}
+    /**
+     * Set if can be deleted from FeatureList
+     */
+    public void setDeletable(boolean flag) {
+        mySettings.setProperty(FeatureMemento.CAN_DELETE, flag);
+    }
 
-	/**
-	 * Set if can be deleted from FeatureList
-	 */
-	public void setDeletable(boolean flag) {
-		mySettings.setProperty(FeatureMemento.CAN_DELETE, flag);
-	}
+    /**
+     * Set visible state
+     */
+    public void setVisible(boolean flag) {
+        mySettings.setProperty(FeatureMemento.VISIBLE, flag);
+    }
 
-	/**
-	 * Set visible state
-	 */
-	public void setVisible(boolean flag) {
-		mySettings.setProperty(FeatureMemento.VISIBLE, flag);
-	}
+    /**
+     * Get visible state
+     */
+    public Boolean getOnlyMode() {
+        return mySettings.getPropertyValue(FeatureMemento.ONLY);
+    }
 
-	/**
-	 * Get visible state
-	 */
-	public Boolean getOnlyMode() {
-		return mySettings.getPropertyValue(FeatureMemento.ONLY);
-	}
+    /**
+     * Set visible state
+     */
+    public void setOnlyMode(boolean flag) {
+        mySettings.setProperty(FeatureMemento.ONLY, flag);
+    }
 
-	/**
-	 * Set visible state
-	 */
-	public void setOnlyMode(boolean flag) {
-		mySettings.setProperty(FeatureMemento.ONLY, flag);
-	}
+    /**
+     * Get the name of this feature
+     */
+    public String getName() {
+        return myName;
+    }
 
-	/**
-	 * Get the name of this feature
-	 */
-	public String getName() {
-		return myName;
-	}
+    /**
+     * Set the name of this feature
+     */
+    public void setName(String n) {
+        myName = n;
+    }
 
-	/**
-	 * Set the name of this feature
-	 */
-	public void setName(String n) {
-		myName = n;
-	}
+    /**
+     * Get the key for this feature
+     */
+    public String getKey() {
+        return myKey;
+    }
 
-	/**
-	 * Get the key for this feature
-	 */
-	public String getKey() {
-		return myKey;
-	}
+    /**
+     * Set the key for this feature
+     */
+    public void setKey(String n) {
+        myKey = n;
+    }
 
-	/**
-	 * Set the key for this feature
-	 */
-	public void setKey(String n) {
-		myKey = n;
-	}
+    /**
+     * Get the name of this feature
+     */
+    public String getMessage() {
+        return myMessage;
+    }
 
-	/**
-	 * Get the name of this feature
-	 */
-	public String getMessage() {
-		return myMessage;
-	}
+    /**
+     * Set the name of this feature
+     */
+    public void setMessage(String n) {
+        myMessage = n;
+    }
 
-	/**
-	 * Set the name of this feature
-	 */
-	public void setMessage(String n) {
-		myMessage = n;
-	}
+    /**
+     * Sent from list to let us know we were selected
+     */
+    public void wasSelected() {
+    }
 
-	/** Sent from list to let us know we were selected */
-	public void wasSelected() {
-	}
+    public void addRenderer(Feature3DRenderer f) {
+        // Lazy create to save memory
+        if (myRenderers == null) {
+            myRenderers = new ArrayList<Feature3DRenderer>();
+        }
+        // Add if not already there...
+        if (f != null) {
+            if (!myRenderers.contains(f)) {
+                myRenderers.add(f);
+            }
+        }
+    }
 
-	public void addRenderer(Feature3DRenderer f) {
-		// Lazy create to save memory
-		if (myRenderers == null) {
-			myRenderers = new ArrayList<Feature3DRenderer>();
-		}
-		// Add if not already there...
-		if (f != null) {
-			if (!myRenderers.contains(f)) {
-				myRenderers.add(f);
-			}
-		}
-	}
+    public void removeRenderer(Feature3DRenderer f) {
+        if (myRenderers != null) {
+            myRenderers.remove(f);
+            if (myRenderers.isEmpty()) {
+                myRenderers = null;
+            }
+        }
+    }
 
-	public void removeRenderer(Feature3DRenderer f) {
-		if (myRenderers != null) {
-			myRenderers.remove(f);
-			if (myRenderers.isEmpty()){
-				myRenderers = null;
-			}
-		}
-	}
+    /**
+     * preRender a feature
+     */
+    public void preRender(DrawContext dc) {
+        if (myRenderers != null) {
+            FeatureMemento m = getMemento();
+            for (Feature3DRenderer r : myRenderers) {
+                r.preRender(dc, m);
+            }
+        }
+    }
 
-        /**
-	 * preRender a feature
-	 */
-	public void preRender(DrawContext dc) {
-		if (myRenderers != null) {
-			FeatureMemento m = getMemento();
-			for (Feature3DRenderer r : myRenderers) {
-				r.preRender(dc, m);
-			}
-		}
-	}
+    /**
+     * Render a feature
+     */
+    public void render(DrawContext dc) {
+        if (myRenderers != null) {
+            FeatureMemento m = getMemento();
+            for (Feature3DRenderer r : myRenderers) {
+                r.draw(dc, m);
+            }
+        }
+    }
 
-	/**
-	 * Render a feature
-	 */
-	public void render(DrawContext dc) {
-		if (myRenderers != null) {
-			FeatureMemento m = getMemento();
-			for (Feature3DRenderer r : myRenderers) {
-				r.draw(dc, m);
-			}
-		}
-	}
+    /**
+     * Pick a feature
+     */
+    public void pick(DrawContext dc, Point p) {
+        if (myRenderers != null) {
+            FeatureMemento m = getMemento();
+            for (Feature3DRenderer r : myRenderers) {
+                r.pick(dc, p, m);
+            }
+        }
+    }
 
-	/**
-	 * Pick a feature
-	 */
-	public void pick(DrawContext dc, Point p) {
-		if (myRenderers != null) {
-			FeatureMemento m = getMemento();
-			for (Feature3DRenderer r : myRenderers) {
-				r.pick(dc, p, m);
-			}
-		}
-	}
+    /**
+     * Would this feature render? This may be different than is visible or not,
+     * for example a product might be 'visible' but won't draw because it is too
+     * old in time
+     */
+    public boolean wouldRender() {
+        return getVisible();  // Default is visible manual setting
+    }
 
-	/** Would this feature render?  This may be different than is visible or not,
-	 * for example a product might be 'visible' but won't draw because it is
-	 * too old in time
-	 */
-	public boolean wouldRender() {
-		return getVisible();  // Default is visible manual setting
-	}
+    public class defaultGUI implements FeatureGUI {
 
-	public void setupFeatureGUI(JComponent source) {
+        @Override
+        public void updateGUI() {
+            // Set the layout and add our controls
+            // source.setLayout(new java.awt.BorderLayout());
+            //JTextField t = new JTextField();
+            //t.setText("No controls for this object");
+            //t.setEditable(false);
+            //source.add(t, java.awt.BorderLayout.CENTER);
+            //source.doLayout();
+        }
 
-		// Set the layout and add our controls
-		source.setLayout(new java.awt.BorderLayout());
-		JTextField t = new JTextField();
-		t.setText("No controls for this object");
-		t.setEditable(false);
-		source.add(t, java.awt.BorderLayout.CENTER);
-		source.doLayout();
+        @Override
+        public void activateGUI(JComponent parent, JComponent secondary) {
+        }
 
-		updateGUI();
-	}
+        @Override
+        public void deactivateGUI(JComponent parent, JComponent secondary) {
+        }
+    }
 
-	public void updateGUI() {
-	}
+    /**
+     * Fill in two source GUIs. Return false if second not wanted
+     */
+    public void setUpEmptyGUI(JComponent source, JComponent source2) {
+    }
+
+    /**
+     * Create a new GUI for this feature
+     */
+    public FeatureGUI createNewControls() {
+        return new defaultGUI();
+    }
+
+    /**
+     * Activate our GUI within the given JComponent. The JComponent is assumed
+     * empty. We should assign the layout we want to it. The caller is trusting
+     * us to handle this properly.
+     *
+     * @param source
+     */
+    public final boolean setupFeatureGUI(JComponent source, JComponent source2) {
+
+        if (myControls == null) {
+            myControls = createNewControls();
+        }
+
+        // Set the layout and add our controls
+        if (myControls != null) {
+            myControls.activateGUI(source, source2);
+            updateGUI();
+        }
+        return true;
+    }
+
+    public final void updateGUI() {
+        if (myControls != null) {
+            myControls.updateGUI();
+        }
+    }
 }

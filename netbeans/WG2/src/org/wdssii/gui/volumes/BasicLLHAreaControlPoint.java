@@ -3,14 +3,13 @@ package org.wdssii.gui.volumes;
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Position;
-import gov.nasa.worldwind.render.markers.Marker;
-
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.render.Material;
 import gov.nasa.worldwind.render.markers.BasicMarker;
 import gov.nasa.worldwind.render.markers.BasicMarkerAttributes;
 import gov.nasa.worldwind.render.markers.BasicMarkerShape;
+import gov.nasa.worldwind.render.markers.Marker;
 import gov.nasa.worldwind.render.markers.MarkerAttributes;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
@@ -41,6 +40,7 @@ public class BasicLLHAreaControlPoint implements LLHAreaControlPoint {
 			int aViewWidth = v.getViewport().width;
 			int aViewHeight = v.getViewport().height;
 
+                        gl.glDisable(GL.GL_LIGHTING);
 			gl.glDisable(GL.GL_DEPTH_TEST);
 			gl.glDisable(GL.GL_TEXTURE_2D); // no textures
 			gl.glMatrixMode(GL.GL_PROJECTION);
@@ -59,20 +59,48 @@ public class BasicLLHAreaControlPoint implements LLHAreaControlPoint {
 				gl.glVertex2d(p.x - z, p.y + z);
 				gl.glEnd();
 			} else {
-				gl.glColor4f(0.0f, 0.0f, 1.0f, 0.5f);
+                            
+                                gl.glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
 				gl.glBegin(GL.GL_QUADS);
 				gl.glVertex2d(p.x - z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y + z);
 				gl.glVertex2d(p.x - z, p.y + z);
 				gl.glEnd();
-				gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                                z--;
+                                gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+				gl.glBegin(GL.GL_QUADS);
+				gl.glVertex2d(p.x - z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y + z);
+				gl.glVertex2d(p.x - z, p.y + z);
+				gl.glEnd();
+                                z--;
+				gl.glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
+				gl.glBegin(GL.GL_QUADS);
+				gl.glVertex2d(p.x - z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y + z);
+				gl.glVertex2d(p.x - z, p.y + z);
+				gl.glEnd();
+                                
+				/*gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 				gl.glBegin(GL.GL_LINE_LOOP);
 				gl.glVertex2d(p.x - z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y + z);
 				gl.glVertex2d(p.x - z, p.y + z);
 				gl.glEnd();
+                                
+                                z--;
+                                gl.glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+				gl.glBegin(GL.GL_LINE_LOOP);
+				gl.glVertex2d(p.x - z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y + z);
+				gl.glVertex2d(p.x - z, p.y + z);
+				gl.glEnd();
+                                * */
 			}
 
 			gl.glMatrixMode(GL.GL_PROJECTION);

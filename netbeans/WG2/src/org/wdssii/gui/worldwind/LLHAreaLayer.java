@@ -23,6 +23,8 @@ import javax.media.opengl.GL;
 import javax.swing.event.EventListenerList;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
+import org.wdssii.gui.commands.PointAddCommand;
+import org.wdssii.gui.commands.PointRemoveCommand;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
@@ -1013,13 +1015,13 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
      }
      }*/
     //protected void fireControlPointRemoved(LLHAreaEditEvent e) {
-        // Iterate over the listener list in reverse order. This has the effect of notifying the listeners in the
-        // order they were added.
+    // Iterate over the listener list in reverse order. This has the effect of notifying the listeners in the
+    // order they were added.
     //    LLHAreaEditListener[] listeners = this.eventListeners.getListeners(LLHAreaEditListener.class);
-   //     for (int i = listeners.length - 1; i >= 0; i--) {
-   //         listeners[i].controlPointRemoved(e);
+    //     for (int i = listeners.length - 1; i >= 0; i--) {
+    //         listeners[i].controlPointRemoved(e);
     //    }
-   // }
+    // }
 
     /*protected void fireControlPointChanged(LLHAreaEditEvent e) {
      // Iterate over the listener list in reverse order. This has the effect of notifying the listeners in the
@@ -1323,21 +1325,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         LLHArea area = this.getAirspace();
         if (area instanceof LLHAreaSet) {
             LLHAreaSet set = (LLHAreaSet) (area);
-            FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
-            // currently copying all points into 'points'
-            @SuppressWarnings("unchecked")
-            ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
-            if (list != null) {
-                list.add(newLocation);
-                // m.setProperty(LLHAreaSet.LLHAreaSetMemento.POINTS, list); same list
-                FeatureMemento fm = (FeatureMemento) (m); // Check it
-                FeatureChangeCommand c = new FeatureChangeCommand(area.getFeature(), fm);
-                CommandManager.getInstance().executeCommand(c, true);
-            }
-        } else {
-            // old vslice point adding disabled..
-            //   this.getAirspace().setLocations(locationList);
-            // this.fireControlPointAdded(new LLHAreaEditEvent(wwd, this.getAirspace(), this, controlPoint));
+            PointAddCommand c = new PointAddCommand(set, newLocation, controlPoint.getLocationIndex());
+            CommandManager.getInstance().executeCommand(c, true);  
         }
 
         return controlPoint;
@@ -1491,27 +1480,11 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     protected void doRemoveControlPoint(WorldWindow wwd, LLHAreaControlPoint controlPoint) {
 
         int index = controlPoint.getLocationIndex();
-     /*   List<LatLon> newLocationList = new ArrayList<LatLon>(this.getAirspace().getLocations());
-        newLocationList.remove(index);
-        this.getAirspace().setLocations(newLocationList);
-
-        this.fireControlPointRemoved(new LLHAreaEditEvent(wwd,
-                controlPoint.getAirspace(), this, controlPoint));
-        */
-         LLHArea area = this.getAirspace();
+        LLHArea area = this.getAirspace();
         if (area instanceof LLHAreaSet) {
             LLHAreaSet set = (LLHAreaSet) (area);
-            FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
-            // currently copying all points into 'points'
-            @SuppressWarnings("unchecked")
-            ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
-            if (list != null) {
-                list.remove(index);
-                // m.setProperty(LLHAreaSet.LLHAreaSetMemento.POINTS, list); same list
-                FeatureMemento fm = (FeatureMemento) (m); // Check it
-                FeatureChangeCommand c = new FeatureChangeCommand(area.getFeature(), fm);
-                CommandManager.getInstance().executeCommand(c, true);
-            }
+            PointRemoveCommand c = new PointRemoveCommand(set, index);
+            CommandManager.getInstance().executeCommand(c, true);
         }
     }
 
@@ -1618,7 +1591,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         controlPoint.getAirspace().setAltitudes(altitudes[LOWER_ALTITUDE], altitudes[UPPER_ALTITUDE]);
 
         LLHAreaEditEvent editEvent = new LLHAreaEditEvent(wwd, controlPoint.getAirspace(), this, controlPoint);
-       // this.fireControlPointChanged(editEvent);
+        // this.fireControlPointChanged(editEvent);
         this.fireAirspaceResized(editEvent);
     }
 

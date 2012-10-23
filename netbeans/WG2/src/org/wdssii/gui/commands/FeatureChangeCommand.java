@@ -20,22 +20,36 @@ public class FeatureChangeCommand extends FeatureCommand {
      */
     protected String myFeatureKey;
     public FeatureMemento myChange;
+    private boolean initialized = false;
+
+    public FeatureChangeCommand() {
+    }
 
     public FeatureChangeCommand(String llhAreaKey, FeatureMemento change) {
         myFeatureKey = llhAreaKey;
         myChange = change;
+        initialized = true;
     }
 
     public FeatureChangeCommand(Feature f, FeatureMemento change) {
         myFeatureKey = f.getKey();
         myChange = change;
+        initialized = true;
+    }
+    
+    public void set(String key, FeatureMemento change){
+        myFeatureKey = key;
+        myChange = change;
+        initialized = true;
     }
 
     @Override
     public boolean execute() {
         // Eventually theFeatures will be per world ball....
-        FeatureList.theFeatures.setMemento(myFeatureKey, myChange);
-        FeatureList.theFeatures.updateOnMinTime();
+        if (initialized) {
+            FeatureList.theFeatures.setMemento(myFeatureKey, myChange);
+            FeatureList.theFeatures.updateOnMinTime();
+        }
         return true;
     }
 }

@@ -6,19 +6,13 @@ import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.pick.PickedObject;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.render.Material;
-import gov.nasa.worldwind.render.markers.BasicMarker;
-import gov.nasa.worldwind.render.markers.BasicMarkerAttributes;
-import gov.nasa.worldwind.render.markers.BasicMarkerShape;
 import gov.nasa.worldwind.render.markers.Marker;
-import gov.nasa.worldwind.render.markers.MarkerAttributes;
 import gov.nasa.worldwind.util.Logging;
-
 import java.awt.Color;
 import java.awt.Point;
 import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import javax.media.opengl.GL;
 
 public class BasicLLHAreaControlPointRenderer implements LLHAreaControlPointRenderer {

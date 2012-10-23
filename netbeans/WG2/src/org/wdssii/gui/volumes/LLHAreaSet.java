@@ -13,12 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.ChartViewChart;
 import org.wdssii.gui.charts.VSliceChart;
-import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.FilterList;
-import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.products.volumes.ProductVolume;
-import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.worldwind.WorldwindUtil;
 
 /**
@@ -87,7 +84,7 @@ public class LLHAreaSet extends LLHArea {
             LLHAreaSet.LLHAreaSetMemento ls = (LLHAreaSet.LLHAreaSetMemento) (l);
             setFromMemento(ls);
         }
-        
+
         @SuppressWarnings("unchecked")
         ArrayList<LatLon> list = ((ArrayList<LatLon>) l.getPropertyValue(LLHAreaSetMemento.POINTS));
         if (list != null) {
@@ -139,8 +136,6 @@ public class LLHAreaSet extends LLHArea {
         return myNumCols;
     }
 
-
-
     public LLHAreaSet(LLHAreaFeature f) {
         super(f);
     }
@@ -186,6 +181,60 @@ public class LLHAreaSet extends LLHArea {
 
         if (drawStyle.equals("fill")) {
 
+            if (list.size() > 2) {
+                // This is the default draw
+                Globe globe = dc.getGlobe();
+                double vert = dc.getVerticalExaggeration();
+                gl.glPushAttrib(GL.GL_LINE_BIT | GL.GL_LIGHTING_BIT | GL.GL_ENABLE_BIT);
+                gl.glDisable(GL.GL_LIGHTING);
+                gl.glDisable(GL.GL_DEPTH_TEST);
+                gl.glLineWidth(5);
+
+                boolean box = dc.isPickingMode();
+                box = true;
+                if (!dc.isPickingMode()) { // Pick mode uses a unique color to pick
+                    gl.glColor4f(1.0f, 1.0f, 1.0f, .20f);
+                }
+
+                if (list.size() > 0) {
+
+                    double botHeight = altitudes[0] * vert;
+                    double topHeight = altitudes[1] * vert;
+
+                    // quad strip connecting dots in order for 'grabbing'
+                    if (dc.isPickingMode()) {
+                        gl.glBegin(GL.GL_QUAD_STRIP);
+                        for (LatLon l : list) {
+                            // Calculate vec from position
+                            Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
+                            Vec4 top = globe.computePointFromPosition(l.latitude, l.longitude, topHeight);
+                            gl.glVertex3d(bot.x, bot.y, bot.z);
+                            gl.glVertex3d(top.x, top.y, top.z);
+                        }
+                        gl.glEnd();
+                    } else {
+                        // Connect the dots with a line strip...
+                        gl.glBegin(GL.GL_LINE_STRIP);
+                        for (LatLon l : list) {
+                            Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
+                            gl.glVertex3d(bot.x, bot.y, bot.z);
+                        }
+                        gl.glEnd();
+
+                        // Draw 'heights' of sticks as well since we only draw bot points
+                        gl.glBegin(GL.GL_LINES);
+                        for (LatLon l : list) {
+                            Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
+                            Vec4 top = globe.computePointFromPosition(l.latitude, l.longitude, topHeight);
+                            gl.glVertex3d(bot.x, bot.y, bot.z);
+                            gl.glVertex3d(top.x, top.y, top.z);
+                        }
+                        gl.glEnd();
+                    }
+
+                }
+                gl.glPopAttrib();
+            }
             // Pass render to chart object....
             ChartViewChart c = getOurChart();
             if (c != null) {
@@ -200,61 +249,7 @@ public class LLHAreaSet extends LLHArea {
                 //this.drawVSlice(dc, locations, edgeFlags);
 
                 gl.glPopAttrib();
-                return;
             }
-
-            // This is the default draw
-            Globe globe = dc.getGlobe();
-            double vert = dc.getVerticalExaggeration();
-            gl.glPushAttrib(GL.GL_LINE_BIT | GL.GL_LIGHTING_BIT | GL.GL_ENABLE_BIT);
-            gl.glDisable(GL.GL_LIGHTING);
-            gl.glDisable(GL.GL_DEPTH_TEST);
-            gl.glLineWidth(5);
-
-            boolean box = dc.isPickingMode();
-            box = true;
-            if (!dc.isPickingMode()) { // Pick mode uses a unique color to pick
-                gl.glColor4f(1.0f, 1.0f, 1.0f, .20f);
-            }
-
-            if (list.size() > 0) {
-
-                double botHeight = altitudes[0] * vert;
-                double topHeight = altitudes[1] * vert;
-
-                // quad strip connecting dots in order for 'grabbing'
-                if (dc.isPickingMode()) {
-                    gl.glBegin(GL.GL_QUAD_STRIP);
-                    for (LatLon l : list) {
-                        // Calculate vec from position
-                        Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
-                        Vec4 top = globe.computePointFromPosition(l.latitude, l.longitude, topHeight);
-                        gl.glVertex3d(bot.x, bot.y, bot.z);
-                        gl.glVertex3d(top.x, top.y, top.z);
-                    }
-                    gl.glEnd();
-                } else {
-                    // Connect the dots with a line strip...
-                    gl.glBegin(GL.GL_LINE_STRIP);
-                    for (LatLon l : list) {
-                        Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
-                        gl.glVertex3d(bot.x, bot.y, bot.z);
-                    }
-                    gl.glEnd();
-
-                    // Draw 'heights' of sticks as well since we only draw bot points
-                    gl.glBegin(GL.GL_LINES);
-                    for (LatLon l : list) {
-                        Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
-                        Vec4 top = globe.computePointFromPosition(l.latitude, l.longitude, topHeight);
-                        gl.glVertex3d(bot.x, bot.y, bot.z);
-                        gl.glVertex3d(top.x, top.y, top.z);
-                    }
-                    gl.glEnd();
-                }
-
-            }
-            gl.glPopAttrib();
         }
     }
 

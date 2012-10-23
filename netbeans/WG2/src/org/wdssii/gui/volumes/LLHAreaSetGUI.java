@@ -16,6 +16,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import net.miginfocom.layout.CC;
@@ -43,6 +46,8 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.LoggerFactory;
+import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.commands.PointRemoveCommand;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.swing.RowEntryTable;
@@ -66,7 +71,6 @@ import org.wdssii.properties.gui.IntegerGUI;
 public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
 
     private static org.slf4j.Logger log = LoggerFactory.getLogger(LLHAreaSetGUI.class);
-    
     private IntegerGUI myTopHeightGUI;
     private IntegerGUI myBottomHeightGUI;
     private IntegerGUI myRowsGUI;
@@ -113,10 +117,10 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
         parent.remove(this);
     }
 
-    public JComponent getSecondaryControls(){
+    public JComponent getSecondaryControls() {
         return jObjects3DListTable;
     }
-    
+
     private void setupComponents() {
 
         /**
@@ -127,22 +131,24 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
 
         JToolBar toolbar = new JToolBar();
         toolbar.setFloatable(false);
-        JButton test = new JButton("Refresh");
-        test.addActionListener(new ActionListener() {
+        JButton export;
+        /* test = new JButton("Refresh");
+         test.addActionListener(new ActionListener() {
+         @Override
+         public void actionPerformed(ActionEvent e) {
+         updateTable(null);
+         }
+         });
+         toolbar.add(test);
+         * */
+        export = new JButton("Export...");
+        export.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                updateTable(null);
+                jExportActionPerformed(e);
             }
         });
-        toolbar.add(test);
-        test = new JButton("Test");
-        test.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                testShapefile();
-            }
-        });
-        toolbar.add(test);
+        toolbar.add(export);
         add(toolbar, new CC().growX().wrap());
 
         myRowsGUI = new IntegerGUI(myFeature, LLHAreaSetMemento.GRID_ROWS, "Rows", this,
@@ -159,18 +165,18 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
         myBottomHeightGUI.addToMigLayout(this);
 
         initTable();
-       // add(jObjectScrollPane, new CC().spanX(3));
+        // add(jObjectScrollPane, new CC().spanX(3));
         updateTable(null);
 
     }
 
-      /**
-     * Here is how you can use a SimpleFeatureType builder to create the schema for your shapefile
-     * dynamically.
-     * <p>
-     * This method is an improvement on the code used in the main method above (where we used
-     * DataUtilities.createFeatureType) because we can set a Coordinate Reference System for the
-     * FeatureType and a a maximum field length for the 'name' field dddd
+    /**
+     * Here is how you can use a SimpleFeatureType builder to create the schema
+     * for your shapefile dynamically. <p> This method is an improvement on the
+     * code used in the main method above (where we used
+     * DataUtilities.createFeatureType) because we can set a Coordinate
+     * Reference System for the FeatureType and a a maximum field length for the
+     * 'name' field dddd
      */
     private static SimpleFeatureType createFeatureType() {
 
@@ -180,15 +186,56 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
 
         // add attributes in order
         builder.add("Location", Point.class);
-        builder.length(15).add("Name", String.class); // <- 15 chars width for name field
+        builder.add("Height ASL", Integer.class);
+        builder.add("Bottom ASL", Integer.class);
+       // builder.length(15).add("Name", String.class); // <- 15 chars width for name field
 
         // build the type
         final SimpleFeatureType LOCATION = builder.buildFeatureType();
 
         return LOCATION;
     }
-    
-    public void testShapefile() {
+
+    /**
+     * Handle export.
+     */
+    private void jExportActionPerformed(java.awt.event.ActionEvent evt) {
+        JFileChooser fileopen = new JFileChooser();
+        fileopen.setDialogType(JFileChooser.SAVE_DIALOG);
+        fileopen.setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                String t = f.getName().toLowerCase();
+                return (f.isDirectory() || t.endsWith(".shp"));
+            }
+
+            @Override
+            public String getDescription() {
+                return "ERSI SHP File Format";
+            }
+        });
+        fileopen.setDialogTitle("Export Data Points...");
+        int ret = fileopen.showSaveDialog(null);
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            File file = fileopen.getSelectedFile();
+            if (file != null){
+            String name = file.getPath();
+            if (!name.toLowerCase().endsWith(".shp")){
+                file = new File(file.getPath()+".shp");
+            }
+            try {
+                URL aURL = file.toURI().toURL();
+                exportSHPPointData(aURL);
+            } catch (MalformedURLException ex) {
+            }
+            }
+        }
+    }
+
+    /**
+     * Export the points as a shp file and prj, etc... ESRI format
+     */
+    public void exportSHPPointData(URL aURL) {
 
         /*
          * We use the DataUtilities class to create a FeatureType that will describe the data in our
@@ -197,12 +244,12 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
          * See also the createFeatureType method below for another, more flexible approach.
          */
         try {
-           // final SimpleFeatureType TYPE = DataUtilities.createType("Location",
-           //         "location:Point:srid=4326," + // <- the geometry attribute: Point type
-           //         "name:String," + // <- a String attribute
-           //         "number:Integer" // a number attribute
-           //         );
-            
+            // final SimpleFeatureType TYPE = DataUtilities.createType("Location",
+            //         "location:Point:srid=4326," + // <- the geometry attribute: Point type
+            //         "name:String," + // <- a String attribute
+            //         "number:Integer" // a number attribute
+            //         );
+
             final SimpleFeatureType TYPE = createFeatureType();
 
             /*
@@ -221,6 +268,15 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
             List<LatLon> list = myLLHAreaSet.getLocations();
             int i = 0;
             int counter = 1;
+            LLHAreaSetMemento m = myLLHAreaSet.getMemento();
+            Integer h = ((Integer) m.getPropertyValue(LLHAreaSetMemento.TOP_HEIGHT));
+            if (h == null){
+                 h = 0;
+            }
+            Integer b = ((Integer) m.getPropertyValue(LLHAreaSetMemento.BOTTOM_HEIGHT));
+            if (b == null){
+                 b = 0;
+            }
             for (LatLon l : list) {
                 LLHAreaSetTableData d = new LLHAreaSetTableData();
                 double latitude = l.latitude.degrees;
@@ -229,8 +285,9 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
                 Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
 
                 featureBuilder.add(point);
-                featureBuilder.add("TestName");
-              //  featureBuilder.add(counter);
+                featureBuilder.add(h);
+                featureBuilder.add(b);
+                //  featureBuilder.add(counter);
                 SimpleFeature feature = featureBuilder.buildFeature(null);
                 collection.add(feature);
 
@@ -239,7 +296,7 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
             /*
              * Get an output file name and create the new shapefile
              */
-            File newFile = new File("D:/test1.shp");
+            File newFile = new File(aURL.getFile());
 
             ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
@@ -273,18 +330,18 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
 
                 } catch (Exception problem) {
                     // problem.printStackTrace();
-                    log.debug("****************ERROR WRITING IS "+problem.toString());
+                    log.debug("Exception writing file: " + problem.toString());
                     transaction.rollback();
 
                 } finally {
                     transaction.close();
                 }
-                
+
             } else {
                 log.debug(typeName + " does not support read/write access");
             }
         } catch (Exception e) {
-            log.debug("GOT EXCEPTION HERE "+e.toString());
+            log.debug("Exception trying to write file:" + e.toString());
         }
 
     }
@@ -453,25 +510,29 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
                             public void actionPerformed(ActionEvent e) {
                                 Item i = (Item) (e.getSource());
                                 String text = i.getText();
+                                int deleteIndex = i.getData().index;
+                                if (text.startsWith("Delete all")) {
+                                    deleteIndex = -1; // all
+                                }
                                 if (text.startsWith("Delete")) {
-                                    //i.getData().index;
-                                    // FeatureDeleteCommand del = new FeatureDeleteCommand(i.getData().keyName);
-                                    // CommandManager.getInstance().executeCommand(del, true);
+                                    PointRemoveCommand c = new PointRemoveCommand(myLLHAreaSet, deleteIndex);
+                                    CommandManager.getInstance().executeCommand(c, true);
                                 }
                             }
                         };
                         JPopupMenu popupmenu = new JPopupMenu();
                         LLHAreaSetTableData entry = (LLHAreaSetTableData) (line);
-                        // if (entry.candelete) {
-                        String name = "Delete point " + (row + 1);
-                        Item i = new Item(name, entry);
+
+                        // Create Delete menu item
+                        Item i = new Item("Delete point " + (row + 1), entry);
                         popupmenu.add(i);
                         i.addActionListener(al);
-                        // } else {
-                        //    String name = "This feature cannot be deleted";
-                        //    Item i = new Item(name, entry);
-                        //     popupmenu.add(i);
-                        // }
+                        popupmenu.addSeparator();
+
+                        // Create Delete All menu item
+                        i = new Item("Delete all ", entry);
+                        popupmenu.add(i);
+                        i.addActionListener(al);
                         return popupmenu;
                     }
 

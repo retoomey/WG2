@@ -580,7 +580,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
       //  jTableScrollPane.setViewportView(jFeatureGUITablePanel);
        // split.setBottomComponent(jTableScrollPane);
         split.setBottomComponent(jFeatureGUITablePanel);
-        split.setDividerLocation(200);
+        split.setDividerLocation(100);
 
         setEmptyControls();
         return split;

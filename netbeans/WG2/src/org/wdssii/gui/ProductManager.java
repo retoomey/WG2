@@ -101,7 +101,7 @@ public class ProductManager implements Singleton {
 
         return pf;
     }
-
+ 
     public ProductFeature getTopProductFeature() {
 
         ProductFeature pf = null;

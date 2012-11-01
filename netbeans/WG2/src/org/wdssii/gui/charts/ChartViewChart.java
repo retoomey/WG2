@@ -37,7 +37,7 @@ public class ChartViewChart {
     /**
      * Update chart when needed (check should be done by chart)
      */
-    public void updateChart() {
+    public void updateChart(boolean force) {
     }
     /**
      * The current volume we follow, 99.9% of charts will do this
@@ -57,6 +57,7 @@ public class ChartViewChart {
      */
     public final void setUseVirtualVolume(boolean flag) {
         myUseVirtualVolume = flag;
+        updateChart(false);
     }
 
     /**
@@ -72,6 +73,7 @@ public class ChartViewChart {
      */
     public void setUseProductKey(String p) {
         myCurrentProduct = p;
+        updateChart(false);
     }
 
     /**

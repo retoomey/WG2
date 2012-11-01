@@ -1,6 +1,9 @@
 package org.wdssii.gui.charts;
 
+import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.LatLon;
+import gov.nasa.worldwind.globes.ElevationModel;
+import gov.nasa.worldwind.globes.Globe;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,6 +25,7 @@ import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+import org.jfree.chart.axis.ValueAxis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
@@ -32,6 +36,7 @@ import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaHeightStick;
 
@@ -93,13 +98,59 @@ public class Data2DTableChart extends ChartViewChart {
 
         return holder;
     }
-    
+
     /**
      * Update chart when needed (check should be done by chart)
      */
     @Override
-    public void updateChart() {
+    public void updateChart(boolean force) {
         updateDataTable();
+    }
+
+    /**
+     * Readout XYZDataset is a JFreeChart dataset where we sample the product
+     * value along the range.
+     * 
+     * Would be nice to enhance for some feedback on how close we are to the
+     * true readout 'point'
+     */
+    public static class ReadoutXYZDataset extends DynamicXYZDataset {
+
+        public ReadoutXYZDataset() {
+            super("Readout", 201);
+        }
+        /*
+         * Resample data depending on zoom
+         * level. This is called with the current lat/lon of the chart
+         * so that the terrain can be resampled by zoom
+         */
+        public void syncToRange(ValueAxis x,
+                double startLat,
+                double startLon,
+                double endLat,
+                double endLon) {
+
+            // Clear range
+            clearRange();
+
+            // Sample and fill in with new values
+            WorldWindView eb = FeatureList.theFeatures.getWWView();
+            Globe globe = eb.getWwd().getModel().getGlobe();
+            ElevationModel m = globe.getElevationModel();
+            int size = getSampleSize();
+            double deltaLat = (endLat - startLat) / (size - 1);
+            double deltaLon = (endLon - startLon) / (size - 1);
+            double lat = startLat;
+            double lon = startLon;
+            for (int i = 0; i < size; i++) {
+                setSample(i, m.getElevation(Angle.fromDegrees(lat), Angle.fromDegrees(lon)) / 1000.0d);
+                lat += deltaLat;
+                lon += deltaLon;
+            }
+
+            // Set to new range
+            setRange(x.getRange());
+        }
     }
 
     /**

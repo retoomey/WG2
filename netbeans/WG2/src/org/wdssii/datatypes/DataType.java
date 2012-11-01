@@ -170,6 +170,16 @@ public class DataType {
         // Empty datatype
     }
 
+    /** Return a new query object.  Use when the datatype is unknown */
+    public DataTypeQuery getNewQueryObject()
+    {
+        return new DataTypeQuery();
+    }
+    
+    public void queryData(DataTypeQuery q) {
+          
+    }
+    
     /** Most DataTypes can be optionally created from XML data.*/
     @SuppressWarnings("unused")
     public boolean fromXML(XMLStreamReader p) throws XMLStreamException {

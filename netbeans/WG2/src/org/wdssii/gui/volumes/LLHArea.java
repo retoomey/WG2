@@ -21,6 +21,7 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.views.WorldWindView;
 
 /**
@@ -627,5 +628,54 @@ public class LLHArea extends AVListImpl implements Movable {
      */
     protected List<LatLon> getDefaultLocations(WorldWindow wwd) {
         return null;
+    }
+
+    /**
+     * Return info for a segment
+     * Not sure where to put this function
+     */
+    public  VolumeSliceInput getSegmentInfo(VolumeSliceInput buffer, int segment, int rows, int cols) {
+        java.util.List<LatLon> l = getLocations();
+        if (l.size() > segment + 1) {
+            double[] altitudes = getAltitudes();
+            ArrayList<LatLon> list = getVSliceLocations(getLocations());
+            if (buffer != null) {
+                buffer.set(rows, cols, list.get(0).latitude.degrees, list.get(0).longitude.degrees,
+                        list.get(1).latitude.degrees, list.get(1).longitude.degrees,
+                        altitudes[0], altitudes[1]);
+                return buffer;
+            } else {
+                return new VolumeSliceInput(rows, cols, list.get(0).latitude.degrees, list.get(0).longitude.degrees,
+                        list.get(1).latitude.degrees, list.get(1).longitude.degrees,
+                        altitudes[0], altitudes[1]);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Given a lat lon list, return vslice order
+     * Not sure where to put this function
+     */
+    protected static ArrayList<LatLon> getVSliceLocations(java.util.List<LatLon> input) {
+
+        ArrayList<LatLon> out = null;
+        if (input.size() > 1) {
+            out = new ArrayList<LatLon>();
+            LatLon l1 = input.get(0);
+            LatLon l2 = input.get(1);
+            LatLon leftBottom, rightBottom;
+            if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
+                leftBottom = l1;
+                rightBottom = l2;
+            } else {
+                leftBottom = l2;
+                rightBottom = l1;
+            }
+            out.add(leftBottom);
+            out.add(rightBottom);
+        }
+        return out;
     }
 }

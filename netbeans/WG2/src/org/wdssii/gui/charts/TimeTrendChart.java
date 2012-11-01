@@ -290,7 +290,7 @@ public class TimeTrendChart extends ChartViewJFreeChart {
      * changes and only draws when the vslice if different
      */
     @Override
-    public void updateChart() {
+    public void updateChart(boolean force) {
         //myDataset.setVSlice(getVSliceToPlot());
 
         // On update, pull top product (for now)

@@ -149,7 +149,7 @@ public class MemoryUsageChart extends ChartViewJFreeChart {
     }
 
     @Override
-    public void updateChart() {
+    public void updateChart(boolean force) {
         // TODO Auto-generated method stub
     }
 }

@@ -328,7 +328,12 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
         // if (myParent != null) {
         //if (!myParent.isDisposed()){
         if (myChart != null) {
-            myChart.updateChart();
+            boolean force = false;
+            // If a feature setting changed, force update of chart
+            //if (info != null && info instanceof FeatureCommand){
+            //    force = true;
+            //}
+            myChart.updateChart(force);
         }
         //}
         // }

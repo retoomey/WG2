@@ -7,6 +7,7 @@ import java.util.Comparator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.datatypes.DataType;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.xml.Tag_color;
 import org.wdssii.xml.Tag_colorBin;
@@ -439,6 +440,13 @@ public class ColorMap {
 	float fullRange = aTag.max-aTag.min;
         
         int numOfBins = aTag.Points.size() - 1;
+        
+        // Add a special bin at bottom for our extreme data values..
+        // This keeps the point thing from drawing color at missing/special values        
+        ColorBin missing = new ColorBin.Single(DataType.MissingData,
+                    (short) 0, (short) 0, (short) 0, (short) 0, "MD");
+        addOrderedColorBin(missing);
+        
         for (int i = 0; i < numOfBins; i++) {
             Tag_Point p = aTag.Points.get(i);
             Tag_Point p2 = aTag.Points.get(i + 1);

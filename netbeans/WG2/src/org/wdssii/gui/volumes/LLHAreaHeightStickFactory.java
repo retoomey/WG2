@@ -2,14 +2,8 @@ package org.wdssii.gui.volumes;
 
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
-import gov.nasa.worldwind.examples.util.ShapeUtils;
-import gov.nasa.worldwind.geom.*;
-import gov.nasa.worldwind.globes.Globe;
-import java.util.Arrays;
-import java.util.List;
 import org.wdssii.gui.features.Feature.FeatureTableInfo;
 import org.wdssii.gui.features.LLHAreaFeature;
-import org.wdssii.gui.worldwind.WorldwindUtil;
 
 /** A Height stick in the display.  A single lat/lon coordinate with two height values.  This will be used for
  * the time height trend at a location 

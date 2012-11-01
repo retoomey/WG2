@@ -414,9 +414,9 @@ public class Product {
 	 * Return the data value for this product for a location. Subclasses
 	 * should override
 	 */
-	public double getValueAtLocation(Location loc, boolean useHeight) {
-		return DataType.MissingData;
-	}
+	//public double getValueAtLocation(Location loc, boolean useHeight) {
+	//	return DataType.MissingData;
+	//}
 
 	/**
 	 * Get the current units for product. This may change as product is

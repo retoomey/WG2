@@ -29,7 +29,7 @@ import org.wdssii.gui.worldwind.WorldwindUtil;
 public class LLHAreaSet extends LLHArea {
 
     private static Logger log = LoggerFactory.getLogger(LLHAreaSet.class);
-    public int currentHeightMeters = 10000;
+    public int currentHeightMeters = (int) LLHArea.DEFAULT_HEIGHT_METERS;
     public int currentBottomMeters = 0;
     public int myNumRows = 50;
     public int myNumCols = 100;
@@ -79,11 +79,12 @@ public class LLHAreaSet extends LLHArea {
     @Override
     public void setFromMemento(LLHArea.LLHAreaMemento l) {
 
-        super.setFromMemento(l);
         if (l instanceof LLHAreaSet.LLHAreaSetMemento) {
             LLHAreaSet.LLHAreaSetMemento ls = (LLHAreaSet.LLHAreaSetMemento) (l);
             setFromMemento(ls);
         }
+        // Call super afterwards since we hacked altitudes
+        super.setFromMemento(l);
 
         @SuppressWarnings("unchecked")
         ArrayList<LatLon> list = ((ArrayList<LatLon>) l.getPropertyValue(LLHAreaSetMemento.POINTS));

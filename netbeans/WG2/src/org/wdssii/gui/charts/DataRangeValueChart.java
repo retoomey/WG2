@@ -1,37 +1,38 @@
 package org.wdssii.gui.charts;
 
-import gov.nasa.worldwind.geom.LatLon;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.List;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.block.BlockContainer;
-import org.jfree.chart.block.BorderArrangement;
-import org.jfree.chart.block.EmptyBlock;
-import org.jfree.chart.labels.StandardXYToolTipGenerator;
-import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.CrosshairState;
+import org.jfree.chart.plot.PlotRenderingInfo;
+import org.jfree.chart.plot.PlotState;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.chart.title.CompositeTitle;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.urls.StandardXYURLGenerator;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.HorizontalAlignment;
 import org.jfree.ui.RectangleEdge;
+import org.jfree.ui.RectangleInsets;
 import org.wdssii.datatypes.DataType;
+import org.wdssii.datatypes.DataType.DataTypeQuery;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
+import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
+import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSet;
 
@@ -46,12 +47,20 @@ import org.wdssii.gui.volumes.LLHAreaSet;
  * @author Robert Toomey
  *
  */
-public class DataRangeValueChart extends ChartViewJFreeChart {
+public class DataRangeValueChart extends LLHAreaChart {
 
     private static final long serialVersionUID = 7770368607537155914L;
-    private static final int myNumSamples = 1000;
-    private String myChartKey;
-    private NumberAxis myRangeAxis = null;
+    /**
+     * The number of rows or altitudes of the VSlice
+     */
+    public static final int myNumRows = 50;  //50
+    /**
+     * The number of cols or change in Lat/Lon
+     */
+    public static final int myNumCols = 10; //100
+    private FixedRangeNumberAxis myDistanceAxis = null;
+    private FixedRangeNumberAxis myReadoutAxis = null;
+    private DataRangePlot myPlot = null;
 
     /**
      * Internal range axis info. Used to generate the corresponding JFreeChart
@@ -73,331 +82,398 @@ public class DataRangeValueChart extends ChartViewJFreeChart {
             series.add(s);
         }
     }
-    //private ArrayList<rangeAxisInfo> myRangeAxis = new ArrayList<rangeAxisInfo>();
+    //
+    private ArrayList<rangeAxisInfo> myRangeAxis = new ArrayList<rangeAxisInfo>();
 
     public DataRangeValueChart(String title, Font defaultTitleFont,
-            XYPlot plot, boolean legend) {
+            DataRangePlot plot, boolean legend) {
         myJFreeChart = new JFreeChart(title, defaultTitleFont, plot, legend);
+        myPlot = plot;
+        myPlot.myText = new TextTitle("", new Font("Dialog", Font.PLAIN, 11));
+        myPlot.myText.setPosition(RectangleEdge.BOTTOM);
+        myPlot.myText.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+        myJFreeChart.addSubtitle(myPlot.myText);
     }
 
-    public static DataRangeValueChart create(String title,
-            String xAxisLabel,
-            String yAxisLabel,
-            XYDataset dataset,
-            PlotOrientation orientation,
-            boolean legend,
-            boolean tooltips,
-            boolean urls) {
-        // Default range axis
-        NumberAxis xAxis = new NumberAxis(xAxisLabel);
-        xAxis.setAutoRangeIncludesZero(false);
+    public static class DataRangePlot extends XYPlot {
 
-        // Default domain axis
-        NumberAxis yAxis = new NumberAxis(yAxisLabel);
-        yAxis.setAutoRangeIncludesZero(false);
-        yAxis.setAutoRange(false);
+        private TextTitle myText;
+        private LLHArea myLLHArea;
+        private FilterList myList;
+        private Product myProduct;
+        private ReadoutXYZDataset myReadout;
+        private productXYRenderer myRenderer;
+        /**
+         * The current zoomed grid
+         */
+        private VolumeSliceInput mySubGrid;
 
-        XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false);
-        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
-        plot.setOrientation(orientation);
-        if (tooltips) {
-            renderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator());
+        private DataRangePlot(ReadoutXYZDataset dataset, ValueAxis domainAxis, ValueAxis rangeAxis, productXYRenderer renderer) {
+            super(dataset, domainAxis, rangeAxis, renderer);
+            myReadout = dataset;
+            myRenderer = renderer;
         }
-        if (urls) {
-            renderer.setURLGenerator(new StandardXYURLGenerator());
+
+        /**
+         * Our pre draw function, should be called before rendering chart.
+         * Currently called during drawBackground
+         */
+        public void predraw(Graphics2D g2, Rectangle2D dataArea) {
+
+            // Calculate current zoomed subgrid here...
+            VolumeSliceInput subGrid = calculateSubGrid(myLLHArea, dataArea,
+                    getDomainAxisForDataset(0), getRangeAxisForDataset(0), myNumRows, myNumCols);
+
+            // -----------------------------------------------------
+            // Update the readout dataset
+            // This is actually drawn in the 'draw' method
+            if (subGrid != null) {
+                ValueAxis rangeAxis = getDomainAxisForDataset(0);
+                myReadout.syncToRange(myProduct, rangeAxis, subGrid.startLat,
+                        subGrid.startLon,
+                        subGrid.endLat,
+                        subGrid.endLon);
+
+            } else {
+                myReadout.clearRange();
+            }
+
+            // -----------------------------------------------------
+            // Update the text showing start/end points
+            if (subGrid != null) {
+                String newKey = getGISLabel(subGrid.startLat, subGrid.startLon,
+                        subGrid.endLat, subGrid.endLon);
+                myText.setText(newKey);
+            } else {
+                myText.setText("Need at least 2 points in 3D world for a readout");
+            }
+
+            myRenderer.updateColorKey(myProduct);
+
+            // -----------------------------------------------------
+            // Update and render the 2D VSlice colored grid
+            // could 'separate' update from render I guess..
+            // We'd have to hold onto the subGrid to draw later...
+            //updateAndDrawVSliceGrid(subGrid, g2, dataArea);
         }
-        DataRangeValueChart chart = new DataRangeValueChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, legend);
-        chart.myRangeAxis = yAxis;
 
-        return chart;
+         @Override
+         public void draw(Graphics2D g, Rectangle2D area, Point2D p, PlotState state, PlotRenderingInfo info) {
+                     if (myProduct != null) {
+                ColorMap cm = myProduct.getColorMap();
+                ColorMapOutput output = new ColorMapOutput();
+                cm.fillColor(output, DataType.MissingData);
+                setBackgroundPaint(new Color(output.redI(), output.greenI(), output.blueI()));
+            } else {
+                setBackgroundPaint(Color.WHITE);
+            }
+             super.draw(g, area, p, state, info);
+         }
+        @Override
+        public void drawBackground(Graphics2D g2, Rectangle2D dataArea) {
+            predraw(g2, dataArea);
+            super.drawBackground(g2, dataArea);
+        }
 
+        private void setLLHArea(LLHArea area) {
+            myLLHArea = area;
+        }
+
+        private void setPlotData(LLHArea llhArea, Product p, FilterList list) {
+            myLLHArea = llhArea;
+            myList = list;
+            myProduct = p;
+        }
+    }
+
+    /**
+     * A line renderer that 'breaks' when it encounters a non regular data point
+     * such as Missing
+     */
+    public static class productXYRenderer extends XYLineAndShapeRenderer {
+
+        static int skipper = 0;
+        private ColorMap myColorMap;
+
+        @Override
+        public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
+
+            // do nothing if item is not visible
+            if (!getItemVisible(series, item)) {
+                return;
+            }
+
+            // Replace line pass with our check for non-normal data....
+            if (isLinePass(pass)) {
+                if (getItemLineVisible(series, item)) {
+                    if (item > 0) {
+
+                        // If this item or previous is missing, don't draw to previous
+                        // (we don't want any crazy lines due to special values)
+                        double v = dataset.getYValue(series, item);
+                        if (DataType.isRealDataValue((float) (v))) {
+                            v = dataset.getYValue(series, item - 1);
+                            if (DataType.isRealDataValue((float) (v))) {
+
+
+                                // Set the color to color key...this should
+                                // actually gradiant from this to last...OR
+                                // split in half for two non-linear boxes...
+                                if (myColorMap != null) {
+                                    ColorMap.ColorMapOutput data = new ColorMap.ColorMapOutput();
+                                    myColorMap.fillColor(data, (float) v);
+                                    g2.setColor(new Color(data.redI(), data.greenI(), data.blueI()));
+                                }
+                                drawPrimaryLine(state, g2, plot, dataset, pass, series,
+                                        item, domainAxis, rangeAxis, dataArea);
+                            }
+                        }
+                    }
+                } else {
+                    super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis, dataset, series, item, crosshairState, pass);
+                }
+
+            }
+        }
+
+        @Override
+        protected void drawFirstPassShape(Graphics2D g2, int pass, int series,
+                int item, Shape shape) {
+            g2.setStroke(getItemStroke(series, item));
+            // g2.setPaint(getItemPaint(series, item));     
+            g2.draw(shape);
+        }
+
+        public productXYRenderer(boolean line, boolean shape) {
+            super(line, shape);
+        }
+
+        private void updateColorKey(Product p) {
+            if (p != null) {
+                myColorMap = p.getColorMap(); // slow?
+            } else {
+                myColorMap = null;
+            }
+        }
     }
 
     /**
      * Static method to create a DataRangeValueChart chart, called by reflection
      */
     public static DataRangeValueChart createDataRangeValueChart() {
-        //	XYDataset xydataset = createDataset1();
-        //JFreeChart jfreechart = ChartFactory.createXYLineChart("Annotation Demo 2", "Date", "Price Per Unit", xydataset, PlotOrientation.VERTICAL, false, true, false);
-        DataRangeValueChart jfreechart = create("Readout Range", "Distance KMs", "Value", null, PlotOrientation.VERTICAL, false, true, false);
 
-        XYPlot xyplot = (XYPlot) jfreechart.myJFreeChart.getPlot();
+        FixedRangeNumberAxis distanceAxis = FixedRangeNumberAxis.getStockAxis("Distance KM", true);
+        FixedRangeNumberAxis readoutAxis = FixedRangeNumberAxis.getStockAxis("Readout", true);
 
-        NumberAxis numberaxis = (NumberAxis) xyplot.getRangeAxis();
-        numberaxis.setAutoRangeIncludesZero(false);
-        numberaxis.setAutoRange(false); // Range will be set in updateChart
+        // The readout dataset generator
+        ReadoutXYZDataset ds = new ReadoutXYZDataset();
+        productXYRenderer ar = new productXYRenderer(true, false);
+        //ar.setSeriesOutlineStroke(0, new BasicStroke(10));
+        ar.setSeriesStroke(0, new BasicStroke(2));
+        //ar.setSeriesOutlinePaint(0, Color.WHITE);
 
-        //	NumberAxis numberaxis1 = new NumberAxis("Secondary");
-        //	numberaxis1.setAutoRangeIncludesZero(false);
-        //	xyplot.setRangeAxis(1, numberaxis1);
+        DataRangePlot plot = new DataRangePlot(ds, distanceAxis, readoutAxis, ar);
+        plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
 
-        //xyplot.setDataset(1, createDataset2());
-        //	xyplot.mapDatasetToRangeAxis(1, 1);
+        // Create the renderer for plot
+        // XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false);
+        // XYPlot plot = new XYPlot(null, distanceAxis, readoutAxis, renderer);
+        //plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
 
-        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer) xyplot.getRenderer();
-        xylineandshaperenderer.setBaseToolTipGenerator(StandardXYToolTipGenerator.getTimeSeriesInstance());
+        DataRangeValueChart chart = new DataRangeValueChart("Readout", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+        chart.myJFreeChart.setBackgroundPaint(Color.white);
+        chart.myJFreeChart.removeLegend();
+        chart.myDistanceAxis = distanceAxis;
+        chart.myReadoutAxis = readoutAxis;
+        chart.myJFreeChart.setBorderVisible(true);
 
-        //xylineandshaperenderer.setBaseShapesVisible(true);
-        //xylineandshaperenderer.setBaseShapesFilled(true);
-        xylineandshaperenderer.setSeriesPaint(0, Color.blue);
-
-        //	XYPointerAnnotation xypointerannotation = new XYPointerAnnotation("Annotation 1 (2.0, 167.3)", 2D, 167.30000000000001D, -0.78539816339744828D);
-        //	xypointerannotation.setTextAnchor(TextAnchor.BOTTOM_LEFT);
-        //	xypointerannotation.setPaint(Color.red);
-        //	xypointerannotation.setArrowPaint(Color.red);
-        //	xylineandshaperenderer.addAnnotation(xypointerannotation);
-
-        //XYLineAndShapeRenderer xylineandshaperenderer1 = new XYLineAndShapeRenderer(true, true);
-        //xylineandshaperenderer.setBaseToolTipGenerator(StandardXYToolTipGenerator.getTimeSeriesInstance());
-
-        //XYPointerAnnotation xypointerannotation1 = new XYPointerAnnotation("Annotation 2 (15.0, 613.2)", 15D, 613.20000000000005D, 1.5707963267948966D);
-        //.setTextAnchor(TextAnchor.TOP_CENTER);
-        //xylineandshaperenderer1.addAnnotation(xypointerannotation1);
-        //xyplot.setRenderer(1, xylineandshaperenderer1);
-
-        LegendTitle legendtitle = new LegendTitle(xylineandshaperenderer);
-        //LegendTitle legendtitle1 = new LegendTitle(xylineandshaperenderer1);
-        BlockContainer blockcontainer = new BlockContainer(new BorderArrangement());
-        blockcontainer.add(legendtitle, RectangleEdge.LEFT);
-        //blockcontainer.add(legendtitle1, RectangleEdge.RIGHT);
-        blockcontainer.add(new EmptyBlock(2000D, 0.0D));
-        CompositeTitle compositetitle = new CompositeTitle(blockcontainer);
-        compositetitle.setPosition(RectangleEdge.BOTTOM);
-        jfreechart.myJFreeChart.addSubtitle(compositetitle);
-        return jfreechart;
+        return chart;
 
     }
 
     @Override
-    public void updateChart() {
-
-        StringBuilder key = new StringBuilder();
-
-        // Get the products
-        Product p = null;
+    public void updateChart(boolean force) {
 
         // If we found a product, we can do the slice range.....
-        LLHAreaSet slice = getVSliceToPlot();
-        if (slice != null) {
-            List<LatLon> list = slice.getLocations();
-            
-            LatLon l = list.get(0);
-            LatLon r = list.get(1);
-            key.append(l);
-            key.append(r);
-            String newChartKey = key.toString();
-            if (myChartKey != null) {
-                // System.out.println("New key "+newChartKey+" " +myChartKey);
-                if (newChartKey.compareTo(myChartKey) == 0) {
-                    //System.out.println("Chart not updated..vslice the same..."+newChartKey);
-                    return;
-                }
+        LLHAreaSet llhArea = getLLHAreaToPlot();
+        if (llhArea == null) {
+            // If there isn't a 3D slice LLHArea object geometry to follow,
+            // clear us...
+            myPlot.setPlotData(null, null, null);
+            myJFreeChart.setTitle("No slice in 3d window");
+
+            myJFreeChart.fireChartChanged();
+            return;
+        }   // No slice to follow, return..
+        myPlot.setLLHArea(llhArea);
+
+        /**
+         * Get the GIS key
+         */
+        String gisKey = llhArea.getGISKey();
+        // Sync the height/range axis to the GIS vslice range when updated, this resets
+        // any 'zoom' in the chart...but only if GIS key has CHANGED.  This
+        // way users can toggle products and keep zoom level for comparison,
+        // but if they drag the vslice we reset to full slice.
+        if (!getGISKey().equals(gisKey)) {
+            // Get the full non-subgrid area and make the distance line axis correct,
+            // even if we are missing everything else
+            VolumeSliceInput info = llhArea.getSegmentInfo(null, 0, myNumRows, myNumCols);
+            if (info != null) {
+                myDistanceAxis.setFixedRange(new Range(0, llhArea.getRangeKms(0, 1) / 1000.0));
             }
-            myChartKey = key.toString();
-
-            // FIXME: duplicate code with LLHAreaSlice marching
-            // Maybe we create an iterator class....
-            double startLat = l.getLatitude().getDegrees();
-            double startLon = l.getLongitude().getDegrees();
-            double startKms = 0.0;
-            double endLat = r.getLatitude().getDegrees();
-            double endLon = r.getLongitude().getDegrees();
-            double deltaLat = (endLat - startLat) / myNumSamples;
-            double deltaLon = (endLon - startLon) / myNumSamples;
-
-            double kmsPerMove = slice.getRangeKms(0, 1) / myNumSamples;
-
-            myRangeAxis.setRange(new Range(0, slice.getRangeKms(0, 1) / 1000.0));
-            //	System.out.println("Updated range to "+slice.getRangeKms()/1000.0);
-            //XYPlot plot = (XYPlot)(getPlot());
-
-            //XYSeriesCollection xyseriescollection = new XYSeriesCollection();
-
-            // Reverse iterator for draw list.  We plot in reverse order of the drawing...
-            // ListIterator<ProductHandler> iter = current.getDrawIterator();
-            // while (iter.hasNext()) {
-            //     iter.next();  // Move to end of list.
-            // }
-
-            // We should probably have a 'create series' object that takes a list of products?
-            // While it may be slower, it will be easier to manage and subclass in the future
-            int count = 0;
-
-
-            ArrayList<rangeAxisInfo> newAxisList = new ArrayList<rangeAxisInfo>();
-            ProductFeature h = ProductManager.getInstance().getTopProductFeature();
-           
-           // while (iter.hasPrevious()) {
-               // ProductHandler h = iter.previous();
-                if (h.getVisible()) {
-                    p = h.getProduct();
-                    if (p != null) {
-
-                        // FIXME: Probably could make a renderer that just uses our 'product' as a function, then
-                        // zooming would work perfectly.
-                        XYSeries xyseries = new XYSeries(p.getProductInfoString(true));
-                        ColorMap cm = p.getColorMap();
-
-                        double max = -100000.0;
-                        double min = 100000.0;
-                        double curLat = startLat;
-                        double curLon = startLon;
-                        double curKms = startKms;
-
-                        int countReal = 0;
-                        for (int i = 1; i < myNumSamples; i++) {
-
-                            Location loc = new Location(curLat, curLon, 0);
-                            double value = p.getValueAtLocation(loc, false);
-
-                            // FIXME: how to handle missing data?
-                            if (DataType.isRealDataValue((float) (value))) {
-                                countReal++;
-                               // System.out.println("ADD "+value);
-                                xyseries.add(curKms / 1000.0, value);
-                                if (value > max) {
-                                    max = value;
-                                }
-                                if (value < min) {
-                                    min = value;
-                                }
-                            } else {
-                                // FIXME: Can we 'break' the line like Lak would like?
-                                // We'll need our own xyseries class or renderer I think...
-                                // For now we just skip the point, which connects n-1 to n+1
-                            }
-                            curLat += deltaLat;
-                            curLon += deltaLon;
-                            curKms += kmsPerMove;
-                        }
-                        System.out.println("COUNT REAL IS "+countReal);
-                        // Set the Y axis range to the color map (typically larger)
-                        double colorMax = cm.getMaxValue();
-                        double colorMin = cm.getMinValue();
-                        if (colorMax < max) {
-                            colorMax = max;
-                        }
-                        if (colorMin > min) {
-                            colorMin = min;
-                        }
-                        colorMin -= 1.0; // Padding?
-                        colorMax += 1.0;
-                        String units = cm.getUnits();
-
-                        // Create a new axis list (tiny helper class before we modify the JFreeChart)
-                        rangeAxisInfo range = new rangeAxisInfo(units, colorMin, colorMax);
-                        updateAxis(newAxisList, range, xyseries);
-
-                        //System.out.println("Got range "+colorMin+" to "+colorMax +" data max is "+max);
-
-
-                        //	goooop...need to understand setDataset in order to get it to use the correct Axis
-                        XYSeriesCollection xyseriescollection = new XYSeriesCollection();
-                        	xyseriescollection.addSeries(xyseries); // I think this is per range axis...
-                        //plot.setDataset(count, xyseriescollection);
-                        count++;
-
-                    }
-                }
-
-          //  }
-            //	plot.setDataset(0, xyseriescollection);
-            updatePlotToAxis(newAxisList);
-
-
         }
+        setGISKey(gisKey);
+
+        FilterList aList = null;
+        String useKey = getUseProductKey();
+        String titleKey;
+        /**
+         * Get the filter list of the product we are following
+         */
+        ProductFeature tph = ProductManager.getInstance().getProductFeature(useKey);
+        Product p = null;
+        if (tph != null) {
+            aList = tph.getFList();
+            p = tph.getProduct();
+        }
+        if (p != null) {
+            titleKey = p.getProductInfoString(false);
+
+            // Update domain range to color map min/max
+            ColorMap aColorMap = p.getColorMap();
+            // Set the Y axis range to the color map (typically larger)
+            double aColorMax = aColorMap.getMaxValue();
+            double aColorMin = aColorMap.getMinValue();
+            aColorMin -= 1.0; // Some padding
+            aColorMax += 1.0;
+            myReadoutAxis.setFixedRange(new Range(aColorMin, aColorMax));
+            myReadoutAxis.setLabel(aColorMap.getUnits());
+
+        } else {
+            titleKey = "No product";
+        }
+
+        if ((aList == null)) {
+            // If there isn't a valid data source, clear us out...
+            // clear us...
+            // myVolume = null;
+            myPlot.setPlotData(llhArea, p, null);
+            myJFreeChart.setTitle("No product filter");
+            myJFreeChart.fireChartChanged();
+            return;
+        }
+        myPlot.setPlotData(llhArea, p, aList);
+        myJFreeChart.setTitle(titleKey);
+        myJFreeChart.fireChartChanged();
     }
 
     /**
+     * Readout XYZDataset is a JFreeChart dataset where we sample the product
+     * along the range.
+     */
+    public static class ReadoutXYZDataset extends DynamicXYZDataset {
+
+        public ReadoutXYZDataset() {
+            super("Readout", 201);
+        }
+        /*
+         * We dynamically resample the terrain data depending on zoom
+         * level. This is called with the current lat/lon of the chart
+         * so that the terrain can be resampled by zoom
+         */
+
+        public void syncToRange(Product p, ValueAxis x,
+                double startLat,
+                double startLon,
+                double endLat,
+                double endLon) {
+
+            // Clear range
+            clearRange();
+            boolean success = false;
+            if (p != null) {
+                DataType dt = p.getRawDataType();
+                if (dt != null) {
+
+                    DataTypeQuery query = dt.getNewQueryObject();
+                    int size = getSampleSize();
+                    double deltaLat = (endLat - startLat) / (size - 1);
+                    double deltaLon = (endLon - startLon) / (size - 1);
+                    double lat = startLat;
+                    double lon = startLon;
+                    for (int i = 0; i < size; i++) {
+
+                        Location loc = new Location(lat, lon, 0);
+                        query.inLocation = loc;
+                        query.inUseHeight = false;
+                        dt.queryData(query);
+
+                        // Note we store even missing values such as -99000,
+                        // so we have to use a special line renderer
+                        setSample(i, query.outDataValue);
+                        lat += deltaLat;
+                        lon += deltaLon;
+                    }
+                    success = true;
+                }
+            }
+
+            // Set to new range
+            setRange(x.getRange());
+            if (!success) {
+                this.setShowSamples(false);
+            }
+
+        }
+    }
+    /**
+     * Old code playing with multiple merged readout lines...might bring this
+     * back later...
+     *
      * Add a new domain axis info to a given list. Merge if possible (depending
      * on settings)
+     *
+     *
+     * public void updateAxis(ArrayList<rangeAxisInfo> list, rangeAxisInfo
+     * newOne, XYSeries series) {
+     *
+     * // We 'combine' any two axis with same units, but expand the drawing
+     * range to include // the larger one. Maybe this should be a setting since
+     * it could make some datasets look too tiny. // Say we have spectrum width
+     * m/s and velocity m/s...only one axis will draw with the color map/data
+     * range // of the union of the two color map ranges + max and min data
+     * values. boolean found = false; for (rangeAxisInfo r : list) { if
+     * (r.units.compareToIgnoreCase(newOne.units) == 0) { if (r.lowBound >
+     * newOne.lowBound) { r.lowBound = newOne.lowBound; } if (r.upperBound <
+     * newOne.upperBound) { r.upperBound = newOne.upperBound; } found = true;
+     * r.addSeries(series); break; // because we're done... } } if (!found) {
+     * list.add(newOne); newOne.addSeries(series); } }
+     *
+     * public void updatePlotToAxis(ArrayList<rangeAxisInfo> list) { int
+     * axisCount = 0; int seriesCount = 0; XYPlot plot = (XYPlot)
+     * (myJFreeChart.getPlot());
+     *
+     * for (rangeAxisInfo r : list) { NumberAxis numberaxis = (NumberAxis)
+     * plot.getRangeAxis(axisCount); if (numberaxis == null) { numberaxis = new
+     * NumberAxis(r.units); numberaxis.setAutoRangeIncludesZero(false);
+     * numberaxis.setAutoRange(false); plot.setRangeAxis(axisCount, numberaxis);
+     * } numberaxis.setRange(r.lowBound, r.upperBound);
+     * numberaxis.setLabel(r.units);
+     *
+     * // Ok add the series that use this axis now that it's ready for
+     * (XYSeries x : r.series) { // They all share a single axis
+     * XYSeriesCollection xyseriescollection = new XYSeriesCollection();
+     * xyseriescollection.addSeries(x); plot.setDataset(seriesCount,
+     * xyseriescollection); // Each series is a unique data set with label
+     * plot.mapDatasetToRangeAxis(seriesCount++, new Integer(axisCount)); }
+     * axisCount++; } // Remove any lingering axis from a previous draw....
+     * ValueAxis v = plot.getRangeAxis(axisCount); while (v != null) {
+     * plot.setRangeAxis(axisCount, null); v = plot.getRangeAxis(axisCount++); }
+     * // Remove any lingering dataset from a previous update... XYDataset d =
+     * plot.getDataset(seriesCount); while (d != null) {
+     * plot.setDataset(seriesCount, null); d = plot.getDataset(seriesCount++); }
+     * // Now that the axis are good, add the series using same logic...
+     * //for(rangeAxisInfo r:list){ // //} }
      */
-    public void updateAxis(ArrayList<rangeAxisInfo> list, rangeAxisInfo newOne, XYSeries series) {
-
-        // We 'combine' any two axis with same units, but expand the drawing range to include
-        // the larger one.  Maybe this should be a setting since it could make some datasets look too tiny.
-        // Say we have spectrum width m/s and velocity m/s...only one axis will draw with the color map/data range
-        // of the union of the two color map ranges + max and min data values.
-        boolean found = false;
-        for (rangeAxisInfo r : list) {
-            if (r.units.compareToIgnoreCase(newOne.units) == 0) {
-                if (r.lowBound > newOne.lowBound) {
-                    r.lowBound = newOne.lowBound;
-                }
-                if (r.upperBound < newOne.upperBound) {
-                    r.upperBound = newOne.upperBound;
-                }
-                found = true;
-                r.addSeries(series);
-                break; // because we're done...
-            }
-        }
-        if (!found) {
-            list.add(newOne);
-            newOne.addSeries(series);
-        }
-    }
-
-    public void updatePlotToAxis(ArrayList<rangeAxisInfo> list) {
-        int axisCount = 0;
-        int seriesCount = 0;
-        XYPlot plot = (XYPlot) (myJFreeChart.getPlot());
-
-        for (rangeAxisInfo r : list) {
-            NumberAxis numberaxis = (NumberAxis) plot.getRangeAxis(axisCount);
-            if (numberaxis == null) {
-                numberaxis = new NumberAxis(r.units);
-                numberaxis.setAutoRangeIncludesZero(false);
-                numberaxis.setAutoRange(false);
-                plot.setRangeAxis(axisCount, numberaxis);
-            }
-            numberaxis.setRange(r.lowBound, r.upperBound);
-            numberaxis.setLabel(r.units);
-
-            // Ok add the series that use this axis now that it's ready
-            for (XYSeries x : r.series) {  // They all share a single axis
-                XYSeriesCollection xyseriescollection = new XYSeriesCollection();
-                xyseriescollection.addSeries(x);
-                plot.setDataset(seriesCount, xyseriescollection);  // Each series is a unique data set with label
-                plot.mapDatasetToRangeAxis(seriesCount++, new Integer(axisCount));
-            }
-            axisCount++;
-        }
-        // Remove any lingering axis from a previous draw....
-        ValueAxis v = plot.getRangeAxis(axisCount);
-        while (v != null) {
-            plot.setRangeAxis(axisCount, null);
-            v = plot.getRangeAxis(axisCount++);
-        }
-        // Remove any lingering dataset from a previous update...
-        XYDataset d = plot.getDataset(seriesCount);
-        while (d != null) {
-            plot.setDataset(seriesCount, null);
-            d = plot.getDataset(seriesCount++);
-        }
-        // Now that the axis are good, add the series using same logic...
-        //for(rangeAxisInfo r:list){
-        //	
-        //}
-    }
-
-    /**
-     * Return the LLHAreaSlice that we are currently drawing a plot for
-     */
-    public LLHAreaSet getVSliceToPlot() {
-        // -------------------------------------------------------------------------
-        // Hack snag the current slice and product...
-        // Hack for now....we grab first 3d object in our FeatureList that is vslice
-        // This has the effect of following the top selected vslice...
-
-        LLHAreaSet slice = null;
-        LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new VSliceChart.VSliceFilter());
-        if (f != null) {
-            LLHArea area = f.getLLHArea();
-            if (area instanceof LLHAreaSet) {
-                slice = (LLHAreaSet) (area);
-            }
-        }
-        return slice;
-    }
 }

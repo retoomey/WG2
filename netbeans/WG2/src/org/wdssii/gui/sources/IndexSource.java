@@ -4,8 +4,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.JComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -227,34 +225,6 @@ public class IndexSource extends Source implements HistoryListener {
 	public void recordDeleted(IndexRecord rec) {
 		// TODO Auto-generated method stub
 		//System.out.println("WG got deleted record event");
-	}
-
-	/**
-	 * Filter path and clean it up. Don't do any operation here that hangs,
-	 * such as nslookup... that should be done inside the connection which
-	 * is done as a job
-	 *
-	 * @param path
-	 * @param domain
-	 * @return
-	 */
-	public String pathFilter(String path, String domain) {
-		String outPath = path;
-		Pattern p = Pattern.compile("^http://([^:/]*):?([0-9]*)(/.*)");
-		Matcher m = p.matcher(path);
-		if (m.find()) {
-			String host = m.group(1);
-			if (host.indexOf(".") == -1) {
-				host = host + domain;
-				//outPath = "webindex:http://" + host;
-				outPath = "http://" + host;
-				if (m.group(2).length() > 0) {
-					outPath += ":" + m.group(2);
-				}
-				outPath += m.group(3);
-			}
-		}
-		return outPath;
 	}
 
 	@Override

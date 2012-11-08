@@ -1,6 +1,5 @@
 package org.wdssii.datatypes;
 
-import org.wdssii.geom.CVector;
 import org.wdssii.storage.Array1Dfloat;
 
 /**
@@ -26,8 +25,6 @@ public class Radial {
     private final float nyquistMetersPerSecond;
     /** The constant length in Kms from radar center that each gate is */
     private final float gateWidthKms;
-    /** Unit vector of radial.  FIXME: kinda want to get rid of this */
-    private CVector unitVector;
     /** The index of this radial inside of a RadialSet in creation order */
     private int index = -1;
 

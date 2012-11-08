@@ -10,8 +10,6 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.geom.CPoint;
-import org.wdssii.geom.CVector;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.*;
@@ -77,7 +75,7 @@ public class ProductVolume {
     public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
             FilterList list, boolean useFilters, VolumeValue v) {
         //ArrayList<DataFilter> list){
-
+/*
         // Get value as fast as possible...
         if (loc.getHeightKms() < 0) {
             output.setColor(0, 0, 0, 0);
@@ -104,6 +102,7 @@ public class ProductVolume {
             //output.green = 0;
             //	output.blue = output.alpha = 255;
         }
+        */
         return true;
     }
 

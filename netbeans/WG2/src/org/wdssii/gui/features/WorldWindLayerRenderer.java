@@ -22,32 +22,47 @@ public class WorldWindLayerRenderer implements Feature3DRenderer {
         myVisibleToken = visibleToken;
     }
 
+    /**
+     * Return the worldwind layer we wrap around
+     */
+    public Layer getLayer() {
+        return myLayer;
+    }
+
+    public boolean isVisible(FeatureMemento m) {
+        Boolean on = m.getPropertyValue(myVisibleToken);
+        return ((on != null) && on);
+    }
+
     @Override
     public void preRender(DrawContext dc, FeatureMemento m) {
-        Boolean on = m.getPropertyValue(myVisibleToken);
-        if (on) {
+        if (isVisible(m)) {
             Layer oldLayer = dc.getCurrentLayer();
             dc.setCurrentLayer(myLayer);// for proper pick event
+            myLayer.setEnabled(true);
             myLayer.preRender(dc);
             dc.setCurrentLayer(oldLayer);
+        } else {
+            myLayer.setEnabled(false);
         }
     }
 
     @Override
     public void draw(DrawContext dc, FeatureMemento m) {
-        Boolean on = m.getPropertyValue(myVisibleToken);
-        if (on) {
+        if (isVisible(m)) {
             Layer oldLayer = dc.getCurrentLayer();
             dc.setCurrentLayer(myLayer);// for proper pick event
+            myLayer.setEnabled(true);
             myLayer.render(dc);
             dc.setCurrentLayer(oldLayer);
+        } else {
+            myLayer.setEnabled(false);
         }
     }
 
     @Override
     public void pick(DrawContext dc, Point p, FeatureMemento m) {
-        Boolean on = m.getPropertyValue(myVisibleToken);
-        if (on) {
+        if (isVisible(m)) {
             Layer oldLayer = dc.getCurrentLayer();
             dc.setCurrentLayer(myLayer);// for proper pick event
             myLayer.pick(dc, p);

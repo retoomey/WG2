@@ -500,7 +500,6 @@ public class DockWindow {
 		addViewByID("IndexView");
 		addViewByID("SourcesView");
 
-		addViewByID("LayersView");
 		addViewByID("ChartView");
 		addViewByID("FeaturesView");
 
@@ -522,7 +521,6 @@ public class DockWindow {
 		DockingWindow earth = getViewByID("WorldWindView");
 		DockingWindow index = getViewByID("IndexView");
 		DockingWindow sources = getViewByID("SourcesView");
-		DockingWindow layers = getViewByID("LayersView");
 		DockingWindow nav = getViewByID("NavView");
 		DockingWindow chart = getViewByID("ChartView");
 		DockingWindow debug = getViewByID("DebugView");
@@ -534,7 +532,7 @@ public class DockWindow {
 
 		// SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
 
-		TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart, layers});
+		TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart});
 		rootWindow.setWindow(
 			new SplitWindow(true, 0.5f,
 			new SplitWindow(false, 0.7f, earth, nav), stuff));

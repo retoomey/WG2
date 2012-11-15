@@ -461,7 +461,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
 
 			if (myLastSelectedSource != selectedSource) {
 				jSourceGUIPanel.removeAll();
-				selectedSource.setupSourceGUI(jSourceGUIPanel, null);
+				selectedSource.setupGUI(jSourceGUIPanel, null);
 				jSourceGUIPanel.validate();
 				jSourceGUIPanel.repaint();
 				myLastSelectedSource = selectedSource;

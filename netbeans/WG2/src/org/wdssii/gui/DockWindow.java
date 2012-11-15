@@ -497,7 +497,7 @@ public class DockWindow {
 		addViewByID("NavView");
 
 		addViewByID("DebugView");
-		addViewByID("IndexView");
+		addViewByID("CatalogView");
 		addViewByID("SourcesView");
 
 		addViewByID("ChartView");
@@ -519,7 +519,7 @@ public class DockWindow {
 
 		// Special windows
 		DockingWindow earth = getViewByID("WorldWindView");
-		DockingWindow index = getViewByID("IndexView");
+		DockingWindow catalog = getViewByID("CatalogView");
 		DockingWindow sources = getViewByID("SourcesView");
 		DockingWindow nav = getViewByID("NavView");
 		DockingWindow chart = getViewByID("ChartView");
@@ -527,7 +527,7 @@ public class DockWindow {
 		DockingWindow features = getViewByID("FeaturesView");
 
 		// TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
-		TabWindow sourceProducts = new TabWindow(new DockingWindow[]{sources, features, index});
+		TabWindow sourceProducts = new TabWindow(new DockingWindow[]{sources, features, catalog});
 		sourceProducts.setSelectedTab(0);
 
 		// SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);

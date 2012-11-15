@@ -38,7 +38,7 @@ import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.LLHArea;
-import org.wdssii.gui.volumes.LLHAreaHeightStick;
+import org.wdssii.gui.volumes.LLHAreaSet;
 
 /**
  * Chart which displays a product tracking table
@@ -323,10 +323,7 @@ public class Data2DTableChart extends ChartViewChart {
         // Snag the top stick for the moment
         LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new StickFilter());
         if (f != null) {
-            LLHArea area = f.getLLHArea();
-            if (area instanceof LLHAreaHeightStick) {
-                return f;
-            }
+            return f;         
         }
         return null;
     }
@@ -336,7 +333,7 @@ public class Data2DTableChart extends ChartViewChart {
      */
     public Location getTrackLocation() {
         Location L = null;
-        LLHAreaHeightStick stick = getTrackStick();
+        LLHAreaSet stick = getTrackStick();
         if (stick != null) {
             // FIXME: would be nice to have a Position ability
             List<LatLon> list = stick.getLocations();
@@ -353,14 +350,14 @@ public class Data2DTableChart extends ChartViewChart {
     /**
      * Get the stick we are tracking
      */
-    public LLHAreaHeightStick getTrackStick() {
+    public LLHAreaSet getTrackStick() {
 
         // -------------------------------------------------------------------------
         // Snag the top stick for the moment
-        LLHAreaHeightStick stick = null;
+        LLHAreaSet stick = null;
         LLHAreaFeature f = getTrackFeature();
         if (f != null) {
-            stick = (LLHAreaHeightStick) f.getLLHArea();
+            stick = (LLHAreaSet) f.getLLHArea();
         }
         return stick;
     }
@@ -369,14 +366,16 @@ public class Data2DTableChart extends ChartViewChart {
      * Return an LLHAreaFeature that contains a LLHAreaHeightStick
      */
     private static class StickFilter implements FeatureList.FeatureFilter {
-
+        
         @Override
         public boolean matches(Feature f) {
             if (f instanceof LLHAreaFeature) {
                 LLHAreaFeature a = (LLHAreaFeature) f;
                 LLHArea area = a.getLLHArea();
-                if (area instanceof LLHAreaHeightStick) {
-                    return true;
+                if (area instanceof LLHAreaSet) {
+                    if (area.getLocations().size() > 0) {
+                        return true;
+                    }
                 }
             }
             return false;

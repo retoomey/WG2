@@ -77,7 +77,7 @@ public class FeatureList {
 		LayerList ll = v.getLayerList();
 		LegendFeature legend = LegendFeature.createLegend(this, ll);
 		addFeature(legend);
-                WorldwindStockFeature ww = WorldwindStockFeature.createLegend(this, ll);
+                WorldwindStockFeature ww = WorldwindStockFeature.grabsAllLayers(this, ll);
 		addFeature(ww);
 	}
 

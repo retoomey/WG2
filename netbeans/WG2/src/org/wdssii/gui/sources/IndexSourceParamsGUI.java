@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.GUIPlugInPanel;
 import org.wdssii.gui.commands.SourceAddCommand;
-import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;
+import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
 import org.wdssii.gui.views.SourcesURLLoadDialog;
 import org.wdssii.index.HistoricalIndex;
 
@@ -92,14 +92,9 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 		URL url = myOwner.getURL();
 		String sourceName = myOwner.getSourceName();
 
-		SourceAddParams p = new SourceAddParams();
-		p.connect = true;
-		p.niceName = sourceName;
-		p.realTime = false; // ???? need from type
-		p.rootWindow = null;
-		p.sourceURL = url;
-		p.history = myHistoryValue;
-
+                // FIXME: Realtime?
+                IndexSourceAddParams p = new IndexSourceAddParams(sourceName, url, false, true, myHistoryValue);		
+		p.rootWindow = null;		
 		myOwner.handledOKButton();
 
 		SourceAddCommand add = new SourceAddCommand(p);

@@ -333,7 +333,7 @@ public class Feature implements Mementor {
      *
      * @param source
      */
-    public final boolean setupFeatureGUI(JComponent source, JComponent source2) {
+    public final boolean setupGUI(JComponent source, JComponent source2) {
 
         if (myControls == null) {
             myControls = createNewControls();

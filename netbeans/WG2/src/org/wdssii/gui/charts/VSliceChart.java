@@ -34,6 +34,7 @@ import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.FeatureCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand;
+import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.commands.VolumeValueCommand;
 import org.wdssii.gui.commands.VolumeValueCommand.VolumeValueFollowerView;
 import org.wdssii.gui.features.FeatureList;
@@ -50,7 +51,7 @@ import org.wdssii.gui.volumes.VSliceRenderer;
  * Chart that draws a dynamic grid sampled from a product volume in both a
  * JFreeChart and a 3D opengl window
  */
-public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView {
+public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView, VolumeTypeFollowerView {
 
     private static Logger log = LoggerFactory.getLogger(VSliceChart.class);
     private ProductVolume myVolume = null;
@@ -601,8 +602,6 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
             }
         });
         addTo.add(jVirtualToggleButton);
-
-
 
         addTo.add(VolumeValueCommand.getDropButton(this));
     }

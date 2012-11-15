@@ -10,9 +10,12 @@ import org.wdssii.gui.features.LLHAreaFeature;
 public class FeatureCreateCommand extends FeatureCommand {
 
     private String myFactory;
+    private Object myInfo;
     
-    public FeatureCreateCommand(String factory){
+    public FeatureCreateCommand(String factory,
+             Object info){
         myFactory = factory;
+        myInfo = info;
     }
     
     @Override
@@ -20,7 +23,7 @@ public class FeatureCreateCommand extends FeatureCommand {
 
         // For the moment just 'first' factory or slice....
         LLHAreaFeature A = new LLHAreaFeature(FeatureList.theFeatures);
-        boolean success = A.createLLHArea(myFactory);
+        boolean success = A.createLLHArea(myFactory, myInfo);
         if (success){
             FeatureList.theFeatures.addFeature(A);
         }

@@ -26,7 +26,7 @@ public abstract class SourceFactory {
 		// Introduce all the sources we know about....
 		// Could get these dynamically or from an xml file
 		sourceNames.add("org.wdssii.gui.sources.IndexSource");
-
+                sourceNames.add("org.wdssii.gui.sources.WMSSource");
 		factories = createFactories();
 	}
 

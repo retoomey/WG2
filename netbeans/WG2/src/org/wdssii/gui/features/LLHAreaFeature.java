@@ -27,7 +27,6 @@ public class LLHAreaFeature extends Feature {
 
     static {
         myFactoryList.put("Set", new LLHAreaSetFactory());
-        myFactoryList.put("Stick", new LLHAreaHeightStickFactory());
     }
     /**
      * The LLHArea object we render
@@ -38,14 +37,14 @@ public class LLHAreaFeature extends Feature {
         super(f, LLHAreaGroup);
     }
 
-    public boolean createLLHArea(String factory) {
+    public boolean createLLHArea(String factory, Object info) {
         boolean success = false;
         if (myFactory == null) {
             myFactory = myFactoryList.get(factory);
 
             if (myFactory != null) {
                 FeatureTableInfo theData = new FeatureTableInfo();
-                success = myFactory.create(getWorld(), this, theData);
+                success = myFactory.create(getWorld(), this, theData, info);
                 if (success) {
                     myLLHArea = (LLHArea) theData.created;
                     setVisible(true);

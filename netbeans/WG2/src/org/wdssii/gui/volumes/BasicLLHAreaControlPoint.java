@@ -29,7 +29,7 @@ public class BasicLLHAreaControlPoint implements LLHAreaControlPoint {
 			super(pstn, ma, angle);
 		}
 
-		public void billboard(DrawContext dc, Vec4 point) {
+		public static void billboard(DrawContext dc, Vec4 point) {
 			// Get 2D on the screen..we're making a fixed shape...
 			View v = dc.getView();
 			Vec4 p = v.project(point);
@@ -60,7 +60,7 @@ public class BasicLLHAreaControlPoint implements LLHAreaControlPoint {
 				gl.glEnd();
 			} else {
                             
-                                gl.glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+                                gl.glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
 				gl.glBegin(GL.GL_QUADS);
 				gl.glVertex2d(p.x - z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y - z);
@@ -82,25 +82,7 @@ public class BasicLLHAreaControlPoint implements LLHAreaControlPoint {
 				gl.glVertex2d(p.x + z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y + z);
 				gl.glVertex2d(p.x - z, p.y + z);
-				gl.glEnd();
-                                
-				/*gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-				gl.glBegin(GL.GL_LINE_LOOP);
-				gl.glVertex2d(p.x - z, p.y - z);
-				gl.glVertex2d(p.x + z, p.y - z);
-				gl.glVertex2d(p.x + z, p.y + z);
-				gl.glVertex2d(p.x - z, p.y + z);
-				gl.glEnd();
-                                
-                                z--;
-                                gl.glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-				gl.glBegin(GL.GL_LINE_LOOP);
-				gl.glVertex2d(p.x - z, p.y - z);
-				gl.glVertex2d(p.x + z, p.y - z);
-				gl.glVertex2d(p.x + z, p.y + z);
-				gl.glVertex2d(p.x - z, p.y + z);
-				gl.glEnd();
-                                * */
+				gl.glEnd();            			
 			}
 
 			gl.glMatrixMode(GL.GL_PROJECTION);

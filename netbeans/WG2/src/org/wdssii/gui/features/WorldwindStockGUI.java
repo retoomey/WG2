@@ -86,7 +86,7 @@ public class WorldwindStockGUI extends javax.swing.JPanel implements FeatureGUI 
         setLayout(new MigLayout(new LC(), null, null));
         CC mid = new CC().growX().width("min:pref:");
 
-        JLabel label = new JLabel("These are the stock worldwind basemap layers");
+        JLabel label = new JLabel("These are the basemap layers");
         add(label, new CC().growX());
         // myShowLabelsGUI = new BooleanGUI(myFeature, WorldwindStockMemento.SHOWWORLDWIND, "All layers", this);
         // myShowLabelsGUI.addToMigLayout(this);

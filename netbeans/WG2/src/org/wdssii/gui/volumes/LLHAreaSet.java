@@ -182,7 +182,7 @@ public class LLHAreaSet extends LLHArea {
 
         if (drawStyle.equals("fill")) {
 
-            if (list.size() > 2) {
+            if (list.size() > 0) {
                 // This is the default draw
                 Globe globe = dc.getGlobe();
                 double vert = dc.getVerticalExaggeration();
@@ -197,13 +197,13 @@ public class LLHAreaSet extends LLHArea {
                     gl.glColor4f(1.0f, 1.0f, 1.0f, .20f);
                 }
 
-                if (list.size() > 0) {
+                double botHeight = altitudes[0] * vert;
+                double topHeight = altitudes[1] * vert;
 
-                    double botHeight = altitudes[0] * vert;
-                    double topHeight = altitudes[1] * vert;
+                // quad strip connecting dots in order for 'grabbing'
+                if (dc.isPickingMode()) {
 
-                    // quad strip connecting dots in order for 'grabbing'
-                    if (dc.isPickingMode()) {
+                    if (list.size() > 1) {
                         gl.glBegin(GL.GL_QUAD_STRIP);
                         for (LatLon l : list) {
                             // Calculate vec from position
@@ -214,26 +214,40 @@ public class LLHAreaSet extends LLHArea {
                         }
                         gl.glEnd();
                     } else {
-                        // Connect the dots with a line strip...
+                        // Size of 1.  Draw a box so user can 'hit' line...
+                        // Calculate vec from position
+                        LatLon l = list.get(0);
+                        Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
+                        BasicLLHAreaControlPoint.CircleMarker.billboard(dc, bot);
+                    }
+                } else {
+                    // Connect the dots with a line strip...
+                    if (list.size() > 1) {
                         gl.glBegin(GL.GL_LINE_STRIP);
                         for (LatLon l : list) {
                             Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
                             gl.glVertex3d(bot.x, bot.y, bot.z);
                         }
                         gl.glEnd();
-
-                        // Draw 'heights' of sticks as well since we only draw bot points
-                        gl.glBegin(GL.GL_LINES);
-                        for (LatLon l : list) {
-                            Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
-                            Vec4 top = globe.computePointFromPosition(l.latitude, l.longitude, topHeight);
-                            gl.glVertex3d(bot.x, bot.y, bot.z);
-                            gl.glVertex3d(top.x, top.y, top.z);
-                        }
-                        gl.glEnd();
+                    }else{
+                        // Draw special box in case of single point so always visible
+                        LatLon l = list.get(0);
+                        Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
+                        BasicLLHAreaControlPoint.CircleMarker.billboard(dc, bot);
                     }
-
+                    
+                    // Draw 'heights' of sticks as well since we only draw bot points
+                    gl.glBegin(GL.GL_LINES);
+                    for (LatLon l : list) {
+                        Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
+                        Vec4 top = globe.computePointFromPosition(l.latitude, l.longitude, topHeight);
+                        gl.glVertex3d(bot.x, bot.y, bot.z);
+                        gl.glVertex3d(top.x, top.y, top.z);
+                    }
+                    gl.glEnd();
                 }
+
+
                 gl.glPopAttrib();
             }
             // Pass render to chart object....
@@ -338,7 +352,7 @@ public class LLHAreaSet extends LLHArea {
      * The default location for a newly created LLHArea
      */
     @Override
-    protected List<LatLon> getDefaultLocations(WorldWindow wwd) {
+    protected List<LatLon> getDefaultLocations(WorldWindow wwd, Object params) {
 
         // Taken from worldwind...we'll need to figure out how we want the vslice/isosurface to work...
         Position position = WorldwindUtil.getNewShapePosition(wwd);
@@ -355,20 +369,40 @@ public class LLHAreaSet extends LLHArea {
         double widthOver2 = sizeInMeters / 2.0;
         double heightOver2 = sizeInMeters / 2.0;
 
-        Vec4[] points = new Vec4[]{
-            new Vec4(-widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower left (as if looking down, to sw)
-            // new Vec4(widthOver2,  -heightOver2, 0.0).transformBy4(transform), // lower right
-            new Vec4(widthOver2, heightOver2, 0.0).transformBy4(transform), // upper right
-        // new Vec4(-widthOver2,  heightOver2, 0.0).transformBy4(transform)  // upper left
-        };
+        int count = 2;
+        if (params instanceof Integer) {
+            Integer c = (Integer) (params);
+            count = c.intValue();
+        }
+        Vec4[] points;
+
+        switch (count) {
+            case 1:
+                points = new Vec4[]{
+                    //new Vec4(-widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower left (as if looking down, to sw)
+                    new Vec4(0.0, 0.0, 0.0).transformBy4(transform) // lower left (as if looking down, to sw)
+                };
+                break;
+            default:
+            case 2:
+                points = new Vec4[]{
+                    new Vec4(-widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower left (as if looking down, to sw)
+                    // new Vec4(widthOver2,  -heightOver2, 0.0).transformBy4(transform), // lower right
+                    new Vec4(widthOver2, heightOver2, 0.0).transformBy4(transform), // upper right
+                // new Vec4(-widthOver2,  heightOver2, 0.0).transformBy4(transform)  // upper left
+                };
+        }
 
         /**
          * Convert from vector model coordinates to LatLon
          */
         LatLon[] locations = new LatLon[points.length];
-        for (int i = 0; i < locations.length; i++) {
+        for (int i = 0;
+                i < locations.length;
+                i++) {
             locations[i] = new LatLon(globe.computePositionFromPoint(points[i]));
         }
+
         return Arrays.asList(locations);
     }
 }

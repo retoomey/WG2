@@ -12,82 +12,121 @@ import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.sources.IndexSource;
 import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.WMSSource;
 
-/**  Add a new source (and then spawn a connect to it)
+/**
+ * Add a new source (and then spawn a connect to it)
+ *
  * @author Robert Toomey
  */
 public class SourceAddCommand extends SourceClearCommand {
 
-    /** Info needed to add a source, passed to Source such as IndexSource */
-    public static class SourceAddParams{
+    /**
+     * Info needed to add a source, passed to Source such as IndexSource
+     */
+    public static abstract class SourceAddParams {
+
+        private String niceName;
+        private URL sourceURL;
+        private boolean connect;
         public JComponent rootWindow = null; // root for any dialogs
-        public String niceName;
-	public URL sourceURL;
-	public boolean realTime = false;
-	public boolean connect = false;
-	public int history = IndexSource.HISTORY_ARCHIVE;
-	
-	public Source createSource(){
-		return new IndexSource(niceName, sourceURL, history);
-	}
+        public String message;
+        
+        public SourceAddParams(String aNiceName, URL aSourceURL, boolean aConnect) {
+            niceName = aNiceName;
+            sourceURL = aSourceURL;
+            connect = aConnect;
+        }
+
+        public SourceAddParams(String aNiceName, String path, boolean aConnect) throws MalformedURLException {
+            niceName = aNiceName;
+            connect = aConnect;
+            URL aSourceURL = new URL(path);
+            sourceURL = aSourceURL;
+        }
+
+        public String getNiceName() {
+            return niceName;
+        }
+
+        public URL getSourceURL() {
+            return sourceURL;
+        }
+
+        public boolean getConnect() {
+            return connect;
+        }
+
+        public abstract Source createSource();
     }
 
+    /**
+     * WDSSII source index... FIXME: eventually move somewhere else
+     */
+    public static class IndexSourceAddParams extends SourceAddParams {
+
+        public boolean realTime = false;
+        public int history = IndexSource.HISTORY_ARCHIVE;
+
+        public IndexSourceAddParams(String aNiceName, URL aSourceURL, boolean aRealtime, boolean aConnect, int aHistory) {
+            super(aNiceName, aSourceURL, aConnect);
+            realTime = aRealtime;
+            history = aHistory;
+        }
+
+        public IndexSourceAddParams(String aNiceName, String path, boolean aRealtime, boolean aConnect, int aHistory) throws MalformedURLException {
+            super(aNiceName, path, aConnect);
+            realTime = aRealtime;
+            history = aHistory;
+        }
+
+        @Override
+        public Source createSource() {
+            return new IndexSource(getNiceName(), getSourceURL(), history);
+        }
+    }
+
+    public static class WMSSourceAddParams extends SourceAddParams {
+
+        public WMSSourceAddParams(String aNiceName, URL aSourceURL, boolean connect) {
+            super(aNiceName, aSourceURL, connect);
+        }
+
+        public WMSSourceAddParams(String aNiceName, String path, boolean connect) throws MalformedURLException {
+            super(aNiceName, path, connect);
+        }
+
+        @Override
+        public Source createSource() {
+            return new WMSSource(getNiceName(), getSourceURL());
+        }
+    }
     private static Logger log = LoggerFactory.getLogger(SourceAddCommand.class);
-
     private SourceAddParams myParams;
-
-    /** By default if user clicks a button, require a confirm dialog */
+    /**
+     * By default if user clicks a button, require a confirm dialog
+     */
     private boolean myUserConfirm = false;
     private boolean myUserReport = false;
-    
-     /**
-     * 
-     * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
-     * @param path	The path such as "http://...."
-     * @param realtime	Is this a realtime index?  (requires a socket connection)
-     */
-    public SourceAddCommand(SourceAddParams params, String path){
-        myParams = params;
-        try {
-           URL aURL = new URL(path);
-	   myParams.sourceURL = aURL;
-        } catch (MalformedURLException ex) {
-            log.error("SOURCE URL is MALFORMED "+ex.toString());
-        }
-    }
 
-    /** Add a source from a given path.  This will try to guess the type */
-    public SourceAddCommand(String niceName, String path, boolean realtime, boolean connect, int historyValue) {
-        try {
-// Only IndexSource right now
-            SourceAddParams params = new SourceAddParams();
-	    params.connect = connect;
-	    params.realTime = realtime;
-	    params.niceName= niceName;
-	    params.history = historyValue;
-	    myParams = params;
-            URL aURL = new URL(path);
-	    params.sourceURL = aURL;
-        } catch (MalformedURLException ex) {
-            log.error("SOURCE URL is MALFORMED "+ex.toString());
-        }
-    }
- 
     /**
-     * 
-     * @param niceName The 'nice' name of the index, such as 'KTLX'.  User changable
+     *
+     * @param niceName The 'nice' name of the index, such as 'KTLX'. User
+     * changable
      * @param path	The path such as "http://...."
-     * @param realtime	Is this a realtime index?  (requires a socket connection)
+     * @param realtime	Is this a realtime index? (requires a socket connection)
      */
-    public SourceAddCommand(SourceAddParams params){
-	    myParams = params;
+    public SourceAddCommand(SourceAddParams params) {
+        myParams = params;
     }
 
-    /** Set if dialogs show up or not */
-    public void setConfirmReport(boolean c, boolean r, JComponent root){
-          myUserConfirm = c;
-          myUserReport = r;
-	  myParams.rootWindow = root;
+    /**
+     * Set if dialogs show up or not
+     */
+    public void setConfirmReport(boolean c, boolean r, JComponent root) {
+        myUserConfirm = c;
+        myUserReport = r;
+        myParams.rootWindow = root;
     }
 
     @Override
@@ -116,14 +155,15 @@ public class SourceAddCommand extends SourceClearCommand {
             }
             if (doJob) {
 
-                String newKey = add(myParams.niceName, myParams.sourceURL, myParams.realTime, myParams.history);  // Don't lag here.
+                // String newKey = add(myParams.niceName, myParams.sourceURL, myParams.realTime, myParams.history);  // Don't lag here.
+                String newKey = add(myParams);
                 updateGUI = true;  // Add needs a 'unconnected' icon and name in list.
                 if (myUserReport) {
                     if (newKey != null) {
                         JOptionPane.showMessageDialog(myParams.rootWindow, "Add was successful",
                                 "Add success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        JOptionPane.showMessageDialog(myParams.rootWindow, "Add not successful",
+                        JOptionPane.showMessageDialog(myParams.rootWindow, myParams.message,
                                 "Add failure", JOptionPane.ERROR_MESSAGE);
                     }
                 }

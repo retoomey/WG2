@@ -108,21 +108,21 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
         JMenuItem item;
 
-        item = new JMenuItem("Add Points...");
+        item = new JMenuItem("Add 2 Points");
         item.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addSetActionPerformed(evt);
+                addSetActionPerformed(evt, 2);
             }
         });
         menu.add(item);
 
 
-        item = new JMenuItem("Add Stick");
+        item = new JMenuItem("Add 1 Point");
         item.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                StickActionPerformed(evt);
+                addSetActionPerformed(evt, 1);
             }
         });
         menu.add(item);
@@ -521,7 +521,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
                 jFeatureGUIPanel.removeAll();
                 jFeatureGUITablePanel.removeAll();
                 try {
-                    topFeature.setupFeatureGUI(jFeatureGUIPanel, jFeatureGUITablePanel);
+                    topFeature.setupGUI(jFeatureGUIPanel, jFeatureGUITablePanel);
                 } catch (Exception e) {
                     log.debug("Exception setting up GUI for feature " + e.toString());
                     log.debug("GUI for this feature needs to be fixed.");
@@ -660,11 +660,6 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         jFeatureGUITablePanel.add(t2, java.awt.BorderLayout.CENTER);
     }
 
-    private void StickActionPerformed(java.awt.event.ActionEvent evt) {
-        FeatureCreateCommand doit = new FeatureCreateCommand("Stick");
-        CommandManager.getInstance().executeCommand(doit, true);
-    }
-
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         URL newMap = MapGUI.doSingleMapOpenDialog();
         if (newMap != null) {
@@ -674,8 +669,8 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         updateGUI();
     }
 
-    private void addSetActionPerformed(java.awt.event.ActionEvent evt) {
-        FeatureCreateCommand doit = new FeatureCreateCommand("Set");
+    private void addSetActionPerformed(java.awt.event.ActionEvent evt, int count) {
+        FeatureCreateCommand doit = new FeatureCreateCommand("Set", new Integer(count));
         CommandManager.getInstance().executeCommand(doit, true);
         //FeatureList.theFeatures.addFeature(new LLHAreaFeature(0));
     }

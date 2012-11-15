@@ -31,7 +31,7 @@ public abstract class LLHAreaFactory {
     public abstract String getFactoryNameDisplay();
 
     /** Create an airspace and airspace editor in the given world */
-    public abstract boolean create(WorldWindow wwd, LLHAreaFeature f, FeatureTableInfo info);
+    public abstract boolean create(WorldWindow wwd, LLHAreaFeature f, FeatureTableInfo info, Object params);
 
     /** Create a GUI for an LLHArea */
     public FeatureGUI createGUI(LLHAreaFeature f, LLHArea a){

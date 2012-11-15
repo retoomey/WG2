@@ -2,7 +2,6 @@ package org.wdssii.gui.volumes;
 
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
-import javax.swing.JComponent;
 import org.wdssii.gui.features.Feature.FeatureTableInfo;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.LLHAreaFeature;
@@ -19,7 +18,7 @@ public class LLHAreaSetFactory extends LLHAreaFactory {
     }
 
     @Override
-    public boolean create(WorldWindow wwd, LLHAreaFeature f, FeatureTableInfo data) {
+    public boolean create(WorldWindow wwd, LLHAreaFeature f, FeatureTableInfo data, Object params) {
 
         boolean success = true;
 
@@ -34,7 +33,7 @@ public class LLHAreaSetFactory extends LLHAreaFactory {
         poly.setAttributes(getDefaultAttributes());
         poly.setValue(AVKey.DISPLAY_NAME, name);
         poly.setAltitudes(0.0,  LLHArea.DEFAULT_HEIGHT_METERS);
-        poly.setLocations(poly.getDefaultLocations(wwd));
+        poly.setLocations(poly.getDefaultLocations(wwd, params));
         data.created = poly;
 
         setName(name);
@@ -44,8 +43,8 @@ public class LLHAreaSetFactory extends LLHAreaFactory {
     @Override
     public FeatureGUI createGUI(LLHAreaFeature f, LLHArea a){
         if (a instanceof LLHAreaSet){
-            LLHAreaSet slice = (LLHAreaSet)(a);
-            LLHAreaSetGUI gui = new LLHAreaSetGUI(f, slice);  
+            LLHAreaSet set = (LLHAreaSet)(a);
+            LLHAreaSetGUI gui = new LLHAreaSetGUI(f, set);  
             return gui;
         }
         return super.createGUI(f, a);

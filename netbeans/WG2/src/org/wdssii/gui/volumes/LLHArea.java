@@ -626,7 +626,7 @@ public class LLHArea extends AVListImpl implements Movable {
     /**
      * The default location for a newly created LLHArea
      */
-    protected List<LatLon> getDefaultLocations(WorldWindow wwd) {
+    protected List<LatLon> getDefaultLocations(WorldWindow wwd, Object params) {
         return null;
     }
 

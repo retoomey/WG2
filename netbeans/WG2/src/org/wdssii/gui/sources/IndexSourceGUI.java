@@ -42,7 +42,7 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
     private ProductListTableModel myProductListTableModel;
     private RowEntryTable myProductsTable;
     private String mySelectedProduct;
-    
+
     private static class ProductListTableData {
 
         public String productName; // Name shown in list
@@ -293,7 +293,7 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
     @Override
     public void updateGUI() {
         // Selection changed to us...fill the products list...
-        
+
         updateTables();
     }
 
@@ -315,9 +315,8 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         parent.remove(this);
     }
 
-    
-    private void updateTables(){
-        if (mySource.getIndex() == null){
+    private void updateTables() {
+        if (mySource.getIndex() == null) {
             // Clear everything...
             myProductListTableModel.setDataTypes(null);
             myChoiceListTableModel.setDataTypes(null);
@@ -325,13 +324,14 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
             myProductListTableModel.fireTableDataChanged();
             myChoiceListTableModel.fireTableDataChanged();
             myResultListTableModel.fireTableDataChanged();
-        }else{
-            
+        } else {
+
             // FIXME: need to smart update the tables!!
             fillProductsList();
             myProductListTableModel.fireTableDataChanged();
         }
     }
+
     private void setupComponents() {
 
         /**
@@ -379,53 +379,51 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         myResultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         myResultsScrollPane.setViewportView(myResultsTable);
         myResultsTable.setDefaultRenderer(ResultListTableData.class, new ResultListTableCellRenderer());
-        
+
         JPanel resultPanel = new JPanel();
         jResultsLabel = new JLabel("No results");
         resultPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         resultPanel.add(jResultsLabel, new CC().dockNorth());
         resultPanel.add(myResultsScrollPane, new CC().growX().growY());
-        
+
         splitProductsChoices.setLeftComponent(myProductsScrollPane);
         splitProductsChoices.setRightComponent(myChoicesScrollPane);
         splitProductsChoices.setDividerLocation(150);
         splitTopBottom.setTopComponent(splitProductsChoices);
         splitTopBottom.setBottomComponent(resultPanel);
         splitTopBottom.setDividerLocation(150);
-      
+
         add(splitTopBottom, new CC().growX().growY());
 
         myProductsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 jProductsListTableValueChanged(e);
             }
         });
 
-	myProductsTable.addMouseListener(new MouseAdapter(){
-		  @Override
-		  public void mouseClicked(MouseEvent e){
-			 if(e.getClickCount() == 2){
-				 JTable target = (JTable)e.getSource();
-				 int row = target.getSelectedRow();
-        if (myProductListTableModel != null) {
-            ProductListTableData d = myProductListTableModel.getDataForRow(row);
-	    log.error("BLEH: "+d.datatype);
-        HistoricalIndex anIndex = mySource.getIndex();
+        myProductsTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    JTable target = (JTable) e.getSource();
+                    int row = target.getSelectedRow();
+                    if (myProductListTableModel != null) {
+                        ProductListTableData d = myProductListTableModel.getDataForRow(row);
+                        log.error("BLEH: " + d.datatype);
+                        HistoricalIndex anIndex = mySource.getIndex();
 
-        if (anIndex != null) {
-	IndexRecord r = anIndex.getLastRecordByTime(d.datatype);
+                        if (anIndex != null) {
+                            IndexRecord r = anIndex.getLastRecordByTime(d.datatype);
 
-	}
+                        }
 
-        } //
-			 } 
-		  }
-	});
+                    } //
+                }
+            }
+        });
 
         myChoicesTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 jChoicesListTableValueChanged(e);
@@ -433,7 +431,6 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         });
 
         myResultsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 jResultsListTableValueChanged(e);
@@ -560,18 +557,19 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
                 }
             }
 
-            /** Sort products by name */
+            /**
+             * Sort products by name
+             */
             Collections.sort(sortedList, new Comparator<ProductListTableData>() {
-
                 @Override
                 public int compare(ProductListTableData arg0, ProductListTableData arg1) {
                     return (arg0.productName.compareTo(arg1.productName));
                 }
             });
-            
+
             // Clear choice?
             fillChoicesList("");
-        } 
+        }
         myProductListTableModel.setDataTypes(sortedList);
     }
 

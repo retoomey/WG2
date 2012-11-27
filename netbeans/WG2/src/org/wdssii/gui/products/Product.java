@@ -618,6 +618,7 @@ public class Product {
 			log.info("Generated " + createIt);
 		} catch (Exception e) {
 			log.warn("DataType " + dataName + " doesn't have a " + suffix + " it seems");
+                        log.warn(e.toString());
 		}
 
 		return newClass;

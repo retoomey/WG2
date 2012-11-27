@@ -1,5 +1,6 @@
 package org.wdssii.datatypes;
 
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -367,5 +368,9 @@ public class DataType {
 
     public DataTypeMetric getDataTypeMetric() {
         return myDataTypeMetric;
+    }
+    
+    public void exportToESRI(URL aURL){
+        
     }
 }

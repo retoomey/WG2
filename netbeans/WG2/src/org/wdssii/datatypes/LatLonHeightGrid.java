@@ -30,6 +30,31 @@ public class LatLonHeightGrid extends DataType implements Table2DView {
     private final int numLats;
     private final int numLons;
 
+    /** Get the number of latitude boxes we have */
+    public int getNumLats(){
+        return numLats;
+    }
+    
+    /** Get the number of longitude boxes we have */
+    public int getNumLons(){
+        return numLons;
+    }
+    
+    /** Get the resolution in degrees per latitude */
+    public float getLatResDegrees(){
+        return latResDegs;
+    }
+    
+    /** Get the resolution in degrees per longitude */
+    public float getLonResDegrees(){
+        return lonResDegs;
+    }
+    
+    /** is this sync? */
+    public Array3Dfloat getData(){
+        return data;
+    }
+    
     // We'll probably have a 'mode' that tells how to read the grid...
     // I can see CONUS OR a different direction...
     // JUST as a test to see if it loaded.....

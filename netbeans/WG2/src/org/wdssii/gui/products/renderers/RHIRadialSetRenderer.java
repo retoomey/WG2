@@ -22,9 +22,7 @@ import org.wdssii.datatypes.Radial;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.*;
-import org.wdssii.storage.Array1DOpenGL;
-import org.wdssii.storage.Array1Dfloat;
-import org.wdssii.storage.GrowList;
+import org.wdssii.storage.Array1D;
 import org.wdssii.util.RadialUtil;
 
 /**
@@ -129,7 +127,7 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                 // We could create each 'radial' in a thread...drawing could
                 // draw 'up to' current count...
                 //float[] values = aRadial.getValues();
-                Array1Dfloat values = aRadial.getValues();
+                Array1D<Float> values = aRadial.getValues();
                 for (int j = 0; j < numGates; j++) {
 
                     rangeKms += gateWidthKms;

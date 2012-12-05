@@ -8,7 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.GridVisibleArea;
-import org.wdssii.storage.Array3Dfloat;
+import org.wdssii.storage.Array3D;
 
 /**
  *  LatLonHeightGrid is a 3D grid of data.
@@ -24,7 +24,7 @@ public class LatLonHeightGrid extends DataType implements Table2DView {
     public static class LatLonHeightGridQuery extends DataTypeQuery {
     }
     private final ArrayList<Float> heightsMeters;
-    private final Array3Dfloat data;
+    private final Array3D<Float> data;
     private final float latResDegs;
     private final float lonResDegs;
     private final int numLats;
@@ -51,7 +51,7 @@ public class LatLonHeightGrid extends DataType implements Table2DView {
     }
     
     /** is this sync? */
-    public Array3Dfloat getData(){
+    public Array3D<Float> getData(){
         return data;
     }
     
@@ -105,7 +105,7 @@ public class LatLonHeightGrid extends DataType implements Table2DView {
     public static class LatLonHeightGridMemento extends DataTypeMemento {
 
         public ArrayList<Float> heightsMeters;
-        public Array3Dfloat data;
+        public Array3D<Float> data;
         public float latResDegs;
         public float lonResDegs;
         public int numLats;

@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Robert Toomey
  */
-public class Array2DfloatSparse extends DataStorage implements Array2Dfloat {
+public class Array2DfloatSparse extends DataStorage implements Array2D<Float> {
 
     private static Logger log = LoggerFactory.getLogger(Array2DfloatSparse.class);
     private static int counter = 0;
@@ -250,7 +250,7 @@ public class Array2DfloatSparse extends DataStorage implements Array2Dfloat {
     }
 
     @Override
-    public float get(int x, int y) {
+    public Float get(int x, int y) {
 
         // Need a fairly fast lookup...giving up speed for ram.
         ArrayNode n = searchNode(x, y);
@@ -261,7 +261,7 @@ public class Array2DfloatSparse extends DataStorage implements Array2Dfloat {
     }
 
     @Override
-    public void set(int x, int y, float value) {
+    public void set(int x, int y, Float value) {
         // FIXME: don't actually do anything yet....
         log.error("Can't set value in sparse array (read only implementation)");
     }
@@ -282,13 +282,13 @@ public class Array2DfloatSparse extends DataStorage implements Array2Dfloat {
     }
 
     @Override
-    public Array1Dfloat getCol(int i) {
+    public Array1D<Float> getCol(int i) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Array1Dfloat getRow(int i) {
+    public Array1D<Float> getRow(int i) {
         // TODO Auto-generated method stub
         return null;
     }

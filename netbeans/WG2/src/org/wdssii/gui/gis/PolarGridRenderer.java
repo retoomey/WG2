@@ -30,7 +30,7 @@ import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.gis.PolarGridFeature.PolarGridMemento;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
-import org.wdssii.storage.Array1Dfloat;
+import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.storage.GrowList;
 import org.wdssii.util.GLUtil;
@@ -62,7 +62,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	/**
 	 * Verts for the map. Single for now (monster maps may fail)
 	 */
-	protected Array1Dfloat polygonData;
+	protected Array1D<Float> polygonData;
 	private GrowList<Vec4> myLabelPoints;
 	private GrowList<String> myLabelStrings;
 	/**
@@ -170,7 +170,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			final int spokeStep = 360 / numSpokes;
 
 			// Allocate memory...
-			Array1Dfloat workPolygons = new Array1DfloatAsNodes(
+			Array1D<Float> workPolygons = new Array1DfloatAsNodes(
 				(numCircles * (numSegs + 1) * 3) // Number of circle points
 				+ (numSpokes * (numCircles + 1) * 3), // Number of spoke points
 				0.0f);
@@ -488,7 +488,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	 * brief time periods more than one worker might be going. (Fast
 	 * changing of settings). The worker will stop on false
 	 */
-	public boolean updateData(BackgroundPolarGridMaker worker, GrowList<Integer> off, Array1Dfloat poly,
+	public boolean updateData(BackgroundPolarGridMaker worker, GrowList<Integer> off, Array1D<Float> poly,
 		GrowList<Vec4> points, GrowList<String> labels, boolean done) {
 
 		// WorkerLock --> drawLock.  Never switch order

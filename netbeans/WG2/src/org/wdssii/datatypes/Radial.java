@@ -1,6 +1,6 @@
 package org.wdssii.datatypes;
 
-import org.wdssii.storage.Array1Dfloat;
+import org.wdssii.storage.Array1D;
 
 /**
  * A Radial holds a 'beam' of gate data that shares a fixed angle
@@ -12,7 +12,7 @@ import org.wdssii.storage.Array1Dfloat;
 public class Radial {
 
     /** The 1D float that stores the radial */
-    private Array1Dfloat array;
+    private Array1D<Float> array;
     /** The angle in degrees of the Radial. */
     private final float degrees;
     /** The angle in radians of the Radial. */
@@ -33,7 +33,7 @@ public class Radial {
      * @param  */
     public Radial(float inDegrees, float beamWidthDegs,
             float azimuthalSpacing, float gateWidth,
-            float nyquist, Array1Dfloat values, int i) {
+            float nyquist, Array1D<Float> values, int i) {
         this.gateWidthKms = gateWidth;
         this.array = values;
         this.degrees = inDegrees;
@@ -61,7 +61,7 @@ public class Radial {
         return (diff < spacingDegrees);
     }
 
-    public Array1Dfloat getValues() {
+    public Array1D<Float> getValues() {
         return array;
     }
 

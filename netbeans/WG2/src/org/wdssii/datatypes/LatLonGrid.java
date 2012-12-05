@@ -3,10 +3,9 @@ package org.wdssii.datatypes;
 import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.wdssii.geom.Location;
 import org.wdssii.gui.GridVisibleArea;
-import org.wdssii.storage.Array2Dfloat;
+import org.wdssii.storage.Array2D;
 
 /**
  *
@@ -32,7 +31,7 @@ public class LatLonGrid extends DataType implements Table2DView {
 	/**
 	 * The array that stores our data
 	 */
-	private Array2Dfloat values;
+	private Array2D<Float> values;
 	/** The 'thickness' in KM of the LatLonGrid plane.  Used for
 	 * volumes.  Basically it's the equivalent of RadialSet's beamwidth.
 	 */
@@ -51,7 +50,7 @@ public class LatLonGrid extends DataType implements Table2DView {
 		/**
 		 * The 2D array of data values.
 		 */
-		public Array2Dfloat values;
+		public Array2D<Float> values;
 	}
 
 	/**
@@ -78,7 +77,7 @@ public class LatLonGrid extends DataType implements Table2DView {
 	//  public LatLonGrid(Location nwCorner, Date time, String typeName, float deltaLat, float deltaLon, int numLat, int numLon) {
 	//     this(nwCorner, time, typeName, deltaLat, deltaLon, new Array2DfloatAsTiles(numLat, numLon, 0.0f));
 	// }
-	public Array2Dfloat getValues() {
+	public Array2D<Float> getValues() {
 		return values;
 	}
 
@@ -124,7 +123,7 @@ public class LatLonGrid extends DataType implements Table2DView {
 	/**
 	 * Can be used to set all the values of the grid at once.
 	 */
-	public void setValues(Array2Dfloat values2) {
+	public void setValues(Array2D<Float> values2) {
 		values = values2;
 	}
 

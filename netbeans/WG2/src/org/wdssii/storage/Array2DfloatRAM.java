@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * @author Robert Toomey
  *
  */
-public class Array2DfloatRAM implements Array2Dfloat {
+public class Array2DfloatRAM implements Array2D<Float> {
 
     private static Logger log = LoggerFactory.getLogger(Array2DfloatRAM.class);
     private int myX;
@@ -35,7 +35,7 @@ public class Array2DfloatRAM implements Array2Dfloat {
     }
 
     /** Not to be implemented directly, this class wraps a column in the 2D float array */
-    private static class Array1DfloatRAMCOLUMN implements Array1Dfloat {
+    private static class Array1DfloatRAMCOLUMN implements Array1D<Float> {
 
         private Array2DfloatRAM my2DArray;
         private int myColumn;
@@ -46,15 +46,15 @@ public class Array2DfloatRAM implements Array2Dfloat {
         }
 
         @Override
-        public float get(int x) {
+        public Float get(int x) {
             if (my2DArray.myValid) {
                 return my2DArray.myArray[x][myColumn];
             }
-            return 0;
+            return 0.0f;
         }
 
         @Override
-        public void set(int x, float value) {
+        public void set(int x, Float value) {
             if (my2DArray.myValid) {
                 my2DArray.myArray[x][myColumn] = value;
             }
@@ -90,7 +90,7 @@ public class Array2DfloatRAM implements Array2Dfloat {
     }
 
     /** Not to be implemented directly, this class wraps a column in the 2D float array */
-    private static class Array1DfloatRAMROW implements Array1Dfloat {
+    private static class Array1DfloatRAMROW implements Array1D<Float> {
 
         private Array2DfloatRAM my2DArray;
         private int myRow;
@@ -101,15 +101,15 @@ public class Array2DfloatRAM implements Array2Dfloat {
         }
 
         @Override
-        public float get(int x) {
+        public Float get(int x) {
             if (my2DArray.myValid) {
                 return my2DArray.myArray[myRow][x];
             }
-            return 0;
+            return 0.0f;
         }
 
         @Override
-        public void set(int x, float value) {
+        public void set(int x, Float value) {
             if (my2DArray.myValid) {
                 my2DArray.myArray[myRow][x] = value;
             }
@@ -158,7 +158,7 @@ public class Array2DfloatRAM implements Array2Dfloat {
     }
 
     @Override
-    public float get(int x, int y) {
+    public Float get(int x, int y) {
         if (myValid) {
             return myArray[x][y];
         }
@@ -166,7 +166,7 @@ public class Array2DfloatRAM implements Array2Dfloat {
     }
 
     @Override
-    public void set(int x, int y, float value) {
+    public void set(int x, int y, Float value) {
         if (myValid) {
             myArray[x][y] = value;
         }
@@ -188,13 +188,13 @@ public class Array2DfloatRAM implements Array2Dfloat {
     }
 
     @Override
-    public Array1Dfloat getCol(int i) {
+    public Array1D<Float> getCol(int i) {
         // Note the only memory here is the object, not the array
         return new Array1DfloatRAMCOLUMN(this, i);
     }
 
     @Override
-    public Array1Dfloat getRow(int i) {
+    public Array1D<Float> getRow(int i) {
         // Note the only memory here is the object, not the array
         return new Array1DfloatRAMROW(this, i);
     }

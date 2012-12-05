@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.GridVisibleArea;
-import org.wdssii.storage.Array2Dfloat;
+import org.wdssii.storage.Array2D;
 
 /**
  * Alpha version of WindField datatype.  Just a hook to get things started in GUI
@@ -26,14 +26,14 @@ public class WindField extends DataType implements Table2DView {
     
     private final float deltaLat;
     private final float deltaLon;
-    private Array2Dfloat uArray;
-    private Array2Dfloat vArray;
+    private Array2D<Float> uArray;
+    private Array2D<Float> vArray;
 
     public static class WindFieldMemento extends DataTypeMemento {
         public float deltaLat;
         public float deltaLon;
-        public Array2Dfloat uArray;
-        public Array2Dfloat vArray;
+        public Array2D<Float> uArray;
+        public Array2D<Float> vArray;
     }
     
     public WindField(WindFieldMemento m){

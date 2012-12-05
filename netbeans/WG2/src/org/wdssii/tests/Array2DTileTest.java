@@ -12,7 +12,7 @@ public class Array2DTileTest extends TestCase {
         Array2DfloatAsTiles a = new Array2DfloatAsTiles(1000000, 1000000, 1.0f);
         /** Set the diagonal of the 10000x10000 array, this will force tiles to disk */
         for (int i = 0; i < 100000; i++) {
-            a.set(i, i, i);
+            a.set(i, i, (float)i);
             float out = a.get(i, i);
             if (i != out) {
                 assertEquals(out, i);

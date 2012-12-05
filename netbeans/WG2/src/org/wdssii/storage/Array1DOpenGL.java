@@ -12,7 +12,7 @@ import java.nio.FloatBuffer;
  *   @author Robert Toomey
  *
  */
-public class Array1DOpenGL extends DataStorage implements Array1Dfloat {
+public class Array1DOpenGL extends DataStorage implements Array1D<Float> {
 
     /** The length of our data */
     private int mySize;
@@ -65,7 +65,7 @@ public class Array1DOpenGL extends DataStorage implements Array1Dfloat {
     }
 
     @Override
-    public float get(int x) {
+    public Float get(int x) {
 
         // Here we have the CPU and IO hit (the speed cost we pay to save RAM)
         // This code duplicates with set "inline"
@@ -102,7 +102,7 @@ public class Array1DOpenGL extends DataStorage implements Array1Dfloat {
      *  Set is the monster for creating stuff.
      */
     @Override
-    public void set(int x, float value) {
+    public void set(int x, Float value) {
 
         // Here we have the CPU and IO hit (the speed cost we pay to save RAM)
         // This code duplicates with get "inline"

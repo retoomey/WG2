@@ -4,15 +4,15 @@ import java.util.Calendar;
 import java.util.Date;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
-import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetMemento;
+import org.wdssii.datatypes.Radial;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
 import org.wdssii.index.Index;
 import org.wdssii.index.IndexRecord;
-import org.wdssii.storage.Array1Dfloat;
-import org.wdssii.storage.Array2Dfloat;
+import org.wdssii.storage.Array1D;
+import org.wdssii.storage.Array2D;
 import org.wdssii.storage.Array2DfloatAsTiles;
 
 /**
@@ -57,7 +57,7 @@ public class RadialSetTest extends DataTypeTest {
 
         // Create 2D array of RadialSet
         int toggle = 0;
-        Array2Dfloat values = new Array2DfloatAsTiles(num_radials, num_gates, 0.0f);
+        Array2D<Float> values = new Array2DfloatAsTiles(num_radials, num_gates, 0.0f);
         if (m.datametric != null) {
             m.datametric.beginArray2D();
         }
@@ -108,7 +108,7 @@ public class RadialSetTest extends DataTypeTest {
 
             for (int i = 0; i < num_radials; ++i) {
                 // This wraps around the column of the 2D array, _not_ a copy
-                Array1Dfloat col = values.getCol(i);
+                Array1D<Float> col = values.getCol(i);
                 if (col != null) {
                     if (r.maxGateNumber < col.size()) {
                         r.maxGateNumber = col.size();

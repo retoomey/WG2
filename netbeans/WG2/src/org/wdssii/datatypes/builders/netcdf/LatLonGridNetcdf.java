@@ -1,15 +1,15 @@
 package org.wdssii.datatypes.builders.netcdf;
 
-import org.wdssii.datatypes.DataType;
-import org.wdssii.datatypes.DataType.DataTypeMemento;
-import org.wdssii.datatypes.builders.NetcdfBuilder;
-import org.wdssii.storage.Array2Dfloat;
-import ucar.nc2.NetcdfFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.datatypes.DataType;
+import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.datatypes.LatLonGrid.LatLonGridMemento;
+import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
+import org.wdssii.storage.Array2D;
+import ucar.nc2.NetcdfFile;
 
 /**
  *  Create a LatLonGrid from a Netcdf file
@@ -52,7 +52,7 @@ public class LatLonGridNetcdf extends DataTypeNetcdf {
 
             float latres = 0;
             float lonres = 0;
-            Array2Dfloat grid = null;
+            Array2D<Float> grid = null;
             try {
                 latres = ncfile.findGlobalAttribute("LatGridSpacing").getNumericValue().floatValue();
                 lonres = ncfile.findGlobalAttribute("LonGridSpacing").getNumericValue().floatValue();

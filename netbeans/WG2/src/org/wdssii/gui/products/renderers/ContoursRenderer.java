@@ -18,7 +18,7 @@ import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.Product;
-import org.wdssii.storage.Array1Dfloat;
+import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DfloatAsNodes;
 
 /**
@@ -33,11 +33,11 @@ public class ContoursRenderer extends ProductRenderer {
     private Vector<Integer> myOffsets;
     
     /** points for the contour line strips */
-    protected Array1Dfloat verts;
+    protected Array1D<Float> verts;
     /** Corresponding colors */
-    protected Array1Dfloat colors;
+    protected Array1D<Float> colors;
     /** Colors as readout information */
-    protected Array1Dfloat readout;
+    protected Array1D<Float> readout;
     
     public ContoursRenderer(){
         super(true);

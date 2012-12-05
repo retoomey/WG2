@@ -24,7 +24,7 @@ import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.renderers.TileRenderer.Tile;
-import org.wdssii.storage.Array1Dfloat;
+import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DfloatAsNodes;
 
 /** A tile that displays a section of a WindFieldProduct
@@ -42,9 +42,9 @@ public class WindFieldTile extends TileRenderer.Tile {
     /** The sector this tile represents */
     protected Sector mySector;
     /** The vertex points to render */
-    protected Array1Dfloat verts = null;
+    protected Array1D<Float> verts = null;
     /** The colors for the vertexes */
-    protected Array1Dfloat colors = null;
+    protected Array1D<Float> colors = null;
     /** The row number in the level, used for reference */
     private final int myRow;
     /** The col number in the level, used for reference */

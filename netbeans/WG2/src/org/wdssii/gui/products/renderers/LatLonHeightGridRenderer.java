@@ -16,7 +16,7 @@ import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.storage.Array1DOpenGL;
-import org.wdssii.storage.Array3Dfloat;
+import org.wdssii.storage.Array3D;
 import org.wdssii.storage.GrowList;
 
 /**
@@ -49,7 +49,7 @@ public class LatLonHeightGridRenderer extends QuadStripDataRenderer {
         int rendererIndex = 0;
         int numLats = aLLHG.getNumLats();
         int numLons = aLLHG.getNumLons();
-        Array3Dfloat data = aLLHG.getData();
+        Array3D<Float> data = aLLHG.getData();
         boolean startQuadStrip;
         for (int y = 0; y < numLats; y++) {
             int lastJWithData = -2;
@@ -140,7 +140,7 @@ public class LatLonHeightGridRenderer extends QuadStripDataRenderer {
             float height = (float) aLLHG.getLocation().getHeightKms();
 
 
-            Array3Dfloat data = aLLHG.getData();
+            Array3D<Float> data = aLLHG.getData();
             // Northwest corner...
             Location origin = aLLHG.getLocation();
             float startLat = (float) origin.getLatitude();

@@ -22,7 +22,7 @@ import org.wdssii.datatypes.Radial;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.*;
-import org.wdssii.storage.Array1Dfloat;
+import org.wdssii.storage.Array1D;
 import org.wdssii.util.RadialUtil;
 
 /**
@@ -114,7 +114,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                 // Reset range to starting gate
                 float rangeKms = firstGateKms;
                 int lastJWithData = -2;           
-                Array1Dfloat values = r.getValues();
+                Array1D<Float> values = r.getValues();
                 for (int j = 0; j < numGates; j++) {
                     float value = values.get(j);
                     if (value == DataType.MissingData) {

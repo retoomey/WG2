@@ -9,15 +9,15 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
-import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetMemento;
+import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
 import org.wdssii.geom.Location;
-import org.wdssii.storage.Array1Dfloat;
-import org.wdssii.storage.Array2Dfloat;
+import org.wdssii.storage.Array1D;
+import org.wdssii.storage.Array2D;
 import org.wdssii.storage.Array2DfloatAsTiles;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
@@ -144,7 +144,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
         return type;
     }
 
-   public  Array2Dfloat readArray2Dfloat(NetcdfFile ncfile, String typeName,
+   public  Array2D<Float> readArray2Dfloat(NetcdfFile ncfile, String typeName,
             DataTypeMetric optional,
             float scale_factor,
             float add_offset,
@@ -155,7 +155,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
         int num_radials = data.getDimension(0).getLength();
         int num_gates = data.getDimension(1).getLength();
 
-        Array2Dfloat values = new Array2DfloatAsTiles(num_radials, num_gates, 0.0f);
+        Array2D<Float> values = new Array2DfloatAsTiles(num_radials, num_gates, 0.0f);
         Index gate_index = gate_values.getIndex();
         if (optional != null) {
             optional.beginArray2D();
@@ -322,7 +322,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
 
                 // This reads the entire volume into a single array..
                 // FIXME: need to handle the staggered case...bleh....
-                Array2Dfloat values = null;
+                Array2D<Float> values = null;
                 int total_num_rays = 0;
                 int total_num_gates = 0;
                 try {
@@ -382,7 +382,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
                     float ny = 50;  // wrong
 
                     // This wraps around the column of the 2D array, _not_ a copy
-                    Array1Dfloat col = values.getCol(i);
+                    Array1D<Float> col = values.getCol(i);
                     if (col != null) {
                         if (r.maxGateNumber < col.size()) {
                             r.maxGateNumber = col.size();

@@ -9,7 +9,7 @@ import ucar.nc2.NetcdfFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
-import org.wdssii.storage.Array3Dfloat;
+import org.wdssii.storage.Array3D;
 import org.wdssii.storage.Array3DfloatRAM;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
@@ -60,7 +60,7 @@ public class LatLonHeightGridNetcdf extends DataTypeNetcdf {
             float lonres = 0;
             int numLats = 0;
             int numLons = 0;
-            Array3Dfloat grid = null;
+            Array3D<Float> grid = null;
             ArrayList<Float> theHeights = new ArrayList<Float>();
 
             try {

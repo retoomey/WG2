@@ -27,8 +27,6 @@ import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.renderers.TileRenderer.Tile;
 import org.wdssii.storage.Array1DOpenGL;
-import org.wdssii.storage.Array1Dfloat;
-import org.wdssii.storage.Array1DfloatAsNodes;
 
 /** A tile that displays a section of a LatLonGridProduct using quads
  * Based originally on the worldwind surfaceTile class

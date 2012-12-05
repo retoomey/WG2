@@ -2,17 +2,13 @@ package org.wdssii.storage;
 
 import java.nio.FloatBuffer;
 
-/** Array1Dfloat hides the internals of storage of a 1D float array.
- * This way we can store it sparse, full, off to disk, etc...
+/**
+ *  Our general 1 dimensional array.
  * 
- * FIXME: add iterators so that sparse data can be accessed
- * without scanning an entire grid...
- *  * 
  * @author Robert Toomey
  */
-public interface Array1Dfloat {
-
-    /** Begin a batch (>1) of set/get.  This allows array to optimize caching
+public interface Array1D<T> {
+     /** Begin a batch (>1) of set/get.  This allows array to optimize caching
      */
     void begin();
     
@@ -21,10 +17,10 @@ public interface Array1Dfloat {
     void end();
     
     /** Get a value from given x and y */
-    float get(int x);
+    T get(int x);
 
     /** Set a value given an x and y */
-    void set(int x, float value);
+    void set(int x, T value);
 
     /** Return the full size of the array */
     int size();

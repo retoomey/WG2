@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  *   @author Robert Toomey
  *
  */
-public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
+public class Array2DfloatAsTiles extends DataStorage implements Array2D<Float> {
 
     private static Logger log = LoggerFactory.getLogger(Array2DfloatAsTiles.class);
     /** The full number of possible x values in floats */
@@ -105,7 +105,7 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
      * array. This acts like a general class right now, but could be optimized
      * later so I'm keeping it internal.
      */
-    private static class Array1DfloatTileCol implements Array1Dfloat {
+    private static class Array1DfloatTileCol implements Array1D<Float> {
 
         private Array2DfloatAsTiles my2DArray;
         private int myColumn;
@@ -116,12 +116,12 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
         }
 
         @Override
-        public float get(int x) {
+        public Float get(int x) {
             return my2DArray.get(myColumn, x);
         }
 
         @Override
-        public void set(int x, float value) {
+        public void set(int x, Float value) {
             my2DArray.set(myColumn, x, value);
         }
 
@@ -155,7 +155,7 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
      *  Not to be implemented directly, this class wraps a column in the 2D float
      * array
      */
-    private static class Array1DfloatTileRow implements Array1Dfloat {
+    private static class Array1DfloatTileRow implements Array1D<Float> {
 
         private Array2DfloatAsTiles my2DArray;
         private int myRow;
@@ -166,12 +166,12 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
         }
 
         @Override
-        public float get(int x) {
+        public Float get(int x) {
             return my2DArray.get(x, myRow);
         }
 
         @Override
-        public void set(int x, float value) {
+        public void set(int x, Float value) {
             my2DArray.set(x, myRow, value);
         }
 
@@ -217,7 +217,7 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
     }
 
     @Override
-    public float get(int x, int y) {
+    public Float get(int x, int y) {
 
         // Here we have the CPU and IO hit (the speed cost we pay to save RAM)
         // This code duplicates with set "inline"
@@ -234,7 +234,7 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
     }
 
     @Override
-    public void set(int x, int y, float value) {
+    public void set(int x, int y, Float value) {
 
         int tileX = x / mySide;
         int tileY = y / mySide;
@@ -296,7 +296,7 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
     /**
      *  We treat a constant X value as a column
      */
-    public Array1Dfloat getCol(int i) {
+    public Array1D<Float> getCol(int i) {
         return new Array1DfloatTileCol(this, i);
     }
 
@@ -304,7 +304,7 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2Dfloat {
     /**
      *  We treat a constant Y value as a row
      */
-    public Array1Dfloat getRow(int i) {
+    public Array1D<Float> getRow(int i) {
         return new Array1DfloatTileRow(this, i);
     }
 }

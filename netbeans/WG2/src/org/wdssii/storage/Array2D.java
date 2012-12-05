@@ -1,6 +1,6 @@
 package org.wdssii.storage;
 
-/** Array2Dfloat hides the internals of storage of a 2D float array.
+/** Array2D hides the internals of storage of a 2D array.
  * This way we can store it sparse, full, off to disk, etc...
  * 
  * FIXME: add iterators so that sparse data can be accessed
@@ -9,13 +9,13 @@ package org.wdssii.storage;
  * 
  * @author Robert Toomey
  */
-public interface Array2Dfloat {
+public interface Array2D<T> {
 
     /** Get a value from given x and y */
-    float get(int x, int y);
+    T get(int x, int y);
 
     /** Set a value given an x and y */
-    void set(int x, int y, float value);
+    void set(int x, int y, T value);
 
     /** Get the 'x' dimension of the array */
     int getX();
@@ -29,12 +29,12 @@ public interface Array2Dfloat {
     /** Return an efficient 1D float access to given col of 2Dfloat,
      * this method 'may' copy, but probably shouldn't.  Return null
      * if you can't implement this */
-    Array1Dfloat getCol(int i);
+    Array1D<T> getCol(int i);
 
     /** Return an efficient 1D float access to given col of 2Dfloat,
      * this method 'may' copy, but probably shouldn't.  Return null
      * if you can't implement this */
-    Array1Dfloat getRow(int i);
+    Array1D<T> getRow(int i);
     
     /** begin row ordered for a mass get/set of data.  Allows array to
      * optimize sub-tile loading.  This should expect a looped call with 

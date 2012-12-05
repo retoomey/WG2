@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Robert Toomey
  */
-public class Array3DfloatRAM implements Array3Dfloat {
+public class Array3DfloatRAM implements Array3D<Float> {
 
     private static Logger log = LoggerFactory.getLogger(Array2DfloatRAM.class);
     private int myX;
@@ -45,7 +45,7 @@ public class Array3DfloatRAM implements Array3Dfloat {
     }
 
     @Override
-    public float get(int x, int y, int z) {
+    public Float get(int x, int y, int z) {
         if (myValid) {
             return myArray[x][y][z];
         }
@@ -53,7 +53,7 @@ public class Array3DfloatRAM implements Array3Dfloat {
     }
 
     @Override
-    public void set(int x, int y, int z, float value) {
+    public void set(int x, int y, int z, Float value) {
         if (myValid) {
             myArray[x][y][z] = value;
         }

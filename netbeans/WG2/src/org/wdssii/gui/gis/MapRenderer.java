@@ -38,7 +38,7 @@ import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.gis.MapFeature.MapMemento;
 import org.wdssii.storage.Array1DOpenGL;
-import org.wdssii.storage.Array1Dfloat;
+import org.wdssii.storage.Array1D;
 import org.wdssii.storage.GrowList;
 import org.wdssii.util.GLUtil;
 
@@ -68,7 +68,7 @@ public class MapRenderer implements Feature3DRenderer {
     /**
      * Verts for the map. Single for now (monster maps may fail)
      */
-    protected Array1Dfloat polygonData;
+    protected Array1D<Float> polygonData;
     /**
      * Current memento settings
      */
@@ -202,7 +202,7 @@ public class MapRenderer implements Feature3DRenderer {
             }
 
             // Allocate memory...
-            Array1Dfloat workPolygons = new Array1DOpenGL(multiPolyPointCount * 3, 0.0f);
+            Array1D<Float> workPolygons = new Array1DOpenGL(multiPolyPointCount * 3, 0.0f);
 
             // Creation pass
             i = stuff.features();
@@ -376,7 +376,7 @@ public class MapRenderer implements Feature3DRenderer {
      * brief time periods more than one worker might be going. (Fast changing of
      * settings). The worker will stop on false
      */
-    public boolean updateData(BackgroundMapMaker worker, GrowList<Integer> off, Array1Dfloat poly,
+    public boolean updateData(BackgroundMapMaker worker, GrowList<Integer> off, Array1D<Float> poly,
             boolean done) {
 
         // WorkerLock --> drawLock.  Never switch order

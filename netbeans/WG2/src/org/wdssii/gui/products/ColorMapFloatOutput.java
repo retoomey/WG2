@@ -1,7 +1,7 @@
 package org.wdssii.gui.products;
 
 import org.wdssii.gui.ColorMap.ColorMapOutput;
-import org.wdssii.storage.Array1Dfloat;
+import org.wdssii.storage.Array1D;
 
 /**
  * A subclass of ColorMapOutput that knows how to write to our internal
@@ -18,7 +18,7 @@ public class ColorMapFloatOutput extends ColorMapOutput {
      * Note: This technique ONLY works with a 32 bit color buffer.  But any modern system
      * can create this easy.
      */
-    public int putUnsignedBytes(Array1Dfloat in, int counter) {
+    public int putUnsignedBytes(Array1D<Float> in, int counter) {
 
         // In opengl, we want byte order to be RGBA, but float in java is Big-Endian...so
         // we create an integer of the form:
@@ -35,7 +35,7 @@ public class ColorMapFloatOutput extends ColorMapOutput {
         return ++counter;
     }
     
-    public static int putUnsignedBytes(Array1Dfloat in, int counter, short red,
+    public static int putUnsignedBytes(Array1D<Float> in, int counter, short red,
             short blue, short green, short alpha) {
 
         // In opengl, we want byte order to be RGBA, but float in java is Big-Endian...so

@@ -25,7 +25,7 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.datatypes.builders.netcdf.CFRadialNetcdf;
 import org.wdssii.index.IndexRecord;
-import org.wdssii.storage.Array2Dfloat;
+import org.wdssii.storage.Array2D;
 import org.wdssii.storage.Array2DfloatAsTiles;
 import org.wdssii.storage.DataManager;
 import org.wdssii.util.StringUtil;
@@ -306,7 +306,7 @@ public class NetcdfBuilder extends Builder {
         return data;
     }
 
-    public static Array2Dfloat readArray2Dfloat(NetcdfFile ncfile, String typeName,
+    public static Array2D<Float> readArray2Dfloat(NetcdfFile ncfile, String typeName,
             DataTypeMetric optional)
             throws IOException {
         Variable data = getVariable(ncfile, typeName);
@@ -314,7 +314,7 @@ public class NetcdfBuilder extends Builder {
         int num_radials = data.getDimension(0).getLength();
         int num_gates = data.getDimension(1).getLength();
 
-        Array2Dfloat values = new Array2DfloatAsTiles(num_radials, num_gates, 0.0f);
+        Array2D<Float> values = new Array2DfloatAsTiles(num_radials, num_gates, 0.0f);
         Index gate_index = gate_values.getIndex();
         if (optional != null) {
             optional.beginArray2D();
@@ -334,7 +334,7 @@ public class NetcdfBuilder extends Builder {
         return values;
     }
 
-    public static Array2Dfloat readSparseArray2Dfloat(NetcdfFile ncfile, String typeName,
+    public static Array2D<Float> readSparseArray2Dfloat(NetcdfFile ncfile, String typeName,
             DataTypeMetric optional)
             throws IOException {
         int num_radials = (ncfile.getDimensions().get(0)).getLength();
@@ -356,7 +356,7 @@ public class NetcdfBuilder extends Builder {
         Array count_values = (countVariable == null) ? null : countVariable.read();
         int num_pixels = pixelxVariable.getDimension(0).getLength();
         Index pixel_index = data_values.getIndex();
-        Array2Dfloat values = new Array2DfloatAsTiles(num_radials, num_gates, backgroundValue);
+        Array2D<Float> values = new Array2DfloatAsTiles(num_radials, num_gates, backgroundValue);
 
         log.info("Array from sparse data " + num_radials + "," + num_gates + " " + backgroundValue);
 

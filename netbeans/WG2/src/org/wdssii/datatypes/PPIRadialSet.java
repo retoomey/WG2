@@ -1,14 +1,9 @@
 package org.wdssii.datatypes;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.LatLon;
-import gov.nasa.worldwind.geom.Vec4;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -20,10 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import org.geotools.data.DataUtilities;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -32,7 +24,6 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.feature.FeatureCollections;
-import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -44,9 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.GridVisibleArea;
 import org.wdssii.gui.products.renderers.RadialSetRenderer;
-import org.wdssii.gui.volumes.LLHAreaSet;
-import org.wdssii.gui.volumes.LLHAreaSetGUI;
-import org.wdssii.storage.Array1Dfloat;
+import org.wdssii.storage.Array1D;
 import org.wdssii.util.RadialUtil;
 
 /*
@@ -360,7 +349,7 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
                     q.outHitGateNumber = gateNumber;
 
                     // Is the query within range for this Radial?  Range is up to the last piece of available data.
-                    Array1Dfloat gates = candidate.getValues();
+                    Array1D<Float> gates = candidate.getValues();
                     q.outInRange = (gateNumber >= 0) && (gateNumber < gates.size());
 
                     // Valid data must be in azimuth and range...? Note for vslice this will make black gaps in azimuth
@@ -775,7 +764,7 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
 
                 // Reset range to starting gate
                 float rangeKms = firstGateKms;
-                Array1Dfloat values = r.getValues();
+                Array1D<Float> values = r.getValues();
                 int lastWrittenIndex = -2;
 
                 for (int j = 0; j < numGates; j++) {

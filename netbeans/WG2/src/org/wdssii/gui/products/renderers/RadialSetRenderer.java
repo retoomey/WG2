@@ -3,8 +3,8 @@ package org.wdssii.gui.products.renderers;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialSet;
+import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DOpenGL;
-import org.wdssii.storage.Array1Dfloat;
 import org.wdssii.storage.GrowList;
 import org.wdssii.util.RadialUtil;
 
@@ -109,7 +109,7 @@ public abstract class RadialSetRenderer extends ProductRenderer {
                 continue;
             }
             int lastJWithData = -2;
-            Array1Dfloat values = r.getValues();
+            Array1D<Float> values = r.getValues();
             boolean startQuadStrip;
             for (int j = 0; j < numGates; j++) {
                 float value = values.get(j);

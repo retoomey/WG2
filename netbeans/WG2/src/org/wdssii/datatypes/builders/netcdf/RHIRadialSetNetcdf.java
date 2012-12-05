@@ -12,8 +12,8 @@ import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.geom.CPoint;
 import org.wdssii.geom.CVector;
-import org.wdssii.storage.Array1Dfloat;
-import org.wdssii.storage.Array2Dfloat;
+import org.wdssii.storage.Array1D;
+import org.wdssii.storage.Array2D;
 import org.wdssii.storage.Array2DfloatAsTiles;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
@@ -57,11 +57,11 @@ public class RHIRadialSetNetcdf extends DataTypeNetcdf {
         }
     }
     
-    public static Array2Dfloat makeArray2Dfloat(NetcdfFile ncfile,
+    public static Array2D<Float> makeArray2Dfloat(NetcdfFile ncfile,
             DataType.DataTypeMetric optional, int num_radials, int num_gates)
             throws IOException {
 
-        Array2Dfloat values = new Array2DfloatAsTiles(num_radials, num_gates, 0.0f);
+        Array2D<Float> values = new Array2DfloatAsTiles(num_radials, num_gates, 0.0f);
         if (optional != null) {
             optional.beginArray2D();
         }
@@ -139,7 +139,7 @@ public class RHIRadialSetNetcdf extends DataTypeNetcdf {
                 r.myUx = new CVector(0, 0, 1).crossProduct(r.myUz).unit();
                 r.myUy = r.myUz.crossProduct(r.myUx);
 
-                Array2Dfloat values = null;
+                Array2D<Float> values = null;
                 int num_radials = 0;
 		//num_radials = 50;
 		//int num_gates = 100;
@@ -170,7 +170,7 @@ public class RHIRadialSetNetcdf extends DataTypeNetcdf {
                     float ny = (ny_values == null) ? nyquist : ny_values.getFloat(i);
                     
                     // This wraps around the column of the 2D array, _not_ a copy
-                    Array1Dfloat col = values.getCol(i);
+                    Array1D<Float> col = values.getCol(i);
                     if (col != null) {
                         if (r.maxGateNumber < col.size()) {
                             r.maxGateNumber = col.size();

@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  * @author Robert Toomey
  *
  */
-public class Array1DfloatRAM implements Array1Dfloat {
+public class Array1DfloatRAM implements Array1D<Float> {
 
     private static Logger log = LoggerFactory.getLogger(Array1DfloatRAM.class);
     private int mySize;
@@ -34,7 +34,7 @@ public class Array1DfloatRAM implements Array1Dfloat {
     }
 
     @Override
-    public float get(int x) {
+    public Float get(int x) {
         if (myValid) {
             return myArray[x];
         }
@@ -42,7 +42,7 @@ public class Array1DfloatRAM implements Array1Dfloat {
     }
 
     @Override
-    public void set(int x, float value) {
+    public void set(int x, Float value) {
         if (myValid) {
             myArray[x] = value;
         }

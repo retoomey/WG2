@@ -1,15 +1,15 @@
 package org.wdssii.datatypes.builders.netcdf;
 
-import org.wdssii.datatypes.DataType;
-import org.wdssii.datatypes.DataType.DataTypeMemento;
-import org.wdssii.datatypes.builders.NetcdfBuilder;
-import org.wdssii.storage.Array2Dfloat;
-import ucar.nc2.NetcdfFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.datatypes.DataType;
+import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.WindField;
 import org.wdssii.datatypes.WindField.WindFieldMemento;
+import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
+import org.wdssii.storage.Array2D;
+import ucar.nc2.NetcdfFile;
 
 /**
  *  Create a WindField from a Netcdf file
@@ -52,8 +52,8 @@ public class WindFieldNetcdf extends DataTypeNetcdf {
 
             float latres = 0;
             float lonres = 0;
-            Array2Dfloat gridu = null;
-            Array2Dfloat gridv = null;
+            Array2D<Float> gridu = null;
+            Array2D<Float> gridv = null;
 
             try {
                 // These exist in windfield as well

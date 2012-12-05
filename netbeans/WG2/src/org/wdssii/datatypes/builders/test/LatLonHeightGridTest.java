@@ -9,7 +9,7 @@ import org.wdssii.datatypes.LatLonHeightGrid;
 import org.wdssii.datatypes.LatLonHeightGrid.LatLonHeightGridMemento;
 import org.wdssii.index.Index;
 import org.wdssii.index.IndexRecord;
-import org.wdssii.storage.Array3Dfloat;
+import org.wdssii.storage.Array3D;
 import org.wdssii.storage.Array3DfloatRAM;
 
 /**
@@ -51,7 +51,7 @@ public class LatLonHeightGridTest extends DataTypeTest {
 
         // Create 3D array of LatLonHeightGrid
         int toggle = 0;
-        Array3Dfloat values = new Array3DfloatRAM(num_heights, num_lats, num_lons, 0.0f);
+        Array3D<Float> values = new Array3DfloatRAM(num_heights, num_lats, num_lons, 0.0f);
         if (m.datametric != null) {
             m.datametric.beginArray3D();
         }

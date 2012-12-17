@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import com.jidesoft.swing.JideSplitButton;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -102,52 +103,49 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     @Override
     public void addGlobalCustomTitleBarComponents(List<Object> addTo) {
 
-        // Interpolation button
-        Icon test = SwingIconFactory.getIconByName("cart_add.png");
-        JPopupMenu menu = new JPopupMenu();
+        Icon test = SwingIconFactory.getIconByName("plus.png");
+        JideSplitButton button = new JideSplitButton("");
+        button.setIcon(test);
+        button.setToolTipText("Add a feature to the 3D window");
+        button.setAlwaysDropdown(true);
 
         JMenuItem item;
 
-        item = new JMenuItem("Add 2 Points");
+        item = new JMenuItem("2 Points");
         item.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addSetActionPerformed(evt, 2);
             }
         });
-        menu.add(item);
+        button.add(item);
 
-
-        item = new JMenuItem("Add 1 Point");
+        item = new JMenuItem("1 Point");
         item.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addSetActionPerformed(evt, 1);
             }
         });
-        menu.add(item);
-        item = new JMenuItem("Add Map from ESRI shapefile...");
+        button.add(item);
+
+        item = new JMenuItem("Map from ESRI shapefile...");
         item.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
-        menu.add(item);
-
-        item = new JMenuItem("Add Polargrid");
+        button.add(item);
+        item = new JMenuItem("Polargrid");
         item.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jPolarGridButtonActionPerformed(evt);
             }
         });
-        menu.add(item);
-
-        JwgDropDownButton b1 = new JwgDropDownButton(test);
-        b1.setToolTipText("Menu options");
-        b1.setMenu(menu);
-        addTo.add(b1);
+        button.add(item);
+        addTo.add(button);
     }
 
     /**
@@ -531,7 +529,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
                 jFeatureGUITablePanel.validate();
                 jFeatureGUITablePanel.repaint();
                 jControlScrollPane.revalidate();
-               // jTableScrollPane.revalidate();
+                // jTableScrollPane.revalidate();
                 myLastSelectedFeature = topFeature;
             } else {
                 topFeature.updateGUI();
@@ -576,9 +574,9 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         // The optional bottom part of feature controls
         jFeatureGUITablePanel = new JPanel();
         jFeatureGUITablePanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-      //  jTableScrollPane = new JScrollPane();
-      //  jTableScrollPane.setViewportView(jFeatureGUITablePanel);
-       // split.setBottomComponent(jTableScrollPane);
+        //  jTableScrollPane = new JScrollPane();
+        //  jTableScrollPane.setViewportView(jFeatureGUITablePanel);
+        // split.setBottomComponent(jTableScrollPane);
         split.setBottomComponent(jFeatureGUITablePanel);
         split.setDividerLocation(100);
 

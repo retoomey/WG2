@@ -34,7 +34,7 @@ import org.wdssii.gui.worldwind.WWCategoryLayer;
  *
  * @author Robert Toomey
  */
-public class WorldwindStockGUI extends javax.swing.JPanel implements FeatureGUI {
+public class WorldwindStockGUI extends FeatureGUI {
 
     /**
      * The LegendFeature we are using

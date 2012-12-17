@@ -5,11 +5,9 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
-
 import java.util.TreeMap;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import org.slf4j.Logger;
@@ -32,8 +30,8 @@ import org.wdssii.gui.views.CommandListener;
  *
  */
 public abstract class WdssiiCommand {
-    private static Logger log = LoggerFactory.getLogger(WdssiiCommand.class);
 
+    private static Logger log = LoggerFactory.getLogger(WdssiiCommand.class);
     /**
      * Parameter that is the main option for this command in a list. For
      * example, ProductFollowCommand has to tell what product to follow. There
@@ -56,7 +54,7 @@ public abstract class WdssiiCommand {
         return "";
     }
 
-    public  static interface CommandItem {
+    public static interface CommandItem {
 
         public String getOption();
     }
@@ -69,8 +67,11 @@ public abstract class WdssiiCommand {
             super(text);
             option = o;
         }
+
         @Override
-        public String getOption(){return option; }
+        public String getOption() {
+            return option;
+        }
     }
 
     public static class CommandCheckBoxMenuItem extends JCheckBoxMenuItem implements CommandItem {
@@ -81,16 +82,15 @@ public abstract class WdssiiCommand {
             super(text);
             option = o;
         }
+
         @Override
-        public String getOption(){return option; }
-       
+        public String getOption() {
+            return option;
+        }
     }
 
-    /**
-     * Generate a dynamic popup menu from a given menu list command
-     */
-    public static JPopupMenu getSwingMenuFor(WdssiiCommand l) {
-        JPopupMenu menu = new JPopupMenu();
+    public static void fillMenuFor(JPopupMenu menu, WdssiiCommand l) {
+        menu.removeAll();
         ArrayList<CommandOption> list = l.getCommandOptions();
         final WdssiiCommand myCommand = l;
         ActionListener menuAction = new ActionListener() {
@@ -100,7 +100,7 @@ public abstract class WdssiiCommand {
                 // a thread issue (only one command should fire for any
                 // given menu in a particular window, for instance)
                 Object s = e.getSource();
-                if (s instanceof CommandItem) {                  
+                if (s instanceof CommandItem) {
                     CommandItem theItem = (CommandItem) (s);
                     myCommand.setParameter(WdssiiCommand.option, theItem.getOption());
                     CommandManager.getInstance().executeCommand(myCommand, true);
@@ -110,18 +110,23 @@ public abstract class WdssiiCommand {
         for (CommandOption m : list) {
             // item = new CommandMenuItem(m.visibleText, m.commandText);
             CommandMenuItem item = new CommandMenuItem(m.visibleText, m.commandText);
-           // JMenuItem item = (JMenuItem) i.createWidget(m.visibleText);
+            // JMenuItem item = (JMenuItem) i.createWidget(m.visibleText);
             menu.add(item);
             item.addActionListener(menuAction);
         }
-        return menu;
     }
 
     /**
      * Generate a dynamic popup menu from a given menu list command
      */
-    public static JPopupMenu getSwingCheckMenuFor(WdssiiCommand l) {
+    public static JPopupMenu getSwingMenuFor(WdssiiCommand l) {
         JPopupMenu menu = new JPopupMenu();
+        fillMenuFor(menu, l);
+        return menu;
+    }
+
+    public static void fillCheckMenuFor(JPopupMenu menu, WdssiiCommand l){
+        menu.removeAll();
         ButtonGroup group = new ButtonGroup();
         String current = l.getSelectedOption();
         ArrayList<CommandOption> list = l.getCommandOptions();
@@ -149,7 +154,15 @@ public abstract class WdssiiCommand {
                 item.setSelected(true);
             }
             item.addActionListener(menuAction);
-        }
+        } 
+    }
+    
+    /**
+     * Generate a dynamic popup menu from a given menu list command
+     */
+    public static JPopupMenu getSwingCheckMenuFor(WdssiiCommand l) {
+        JPopupMenu menu = new JPopupMenu();
+        fillCheckMenuFor(menu, l);
         return menu;
     }
 

@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Point;
 import gov.nasa.worldwind.geom.LatLon;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -54,7 +55,9 @@ import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
 import org.wdssii.gui.swing.TableUtil;
+import org.wdssii.gui.views.ChartView;
 import org.wdssii.gui.volumes.LLHAreaSet.LLHAreaSetMemento;
+import org.wdssii.properties.gui.ComboStringGUI;
 import org.wdssii.properties.gui.IntegerGUI;
 
 /**
@@ -68,13 +71,10 @@ import org.wdssii.properties.gui.IntegerGUI;
  *
  * @author Robert Toomey
  */
-public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
+public class LLHAreaSetGUI extends FeatureGUI {
 
     private static org.slf4j.Logger log = LoggerFactory.getLogger(LLHAreaSetGUI.class);
-    private IntegerGUI myTopHeightGUI;
-    private IntegerGUI myBottomHeightGUI;
-    private IntegerGUI myRowsGUI;
-    private IntegerGUI myColsGUI;
+  
     private LLHAreaFeature myFeature;
     private final LLHAreaSet myLLHAreaSet;
     private LLHAreaSetTableModel myLLHAreaSetTableModel;
@@ -96,10 +96,7 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
     @Override
     public void updateGUI() {
         LLHAreaSetMemento m = myLLHAreaSet.getMemento();
-        myTopHeightGUI.update(m);
-        myBottomHeightGUI.update(m);
-        myColsGUI.update(m);
-        myRowsGUI.update(m);
+        updateToMemento(m);
         updateTable(m);
     }
 
@@ -131,6 +128,7 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
 
         JToolBar toolbar = new JToolBar();
         toolbar.setFloatable(false);
+        toolbar.setMargin(new Insets(0, 0, 0, 0));
         JButton export;
         /* test = new JButton("Refresh");
          test.addActionListener(new ActionListener() {
@@ -148,22 +146,39 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
                 jExportActionPerformed(e);
             }
         });
-        toolbar.add(export);
+
         add(toolbar, new CC().growX().wrap());
 
-        myRowsGUI = new IntegerGUI(myFeature, LLHAreaSetMemento.GRID_ROWS, "Rows", this,
-                10, 100, 1, "");
-        myRowsGUI.addToMigLayout(this);
-        myColsGUI = new IntegerGUI(myFeature, LLHAreaSetMemento.GRID_COLS, "Cols", this,
-                10, 100, 1, "");
-        myColsGUI.addToMigLayout(this);
-        myTopHeightGUI = new IntegerGUI(myFeature, LLHAreaSetMemento.TOP_HEIGHT, "Top", this,
-                1, 20000, 1, "Meters");
-        myTopHeightGUI.addToMigLayout(this);
-        myBottomHeightGUI = new IntegerGUI(myFeature, LLHAreaSetMemento.BOTTOM_HEIGHT, "Bottom", this,
-                0, 19999, 1, "Meters");
-        myBottomHeightGUI.addToMigLayout(this);
+        // Add a list of charts
+        ComboStringGUI.ArrayListProvider listMaker = new ComboStringGUI.ArrayListProvider(){
 
+            @Override
+            public ArrayList<String> getList() {
+                ArrayList<ChartView> charts = ChartView.getList();
+                ArrayList<String> list = new ArrayList<String>();
+                for(ChartView v:charts){
+                    String key = v.getTitle();  // FIXME: should be get key since title can change
+                    list.add(key);
+                }
+                return list;
+            }
+            
+        };
+     
+        add(new ComboStringGUI(myFeature, LLHAreaSetMemento.RENDERER, "3D", this, listMaker));
+        
+        add(new IntegerGUI(myFeature, LLHAreaSetMemento.GRID_ROWS, "Rows", this,
+                10, 100, 1, ""));
+        
+        add(new IntegerGUI(myFeature, LLHAreaSetMemento.GRID_COLS, "Cols", this,
+                10, 100, 1, ""));
+        
+        add(new IntegerGUI(myFeature, LLHAreaSetMemento.TOP_HEIGHT, "Top", this,
+                1, 20000, 1, "Meters"));
+        
+        add(new IntegerGUI(myFeature, LLHAreaSetMemento.BOTTOM_HEIGHT, "Bottom", this,
+                0, 19999, 1, "Meters"));
+        
         initTable();
         // add(jObjectScrollPane, new CC().spanX(3));
         updateTable(null);
@@ -188,7 +203,7 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
         builder.add("Location", Point.class);
         builder.add("Height ASL", Integer.class);
         builder.add("Bottom ASL", Integer.class);
-       // builder.length(15).add("Name", String.class); // <- 15 chars width for name field
+        // builder.length(15).add("Name", String.class); // <- 15 chars width for name field
 
         // build the type
         final SimpleFeatureType LOCATION = builder.buildFeatureType();
@@ -218,16 +233,16 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
         int ret = fileopen.showSaveDialog(null);
         if (ret == JFileChooser.APPROVE_OPTION) {
             File file = fileopen.getSelectedFile();
-            if (file != null){
-            String name = file.getPath();
-            if (!name.toLowerCase().endsWith(".shp")){
-                file = new File(file.getPath()+".shp");
-            }
-            try {
-                URL aURL = file.toURI().toURL();
-                exportSHPPointData(aURL);
-            } catch (MalformedURLException ex) {
-            }
+            if (file != null) {
+                String name = file.getPath();
+                if (!name.toLowerCase().endsWith(".shp")) {
+                    file = new File(file.getPath() + ".shp");
+                }
+                try {
+                    URL aURL = file.toURI().toURL();
+                    exportSHPPointData(aURL);
+                } catch (MalformedURLException ex) {
+                }
             }
         }
     }
@@ -270,12 +285,12 @@ public class LLHAreaSetGUI extends javax.swing.JPanel implements FeatureGUI {
             int counter = 1;
             LLHAreaSetMemento m = myLLHAreaSet.getMemento();
             Integer h = ((Integer) m.getPropertyValue(LLHAreaSetMemento.TOP_HEIGHT));
-            if (h == null){
-                 h = 0;
+            if (h == null) {
+                h = 0;
             }
             Integer b = ((Integer) m.getPropertyValue(LLHAreaSetMemento.BOTTOM_HEIGHT));
-            if (b == null){
-                 b = 0;
+            if (b == null) {
+                b = 0;
             }
             for (LatLon l : list) {
                 LLHAreaSetTableData d = new LLHAreaSetTableData();

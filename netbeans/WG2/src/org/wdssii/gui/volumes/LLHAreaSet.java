@@ -16,6 +16,7 @@ import org.wdssii.gui.charts.VSliceChart;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.views.ChartView;
 import org.wdssii.gui.worldwind.WorldwindUtil;
 
 /**
@@ -33,7 +34,8 @@ public class LLHAreaSet extends LLHArea {
     public int currentBottomMeters = 0;
     public int myNumRows = 50;
     public int myNumCols = 100;
-
+    private String myChartKey;
+    
     /**
      * Change to pass onto the LLHArea. All fields common to LLHArea are here
      */
@@ -44,6 +46,7 @@ public class LLHAreaSet extends LLHArea {
         public static final String GRID_ROWS = "gridrows";
         public static final String GRID_COLS = "gridcols";
         public static final String POINTS = "points";
+        public static final String RENDERER = "renderer";
 
         // Create a new default property LLHAreaSetMemento
         public LLHAreaSetMemento(LLHAreaSet a) {
@@ -54,6 +57,7 @@ public class LLHAreaSet extends LLHArea {
             initProperty(GRID_COLS, 100);
             // Experimental...
             initProperty(POINTS, new ArrayList<LatLon>());
+            initProperty(RENDERER, "");
         }
     }
 
@@ -70,7 +74,8 @@ public class LLHAreaSet extends LLHArea {
         m.setMinHeight(currentBottomMeters);
         m.setProperty(LLHAreaSetMemento.GRID_ROWS, myNumRows);
         m.setProperty(LLHAreaSetMemento.GRID_COLS, myNumCols);
-
+        m.setProperty(LLHAreaSetMemento.RENDERER, myChartKey);
+        
         // Stuff points into property copy each time could be bad later for >> N
         m.setProperty(LLHAreaSetMemento.POINTS, this.getArrayListCopyOfLocations());
         return m;
@@ -120,6 +125,10 @@ public class LLHAreaSet extends LLHArea {
         if (v != null) {
             myNumCols = v.intValue();
         }
+         String k = ((String) l.getPropertyValue(LLHAreaSetMemento.RENDERER));
+        if (k != null){
+            myChartKey = k;
+        } 
 
     }
 
@@ -152,8 +161,33 @@ public class LLHAreaSet extends LLHArea {
     /**
      * Get our chart object, if any that we use to fill in our stuff
      */
-    public ChartViewChart getOurChart() {
-        return VSliceChart.created;  // Temp hack  get latest one  
+    public ChartViewChart get3DRendererChart() {
+        ChartView v = getChartView();
+        if (v != null){
+            return v.getChart();
+        }
+        return null;
+    }
+
+    public void setChartView(ChartView v0) {
+        // We don't hold the object in case name changes or it is destroyed
+        myChartKey = v0.getKey();
+    }
+
+    public ChartView getChartView() {
+        ArrayList<ChartView> list = ChartView.getList();
+        for (ChartView c : list) {
+            if (c.getKey().equals(myChartKey)){
+                return c;
+            }
+        }
+        // if not found and there's a list, use the first one....
+        if (list.size() > 0){
+            ChartView fallBack = list.get(0);
+            myChartKey = fallBack.getKey();
+            return fallBack;            
+        }
+        return null;
     }
 
     /**
@@ -229,13 +263,13 @@ public class LLHAreaSet extends LLHArea {
                             gl.glVertex3d(bot.x, bot.y, bot.z);
                         }
                         gl.glEnd();
-                    }else{
+                    } else {
                         // Draw special box in case of single point so always visible
                         LatLon l = list.get(0);
                         Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
                         BasicLLHAreaControlPoint.CircleMarker.billboard(dc, bot);
                     }
-                    
+
                     // Draw 'heights' of sticks as well since we only draw bot points
                     gl.glBegin(GL.GL_LINES);
                     for (LatLon l : list) {
@@ -251,7 +285,7 @@ public class LLHAreaSet extends LLHArea {
                 gl.glPopAttrib();
             }
             // Pass render to chart object....
-            ChartViewChart c = getOurChart();
+            ChartViewChart c = get3DRendererChart();
             if (c != null) {
                 // Ok if chart exists...use it to draw.....
 

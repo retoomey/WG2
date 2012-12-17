@@ -1,30 +1,19 @@
 package org.wdssii.gui.charts;
 
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.globes.ElevationModel;
-import gov.nasa.worldwind.globes.Globe;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
-
 import javax.swing.event.MouseInputListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.OverlayChangeListener;
 import org.jfree.chart.panel.Overlay;
-import org.jfree.data.DomainOrder;
 import org.jfree.data.Range;
-import org.jfree.data.general.DatasetChangeListener;
-import org.jfree.data.general.DatasetGroup;
-import org.jfree.data.xy.XYZDataset;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.views.WorldWindView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A subclass of our chart that uses the JFreeChart library to render its stuff

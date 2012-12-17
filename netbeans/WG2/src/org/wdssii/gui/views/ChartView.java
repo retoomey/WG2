@@ -59,6 +59,43 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
         updateGUI(command);
     }
 
+    // Keep a global list of sub views...
+    // FIXME: could be generalized to any mdockview.
+    // FIXME: Only called from GUI?  If so, no sync needed
+    // We are assuming one and only one chart view
+    private static ArrayList<ChartView> theSubViews = new ArrayList<ChartView>();
+    
+    public static ArrayList<ChartView> getList(){
+        ArrayList<ChartView> list = new ArrayList<ChartView>();
+        for(ChartView c: theSubViews){
+            list.add(c);
+        }
+        return list;
+    }
+    
+    public static void addSubView(ChartView v){
+        theSubViews.add(v);
+        log.debug("ADD subview list is :");
+        for(ChartView c: theSubViews){
+            log.debug("Chart is "+c.getTitle());
+        }
+    }
+    
+    public static void removeSubView(ChartView v){
+        theSubViews.remove(v);
+    }
+    
+    @Override
+    public void windowAdded() {
+       addSubView(this);
+    }
+    
+    @Override
+    public void windowClosing() {
+        //throw new UnsupportedOperationException("Not supported yet.");
+        removeSubView(this);
+    }
+
     /**
      * Our factory, called by reflection to populate menus, etc...
      */
@@ -99,7 +136,6 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
         public void addChart(String name) {
             myCurrentChartChoice = name;
             addNewSubView();
-
         }
     }
     private JToggleButton jVirtualToggleButton;
@@ -138,22 +174,37 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
      */
     private boolean myUseProductFilters;
     public final String[] myInterps = new String[]{"None", "Experiment: Binomial I"};
+   
+    /** The visible title used for GUI stuff */
     private String myTitle;
 
+    /** The neverchanging key for this chart */
+    private final String myKey;
+    
     /**
      * An empty chart used for generating info for the 'top' container in
      * multiview. It's a temporary object
      */
     public ChartView() {
         myTitle = "Top chart object, not a real chart.";
+        myKey = "";
     }
 
     public ChartView(String title, String chartName) {
         myTitle = title;
+        myKey = title;
         initComponents();
         initCharts(chartName);
     }
 
+    public String getTitle(){
+        return myTitle;
+    }
+    
+    public String getKey(){
+        return myKey;
+    }
+    
     private void initComponents() {
 
         myChartBox = new javax.swing.JPanel();
@@ -321,6 +372,11 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
             chart.setUseProductKey(myCurrentProductFollow);
         }
         myChart = chart;
+    }
+    
+    /** Get the current chart we have */
+    public ChartViewChart getChart(){
+        return myChart;
     }
 
     @Override

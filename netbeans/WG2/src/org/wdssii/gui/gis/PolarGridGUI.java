@@ -10,20 +10,16 @@ import org.wdssii.properties.gui.ColorGUI;
 import org.wdssii.properties.gui.IntegerGUI;
 
 /**
- * PolarGridGUI handles gui controls for a PolarGrid overlay 
+ * PolarGridGUI handles gui controls for a PolarGrid overlay
  *
  * @author Robert Toomey
  */
-public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
+public class PolarGridGUI extends FeatureGUI {
+
     /**
      * The PolarGridFeature we are using
      */
     private PolarGridFeature myFeature;
-    
-    private IntegerGUI myLineThicknessGUI;
-    private IntegerGUI myNumRingsGUI;
-    private IntegerGUI myRangeGUI;
-    private PropertyGUI myLineColorGUI;
 
     /**
      * Creates new form LLHAreaSliceGUI
@@ -39,10 +35,7 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
     @Override
     public void updateGUI() {
         PolarGridMemento m = (PolarGridMemento) myFeature.getNewMemento();
-        myLineThicknessGUI.update(m);
-        myNumRingsGUI.update(m);
-        myLineColorGUI.update(m);
-        myRangeGUI.update(m);
+        updateToMemento(m);
     }
 
     @Override
@@ -61,24 +54,18 @@ public class PolarGridGUI extends javax.swing.JPanel implements FeatureGUI {
         setLayout(new MigLayout(new LC(), null, null));
 
         // Create max spinner
-        myLineThicknessGUI = new IntegerGUI(myFeature, PolarGridMemento.LINE_THICKNESS, "Line Thickness", this,
-		1, 15, 1, "Pixels");
-        myLineThicknessGUI.addToMigLayout(this);
+        add(new IntegerGUI(myFeature, PolarGridMemento.LINE_THICKNESS, "Line Thickness", this,
+                1, 15, 1, "Pixels"));
 
         // Create line color
-	myLineColorGUI = new ColorGUI(myFeature, PolarGridMemento.LINE_COLOR, "Line Color", this);
- 	myLineColorGUI.addToMigLayout(this);
-       
+        add(new ColorGUI(myFeature, PolarGridMemento.LINE_COLOR, "Line Color", this));
+
         // Create rings 
-        myNumRingsGUI = new IntegerGUI(myFeature, PolarGridMemento.RING_COUNT, "Number of Rings", this,
-                1, 20, 1, "");
- 	myNumRingsGUI.addToMigLayout(this);
-        
+        add(new IntegerGUI(myFeature, PolarGridMemento.RING_COUNT, "Number of Rings", this,
+                1, 20, 1, ""));
         // Create range
-        myRangeGUI = new IntegerGUI(myFeature, PolarGridMemento.RING_RANGE, "Range per ring", this,
-                1, 50000, 10, "Meters");
- 	myRangeGUI.addToMigLayout(this);
-        myRangeGUI.addToMigLayout(this);
-     
+        add(new IntegerGUI(myFeature, PolarGridMemento.RING_RANGE, "Range per ring", this,
+                1, 50000, 10, "Meters"));
+
     }
 }

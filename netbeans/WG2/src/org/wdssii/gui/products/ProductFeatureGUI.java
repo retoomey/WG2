@@ -21,7 +21,7 @@ import org.wdssii.gui.features.FeatureGUI;
  *
  * @author Robert Toomey
  */
-public class ProductFeatureGUI extends JPanel implements FeatureGUI {
+public class ProductFeatureGUI extends FeatureGUI {
 
     private ProductFeature myProduct;
 

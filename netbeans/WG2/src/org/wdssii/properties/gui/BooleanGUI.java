@@ -16,47 +16,46 @@ import org.wdssii.properties.PropertyGUI;
  */
 public class BooleanGUI extends PropertyGUI {
 
-	public BooleanGUI(Mementor f, String property, String plabel, JComponent dialogRoot) {
-		super(f, property);
-		// Create checked button...
-		JCheckBox b = new JCheckBox();
-		b.setSelected((Boolean) f.getMemento().getPropertyValue(property));
+    public BooleanGUI(Mementor f, String property, String plabel, JComponent dialogRoot) {
+        super(f, property);
+        // Create checked button...
+        JCheckBox b = new JCheckBox();
+        b.setSelected((Boolean) f.getMemento().getPropertyValue(property));
 
-		// Humm is this ok?
-		final JComponent myRoot = dialogRoot;
-		final Mementor myF = f;
-		final String myP = property;
+        // Humm is this ok?
+        final JComponent myRoot = dialogRoot;
+        final Mementor myF = f;
+        final String myP = property;
 
-		// Dialog 
-		b.addActionListener(new ActionListener() {
+        // Dialog 
+        b.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                jBooleanButtonChanged(myRoot, myF, myP, ae);
+            }
+        });
 
-			@Override
-			public void actionPerformed(ActionEvent ae) {
-				jBooleanButtonChanged(myRoot, myF, myP, ae);
-			}
-		});
+        setTriple(new JLabel(plabel), b, new JLabel(""));
+    }
 
-		setTriple(new JLabel(plabel), b, new JLabel(""));
-	}
+    @Override
+    public void update(Memento use) {
+        JCheckBox v = (JCheckBox) (value);
+        v.setSelected((Boolean) use.getPropertyValue(property));
+    }
 
-	@Override
-	public void update(Memento use) {
-		JCheckBox v = (JCheckBox) (value);
-		v.setSelected((Boolean) use.getPropertyValue(property));
-	}
+    /**
+     * Handle a color button change by changing its property value to the new
+     * color
+     */
+    private static void jBooleanButtonChanged(JComponent root, Mementor f, String property, ActionEvent evt) {
 
-	/**
-	 * Handle a color button change by changing its property value to the
-	 * new color
-	 */
-	private static void jBooleanButtonChanged(JComponent root, Mementor f, String property, ActionEvent evt) {
-
-		JComponent j = (JComponent) evt.getSource();
-		if (j instanceof JCheckBox) {
-			JCheckBox b = (JCheckBox) (j);
-			Memento m = f.getNewMemento();
-			m.setProperty(property, b.isSelected());
-			f.propertySetByGUI(property, m);
-		}
-	}
+        JComponent j = (JComponent) evt.getSource();
+        if (j instanceof JCheckBox) {
+            JCheckBox b = (JCheckBox) (j);
+            Memento m = f.getNewMemento();
+            m.setProperty(property, b.isSelected());
+            f.propertySetByGUI(property, m);
+        }
+    }
 }

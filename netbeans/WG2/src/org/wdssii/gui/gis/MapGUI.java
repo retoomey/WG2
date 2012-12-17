@@ -23,7 +23,7 @@ import org.wdssii.properties.gui.ColorGUI;
  *
  * @author Robert Toomey
  */
-public class MapGUI extends javax.swing.JPanel implements FeatureGUI {
+public class MapGUI extends FeatureGUI {
 
     /**
      * The MapFeature we are using

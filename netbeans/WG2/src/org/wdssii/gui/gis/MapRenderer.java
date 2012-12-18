@@ -13,7 +13,6 @@ import java.awt.Color;
 import java.awt.Point;
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.util.logging.Level;
 import javax.media.opengl.GL;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -37,8 +36,8 @@ import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.gis.MapFeature.MapMemento;
-import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.Array1D;
+import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
 import org.wdssii.util.GLUtil;
 
@@ -215,7 +214,13 @@ public class MapRenderer implements Feature3DRenderer {
                 Geometry geo1 = (Geometry) f.getDefaultGeometry();
                 Geometry geo;
                 try {
-                    geo = JTS.transform(geo1, transform);
+	            if (transform != null){
+                            geo = JTS.transform(geo1, transform);
+		    }else{
+			    // We assume coordinates are WGS...map might
+			    // be wrongly projected, but we did warn
+			    geo = geo1;
+		    }
                 } catch (MismatchedDimensionException ex) {
                     log.error("Couldn't tranform map, mismatched dimensions");
                     continue;

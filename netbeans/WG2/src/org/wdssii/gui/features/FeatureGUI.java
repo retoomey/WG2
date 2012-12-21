@@ -19,6 +19,9 @@ public class FeatureGUI extends JPanel implements GUIPlugInPanel {
      */
     protected ArrayList<PropertyGUI> myStockGUIItems;
 
+    /** The root component, this is added/removed on the fly */
+    protected JComponent myRoot = null;
+
     public void add(PropertyGUI g) {
         if (myStockGUIItems == null) {
             myStockGUIItems = new ArrayList<PropertyGUI>();
@@ -42,15 +45,28 @@ public class FeatureGUI extends JPanel implements GUIPlugInPanel {
         }
     }
 
+    /** Set the root container component */
+    public void setRootComponent(JComponent r){
+	    myRoot = r;
+    }
+
     @Override
     public void updateGUI() {
     }
 
     @Override
-    public void activateGUI(JComponent parent, JComponent secondary) {
+    public void activateGUI(JComponent parent) {
+	    if (myRoot != null){
+                parent.setLayout(new java.awt.BorderLayout());
+                parent.add(myRoot, java.awt.BorderLayout.CENTER);
+                doLayout();
+	    }
     }
 
     @Override
-    public void deactivateGUI(JComponent parent, JComponent secondary) {
+    public void deactivateGUI(JComponent parent) {
+	    if (myRoot != null){
+		    parent.remove(myRoot);
+	    }
     }
 }

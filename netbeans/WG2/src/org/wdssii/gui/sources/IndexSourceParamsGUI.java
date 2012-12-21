@@ -41,7 +41,7 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 	}
 
 	@Override
-	public void activateGUI(JComponent parent, JComponent secondary) {
+	public void activateGUI(JComponent parent) {
 		parent.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
 		parent.add(this, new CC().growX().growY());
 
@@ -75,7 +75,7 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 	}
 
 	@Override
-	public void deactivateGUI(JComponent parent, JComponent secondary) {
+	public void deactivateGUI(JComponent parent) {
 		parent.remove(this);
 		if (myOKListener != null) {
 			JButton ok = myOwner.getOKButton();

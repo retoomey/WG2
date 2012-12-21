@@ -17,6 +17,7 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.gui.views.CommandListener;
 import org.wdssii.gui.views.SourceManagerView;
 import org.wdssii.gui.views.WorldWindView;
+import org.wdssii.gui.volumes.LLHAreaLayerController;
 import org.wdssii.index.IndexRecord;
 
 /**
@@ -137,6 +138,13 @@ public class CommandManager implements Singleton {
         if (getEarthBall() != null) {
             getEarthBall().setProjection(projection);
         }
+    }
+
+    public LLHAreaLayerController getLLHController() {
+        if (getEarthBall() != null) {
+            return getEarthBall().getLLHAreaLayerController();
+        }
+	return null;
     }
 
     /*

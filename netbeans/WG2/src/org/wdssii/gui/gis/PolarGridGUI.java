@@ -1,11 +1,10 @@
 package org.wdssii.gui.gis;
 
-import javax.swing.*;
+import javax.swing.JScrollPane;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.gis.PolarGridFeature.PolarGridMemento;
-import org.wdssii.properties.PropertyGUI;
 import org.wdssii.properties.gui.ColorGUI;
 import org.wdssii.properties.gui.IntegerGUI;
 
@@ -38,19 +37,11 @@ public class PolarGridGUI extends FeatureGUI {
         updateToMemento(m);
     }
 
-    @Override
-    public void activateGUI(JComponent parent, JComponent secondary) {
-        parent.setLayout(new java.awt.BorderLayout());
-        parent.add(this, java.awt.BorderLayout.CENTER);
-        doLayout();
-    }
-
-    @Override
-    public void deactivateGUI(JComponent parent, JComponent secondary) {
-        parent.remove(this);
-    }
-
     private void setupComponents() {
+	JScrollPane s = new JScrollPane();
+	s.setViewportView(this);
+	setRootComponent(s);
+
         setLayout(new MigLayout(new LC(), null, null));
 
         // Create max spinner

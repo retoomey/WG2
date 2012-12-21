@@ -62,6 +62,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
      * well with the docking library.
      */
     public static final boolean USE_HEAVYWEIGHT = false;
+    private LLHAreaLayerController myLLHAreaController;
 
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
@@ -199,6 +200,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         }
         // Controller adds listeners to world which keeps reference
         LLHAreaLayerController c = new LLHAreaLayerController(myWorld, myVolumeLayer);
+        myLLHAreaController = c;
 
         // Create and install the view controls layer and register a controller for it with the World Window.
         // This will be snagged by our LegendFeature
@@ -207,6 +209,10 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         theLayers.add(viewControlsLayer);
         this.getWwd().addSelectListener(new ViewControlsSelectListener(this.getWwd(), viewControlsLayer));
 
+    }
+
+    public LLHAreaLayerController getLLHAreaLayerController(){
+	    return myLLHAreaController;
     }
 
     public void takeDialogSnapshot() {

@@ -8,7 +8,6 @@ import java.net.URL;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JPanel;
 import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
@@ -35,14 +34,14 @@ public class ProductFeatureGUI extends FeatureGUI {
     }
 
     @Override
-    public void activateGUI(JComponent parent, JComponent secondary) {
+    public void activateGUI(JComponent parent) {
         parent.setLayout(new java.awt.BorderLayout());
         parent.add(this, java.awt.BorderLayout.CENTER);
         doLayout();
     }
 
     @Override
-    public void deactivateGUI(JComponent parent, JComponent secondary) {
+    public void deactivateGUI(JComponent parent) {
         parent.remove(this);
     }
 

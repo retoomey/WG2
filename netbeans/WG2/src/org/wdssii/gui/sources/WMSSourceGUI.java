@@ -1,17 +1,9 @@
 package org.wdssii.gui.sources;
 
 import java.awt.Component;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
@@ -124,19 +116,14 @@ public class WMSSourceGUI extends javax.swing.JPanel implements SourceGUI {
 
     //private JScrollPane myScrollPane;
     @Override
-    public void activateGUI(JComponent parent, JComponent secondary) {
+    public void activateGUI(JComponent parent) {
         parent.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        // myScrollPane = new JScrollPane();
-        //myScrollPane.setViewportView(this);
-        //myScrollPane.setBorder(null);
-        // parent.add(myScrollPane, new CC().growX().growY());
         parent.add(this, new CC().growX().growY());
         doLayout();
     }
 
     @Override
-    public void deactivateGUI(JComponent parent, JComponent secondary) {
-        //parent.remove(myScrollPane);
+    public void deactivateGUI(JComponent parent) {
         parent.remove(this);
     }
     /**

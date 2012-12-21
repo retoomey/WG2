@@ -8,12 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
@@ -40,7 +35,7 @@ public class WorldwindStockGUI extends FeatureGUI {
      * The LegendFeature we are using
      */
     private WorldwindStockFeature myFeature;
-    //  private BooleanGUI myShowLabelsGUI;
+
     private javax.swing.JScrollPane jObjectScrollPane;
     private JTable myTable;
     private LayerTableModel myModel;
@@ -59,43 +54,23 @@ public class WorldwindStockGUI extends FeatureGUI {
     @Override
     public void updateGUI() {
         WorldwindStockMemento m = (WorldwindStockMemento) myFeature.getNewMemento();
-        //  myShowLabelsGUI.update(m);
         updateLayerList();
-    }
-
-    @Override
-    public void activateGUI(JComponent parent, JComponent secondary) {
-        parent.setLayout(new java.awt.BorderLayout());
-        parent.add(this, java.awt.BorderLayout.CENTER);
-        secondary.setLayout(new java.awt.BorderLayout());
-        secondary.add(jObjectScrollPane, java.awt.BorderLayout.CENTER);
-        doLayout();
-    }
-
-    @Override
-    public void deactivateGUI(JComponent parent, JComponent secondary) {
-        parent.remove(this);
     }
 
     private void setupComponents() {
 
-        /**
-         * Completely control the layout within the scrollpane. Probably don't
-         * want to fill here, let the controls do default sizes
-         */
-        setLayout(new MigLayout(new LC(), null, null));
-        CC mid = new CC().growX().width("min:pref:");
+	setRootComponent(this);
 
+        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         JLabel label = new JLabel("These are the basemap layers");
-        add(label, new CC().growX());
-        // myShowLabelsGUI = new BooleanGUI(myFeature, WorldwindStockMemento.SHOWWORLDWIND, "All layers", this);
-        // myShowLabelsGUI.addToMigLayout(this);
 
-        initTable();
+        add(label, new CC().dockNorth().growX());
+	add(initTable(), new CC().growX().growY());
+
         updateLayerList();
     }
 
-    public void initTable() {
+    public JScrollPane initTable() {
 
         jObjectScrollPane = new JScrollPane();
 
@@ -155,9 +130,9 @@ public class WorldwindStockGUI extends FeatureGUI {
                     int column = t.columnAtPoint(p);
 
                     if ((row > -1) && (column > -1)) {
-                        int orgColumn = myTable.convertColumnIndexToModel(column);
-                        int orgRow = myTable.convertRowIndexToModel(row);
-                        Object stuff = myModel.getValueAt(orgRow, orgColumn);
+                        int orgColumn = t.convertColumnIndexToModel(column);
+                        int orgRow = t.convertRowIndexToModel(row);
+                        Object stuff = m.getValueAt(orgRow, orgColumn);
                         if (stuff instanceof LayerTableEntry) {
                             LayerTableEntry entry = (LayerTableEntry) (stuff);
 
@@ -178,6 +153,7 @@ public class WorldwindStockGUI extends FeatureGUI {
 
         jObjectScrollPane.setViewportView(t);
         setUpSortingColumns();
+	return jObjectScrollPane;
     }
 
     private void handleVisibleChange(String name) {

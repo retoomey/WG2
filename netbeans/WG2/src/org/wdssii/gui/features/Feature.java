@@ -305,11 +305,11 @@ public class Feature implements Mementor {
         }
 
         @Override
-        public void activateGUI(JComponent parent, JComponent secondary) {
+        public void activateGUI(JComponent parent) {
         }
 
         @Override
-        public void deactivateGUI(JComponent parent, JComponent secondary) {
+        public void deactivateGUI(JComponent parent) {
         }
     }
 
@@ -333,7 +333,7 @@ public class Feature implements Mementor {
      *
      * @param source
      */
-    public final boolean setupGUI(JComponent source, JComponent source2) {
+    public final boolean setupGUI(JComponent parent) {
 
         if (myControls == null) {
             myControls = createNewControls();
@@ -341,7 +341,7 @@ public class Feature implements Mementor {
 
         // Set the layout and add our controls
         if (myControls != null) {
-            myControls.activateGUI(source, source2);
+            myControls.activateGUI(parent);
             updateGUI();
         }
         return true;

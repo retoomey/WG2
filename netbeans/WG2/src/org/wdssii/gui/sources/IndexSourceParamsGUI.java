@@ -75,8 +75,7 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 	}
 
 	@Override
-	public void deactivateGUI(JComponent parent) {
-		parent.remove(this);
+	public void deactivateGUI() {
 		if (myOKListener != null) {
 			JButton ok = myOwner.getOKButton();
 			ok.removeActionListener(myOKListener);

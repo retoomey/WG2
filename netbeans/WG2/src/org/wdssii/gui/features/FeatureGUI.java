@@ -64,9 +64,7 @@ public class FeatureGUI extends JPanel implements GUIPlugInPanel {
     }
 
     @Override
-    public void deactivateGUI(JComponent parent) {
-	    if (myRoot != null){
-		    parent.remove(myRoot);
-	    }
+    public void deactivateGUI() {
+
     }
 }

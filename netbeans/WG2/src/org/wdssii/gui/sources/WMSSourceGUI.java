@@ -123,8 +123,7 @@ public class WMSSourceGUI extends javax.swing.JPanel implements SourceGUI {
     }
 
     @Override
-    public void deactivateGUI(JComponent parent) {
-        parent.remove(this);
+    public void deactivateGUI() {
     }
     /**
      * The WMSSource we are using

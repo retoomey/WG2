@@ -259,7 +259,7 @@ public class SourcesURLLoadDialog extends JDialog implements ActionListener {
 
 	private void clearParamPanel() {
 		if (myExtrasPanel != null) {
-			myExtrasPanel.deactivateGUI(myGUIHolder);
+			myExtrasPanel.deactivateGUI();
 			myExtrasPanel = null;
 		}
 		myGUIHolder.removeAll();

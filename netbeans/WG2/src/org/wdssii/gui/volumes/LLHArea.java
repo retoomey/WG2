@@ -619,7 +619,7 @@ public class LLHArea extends AVListImpl implements Movable {
         double vert = dc.getVerticalExaggeration();
         Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude * vert);
         LLHAreaControlPoint controlPoint =
-                new BasicLLHAreaControlPoint(this, locationIndex, altitudeIndex, point);
+                new LLHAreaControlPoint(this, locationIndex, altitudeIndex, point);
         list.add(controlPoint);
     }
 

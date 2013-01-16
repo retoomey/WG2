@@ -118,7 +118,7 @@ public class Source {
         }
 
         @Override
-        public void deactivateGUI(JComponent parent) {
+        public void deactivateGUI() {
         }
     }
 

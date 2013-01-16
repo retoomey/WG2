@@ -40,7 +40,7 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.swing.JThreadPanel;
-import org.wdssii.gui.volumes.LLHAreaLayerController;
+import org.wdssii.gui.volumes.LLHAreaController;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.gui.worldwind.ReadoutStatusBar;
 import org.wdssii.gui.worldwind.WJSceneController;
@@ -62,7 +62,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
      * well with the docking library.
      */
     public static final boolean USE_HEAVYWEIGHT = false;
-    private LLHAreaLayerController myLLHAreaController;
+    private LLHAreaController myLLHAreaController;
 
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
@@ -199,7 +199,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
             w.setLLHAreaLayer(myVolumeLayer);
         }
         // Controller adds listeners to world which keeps reference
-        LLHAreaLayerController c = new LLHAreaLayerController(myWorld, myVolumeLayer);
+        LLHAreaController c = new LLHAreaController(myWorld, myVolumeLayer);
         myLLHAreaController = c;
 
         // Create and install the view controls layer and register a controller for it with the World Window.
@@ -211,7 +211,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 
     }
 
-    public LLHAreaLayerController getLLHAreaLayerController(){
+    public LLHAreaController getLLHAreaLayerController(){
 	    return myLLHAreaController;
     }
 

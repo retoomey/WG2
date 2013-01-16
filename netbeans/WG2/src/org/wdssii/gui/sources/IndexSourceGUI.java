@@ -306,8 +306,7 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
     }
 
     @Override
-    public void deactivateGUI(JComponent parent) {
-        parent.remove(this);
+    public void deactivateGUI() {
     }
 
     private void updateTables() {

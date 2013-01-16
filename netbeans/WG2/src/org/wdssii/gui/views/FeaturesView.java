@@ -519,7 +519,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
                 jFeatureGUIPanel.removeAll();
                // jFeatureGUITablePanel.removeAll();// getting rid of this...
                 try {
-                    topFeature.setupGUI(jFeatureGUIPanel);
+                    topFeature.activateGUI(jFeatureGUIPanel);
                 } catch (Exception e) {
                     log.debug("Exception setting up GUI for feature " + e.toString());
                     log.debug("GUI for this feature needs to be fixed.");
@@ -530,6 +530,9 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
                // jFeatureGUITablePanel.repaint();
                // jControlScrollPane.revalidate();
                 // jTableScrollPane.revalidate();
+                if ((myLastSelectedFeature != null) && (myLastSelectedFeature != topFeature)){
+                    myLastSelectedFeature.deactivateGUI();
+                }
                 myLastSelectedFeature = topFeature;
             } else {
                 topFeature.updateGUI();

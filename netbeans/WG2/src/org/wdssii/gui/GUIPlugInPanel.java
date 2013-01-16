@@ -23,7 +23,7 @@ public interface GUIPlugInPanel {
     public void activateGUI(JComponent parent);
 
     /**
-     * Deactivate the GUI from given container
+     * Deactivate the GUI.  It has already been removed.
      */
-    public void deactivateGUI(JComponent parent);	
+    public void deactivateGUI();	
 }

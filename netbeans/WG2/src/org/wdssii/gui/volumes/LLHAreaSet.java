@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.ChartViewChart;
-import org.wdssii.gui.charts.VSliceChart;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.volumes.ProductVolume;
@@ -252,7 +251,7 @@ public class LLHAreaSet extends LLHArea {
                         // Calculate vec from position
                         LatLon l = list.get(0);
                         Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
-                        BasicLLHAreaControlPoint.CircleMarker.billboard(dc, bot);
+                        LLHAreaControlPoint.CircleMarker.billboard(dc, bot);
                     }
                 } else {
                     // Connect the dots with a line strip...
@@ -267,7 +266,7 @@ public class LLHAreaSet extends LLHArea {
                         // Draw special box in case of single point so always visible
                         LatLon l = list.get(0);
                         Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
-                        BasicLLHAreaControlPoint.CircleMarker.billboard(dc, bot);
+                        LLHAreaControlPoint.CircleMarker.billboard(dc, bot);
                     }
 
                     // Draw 'heights' of sticks as well since we only draw bot points

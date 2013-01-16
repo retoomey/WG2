@@ -4,7 +4,6 @@ import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.util.ArrayList;
 import javax.swing.JComponent;
-import javax.swing.JTextField;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.properties.Memento;
@@ -309,7 +308,7 @@ public class Feature implements Mementor {
         }
 
         @Override
-        public void deactivateGUI(JComponent parent) {
+        public void deactivateGUI() {
         }
     }
 
@@ -333,7 +332,7 @@ public class Feature implements Mementor {
      *
      * @param source
      */
-    public final boolean setupGUI(JComponent parent) {
+    public final boolean activateGUI(JComponent parent) {
 
         if (myControls == null) {
             myControls = createNewControls();
@@ -345,6 +344,12 @@ public class Feature implements Mementor {
             updateGUI();
         }
         return true;
+    }
+    
+    public final void deactivateGUI(){
+        if (myControls != null){
+            myControls.deactivateGUI();
+        }
     }
 
     public final void updateGUI() {

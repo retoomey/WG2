@@ -2,10 +2,8 @@ package org.wdssii.gui.worldwind;
 
 import gov.nasa.worldwind.Locatable;
 import gov.nasa.worldwind.Movable;
-import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.geom.*;
-import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.layers.AbstractLayer;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.pick.PickSupport;
@@ -20,7 +18,6 @@ import java.awt.Point;
 import java.nio.Buffer;
 import java.util.*;
 import javax.media.opengl.GL;
-import javax.swing.event.EventListenerList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
@@ -47,8 +44,8 @@ import org.wdssii.gui.volumes.*;
  * object that is the currently edited one.
  */
 public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
-	private static Logger log = LoggerFactory.getLogger(LLHAreaLayerController.class);
 
+    private static Logger log = LoggerFactory.getLogger(LLHAreaLayer.class);
     public static final String DRAW_STYLE_FILL = "Airspace.DrawStyleFill";
     public static final String DRAW_STYLE_OUTLINE = "Airspace.DrawStyleOutline";
     // private final java.util.Collection<LLHArea> myLLHAreas = new java.util.concurrent.ConcurrentLinkedQueue<LLHArea>();
@@ -74,7 +71,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     private boolean armed = true;
     private boolean useRubberBand;
     private LLHAreaControlPointRenderer controlPointRenderer;
-    private EventListenerList eventListeners = new EventListenerList();
     // List of control points from the last call to draw().
     private ArrayList<LLHAreaControlPoint> currentControlPoints = new ArrayList<LLHAreaControlPoint>();
     // Airspace altitude constants.
@@ -126,7 +122,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         // Editor stuff
         this.armed = true;
         this.useRubberBand = true;
-        this.controlPointRenderer = new BasicLLHAreaControlPointRenderer();
+        this.controlPointRenderer = new LLHAreaControlPointRenderer();
     }
 
     /**
@@ -865,22 +861,23 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     public void setControlPointRenderer(LLHAreaControlPointRenderer renderer) {
         this.controlPointRenderer = renderer;
     }
+    /*
+     public LLHAreaEditListener[] getEditListeners() {
+     return this.eventListeners.getListeners(LLHAreaEditListener.class);
+     }
 
-    public LLHAreaEditListener[] getEditListeners() {
-        return this.eventListeners.getListeners(LLHAreaEditListener.class);
-    }
+     public void addEditListener(LLHAreaEditListener listener) {
+     this.eventListeners.add(LLHAreaEditListener.class, listener);
+     }
 
-    public void addEditListener(LLHAreaEditListener listener) {
-        this.eventListeners.add(LLHAreaEditListener.class, listener);
-    }
-
-    public void removeEditListener(LLHAreaEditListener listener) {
-        this.eventListeners.remove(LLHAreaEditListener.class, listener);
-    }
-
+     public void removeEditListener(LLHAreaEditListener listener) {
+     this.eventListeners.remove(LLHAreaEditListener.class, listener);
+     }
+     */
     //**************************************************************//
     //********************  Control Point Rendering  ***************//
     //**************************************************************//
+
     protected void drawControlPoints(DrawContext dc, Point pickPoint) {
 
         this.getCurrentControlPoints().clear();
@@ -914,16 +911,6 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //**************************************************************//
     //********************  Control Point Events  ******************//
     //**************************************************************//
-    public void moveAirspaceLaterally(WorldWindow wwd, LLHArea airspace,
-            Point mousePoint, Point previousMousePoint) {
-        // Include this test to ensure any derived implementation performs it.
-        if (this.getAirspace() == null || this.getAirspace() != airspace) {
-            return;
-        }
-
-        this.doMoveAirspaceLaterally(wwd, airspace, mousePoint, previousMousePoint);
-    }
-
     public void moveAirspaceVertically(WorldWindow wwd, LLHArea airspace,
             Point mousePoint, Point previousMousePoint) {
         // Include this test to ensure any derived implementation performs it.
@@ -948,134 +935,154 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         return this.doAddControlPoint(wwd, airspace, mousePoint);
     }
 
-    public void removeControlPoint(WorldWindow wwd, LLHAreaControlPoint controlPoint) {
-        // Include this test to ensure any derived implementation performs it.
-        if (this.getAirspace() == null) {
-            return;
-        }
-
-        if (wwd == null || controlPoint == null) {
-            return;
-        }
-
-        if (this.getAirspace() != controlPoint.getAirspace()) {
-            return;
-        }
-
-        this.doRemoveControlPoint(wwd, controlPoint);
-    }
-
-    public void resizeAtControlPoint(WorldWindow wwd, LLHAreaControlPoint controlPoint,
-            Point mousePoint, Point previousMousePoint) {
-        // Include this test to ensure any derived implementation performs it.
-        if (this.getAirspace() == null) {
-            return;
-        }
-        if (this.getAirspace() != controlPoint.getAirspace()) {
-            return;
-        }
-
-        this.doResizeAtControlPoint(wwd, controlPoint, mousePoint, previousMousePoint);
-    }
-
-    /*protected void fireAirspaceMoved(LLHAreaEditEvent e) {
+    /*
+     protected void fireAirspaceResized(LLHAreaEditEvent e) {
      // Iterate over the listener list in reverse order. This has the effect of notifying the listeners in the
      // order they were added.
      LLHAreaEditListener[] listeners = this.eventListeners.getListeners(LLHAreaEditListener.class);
      for (int i = listeners.length - 1; i >= 0; i--) {
-     listeners[i].airspaceMoved(e);
+     listeners[i].airspaceResized(e);
      }
-     }*/
-    protected void fireAirspaceResized(LLHAreaEditEvent e) {
-        // Iterate over the listener list in reverse order. This has the effect of notifying the listeners in the
-        // order they were added.
-        LLHAreaEditListener[] listeners = this.eventListeners.getListeners(LLHAreaEditListener.class);
-        for (int i = listeners.length - 1; i >= 0; i--) {
-            listeners[i].airspaceResized(e);
+     }
+     */
+    public Position airspaceOrigin(WorldWindow wwd, LLHArea airspace, Point mousePoint) {
+        // Position newPosition = mouseToPosition(wwd, elevation, mousePoint);
+        // return newPosition;    
+        Movable movable = airspace;
+        Position refPos = movable.getReferencePosition();
+        double elevation = refPos.getElevation();
+        Position clickedPosition = mouseToPosition(wwd, elevation, mousePoint);
+        if (clickedPosition == null) {
+            return null;
         }
+
+        return clickedPosition;
+        /*
+         Position newPosition = null;
+         LLHArea area = this.getAirspace();
+         if (area instanceof LLHAreaSet) {
+         LLHAreaSet set = (LLHAreaSet) (area);
+         FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
+         // currently copying all points into 'points'
+         @SuppressWarnings("unchecked")
+         ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+         if (list != null) {
+
+         if (list.size() > 0) {  // Need at least one existing point for reference...
+         LatLon z = list.get(0);
+         LatLon copyZ = new LatLon(z);
+         copyZ.subtract(clickedPosition);
+         newPosition = new Position(copyZ, elevation);
+         }
+         }
+         }
+         return newPosition;
+         * */
+    }
+    
+    public ArrayList<LatLon> originList(WorldWindow wwd, LLHArea area, Point mousePoint){
+         if (area instanceof LLHAreaSet) {
+            LLHAreaSet set = (LLHAreaSet) (area);
+            FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
+            // currently copying all points into 'points'
+            @SuppressWarnings("unchecked")
+            ArrayList<LatLon> newList = new ArrayList<LatLon>();
+            ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+            for(LatLon l:list){
+                LatLon copy = new LatLon(l);
+                newList.add(copy);
+            }
+            return newList;
+         }
+         return null;
     }
 
-    /*  protected void fireControlPointAdded(LLHAreaEditEvent e) {
-     // Iterate over the listener list in reverse order. This has the effect of notifying the listeners in the
-     // order they were added.
-     LLHAreaEditListener[] listeners = this.eventListeners.getListeners(LLHAreaEditListener.class);
-     for (int i = listeners.length - 1; i >= 0; i--) {
-     listeners[i].controlPointAdded(e);
-     }
-     }*/
-    //protected void fireControlPointRemoved(LLHAreaEditEvent e) {
-    // Iterate over the listener list in reverse order. This has the effect of notifying the listeners in the
-    // order they were added.
-    //    LLHAreaEditListener[] listeners = this.eventListeners.getListeners(LLHAreaEditListener.class);
-    //     for (int i = listeners.length - 1; i >= 0; i--) {
-    //         listeners[i].controlPointRemoved(e);
-    //    }
-    // }
+    /**
+     * Calculate mouse to position on airspace..
+     */
+    public Position mouseToPosition(WorldWindow wwd, double elevation, Point mousePoint) {
+        // Move the point to the ray intersection.  Don't use previous/next because other things can move the
+        // worldwind window (such as scroll wheel)..the user expects the point to be where their mouse is.
+        Line ray = wwd.getView().computeRayFromScreenPoint(mousePoint.getX(), mousePoint.getY());
 
-    /*protected void fireControlPointChanged(LLHAreaEditEvent e) {
-     // Iterate over the listener list in reverse order. This has the effect of notifying the listeners in the
-     // order they were added.
-     LLHAreaEditListener[] listeners = this.eventListeners.getListeners(LLHAreaEditListener.class);
-     for (int i = listeners.length - 1; i >= 0; i--) {
-     listeners[i].controlPointChanged(e);
-     }
-     }*/
+        Vec4 newPoint = AirspaceEditorUtil.intersectGlobeAt(wwd, elevation, ray);
+        if (newPoint == null) {
+            return null;
+        }
+
+        Position newPosition = wwd.getModel().getGlobe().computePositionFromPoint(newPoint);
+        return newPosition;
+    }
     //**************************************************************//
     //********************  Default Event Handling  ****************//
     //**************************************************************//
+
     public void doMoveAirspaceLaterally(WorldWindow wwd, LLHArea airspace,
-            Point mousePoint, Point previousMousePoint) {
-        // Intersect a ray throuh each mouse point, with a geoid passing through the reference elevation. Since
-        // most airspace control points follow a fixed altitude, this will track close to the intended mouse position.
-        // If either ray fails to intersect the geoid, then ignore this event. Use the difference between the two
-        // intersected positions to move the control point's location.
+            ArrayList<LatLon> originList, Position origin, Point mousePoint) {
 
-        Movable movable = airspace;
-        View view = wwd.getView();
-        Globe globe = wwd.getModel().getGlobe();
-
-        Position refPos = movable.getReferencePosition();
-
-        // Convert the reference position into a cartesian point. This assumes that the reference elevation is defined
-        // by the airspace's lower altitude.
-        Vec4 refPoint = globe.computePointFromPosition(refPos);
-
-        // Convert back to a position.
-        refPos = globe.computePositionFromPoint(refPoint);
-
-        Line ray = view.computeRayFromScreenPoint(mousePoint.getX(), mousePoint.getY());
-        Line previousRay = view.computeRayFromScreenPoint(previousMousePoint.getX(), previousMousePoint.getY());
-
-        Vec4 vec = intersectGlobeAt(wwd, refPos.getElevation(), ray);
-        Vec4 previousVec = intersectGlobeAt(wwd, refPos.getElevation(), previousRay);
-
-        if (vec == null || previousVec == null) {
+        // Include this test to ensure any derived implementation performs it.
+        if (this.getAirspace() == null || this.getAirspace() != airspace) {
             return;
         }
 
-        Position pos = globe.computePositionFromPoint(vec);
-        Position previousPos = globe.computePositionFromPoint(previousVec);
-        LatLon change = pos.subtract(previousPos);
+        // Move the point to the ray intersection.  Don't use previous/next because other things can move the
+        // worldwind window (such as scroll wheel)..the user expects the point to be where their mouse is.
+        //  Line ray = wwd.getView().computeRayFromScreenPoint(mousePoint.getX(), mousePoint.getY());
 
-        // Should be inside a command....
-        movable.move(new Position(change.getLatitude(), change.getLongitude(), 0.0));
+        // Use elevation of surface, or existing elevation of point....
+        Movable movable = airspace;
+        Position refPos = movable.getReferencePosition();
+        double elevation = refPos.getElevation();
+        //double elevation = AirspaceEditorUtil.surfaceElevationAt(wwd, ray);
+
+        //  Vec4 newPoint = AirspaceEditorUtil.intersectGlobeAt(wwd, elevation, ray);
+        //   if (newPoint == null) {
+        //       return;
+        //  }
+
+        //Position newPosition = wwd.getModel().getGlobe().computePositionFromPoint(newPoint);
+
+        Position newPosition = mouseToPosition(wwd, elevation, mousePoint);
+        if (newPosition == null) {
+            return;
+        }
+        if (originList == null){
+            return;
+        }
+
+        //Position delta = newPosition.subtract(origin);
 
         LLHArea area = this.getAirspace();
         if (area instanceof LLHAreaSet) {
             LLHAreaSet set = (LLHAreaSet) (area);
             FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
             // currently copying all points into 'points'
-            @SuppressWarnings("unchecked")
+           // @SuppressWarnings("unchecked")
             ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
             if (list != null) {
-                // list.add(newLocation);
-                // m.setProperty(LLHAreaSet.LLHAreaSetMemento.POINTS, list); same list
-                FeatureMemento fm = (FeatureMemento) (m); // Check it
-                FeatureChangeCommand c = new FeatureChangeCommand(area.getFeature(), fm);
-                CommandManager.getInstance().executeCommand(c, true);
+
+                // Delta from original point to current point...
+                double dlat = newPosition.latitude.degrees - origin.latitude.degrees;
+                double dlon = newPosition.longitude.degrees - origin.longitude.degrees;
+
+                if (originList.size() > 0) {  // Need at least one existing point for reference...
+                    int index = 0;
+                    for (LatLon l : originList) {
+                        LatLon l2 = LatLon.fromDegrees(l.latitude.degrees + dlat, l.longitude.degrees + dlon);
+                        Position temp = new Position(l2, elevation);
+                        list.set(index, temp);
+                        index++;
+
+                    }
+                    //list.add(newPosition);
+                    // m.setProperty(LLHAreaSet.LLHAreaSetMemento.POINTS, list); same list
+                    FeatureMemento fm = (FeatureMemento) (m); // Check it
+                    FeatureChangeCommand c = new FeatureChangeCommand(area.getFeature(), fm);
+                    CommandManager.getInstance().executeCommand(c, true);
+                }
             }
         }
-        //this.fireAirspaceMoved(new LLHAreaEditEvent(wwd, airspace, this));
+        //eturn;
     }
 
     protected void doMoveAirspaceVertically(WorldWindow wwd, LLHArea airspace,
@@ -1254,7 +1261,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         this.getAirspace().setLocations(locationList);
 
         LLHAreaControlPoint controlPoint =
-                new BasicLLHAreaControlPoint(this.getAirspace(), 0, LOWER_ALTITUDE, newPoint);
+                new LLHAreaControlPoint(this.getAirspace(), 0, LOWER_ALTITUDE, newPoint);
 
         return controlPoint;
     }
@@ -1294,7 +1301,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         if (area instanceof LLHAreaSet) {
             LLHAreaSet set = (LLHAreaSet) (area);
             PointAddCommand c = new PointAddCommand(set, newLocation, controlPoint.getLocationIndex());
-            CommandManager.getInstance().executeCommand(c, true);  
+            CommandManager.getInstance().executeCommand(c, true);
         }
 
         return controlPoint;
@@ -1408,7 +1415,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             locationIndex = edge.nextLocationIndex;
         }
 
-        return new BasicLLHAreaControlPoint(airspace, locationIndex, altitudeIndex, newPoint);
+        return new LLHAreaControlPoint(airspace, locationIndex, altitudeIndex, newPoint);
     }
 
     public static List<LLHAreaEdgeInfo> computeEdgeInfoFor(int numLocations,
@@ -1429,8 +1436,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         for (int altitudeIndex = 0; altitudeIndex < 2; altitudeIndex++) {
             for (int locationIndex = 0; locationIndex < numLocations; locationIndex++) {
                 int nextLocationIndex = (locationIndex < numLocations - 1) ? (locationIndex + 1) : 0;
-                Object key = BasicLLHAreaControlPoint.keyFor(locationIndex, altitudeIndex);
-                Object nextKey = BasicLLHAreaControlPoint.keyFor(nextLocationIndex, altitudeIndex);
+                Object key = LLHAreaControlPoint.keyFor(locationIndex, altitudeIndex);
+                Object nextKey = LLHAreaControlPoint.keyFor(nextLocationIndex, altitudeIndex);
 
                 LLHAreaControlPoint controlPoint = map.get(key);
                 LLHAreaControlPoint nextControlPoint = map.get(nextKey);
@@ -1445,14 +1452,18 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         return edgeInfoList;
     }
 
-    protected void doRemoveControlPoint(WorldWindow wwd, LLHAreaControlPoint controlPoint) {
-
-        int index = controlPoint.getLocationIndex();
-        LLHArea area = this.getAirspace();
-        if (area instanceof LLHAreaSet) {
-            LLHAreaSet set = (LLHAreaSet) (area);
-            PointRemoveCommand c = new PointRemoveCommand(set, index);
-            CommandManager.getInstance().executeCommand(c, true);
+    /**
+     * Delete a single point
+     */
+    public void doRemoveControlPoint(LLHAreaControlPoint controlPoint) {
+        if (controlPoint != null) {
+            int index = controlPoint.getLocationIndex();
+            LLHArea area = this.getAirspace();
+            if (area instanceof LLHAreaSet) {
+                LLHAreaSet set = (LLHAreaSet) (area);
+                PointRemoveCommand c = new PointRemoveCommand(set, index);
+                CommandManager.getInstance().executeCommand(c, true);
+            }
         }
     }
 
@@ -1460,7 +1471,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
      * Move a single point
      */
     public void doMoveControlPoint(WorldWindow wwd, LLHAreaControlPoint controlPoint,
-            Point mousePoint, Point previousMousePoint) {
+            Point mousePoint) {
 
         // Include this test to ensure any derived implementation performs it.
         if (this.getAirspace() == null) {
@@ -1471,11 +1482,11 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             return;
         }
 
-	// Move the point to the ray intersection.  Don't use previous/next because other things can move the
-	// worldwind window (such as scroll wheel)..the user expects the point to be where their mouse is.
+        // Move the point to the ray intersection.  Don't use previous/next because other things can move the
+        // worldwind window (such as scroll wheel)..the user expects the point to be where their mouse is.
         Line ray = wwd.getView().computeRayFromScreenPoint(mousePoint.getX(), mousePoint.getY());
 
-	// Use elevation of surface, or existing elevation of point....
+        // Use elevation of surface, or existing elevation of point....
         Position controlPointPos = wwd.getModel().getGlobe().computePositionFromPoint(controlPoint.getPoint());
         double elevation = controlPointPos.getElevation();
         //double elevation = AirspaceEditorUtil.surfaceElevationAt(wwd, ray);
@@ -1485,7 +1496,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             return;
         }
 
-        Position newPosition = wwd.getModel().getGlobe().computePositionFromPoint(newPoint);	
+        Position newPosition = wwd.getModel().getGlobe().computePositionFromPoint(newPoint);
 
         int index = controlPoint.getLocationIndex();
         LLHArea area = this.getAirspace();
@@ -1496,20 +1507,27 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             @SuppressWarnings("unchecked")
             ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
             if (list != null) {
-		list.set(index, newPosition);
+                list.set(index, newPosition);
                 FeatureMemento fm = (FeatureMemento) (m); // Check it
                 FeatureChangeCommand c = new FeatureChangeCommand(area.getFeature(), fm);
                 CommandManager.getInstance().executeCommand(c, true);
             }
         } else {
             List<LatLon> newLocationList = new ArrayList<LatLon>(this.getAirspace().getLocations());
-	    newLocationList.set(index, newPosition);
+            newLocationList.set(index, newPosition);
             this.getAirspace().setLocations(newLocationList);
         }
     }
 
-    protected void doResizeAtControlPoint(WorldWindow wwd, LLHAreaControlPoint controlPoint,
+    public void doResizeAtControlPoint(WorldWindow wwd, LLHAreaControlPoint controlPoint,
             Point mousePoint, Point previousMousePoint) {
+        // Include this test to ensure any derived implementation performs it.
+        if (this.getAirspace() == null) {
+            return;
+        }
+        if (this.getAirspace() != controlPoint.getAirspace()) {
+            return;
+        }
         // Find the closest points between the rays through each screen point, and the ray from the control point
         // and in the direction of the globe's surface normal. Compute the elevation difference between these two
         // points, and use that as the change in airspace altitude.
@@ -1555,9 +1573,9 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
         controlPoint.getAirspace().setAltitudes(altitudes[LOWER_ALTITUDE], altitudes[UPPER_ALTITUDE]);
 
-        LLHAreaEditEvent editEvent = new LLHAreaEditEvent(wwd, controlPoint.getAirspace(), this, controlPoint);
+        // LLHAreaEditEvent editEvent = new LLHAreaEditEvent(wwd, controlPoint.getAirspace(), this, controlPoint);
         // this.fireControlPointChanged(editEvent);
-        this.fireAirspaceResized(editEvent);
+        //this.fireAirspaceResized(editEvent);
     }
 
     public static double computeMinimumDistanceBetweenAltitudes(int numLocations,
@@ -1574,8 +1592,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         }
 
         for (int locationIndex = 0; locationIndex < numLocations; locationIndex++) {
-            Object lowerKey = BasicLLHAreaControlPoint.keyFor(locationIndex, LOWER_ALTITUDE);
-            Object upperKey = BasicLLHAreaControlPoint.keyFor(locationIndex, UPPER_ALTITUDE);
+            Object lowerKey = LLHAreaControlPoint.keyFor(locationIndex, LOWER_ALTITUDE);
+            Object upperKey = LLHAreaControlPoint.keyFor(locationIndex, UPPER_ALTITUDE);
 
             LLHAreaControlPoint lowerControlPoint = map.get(lowerKey);
             LLHAreaControlPoint upperControlPoint = map.get(upperKey);

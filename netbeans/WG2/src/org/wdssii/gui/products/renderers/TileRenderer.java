@@ -1,21 +1,22 @@
 package org.wdssii.gui.products.renderers;
 
-import java.util.ArrayList;
-
 import gov.nasa.worldwind.View;
+import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.render.DrawContext;
-
+import java.util.ArrayList;
+import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.gui.products.Product;
 
-/** A general tile renderer that handles tiling off one of our
- * dynamic 'Product' classes.  Based off the WorldWind classes but simplified
- * for our non-static data.
- * 
+/**
+ * A general tile renderer that handles tiling off one of our dynamic 'Product'
+ * classes. Based off the WorldWind classes but simplified for our non-static
+ * data.
+ *
  * @author Robert Toomey
  *
  */
@@ -24,17 +25,19 @@ public class TileRenderer extends ProductRenderer {
     @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(TileRenderer.class);
 
-    public TileRenderer(boolean asBackgroundJob){
+    public TileRenderer(boolean asBackgroundJob) {
         super(asBackgroundJob);
     }
-    
-    /** Root class of all tiles we can render */
+
+    /**
+     * Root class of all tiles we can render
+     */
     public static class Tile {
 
         private final int TILE_CREATED = 1;
         private final int TILE_CREATING = 2;
         private final int TILE_EMPTY = 0;
-        private Object myTileCreateLock = new Object();
+        private final Object myTileCreateLock = new Object();
         private int tileCreated = TILE_EMPTY;
 
         public void addTileOrDescendants(DrawContext dc, double splitScale, Product p, ArrayList<Tile> t) {
@@ -46,35 +49,51 @@ public class TileRenderer extends ProductRenderer {
         public void makeTheTile(DrawContext dc, Product p, WdssiiJobMonitor m) {
         }
 
-        public void drawTile(DrawContext dc, Product p) {
+        public void drawTile(DrawContext dc, Product p, boolean readoutMode) {
+        }
+
+        /**
+         * Does this position hit our tile?
+         */
+        public boolean positionInTile(DrawContext dc, Position p) {
+            return true;
         }
 
         public boolean isTileVisible(DrawContext dc) {
             return false;
         }
 
-        /** Has the tile been completely created?  Is the opengl data for tile completely ready? */
+        /**
+         * Has the tile been completely created? Is the opengl data for tile
+         * completely ready?
+         */
         public boolean isTileCreated() {
             synchronized (myTileCreateLock) {
                 return (tileCreated == TILE_CREATED);
             }
         }
 
-        /** Is the tile empty and not being created? */
+        /**
+         * Is the tile empty and not being created?
+         */
         public boolean isTileEmpty() {
             synchronized (myTileCreateLock) {
                 return (tileCreated == TILE_EMPTY);
             }
         }
 
-        /** Set tile created.  It's finished */
+        /**
+         * Set tile created. It's finished
+         */
         public void setTileCreated() {
             synchronized (myTileCreateLock) {
                 tileCreated = TILE_CREATED;
             }
         }
 
-        /** Set tile as being created by worker thread.  It's not complete yet */
+        /**
+         * Set tile as being created by worker thread. It's not complete yet
+         */
         public void setTileCreating() {
             synchronized (myTileCreateLock) {
                 tileCreated = TILE_CREATING;
@@ -83,8 +102,9 @@ public class TileRenderer extends ProductRenderer {
 
         /**
          * Does this tile need to split into four?
-         * 
-         * FIXME: this function needs work.  
+         *
+         * FIXME: this function needs work.
+         *
          * @param dc
          * @param sector
          * @param splitScale
@@ -119,18 +139,27 @@ public class TileRenderer extends ProductRenderer {
 
             return !(Math.log10(cellSize) <= (Math.log10(minDistance) - splitScale));
         }
+
     }
-    /** The scale factor for splitting */
+    /**
+     * The scale factor for splitting
+     */
     private double mySplitScale = 0.99;
-    /** The original 'top' level tiles.  The tiles when zoomed out all the way */
+    /**
+     * The original 'top' level tiles. The tiles when zoomed out all the way
+     */
     private ArrayList<Tile> myTopLevelTiles = null;
 
-    /** Set the split scale */
+    /**
+     * Set the split scale
+     */
     protected void setSplitScale(double splitScale) {
         mySplitScale = splitScale;
     }
 
-    /** Get the split scale */
+    /**
+     * Get the split scale
+     */
     protected double getSplitScale() {
         return mySplitScale;
     }
@@ -139,7 +168,9 @@ public class TileRenderer extends ProductRenderer {
         return myTopLevelTiles;
     }
 
-    /** Set the top level tile set. The zoomed out all the way tiles */
+    /**
+     * Set the top level tile set. The zoomed out all the way tiles
+     */
     public void setTopLevelTiles(ArrayList<Tile> list) {
         myTopLevelTiles = list;
     }
@@ -147,9 +178,9 @@ public class TileRenderer extends ProductRenderer {
     @Override
     public void draw(DrawContext dc) {
     }
-    
+
     @Override
     public boolean canOverlayOtherData() {
-       return false;
+        return false;
     }
 }

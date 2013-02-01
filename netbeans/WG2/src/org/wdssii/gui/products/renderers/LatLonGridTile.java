@@ -2,34 +2,39 @@ package org.wdssii.gui.products.renderers;
 
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Extent;
+import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.util.Level;
 import gov.nasa.worldwind.util.Logging;
-
-import java.nio.FloatBuffer;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
-
 import javax.media.opengl.GL;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
+import org.wdssii.datatypes.LatLonGrid.LatLonGridQuery;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
+import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.renderers.TileRenderer.Tile;
 import org.wdssii.storage.Array1DOpenGL;
+import org.wdssii.storage.DataNode;
+import org.wdssii.storage.GrowList;
 
-/** A tile that displays a section of a LatLonGridProduct using quads
- * Based originally on the worldwind surfaceTile class
+/**
+ * A tile that displays a section of a LatLonGridProduct using quads Based
+ * originally on the worldwind surfaceTile class
+ *
  * @author Robert Toomey
  *
  */
@@ -39,32 +44,48 @@ public class LatLonGridTile extends TileRenderer.Tile {
     protected int counter = 0;
     protected int mySize = 0;
     protected static boolean toggle = false;
-    /** Is tile the highest resolution level? */
+    public final static boolean BATCHED_TILES = true;
+    /**
+     * Is tile the highest resolution level?
+     */
     protected boolean atMaxLevel = false;
-    /** The sector this tile represents */
+    /**
+     * The sector this tile represents
+     */
     protected Sector mySector;
-    /** The vertex points to render */
-    protected Array1DOpenGL verts = null;
-    /** The colors for the vertexes */
-    protected Array1DOpenGL colors = null;
-    /** The row number in the level, used for reference */
+    protected QuadStripRenderer myQuadRenderer = new QuadStripRenderer();
+    /**
+     * The row number in the level, used for reference
+     */
     private final int myRow;
-    /** The col number in the level, used for reference */
+    /**
+     * The col number in the level, used for reference
+     */
     private final int myCol;
     private int myLevelNumber;
-    /** tileCreated and workerlock need to sync together */
+    /**
+     * tileCreated and workerlock need to sync together
+     */
     protected Object myWorkerLock = new Object();
     protected backgroundTile myWorker;
     // Hold the subtiles within us for now, until we figure out our cache system
     protected LatLonGridTile[] mySubtile;
+    /**
+     * How much to shift a grid 'up' to avoid 3d hitting the terrain...humm,
+     * There should be something in data set to tell if it's flat or not...
+     * FIXME: Problem is some LLG should be where they say they are, others like
+     * Satellite...where do they belong in 3d space?
+     */
+    private double FLAT_UP_ADJUST = 10.0d;
 
     @Override
-    public void makeTheTile(DrawContext dc, Product aProduct, WdssiiJobMonitor m) {
+    public void makeTheTile(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
         //m.beginTask("LatLonTile:", IProgressMonitor.UNKNOWN);
         //setTileCreating();  set by worker..
 
-        LatLonGrid aWF = (LatLonGrid) aProduct.getRawDataType();
-        ColorMap aColorMap = aProduct.getColorMap();
+        LatLonGrid llg = (LatLonGrid) aProduct.getRawDataType();
+        FilterList aList = aProduct.getFilterList();
+        Globe myGlobe = dc.getGlobe(); // FIXME: says may be null???
 
         // Get the max size of the tile.  FIXME: this is wasteful
         final int DENSITY_X = LatLonGridRenderer.DENSITY_X;
@@ -73,135 +94,207 @@ public class LatLonGridTile extends TileRenderer.Tile {
         int vertCounter = DENSITY_X * DENSITY_Y * 3 * pointsPerQuad;
         int colorCounter = DENSITY_X * DENSITY_Y * 1 * pointsPerQuad;  // one float per color
 
-        Globe g = dc.getGlobe();
+        // Allocate is too big...bleh...
+        myQuadRenderer.allocate(vertCounter, colorCounter * 4);
+        myQuadRenderer.begin();
+        Array1DOpenGL verts = myQuadRenderer.getVerts();
+        Array1DOpenGL colors = myQuadRenderer.getColors();
+        Array1DOpenGL readout = myQuadRenderer.getReadout();
+        GrowList<Integer> myOffsets = myQuadRenderer.getOffsets();
 
-        verts = new Array1DOpenGL(vertCounter, 0.0f);
-        colors = new Array1DOpenGL(colorCounter, 0.0f);
+        // Allow rendering while creating..it's ok as long as offsets
+        // are set LAST
+        myQuadRenderer.setCanDraw(true);
 
-        verts.begin();
-        colors.begin();
-        
+
         Angle minLat = mySector.getMinLatitude();
         Angle maxLat = mySector.getMaxLatitude();
         Angle minLong = mySector.getMinLongitude();
         Angle maxLong = mySector.getMaxLongitude();
-
-        //LatLonGrid aWF = latLonProduct.getLatLonGrid();
-        double height = aWF.getLocation().getHeightKms() + 10.0;
+        double height = llg.getLocation().getHeightKms() + FLAT_UP_ADJUST;
 
         Location currentLocation = new Location(0, 0, 0);
-        Location c1 = new Location(0, 0, 0);
-        Location c2 = new Location(0, 0, 0);
-        Location c3 = new Location(0, 0, 0);
 
         // March so that it's ordered Sector for united states
-        double deltaLat = (minLat.degrees - maxLat.degrees) / DENSITY_Y;
-        double deltaLon = (maxLong.degrees - minLong.degrees) / DENSITY_X;
-
-        double currentLat;
-        double currentLon;
+        double deltaLat = (maxLat.degrees - minLat.degrees) / (DENSITY_Y * 1.0d);
+        double deltaLon = (maxLong.degrees - minLong.degrees) / (DENSITY_X * 1.0d);
 
         // THIS IS WHAT STOPS US FROM DIVIDING
-        // This is the max level if the density of our 'scan' is >= the density of the
-        // actual data.  Since our tiles split aligned to the data, eventually this will
-        // be true.  Not sure this is 'good' enough or if it works
-        double deltaWFLat = aWF.getDeltaLat();
-        if (deltaWFLat >= deltaLat) {	// If the density of windfield lat greater or equal to our sample density
+        double deltaWFLat = Math.abs(llg.getDeltaLat());
+        if (deltaWFLat >= Math.abs(deltaLat)) {
             // AND same for longitude
-            if (aWF.getDeltaLon() >= deltaLon) {
+            if (Math.abs(llg.getDeltaLon()) >= Math.abs(deltaLon)) {
                 atMaxLevel = true; // Don't divide after this tile
                 //System.out.println("REACHED MAX LEVEL FOR TILE");
             }
         }
 
+        int idx = 0;
+        int idy = 0;
+        int idREAD = 0;
+
+        // The four locations of the quad of the data cell
+        Location loc0 = new Location(0, 0, 0);
+        Location loc1 = new Location(0, 0, 0);
+        Location loc2 = new Location(0, 0, 0);
+        Location loc3 = new Location(0, 0, 0);
         ColorMapFloatOutput out = new ColorMapFloatOutput();
 
-        // We match left to right, top to bottom for north hemisphere
-        currentLon = minLong.degrees;
-        currentLat = maxLat.degrees;
+        int numLats = DENSITY_Y;
+        int numLons = DENSITY_X;
 
-        // From 'top' to 'bottom' in latitude
-        int idy = 0;
-        int idx = 0;
-        for (int y = 0; y < DENSITY_Y; y++) {
+        LatLonGridQuery lq = new LatLonGridQuery();
+        Vec4 point0, point1, point2 = null, point3 = null;
+        boolean startQuadStrip;
+        int updateIndex = 0;
 
-            // For x direction left to right, update longitude
-            currentLon = minLong.degrees; // start long
-            for (int x = 0; x < DENSITY_X; x++) {
+        // Northwest corner...
+        double startLat = maxLat.degrees;
+        double startLon = minLong.degrees;
+        double latDelta = deltaLat;
+        double lonDelta = deltaLon;
 
-                currentLocation.init(currentLat, currentLon, height);
-                float value = aWF.getValue(currentLocation);
+        double curLat;
+        double curLon;
+        float[] point01 = new float[6];
+        float[] point23 = new float[6];
+        float[] temp;
 
-                /** For 'smoothing' the data... might look better */
-                c1.init(currentLat + deltaLat, currentLon, height);
-                float v1 = aWF.getValue(c1);
-                c2.init(currentLat + deltaLat, currentLon + deltaLon, height);
-                float v2 = aWF.getValue(c2);
-                c3.init(currentLat, currentLon + deltaLon, height);
-                float v3 = aWF.getValue(c3);
-                boolean g1 = DataType.isRealDataValue(v1);
-                boolean g2 = DataType.isRealDataValue(v2);
-                boolean g3 = DataType.isRealDataValue(v3);
+        curLat = startLat;
+        for (int y = 0; y <= numLats; y++) {
+            monitor.subTask("Row " + y + "/" + numLats);
+            monitor.worked(1);   // Do it first to ensure it's called
 
-                boolean good = DataType.isRealDataValue(value);
+            // Move alone a single 'row' of grid..increasing lon..
+            curLon = startLon;
+            int lastJWithData = -2;
+            for (int x = 0; x <= numLons; x++) {
+                currentLocation.init(curLat, curLon, height);
+                float value = llg.getValue(currentLocation);
+                if (value == DataType.MissingData) {
+                    // This new way we don't have to calculate anything
+                    // with missing data.  Much better for long bursts of
+                    // missing...
+                } else {
 
-                if (good && g1 && g2 && g3) { // If good value, add a quad
+                    // Calculate the two points closest 'bottom' to the radar center
+                    // if last written then we have this cached from the 
+                    // old two 'top' points...
+                    if (lastJWithData == (x - 1)) {
+                        // The previous 'top' is our bottom,
+                        // we don't need a new strip in this case...
+                        // v0  v2  v4  v6
+                        // v1  v3  v5  v7
+                        loc0 = loc2;
+                        loc1 = loc3;
+                        //point0 = point2;
+                        //point1 = point3;
+                        temp = point01;
+                        point01 = point23;
+                        point23 = temp;
+                        startQuadStrip = false;
+                    } else {
+                        // Calculate the closet points to 'left' and 'bottom'
+                        loc0.init(curLat, curLon, height);
+                        loc1.init(curLat - latDelta, curLon, height);
+                        point0 = myGlobe.computePointFromPosition(
+                                Angle.fromDegrees(loc0.getLatitude()),
+                                Angle.fromDegrees(loc0.getLongitude()),
+                                loc0.getHeightKms() * 1000);
+                        point01[0] = (float) point0.x;
+                        point01[1] = (float) point0.y;
+                        point01[2] = (float) point0.z;
+                        point1 = myGlobe.computePointFromPosition(
+                                Angle.fromDegrees(loc1.getLatitude()),
+                                Angle.fromDegrees(loc1.getLongitude()),
+                                loc1.getHeightKms() * 1000);
+                        point01[3] = (float) point1.x;
+                        point01[4] = (float) point1.y;
+                        point01[5] = (float) point1.z;
+                        startQuadStrip = true;
+                    }
+                    // Calculate the furthest two points 'right' of the quad  
+                    loc2.init(curLat, curLon + lonDelta, height);
+                    loc3.init(curLat - latDelta, curLon + lonDelta, height);
+                    lastJWithData = x;
 
+                    // Filler data value...
+                    lq.inDataValue = value;
+                    lq.outDataValue = value;
+                    aList.fillColor(out, lq, false);
 
-                    Vec4 point = g.computePointFromPosition(
-                            Angle.fromDegrees(currentLat),
-                            Angle.fromDegrees(currentLon),
-                            height);
-                    verts.set(idx++, (float) point.x);
-                    verts.set(idx++, (float) point.y);
-                    verts.set(idx++, (float) point.z);
-                    aColorMap.fillColor(out, value);
+                    if (startQuadStrip) {
+                        // Then we have to write the new bottom values...
+                        updateIndex = idx;
+
+                        readout.set(idREAD++, value);
+                        idy = out.putUnsignedBytes(colors, idy);
+                        readout.set(idREAD++, value);
+                        idy = out.putUnsignedBytes(colors, idy);
+
+                        idx = verts.set(idx, point01);
+                        /*
+                         verts.set(idx++, (float) point0.x);
+                         verts.set(idx++, (float) point0.y);
+                         verts.set(idx++, (float) point0.z);
+                         verts.set(idx++, (float) point1.x);
+                         verts.set(idx++, (float) point1.y);
+                         verts.set(idx++, (float) point1.z);
+                         * */
+                    }
+
+                    // Always write the 'top' of the strip
+                    // Push back last two vertices of quad
+                    point2 = myGlobe.computePointFromPosition(
+                            Angle.fromDegrees(loc2.getLatitude()),
+                            Angle.fromDegrees(loc2.getLongitude()),
+                            loc2.getHeightKms() * 1000);
+                    point23[0] = (float) point2.x;
+                    point23[1] = (float) point2.y;
+                    point23[2] = (float) point2.z;
+                    point3 = myGlobe.computePointFromPosition(
+                            Angle.fromDegrees(loc3.getLatitude()),
+                            Angle.fromDegrees(loc3.getLongitude()),
+                            loc3.getHeightKms() * 1000);
+                    point23[3] = (float) point3.x;
+                    point23[4] = (float) point3.y;
+                    point23[5] = (float) point3.z;
+                    readout.set(idREAD++, value);
                     idy = out.putUnsignedBytes(colors, idy);
-
-                    point = g.computePointFromPosition(
-                            Angle.fromDegrees(currentLat + deltaLat),
-                            Angle.fromDegrees(currentLon),
-                            height);
-
-                    verts.set(idx++, (float) point.x);
-                    verts.set(idx++, (float) point.y);
-                    verts.set(idx++, (float) point.z);
-                    aColorMap.fillColor(out, v1);
+                    readout.set(idREAD++, value);
                     idy = out.putUnsignedBytes(colors, idy);
-                    point = g.computePointFromPosition(
-                            Angle.fromDegrees(currentLat + deltaLat),
-                            Angle.fromDegrees(currentLon + deltaLon),
-                            height);
+                    idx = verts.set(idx, point23);
 
-                    verts.set(idx++, (float) point.x);
-                    verts.set(idx++, (float) point.y);
-                    verts.set(idx++, (float) point.z);
-                    aColorMap.fillColor(out, v2);
-
-                    idy = out.putUnsignedBytes(colors, idy);
-                    point = g.computePointFromPosition(
-                            Angle.fromDegrees(currentLat),
-                            Angle.fromDegrees(currentLon + deltaLon),
-                            height);
-
-                    verts.set(idx++, (float) point.x);
-                    verts.set(idx++, (float) point.y);
-                    verts.set(idx++, (float) point.z);
-                    aColorMap.fillColor(out, v3);
-
-                    idy = out.putUnsignedBytes(colors, idy);
+                    /*verts.set(idx++, (float) point2.x);
+                     verts.set(idx++, (float) point2.y);
+                     verts.set(idx++, (float) point2.z);
+                     verts.set(idx++, (float) point3.x);
+                     verts.set(idx++, (float) point3.y);
+                     verts.set(idx++, (float) point3.z);
+                     */
+                    // Update the offsets last...
+                    if (startQuadStrip) {
+                        myOffsets.add(updateIndex);
+                    }
                 }
-                currentLon += deltaLon;
+                curLon += lonDelta;
             }
-            currentLat += deltaLat;
+            curLat -= latDelta;
         }
-        verts.end();
-        colors.end();
+
+        myQuadRenderer.end();
+
         setTileCreated();
         CommandManager.getInstance().updateDuringRender();
     }
 
-    /** Background create tile information.... */
+    public void setBatched(boolean flag) {
+        myQuadRenderer.setBatched(flag);
+    }
+
+    /**
+     * Background create tile information....
+     */
     public class backgroundTile extends WdssiiJob {
 
         public DrawContext dc;
@@ -238,7 +331,8 @@ public class LatLonGridTile extends TileRenderer.Tile {
         return key;
     }
 
-    /** Create tile does the work of creating what is shown for the given data 
+    /**
+     * Create tile does the work of creating what is shown for the given data
      */
     public void createTile(DrawContext dc, Product data) {
         if (myWorker != null) {
@@ -250,37 +344,34 @@ public class LatLonGridTile extends TileRenderer.Tile {
         myWorker.schedule();
     }
 
-    /** Using a beginBatch/endBatch.  This will only work when rendering a group of common tiles..
-     * if we eventually 'mix' tile types it could fail
+    public static void beginReadout(Point p, Rectangle view, DrawContext dc) {
+        QuadStripRenderer.beginReadout(p, view, dc);
+    }
+
+    public static float endReadout(Point p, Rectangle view, DrawContext dc) {
+        ByteBuffer data = QuadStripRenderer.endReadout(p, view, dc);
+        float f = QuadStripRenderer.byteBufferToFloat(data);
+        return f;
+    }
+
+    /**
+     * Using a beginBatch/endBatch. This will only work when rendering a group
+     * of common tiles.. if we eventually 'mix' tile types it could fail
+     *
      * @param dc
      * @return
      */
     public static boolean beginBatch(GL gl) {
-        gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT
-                | GL.GL_COLOR_BUFFER_BIT
-                | GL.GL_ENABLE_BIT
-                | GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT
-                | GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT);
-
-        gl.glDisable(GL.GL_LIGHTING);
-        gl.glDisable(GL.GL_TEXTURE_2D); // no textures
-        gl.glDisable(GL.GL_DEPTH_TEST);
-        gl.glShadeModel(GL.GL_FLAT);
-//		gl.glShadeModel(GL.GL_SMOOTH);
-
-        gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT
-                | GL.GL_CLIENT_PIXEL_STORE_BIT);
-        gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
-        gl.glEnableClientState(GL.GL_COLOR_ARRAY);
-        gl.glLineWidth(2.0f);
-
+        if (BATCHED_TILES) {
+            QuadStripRenderer.beginBatch(gl);
+        }
         return true;
     }
 
     public static void endBatch(GL gl) {
-        gl.glLineWidth(1.0f);
-        gl.glPopClientAttrib();
-        gl.glPopAttrib();
+        if (BATCHED_TILES) {
+            QuadStripRenderer.endBatch(gl);
+        }
     }
 
     @Override
@@ -293,47 +384,22 @@ public class LatLonGridTile extends TileRenderer.Tile {
         }
     }
 
-    /** Draw this tile */
+    /**
+     * Draw this tile
+     */
     @Override
-    public void drawTile(DrawContext dc, Product latlon) {
+    public void drawTile(DrawContext dc, Product latlon, boolean readoutMode) {
 
         if (isTileCreated()) {
-
-            GL gl = dc.getGL();
-            try {
-                // Lock any tile we are drawing so data manager doesn't purge it on us
-                Object lock1 = verts.getBufferLock();
-                Object lock2 = colors.getBufferLock();
-                synchronized (lock1) {  // This double lock is ok, because verts and colors are independent?
-                    synchronized (lock2) {
-                        FloatBuffer v = verts.getRawBuffer();
-                        FloatBuffer c = colors.getRawBuffer();
-
-                        gl.glVertexPointer(3, GL.GL_FLOAT, 0, v.rewind());
-                        //gl.glColorPointer(4, GL.GL_FLOAT, 0, c.rewind());
-                        gl.glColorPointer(4, GL.GL_UNSIGNED_BYTE, 0, c.rewind());
-                        int size = verts.size();
-                        if (size > 1) {
-                            int start_index = 0;
-                            int end_index = size;
-                            int run_indices = end_index - start_index;
-                            int start_vertex = start_index / 3;
-                            int run_vertices = run_indices / 3;
-                            gl.glDrawArrays(GL.GL_QUADS, start_vertex,
-                                    run_vertices);
-                        }
-
-                    }
-                }
-
-            } catch (Exception e) {
-                log.error("Exception while drawing tile :" + e.toString());
-            }
+            myQuadRenderer.drawData(dc, readoutMode);
         }
     }
 
-    /** Given an ArrayList, add this tile or the subtiles depending upon visibility and camera.
-     * These are the tiles that would draw at this resolution if they WERE ALL READY TO DRAW. */
+    /**
+     * Given an ArrayList, add this tile or the subtiles depending upon
+     * visibility and camera. These are the tiles that would draw at this
+     * resolution if they WERE ALL READY TO DRAW.
+     */
     @Override
     public void addTileOrDescendants(DrawContext dc, double splitScale, Product p, ArrayList<Tile> list) {
 
@@ -351,6 +417,7 @@ public class LatLonGridTile extends TileRenderer.Tile {
 
             if (subTiles == null) {
                 // Fall back to parent tile.
+                log.debug("add back parent " + this);
                 list.add(this);
             } else {
 
@@ -365,44 +432,9 @@ public class LatLonGridTile extends TileRenderer.Tile {
         }
     }
 
-    /** This draws tiles at the highest resolution where they are generated */
-    public void drawTileOrDescendants(DrawContext dc, double splitScale, Product p,
-            ArrayList<Tile> list) {
-        // The tiles actually _ready_ to draw for this camera/resolution (parent > children if children not ready)
-
-        // Show tile or subtiles only is we're visible...
-        if (isTileVisible(dc)) {
-
-            // If this tile is good enough, add it...
-            if (meetsRenderCriteria(dc, splitScale)) {
-                if (isTileCreated()) {
-                    list.add(this);
-                }
-                return;
-            }
-
-            // We're not good enough, try to split to subtiles...
-            Tile[] subTiles = getSubTiles(null, dc);
-
-            if (subTiles == null) {
-                // Fall back to parent tile.
-                if (isTileCreated()) {
-                    list.add(this);
-                }
-            } else {
-
-                // Recursively add children tiles
-                for (Tile child : subTiles) {
-                    if (child.isTileVisible(dc)) {
-                        child.addTileOrDescendants(dc, splitScale, p, list);
-                    }
-                }
-            }
-
-        }
-    }
-
-    /** Create the divided subtiles for this tile.  We split a tile into four smaller tiles, unless we're at max level
+    /**
+     * Create the divided subtiles for this tile. We split a tile into four
+     * smaller tiles, unless we're at max level
      */
     public LatLonGridTile[] getSubTiles(Level nextLevel, DrawContext dc) {
         if (atMaxLevel) {
@@ -444,9 +476,46 @@ public class LatLonGridTile extends TileRenderer.Tile {
         return mySubtile;
     }
 
-    /** Return true if tile is visible in the given dc */
+    /**
+     * Does this position hit our tile?
+     */
+    @Override
+    public boolean positionInTile(DrawContext dc, Position p) {
+        boolean contains = false;
+        if (p != null) {
+            Sector s = getSector();
+            // Too close to edge of tile fails...so we pad sector a bit to
+            // ensure tile hit...
+            final int DENSITY_X = LatLonGridRenderer.DENSITY_X;
+            final int DENSITY_Y = LatLonGridRenderer.DENSITY_Y;
+            // Add a border of 2 of the 'pixels' of tile
+            double deltaLat = (s.getDeltaLatDegrees() / DENSITY_X) * 2;
+            double deltaLon = (s.getDeltaLonDegrees() / DENSITY_Y) * 2;
+
+            double minLat = s.getMinLatitude().degrees - deltaLat;
+            double maxLat = s.getMaxLatitude().degrees + deltaLat;
+            double minLon = s.getMinLongitude().degrees - deltaLon;
+            double maxLon = s.getMaxLongitude().degrees + deltaLon;
+
+            Sector s2 = Sector.fromDegrees(minLat, maxLat, minLon, maxLon);
+
+            contains = s2.contains(p);
+            // if (contains) {
+            //     log.debug("Sector " + s);
+            //     log.debug("Point " + p);
+            //     log.debug("Inside " + s.contains(p));
+            // }
+        }
+        return contains;
+    }
+
+    /**
+     * Return true if tile is visible in the given dc
+     */
     @Override
     public boolean isTileVisible(DrawContext dc) {
+        Extent anExtent = getExtent(dc);
+        // log.debug("Extent: " + anExtent);
         return getExtent(dc).intersects(
                 dc.getView().getFrustumInModelCoordinates())
                 && (dc.getVisibleSector() == null || dc.getVisibleSector().intersects(getSector()));

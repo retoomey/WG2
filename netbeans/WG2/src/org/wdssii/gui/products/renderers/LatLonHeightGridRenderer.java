@@ -25,10 +25,12 @@ import org.wdssii.storage.GrowList;
  *
  * @author Robert Toomey
  */
-public class LatLonHeightGridRenderer extends QuadStripDataRenderer {
+public class LatLonHeightGridRenderer extends ProductRenderer {
 
     private static Logger log = LoggerFactory.getLogger(LatLonHeightGridRenderer.class);
     protected int updateCounter = 0;
+    
+    protected QuadStripRenderer myQuadRenderer = new QuadStripRenderer();
     
     public LatLonHeightGridRenderer() {
         super(true);
@@ -82,15 +84,7 @@ public class LatLonHeightGridRenderer extends QuadStripDataRenderer {
 
         // --------------End counter loop
 
-        // The opengl thread can draw anytime..
-        verts = new Array1DOpenGL(counter, 0.0f);   // FIXME: could 'combine' both into one array I think...
-        colors = new Array1DOpenGL(ccounter / 4, 0.0f); // use one 'float' per color...
-
-        // READOUT
-        readout = new Array1DOpenGL(ccounter / 4, 0.0f);  // use one 'float' per color...
-
-        myOffsets = new GrowList<Integer>();
-
+        myQuadRenderer.allocate(counter, ccounter);
     }
 
     @Override
@@ -104,13 +98,16 @@ public class LatLonHeightGridRenderer extends QuadStripDataRenderer {
             Globe myGlobe = dc.getGlobe(); // FIXME: says may be null???
             FilterList aList = aProduct.getFilterList();
 
-            // Allocate memory
+            // Bleh, still not happy with this....
             allocateMemory(aLLHG);
-            verts.begin();
-            colors.begin();
-            readout.begin();
+            myQuadRenderer.begin();
+            Array1DOpenGL verts = myQuadRenderer.getVerts();
+            Array1DOpenGL colors = myQuadRenderer.getColors();
+            Array1DOpenGL readout = myQuadRenderer.getReadout();
+            GrowList<Integer> myOffsets = myQuadRenderer.getOffsets();
 
             // Once buffers exist and myOffsets exists, we 'turn on' the drawing thread:
+            myQuadRenderer.setCanDraw(true);
             setIsCreated();
 
             int idx = 0;
@@ -270,9 +267,7 @@ public class LatLonHeightGridRenderer extends QuadStripDataRenderer {
         // System.out.println("RADIAL SET SECONDS " + seconds + " for "
         // + counter);
 
-        verts.end();
-        colors.end();
-        readout.end();
+        myQuadRenderer.end();
 
         // System.out.println("********Ending radial set creation");
         CommandManager.getInstance().updateDuringRender();

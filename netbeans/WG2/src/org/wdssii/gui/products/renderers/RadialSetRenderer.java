@@ -1,11 +1,15 @@
 package org.wdssii.gui.products.renderers;
 
+import gov.nasa.worldwind.render.DrawContext;
+import java.awt.Point;
+import java.awt.Rectangle;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialSet;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.RadialSetReadout;
 import org.wdssii.storage.Array1D;
-import org.wdssii.storage.Array1DOpenGL;
-import org.wdssii.storage.GrowList;
 import org.wdssii.util.RadialUtil;
 
 /**
@@ -14,22 +18,7 @@ import org.wdssii.util.RadialUtil;
  */
 public abstract class RadialSetRenderer extends ProductRenderer {
 
-    /**
-     * Offsets for the quad strips drawing the radials
-     */
-    protected GrowList<Integer> myOffsets;
-    /**
-     * Verts for the RadialSet
-     */
-    protected Array1DOpenGL verts;
-    /**
-     * Corresponding colors
-     */
-    protected Array1DOpenGL colors;
-    /**
-     * Colors as readout information
-     */
-    protected Array1DOpenGL readout;
+    protected QuadStripRenderer myQuadRenderer = new QuadStripRenderer();
 
     /**
      * RadialHeightGateCache.
@@ -131,14 +120,53 @@ public abstract class RadialSetRenderer extends ProductRenderer {
         }
         // --------------End counter loop
 
-        // The opengl thread can draw anytime..
-        verts = new Array1DOpenGL(counter, 0.0f);   // FIXME: could 'combine' both into one array I think...
-        colors = new Array1DOpenGL(ccounter / 4, 0.0f); // use one 'float' per color...
+        myQuadRenderer.allocate(counter, ccounter);
 
-        // READOUT
-        readout = new Array1DOpenGL(ccounter / 4, 0.0f);  // use one 'float' per color...
+    }
 
-        myOffsets = new GrowList<Integer>();
+    /**
+     *
+     * @param dc Draw context in opengl for drawing our radial set
+     */
+    public void drawData(DrawContext dc, boolean readoutMode) {
+        if (isCreated()) {
+            myQuadRenderer.drawData(dc, readoutMode);
+        }
+    }
+    
+    /**
+     *
+     * @param dc Draw context in opengl for drawing our radial set
+     */
+    @Override
+    public void draw(DrawContext dc) {
+        drawData(dc, false);
+    }
+    
+    /**
+     * Get the readout for this product
+     */
+    @Override
+    public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
 
+        RadialSetReadout out = new RadialSetReadout();
+        if (p != null) {
+
+            // FIXME: outside of radial should be unavailable...
+            float value = myQuadRenderer.getReadout(p, view, dc, DataType.MissingData);
+            out.setValue(value);
+
+            Product prod = getProduct();
+            String units = "";
+            if (prod != null) {
+                units = prod.getCurrentUnits();
+            }
+            out.setUnits(units);
+
+        } else {
+            //out.setValue(readoutValue);
+            //out = "No readout for renderer";
+        }
+        return out;
     }
 }

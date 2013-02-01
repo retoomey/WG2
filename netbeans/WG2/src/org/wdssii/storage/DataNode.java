@@ -13,60 +13,64 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *     A data node, a 'small' amount of data, usually representing a part of a
+ * A data node, a 'small' amount of data, usually representing a part of a
  * larger 2D, 3D array of float data. These nodes are cached to disk/moved in
  * and out of ram on demand in an LRU queue controlled by DataManager. Currently
  * nodes are created/filled when accessed with a set OR a get, which could be
  * improved by only creating empty tiles on a 'set' call that is not background.
  *
- *      Node instances don't correspond with the actual data. Data may be written to
+ * Node instances don't correspond with the actual data. Data may be written to
  * disk and the node disposed and then recreated later.
  *
- *      FIXME: Add sparse ability?
+ * FIXME: Add sparse ability?
  *
  */
-public class DataNode  {
+public class DataNode {
 
     private static Logger log = LoggerFactory.getLogger(DataManager.class);  // use datamanager log?
     /**
-     *     The key representing this data tile. Final
+     * The key representing this data tile. Final
      */
     private final int myKey;
     /**
-     *     Synchronization required for reading/writing/using
+     * Synchronization required for reading/writing/using
      */
     //private ReadWriteLock lock = new ReentrantReadWriteLock();
     private Object myBufferLock = new Object();
     private ByteBuffer myDataByte;
     /**
-     *     Background data for 'missing' data
+     * Background data for 'missing' data
      */
     private float myBackground = 0.0f;
     /**
-     *     Is data currently in RAM?
+     * Is data currently in RAM?
      */
     private boolean myLoaded = false;
     /**
-     *    Have we read in our data from disk
+     * Have we read in our data from disk
      */
     private boolean myWasLoadedFromDisk = false;
     /**
-     *     The 'true' size of the data we store (as if not sparse)
+     * The 'true' size of the data we store (as if not sparse)
      */
     private int mySize = 0;
     /**
-     *     If a tile reads in from disk, and set is never called on it, then the
+     * If a tile reads in from disk, and set is never called on it, then the
      * data on disk is still good..so we do not rewrite it on a purge
      *
      */
     private boolean mySetChanged = false;
     /**
-     *   Do we compress? makes a big difference in file size
+     * Do we compress? makes a big difference in file size
      */
     private static final boolean myCompress = true;
+    /**
+     * The zero we store... FIXME: this value is unusable...humm
+     */
+    public static final float STORED_ZERO = -500000.0f;
 
     /**
-     *     Create a data tile with given key name
+     * Create a data tile with given key name
      */
     public DataNode(int key, int firstSize, float background) {
         myKey = key;
@@ -79,7 +83,7 @@ public class DataNode  {
     }
 
     /**
-     *     The tile lock, allows synchronized READ access to the raw float buffer of
+     * The tile lock, allows synchronized READ access to the raw float buffer of
      * the tile, which in general is required only by openGL since it needs a
      * vector. Use get/set routines for changing data otherwise
      */
@@ -93,14 +97,14 @@ public class DataNode  {
     }
 
     /**
-     *     Get the raw buffer only if loaded. GUI uses this to quickly render data
+     * Get the raw buffer only if loaded. GUI uses this to quickly render data
      * from a tile. You must use the getBufferLock method to synchronize around
      * using this buffer. This is so that the data will be 'frozen' and not
      * stolen out from under you by the disk offloading thread.
      * synchronized(tile.getBufferLock()){ FloatBuffer g = tile.getRawBuffer();
      * ...do something like opengl glDrawArrays(..,..,g); }
      *
-     *      @return
+     * @return
      */
     public FloatBuffer getRawBuffer() {
 
@@ -114,18 +118,54 @@ public class DataNode  {
 
     }
 
+    /**
+     * We convert background values to zero for storage and zero to
+     * background...this is because we sparse the tiles by access and so we
+     * assume values of zero for missing tiles...
+     */
+    public static float toBackground(float value, float background) {
+        /* if (value == 0.0) {
+         value =  STORED_ZERO;
+         } else if (value == background) {
+         value = 0.0f;
+         }*/
+        if (background == 0.0f) {
+            // nada...
+        } else {
+            if (value == 0.0) {
+                value = STORED_ZERO; // 0.0 becomes special case
+            } else if (value == background) { // Say 10.0 or 0.0
+                value = 0.0f;
+            }
+        }
+        return value;
+    }
+
+    /**
+     * Convert back from zero into true zero
+     */
+    public static float fromBackground(float value, float background) {
+        // Map '0' to myBackground.  This prevents us having to
+        // fill in the background for non-sparse which is slower than $%(@%@
+        if (background == 0.0f) {
+            // nada
+        } else {
+            if (value == 0.0) {
+                value = background;
+            } else if (value == STORED_ZERO) {
+                value = 0.0f;
+            }
+        }
+        return value;
+    }
+
     public void set(int index, float value) {
 
         synchronized (getWriteLock()) {
             //synchronized(myBufferLock){
             if (myLoaded && (index < mySize)) {
                 try {
-                    if (value == 0.0) {
-                        value = -500000.0f;
-                    } else if (value == myBackground) {
-                        value = 0.0f;
-                    }
-
+                    value = toBackground(value, myBackground);
                     myDataByte.asFloatBuffer().put(index, value);
                     mySetChanged = true;
                 } catch (IndexOutOfBoundsException i) {
@@ -143,8 +183,40 @@ public class DataNode  {
         }
     }
 
+    public void set(int index, float[] data) {
+
+        synchronized (getWriteLock()) {
+            //synchronized(myBufferLock){
+            if (myLoaded && (index < mySize + data.length)) {
+                try {
+                    for (int i = 0; i < data.length; i++) {
+                        data[i] = toBackground(data[i], myBackground);
+                    }
+
+                    // Different object each time, position would reset with
+                    // another call to asFloatBuffer
+                    FloatBuffer fb = myDataByte.asFloatBuffer();
+                    fb.position(index);
+                    fb.put(data, 0, data.length);  // put just calls this anyway
+                    fb.position(0);
+                    mySetChanged = true;
+                } catch (IndexOutOfBoundsException i) {
+                    log.error("Tried to put array v[" + index + "] += array size " + data.length);
+                    log.error("Size is " + mySize);
+                }
+            } else {
+                if (!myLoaded) {
+                    log.error("Can't set value on unloaded tile:" + myKey + ".  Out of memory?");
+                } else {
+                    log.error("Out of bounds. " + index + "> " + mySize + " on tile " + myKey);
+                }
+                // FIXME: notify DataManager, try to get more RAM? 
+            }
+        }
+    }
+
     /**
-     *     Get only value if myInRam. Check skipped here for speed. Caller should
+     * Get only value if myInRam. Check skipped here for speed. Caller should
      * call load before using data... Hummmm. Tile auto load?
      */
     public float get(int index) {
@@ -157,15 +229,8 @@ public class DataNode  {
 
                 float value = fb.get(index);
 
-                // Map '0' to myBackground.  This prevents us having to
-                // fill in the background for non-sparse which is slower than $%(@%@
-                if (value == 0.0) {
-                    value = myBackground;
-                } else if (value == -500000.0f) {
-                    value = 0.0f;
-                }
+                value = fromBackground(value, myBackground);
 
-                //return fb.get(index);
                 return value;
             }
             return myBackground;
@@ -173,7 +238,7 @@ public class DataNode  {
     }
 
     /**
-     *     Called by the data manager after creating us to load any old data
+     * Called by the data manager after creating us to load any old data
      */
     public boolean loadNodeIntoRAM() {
         synchronized (getWriteLock()) {
@@ -232,7 +297,7 @@ public class DataNode  {
     }
 
     /**
-     *     Offload tile to disk and purge ram usage of tile, called by DataManager
+     * Offload tile to disk and purge ram usage of tile, called by DataManager
      * before disposing tile
      */
     private boolean writeToDisk() {
@@ -279,7 +344,7 @@ public class DataNode  {
                         log.error("Can't offload Tile to disk " + myKey + " " + e);
                     }
                 } else {
-                  //  log.debug("Skip writing " + getCacheKey() + " to disk because it's the same data");
+                    //  log.debug("Skip writing " + getCacheKey() + " to disk because it's the same data");
                 }
             } else {
                 log.error("offload to disk with null myDataByte? " + myWasLoadedFromDisk);
@@ -289,7 +354,7 @@ public class DataNode  {
     }
 
     /**
-     *     Restore data into RAM if we can
+     * Restore data into RAM if we can
      */
     private boolean readFromDisk() {
 
@@ -334,7 +399,6 @@ public class DataNode  {
             return success;
         }
     }
-
 
     public Comparable getCacheKey() {
         return myKey;

@@ -30,7 +30,7 @@ public class Array1DOpenGL extends DataStorage implements Array1D<Float> {
      * it temporarily if we are doing lots of set calls
      */
     private DataNode myWorkingTile;
-
+  
     public Array1DOpenGL(int aSize, float backgroundValue) {
         mySize = aSize;
         myKey = DataManager.getInstance().getNewTileKey();
@@ -113,6 +113,15 @@ public class Array1DOpenGL extends DataStorage implements Array1D<Float> {
             DataNode tile = DataManager.getInstance().getTile(myKey, mySize, myBackground);
             tile.set(x, value);
         }
+    }
+    
+    /** Use to quickly add float data to verts.  Assumes called between begin and end,
+     * checks left to caller.
+     */
+    public int set(int index, float[] data){
+     
+        myWorkingTile.set(index, data);
+        return index+data.length;
     }
 
     @Override

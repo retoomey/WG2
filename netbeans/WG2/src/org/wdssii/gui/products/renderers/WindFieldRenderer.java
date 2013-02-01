@@ -112,12 +112,12 @@ public class WindFieldRenderer extends TileRenderer {
 
         // Render the current visible and loaded tileset
         if (tiles.size() >= 1) {
-            WindFieldTile.beginBatch(dc.getGL());
+            WindFieldTile.beginBatch1(dc.getGL());
             for (Tile tile : tiles) {
                 tile.generateTile(dc, p); // spawn creation job if needed
-                tile.drawTile(dc, p);
+                tile.drawTile(dc, p, false);
             }
-            WindFieldTile.endBatch(dc.getGL());
+            WindFieldTile.endBatch1(dc.getGL());
         }
     }
 }

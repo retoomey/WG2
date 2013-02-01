@@ -1,22 +1,32 @@
 package org.wdssii.gui.products.renderers;
 
+import gov.nasa.worldwind.View;
+import gov.nasa.worldwind.geom.Angle;
+import gov.nasa.worldwind.geom.Intersection;
+import gov.nasa.worldwind.geom.Line;
+import gov.nasa.worldwind.geom.Position;
+import gov.nasa.worldwind.geom.Sector;
+import gov.nasa.worldwind.geom.Vec4;
+import gov.nasa.worldwind.globes.Globe;
+import gov.nasa.worldwind.render.DrawContext;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Stack;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.geom.Location;
-
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Sector;
-import gov.nasa.worldwind.render.DrawContext;
+import org.wdssii.gui.products.LatLonGridReadout;
 import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductReadout;
 
-/** The lat lon grid renderer creates tiles on demand for rendering large scale lat lon grids
- * 
+/**
+ * The lat lon grid renderer creates tiles on demand for rendering large scale
+ * lat lon grids
+ *
  * @author Robert Toomey
  *
  */
@@ -36,11 +46,17 @@ public class LatLonGridRenderer extends TileRenderer {
     // @TODO Could possibly look at a combination of data resolution and area covered
     // and create a formula that would work for 'any' latlongrid.  Any latlongrid
     // larger than a CONUS in area size will probably look blocky with these settings
-    /** Tile size in x, power of 2.  Should match Y to be square */
+    /**
+     * Tile size in x, power of 2. Should match Y to be square
+     */
     public final static int DENSITY_X = 64;
-    /** Tile size in y, power of 2.  Should match X to be square */
+    /**
+     * Tile size in y, power of 2. Should match X to be square
+     */
     public final static int DENSITY_Y = 64;
-    /** Number of top X tiles.  TOP_X*DENSITY_X = Resolution of CONUS zoomed out */
+    /**
+     * Number of top X tiles. TOP_X*DENSITY_X = Resolution of CONUS zoomed out
+     */
     public final static int TOP_X = 8;  // 4 * 64 = 256 across.  Good enough for most displays at distance
     public final static int TOP_Y = 8;
     private boolean mySetUpLevels = false;
@@ -57,7 +73,7 @@ public class LatLonGridRenderer extends TileRenderer {
     // Note: this means tiles get rendered even if they are never drawn again if you move around a lot...
     // might be a way to cancel a background render if tile hasn't been 'drawn' recently...
     // We could probably have a limited size stack and toss off the oldest ones....
-    public Object myStackLock = new Object();
+    public final Object myStackLock = new Object();
     public Stack<Tile> myBackgroundTiles = new Stack<Tile>();
     public backgroundRender myWorker = null;
 
@@ -78,17 +94,17 @@ public class LatLonGridRenderer extends TileRenderer {
 
             // Go based on stack size RIGHT THIS MOMENT..
             // Note...another thread might add more tiles before we are done..
-            Tile currentTile = null;
-            int size = 0;
+            Tile currentTile;
+            int size;
             // Unknown because more tiles may add while we're running
-            monitor.beginTask("Tiles", WdssiiJobMonitor.UNKNOWN); 
+            monitor.beginTask("Tiles", WdssiiJobMonitor.UNKNOWN);
             while (true) {
 
                 // Get the size and top tile from the current stack...
                 synchronized (myStackLock) {
                     size = myBackgroundTiles.size();
                     // Always start the most recent tile....
-                    monitor.subTask("Tiles left "+size);
+                    monitor.subTask("Tiles left " + size);
                     if (size > 0) {
                         currentTile = myBackgroundTiles.pop();
 
@@ -114,13 +130,16 @@ public class LatLonGridRenderer extends TileRenderer {
         }
     }
 
-    /** Create the largest area covering tile.  We sync this to the full lat lon grid of the data product, instead of
-     * to the entire planet (as in google earth, worldwind).  This prevents data 'jitter' on tile changes.
+    /**
+     * Create the largest area covering tile. We sync this to the full lat lon
+     * grid of the data product, instead of to the entire planet (as in google
+     * earth, worldwind). This prevents data 'jitter' on tile changes.
      */
     private void createTopLevelTiles() {
 
-        /**Create the 'top' level tiles.  Currently hand set, this should probably depend upon the physical size
-         * of the LatLonGrid
+        /**
+         * Create the 'top' level tiles. Currently hand set, this should
+         * probably depend upon the physical size of the LatLonGrid
          */
         LatLonGrid p = getLatLonGrid();
         if (p != null) {
@@ -164,6 +183,41 @@ public class LatLonGridRenderer extends TileRenderer {
         return null;
     }
 
+    public void readoutTileAtPoint(Point p, Rectangle view, DrawContext dc) {
+    }
+
+    public void queueUnmadeTiles(ArrayList<Tile> tiles, DrawContext dc) {
+        // Render the current visible and loaded tileset
+        if (tiles.size() >= 1) {
+            Product p = getProduct();
+            // Push any uncreated tiles onto the to create job stack....
+            // We sync access to Stack since the worker thread is popping tiles off it to generate...
+            if (p != null) {  // Otherwise we'll have to do it later....
+                synchronized (myStackLock) {
+                    int counter = 0;
+                    int counter2 = 0;
+                    for (Tile tile : tiles) {
+                        if (tile.isTileEmpty()) {
+                            if (!myBackgroundTiles.contains(tile)) {
+                                myBackgroundTiles.push(tile);  // Gonna need limited stack so stuff falls off bottom?
+                                counter++;
+                            }
+                        } else {
+                            counter2++;
+                        }
+                    }
+                    if (myBackgroundTiles.size() > 0) {
+                        if ((myWorker == null) || (myWorker.isDone)) {
+                            myWorker = new backgroundRender("LatLonGridRenderer", dc, p);
+                            myWorker.schedule();
+                        }
+                    }
+                    //System.out.println("TILES: CREATED:"+counter2+" NOT:"+counter+" LEFT: "+myBackgroundTiles.size());
+                }
+            }
+        }
+    }
+
     @Override
     public void draw(DrawContext dc) {
 
@@ -185,42 +239,160 @@ public class LatLonGridRenderer extends TileRenderer {
             tile.addTileOrDescendants(dc, getSplitScale(), p, tiles);
         }
 
-        //Draw tiles or descendants...
-
         // Render the current visible and loaded tileset
         if (tiles.size() >= 1) {
 
-            // Push any uncreated tiles onto the to create job stack....
-            // We sync access to Stack since the worker thread is popping tiles off it to generate...
-            synchronized (myStackLock) {
-                int counter = 0;
-                int counter2 = 0;
-                for (Tile tile : tiles) {
-                    if (tile.isTileEmpty()) {
-                        if (!myBackgroundTiles.contains(tile)) {
-                            myBackgroundTiles.push(tile);  // Gonna need limited stack so stuff falls off bottom?
-                            counter++;
-                        }
-                    } else {
-                        counter2++;
-                    }
-                }
-                if (myBackgroundTiles.size() > 0) {
-                    if ((myWorker == null) || (myWorker.isDone)) {
-                        myWorker = new backgroundRender("LatLonGridRenderer", dc, p);
-                        myWorker.schedule();
-                    }
-                }
-                //System.out.println("TILES: CREATED:"+counter2+" NOT:"+counter+" LEFT: "+myBackgroundTiles.size());
-            }
+            // Queue up any unmade tiles...
+            queueUnmadeTiles(tiles, dc);
 
             LatLonGridTile.beginBatch(dc.getGL());
             for (Tile tile : tiles) {
                 //tile.generateTile(dc, p); // spawn creation job if needed
-                tile.drawTile(dc, p);
+                tile.drawTile(dc, p, false);
             }
             LatLonGridTile.endBatch(dc.getGL());
         }
+    }
 
+    public float drawReadout(DrawContext dc, Point aPoint, Rectangle view, float missingData) {
+
+        // Same as draw, but we really should only draw the tile and/or descendants 
+        // under the mouse point....
+        // FIXME: smarter draw to speed up...find tile under point and only render it...
+
+        if (getProduct() == null) {
+            return missingData;
+        }
+
+        if (mySetUpLevels == false) {
+            lazyInit();
+            mySetUpLevels = true;
+        }
+
+        // assemble tiles.  This gets/creates tile OBJECTS only..that would
+        // draw at this time.  
+        Product p = getProduct();
+        ArrayList<Tile> tiles = new ArrayList<Tile>();
+        ArrayList<Tile> list = getTopLevelTiles();
+        for (Tile tile : list) {
+            tile.addTileOrDescendants(dc, getSplitScale(), p, tiles);
+        }
+
+        // Render the current visible and loaded tileset
+        float value = missingData;
+        if (tiles.size() >= 1) {
+
+            Position pos = getPosition(dc, aPoint, dc.getView(), dc.getGlobe());
+
+            // Queue up any unmade tiles...
+            queueUnmadeTiles(tiles, dc);
+
+            Tile first = tiles.get(0);
+
+            LatLonGridTile.beginBatch(dc.getGL());
+
+            /* Draw the readout as image so we can debug mouse readout 
+             for (Tile tile : tiles) {
+
+             // Attempt to draw only tiles with surface mouse point within
+             // the tile sector...
+             if (tile.positionInTile(dc, pos)) {
+             tile.drawTile(dc, p, true);
+             }
+             }
+             * */
+
+            LatLonGridTile.beginReadout(aPoint, view, dc);
+            int countHits = 0;
+            for (Tile tile : tiles) {
+
+                // Attempt to draw only tiles with surface mouse point within
+                // the tile sector...
+                if (tile.positionInTile(dc, pos)) {
+                    tile.drawTile(dc, p, true);
+                    countHits++;
+                }
+            }
+            value = LatLonGridTile.endReadout(aPoint, view, dc);
+            if (countHits == 0) { // Outside tiles..
+                value = DataType.DataUnavailable;
+            }
+            LatLonGridTile.endBatch(dc.getGL());
+        }
+        return value;
+    }
+
+    /**
+     * Return position from mouse
+     */
+    public Position getPosition(DrawContext dc, Point p, View view, Globe globe) {
+
+        Position pos = null;
+        Line ray = view.computeRayFromScreenPoint(p.getX(), p.getY());
+
+        if (ray != null) {
+            // Intersect mouse with round earth ball surface...
+            Intersection[] intersections = globe.intersect(ray, 0);
+            if (intersections == null) {
+                return null;
+            }
+
+            Vec4 point = nearestIntersectionPoint(ray, intersections);
+            if (point != null) {
+                pos = globe.computePositionFromPoint(point);
+            }
+        }
+        return pos;
+
+    }
+
+    public static Vec4 nearestIntersectionPoint(Line line, Intersection[] intersections) {
+        Vec4 intersectionPoint = null;
+
+        // Find the nearest intersection that's in front of the ray origin.
+        double nearestDistance = Double.MAX_VALUE;
+        for (Intersection intersection : intersections) {
+            // Ignore any intersections behind the line origin.
+            if (!isPointBehindLineOrigin(line, intersection.getIntersectionPoint())) {
+                double d = intersection.getIntersectionPoint().distanceTo3(line.getOrigin());
+                if (d < nearestDistance) {
+                    intersectionPoint = intersection.getIntersectionPoint();
+                    nearestDistance = d;
+                }
+            }
+        }
+
+        return intersectionPoint;
+    }
+
+    public static boolean isPointBehindLineOrigin(Line line, Vec4 point) {
+        double dot = point.subtract3(line.getOrigin()).dot3(line.getDirection());
+        return dot < 0.0;
+    }
+
+    /**
+     * Get the readout for this product
+     */
+    @Override
+    public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
+
+        LatLonGridReadout out = new LatLonGridReadout();
+        if (p != null) {
+
+            float value = drawReadout(dc, p, view, DataType.MissingData);
+            out.setValue(value);
+
+            Product prod = getProduct();
+            String units = "";
+            if (prod != null) {
+                units = prod.getCurrentUnits();
+            }
+            out.setUnits(units);
+
+        } else {
+            //out.setValue(readoutValue);
+            //out = "No readout for renderer";
+        }
+        return out;
     }
 }

@@ -1,8 +1,12 @@
 package org.wdssii.gui.products;
 
-public class RadialSetReadout extends ProductReadout {
+/**
+ *
+ * @author Robert Toomey
+ */
+public class LatLonGridReadout extends ProductReadout {
 
-    public RadialSetReadout() {
+    public LatLonGridReadout() {
         setFormatter("%3.2f ");
     }
 

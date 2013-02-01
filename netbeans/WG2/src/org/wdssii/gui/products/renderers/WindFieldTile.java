@@ -294,7 +294,7 @@ public class WindFieldTile extends TileRenderer.Tile {
      * @param dc
      * @return
      */
-    public static boolean beginBatch(GL gl) {
+    public static boolean beginBatch1(GL gl) {
 
         // Set up
         gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT
@@ -316,7 +316,7 @@ public class WindFieldTile extends TileRenderer.Tile {
         return true;
     }
 
-    public static void endBatch(GL gl) {
+    public static void endBatch1(GL gl) {
         gl.glLineWidth(1.0f);
         gl.glPopClientAttrib();
         gl.glPopAttrib();
@@ -339,7 +339,7 @@ public class WindFieldTile extends TileRenderer.Tile {
     /** Tiles should create themselves, allowing different tile types to be used in different areas.
      * FIXME: thread these in separate task if needed */
     @Override
-    public void drawTile(DrawContext dc, Product windfield) {
+    public void drawTile(DrawContext dc, Product windfield, boolean readoutMode) {
 
         if (tileCreated) {
             GL gl = dc.getGL();
@@ -398,43 +398,6 @@ public class WindFieldTile extends TileRenderer.Tile {
 
                 // Recursively add children tiles
                 for (WindFieldTile child : subTiles) {
-                    if (child.isTileVisible(dc)) {
-                        child.addTileOrDescendants(dc, splitScale, p, list);
-                    }
-                }
-            }
-
-        }
-    }
-
-    /** This draws tiles at the highest resolution where they are generated */
-    public void drawTileOrDescendants(DrawContext dc, double splitScale, Product p,
-            ArrayList<Tile> list) {
-        // The tiles actually _ready_ to draw for this camera/resolution (parent > children if children not ready)
-
-        // Show tile or subtiles only is we're visible...
-        if (isTileVisible(dc)) {
-
-            // If this tile is good enough, add it...
-            if (meetsRenderCriteria(dc, splitScale)) {
-                if (this.isTileReadyToDraw()) {
-                    list.add(this);
-                }
-                return;
-            }
-
-            // We're not good enough, try to split to subtiles...
-            Tile[] subTiles = getSubTiles(null, dc);
-
-            if (subTiles == null) {
-                // Fall back to parent tile.
-                if (this.isTileReadyToDraw()) {
-                    list.add(this);
-                }
-            } else {
-
-                // Recursively add children tiles
-                for (Tile child : subTiles) {
                     if (child.isTileVisible(dc)) {
                         child.addTileOrDescendants(dc, splitScale, p, list);
                     }

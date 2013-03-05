@@ -263,8 +263,8 @@ public class ColorMapRenderer implements Feature3DRenderer {
 
 			if (g != null) {
 				final int ix = (int) x;
-				final int iw = (int) w;
-				final int ih = (int) h;
+				final int iw = (int) Math.ceil(w);
+				final int ih = (int) Math.ceil(h);
 				final int iy = (int) y;
 				Color loC = new Color(lo.redI(), lo.greenI(), lo.blueI());
 				Color hiC = new Color(hi.redI(), hi.greenI(), hi.blueI());
@@ -358,16 +358,18 @@ public class ColorMapRenderer implements Feature3DRenderer {
 		Font font = getFont();
 		FontMetrics metrics = d.getFontMetrics(font);
 		int textHeight = metrics.getMaxAscent() + metrics.getMaxDescent();
-		int ty = metrics.getMaxAscent() + (hTextPadding / 2);
+		double ty = metrics.getMaxAscent() + (hTextPadding / 2);
 		int cellHeight = textHeight + hTextPadding;
 
 		ColorMapOutput hi = new ColorMapOutput();
 		ColorMapOutput lo = new ColorMapOutput();
 
 		// Width of unit text
-		int unitWidth = 0;
-		//String unitName = myColorMap.getUnits();
+		double unitWidth;
 		String unitName = getUnits();
+                if (unitName == null){
+                    unitName = "dimensionless";
+                }
 		if ((unitName != null) && (unitName.length() > 0)) {
 			unitWidth = metrics.stringWidth(unitName) + 2;
 		} else {
@@ -375,11 +377,10 @@ public class ColorMapRenderer implements Feature3DRenderer {
 		}
 
 		// Calculate height
-		int barwidth = Math.max(w - unitWidth, 1);
+		double barwidth = Math.max((float)w - (float)unitWidth, 1);
 		int aSize = myColorMap.getNumberOfBins();
-		int cellWidth = barwidth > 0 ? barwidth / aSize : 1;
+		double cellWidth = barwidth > 0 ? barwidth / aSize : 1;
 		barwidth = cellWidth * aSize;
-
 		double currentX = 0.0;
 		double y = 0.0;
 
@@ -429,7 +430,7 @@ public class ColorMapRenderer implements Feature3DRenderer {
 		}
 		// Draw the units, only there if unitWidth > 0
 		if (unitWidth > 0) {
-			int start = (viewx + w - unitWidth);
+			double start = (viewx + w - unitWidth);
 			d.drawLabel(font, unitName, start, y + ty);
 		}
 		d.endLabels();

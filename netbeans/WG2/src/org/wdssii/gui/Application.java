@@ -39,6 +39,8 @@ public class Application {
 		// Don't allow double click to work in file chooser
                 UIManager.put("FileChooser.readOnly", Boolean.TRUE);  
 
+                org.wdssii.xml.PointColorMap.loadStockMaps();
+              //  System.exit(1);
 		// DockWindows are in the swing thread
 		SwingUtilities.invokeLater(new Runnable() {
 

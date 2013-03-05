@@ -22,9 +22,11 @@ import gov.nasa.worldwind.view.orbit.FlyToOrbitViewAnimator;
 import gov.nasa.worldwind.view.orbit.OrbitView;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import javax.media.opengl.GL;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
@@ -77,6 +79,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
      * The WorldWindow we contain. Eventually we might want multiple of these
      */
     private WorldWindow myWorld;
+    //private ArrayList<WorldWindow> myWorlds = new ArrayList<WorldWindow>();
     /**
      * The Readout
      */
@@ -91,9 +94,6 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
     public void updateInSwingThread(Object info) {
         //  throw new UnsupportedOperationException("Not supported yet.");
     }
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JSplitPane jSplitPane1;
 
     /**
      * Our factory, called by reflection to populate menus, etc...
@@ -115,74 +115,99 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         }
     }
 
+    /**
+     * Add a new world to our collection
+     */
+    public final WorldWindow makeWorldWindow(WorldWindow first) {
+        WorldWindow w;
+        // Always use our scene controller...
+        String name = WJSceneController.class.getName();
+        Configuration.setValue(AVKey.SCENE_CONTROLLER_CLASS_NAME, name);
+
+        Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
+        // Model m2 = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
+        if (USE_HEAVYWEIGHT) {
+            if (first == null) {
+                w = new WorldWindowGLCanvas();
+            } else {
+                w = new WorldWindowGLCanvas();
+            }
+        } else {
+            if (first == null) {
+                w = new WorldWindowGLJPanel();
+            } else {
+                w = new WorldWindowGLJPanel();
+            }
+        }
+
+        w.setModel(m);
+
+        // Either:
+        // 1. current worldwind has a VBO bug
+        // 2. Netbeans is using opengl somewhere and leaking opengl state (vbo)
+        // 3. my nvidia driver is leaking..
+        // 4.  something else.. lol
+        // but we keep getting VBO exceptions...so turn it off in our worldwind for now...
+        w.getSceneController().getGLRuntimeCapabilities().setVertexBufferObjectEnabled(false);
+
+        // Passing something down..
+        w.addSelectListener(new SelectListener() {
+            @Override
+            public void selected(SelectEvent event) {
+                handleSelectEvent(event);
+            }
+        });
+        return w;
+    }
+
     public WorldWindView() {
         setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+
+        // Check for 32 bit.  I'm not supporting this at moment, though
+        // it could be done by adding libraries. 
+        String bits = System.getProperty("sun.arch.data.model");
+        if (bits.equals("32")) {
+            JTextArea info = new JTextArea();
+            info.setText("You're running this in 32 bit java.\n Currently no opengl 32 native library support.\n You really want to run a 64 bit java for this program.");
+            add(info, new CC().growX().growY());
+            return;
+        }
+
         final String w = "50"; // MigLayout width parameter
 
-        // Create top panel
-        jPanel1 = new JPanel(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        // jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 2));
+        JSplitPane jSplitPane1;
+        myWorld = makeWorldWindow(null);
 
-        // Create bottom panel
-        jPanel2 = new JPanel(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 0, 51), 2));
+        JPanel worldHolder = new JPanel();
+        worldHolder.setLayout(new WorldLayoutManager());
+
+        // worldHolder.setLayout(new MigLayout("insets 0",
+        //	"[grow]",               // 1 column 
+        //	"[][]"));  // 4 rows, last scroll so grow
+        worldHolder.setOpaque(true);
+
+        worldHolder.add((Component) myWorld, new CC().growX().growY());
+
+       // for (int i = 0; i < 1; i++) {
+       //     WorldWindow number2 = makeWorldWindow(myWorld);
+       //     worldHolder.add((Component) number2, new CC().growX().growY());
+       // }
+
+        myStatusBar = new ReadoutStatusBar();
+        myStatusBar.setEventSource(myWorld);
 
         // Put into split pane
-        jSplitPane1 = new JSplitPane(javax.swing.JSplitPane.VERTICAL_SPLIT, true, jPanel1, jPanel2);
+        jSplitPane1 = new JSplitPane(javax.swing.JSplitPane.VERTICAL_SPLIT, true, worldHolder, myStatusBar);
         jSplitPane1.setResizeWeight(1.0);
         add(jSplitPane1, new CC().minWidth(w).growX().growY());
 
-        String bits = System.getProperty("sun.arch.data.model");
-        if (bits.equals("32")) {
-            JTextField info = new JTextField();
-            info.setText("Sorry, currently no opengl 32 native library support.  You really want to run a 64 bit java if you can for this program.");
-            jPanel1.add(info, new CC().growX().growY());
-        } else {
-            // Basic worldwind setup...
+        // This assumes one global window...
+        createWG2Layers();
 
-            // Always use our scene controller...
-            String name = WJSceneController.class.getName();
-            Configuration.setValue(AVKey.SCENE_CONTROLLER_CLASS_NAME, name);
-
-            Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
-            if (USE_HEAVYWEIGHT) {
-                myWorld = new WorldWindowGLCanvas();
-            } else {
-                myWorld = new WorldWindowGLJPanel();
-            }
-            myWorld.setModel(m);
-            jPanel1.add((Component) (myWorld), new CC().minWidth(w).minHeight(w).growX().growY());
-            jPanel1.setOpaque(false);
-
-            // Either:
-            // 1. current worldwind has a VBO bug
-            // 2. Netbeans is using opengl somewhere and leaking opengl state (vbo)
-            // 3. my nvidia driver is leaking..
-            // 4.  something else.. lol
-            // but we keep getting VBO exceptions...so turn it off in our worldwind for now...
-            myWorld.getSceneController().getGLRuntimeCapabilities().setVertexBufferObjectEnabled(false);
-
-            /**
-             * Create our personal layers
-             */
-            createWG2Layers();
-
-            myStatusBar = new ReadoutStatusBar();
-            jPanel2.add(myStatusBar, new CC().growX().growY());
-            myStatusBar.setEventSource(myWorld);
-
-            myWorld.addSelectListener(new SelectListener() {
-                public void selected(SelectEvent event) {
-                    handleSelectEvent(event);
-                }
-            });
-        }
-        final WorldWindView theWorld = this;
         // FIXME: should probably make a preference for this that can be
         // toggled by user if it works correctly/incorrectly
         System.setProperty("sun.awt.noerasebackground", "true");
         CommandManager.getInstance().addListener(ID, this);
-
         delayedInit();
     }
 
@@ -211,8 +236,8 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 
     }
 
-    public LLHAreaController getLLHAreaLayerController(){
-	    return myLLHAreaController;
+    public LLHAreaController getLLHAreaLayerController() {
+        return myLLHAreaController;
     }
 
     public void takeDialogSnapshot() {
@@ -301,7 +326,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
             Rectangle rect = myWorld.getView().getViewport();
             ProductReadout pr = aProduct.getProductReadout(p1, rect, dc);
             String readout = pr.getReadoutString();
-            myStatusBar.setReadoutString(readout);
+            myStatusBar.setProductReadout(pr);
             drawLabel(dc, readout, new Vec4(p1.x, p1.y, 0), Color.BLACK);
 
             /**
@@ -429,7 +454,8 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
     /**
      * Have to pass these down to the product renderers somehow... If we do that
      * though, then popups might overlap each other if we have multiple stuff
-     * trying to draw. Might be better to keep one global select for any window....
+     * trying to draw. Might be better to keep one global select for any
+     * window....
      */
     public void handleSelectEvent(SelectEvent e) {
         Product aProduct = ProductManager.getInstance().getTopProduct();

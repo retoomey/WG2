@@ -348,7 +348,8 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
             @Override
             public void handleClick(Object stuff, int orgRow, int orgColumn) {
-
+log.debug("Clicking here "+stuff+", "+orgRow);
+        
                 if (stuff instanceof FeatureListTableData) {
                     FeatureListTableData entry = (FeatureListTableData) (stuff);
 
@@ -490,7 +491,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         }
         myFeatureListTableModel.setDataTypes(newList);
         myFeatureListTableModel.fireTableDataChanged();
-
+log.debug("Recreated table list..bleh "+myLastSelectedFeature+", "+oldSelect);
         // Keep old selection unless it's gone...
         if (!changeSelection) {
             // Use old selection if exists...

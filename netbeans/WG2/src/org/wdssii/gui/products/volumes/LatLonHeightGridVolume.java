@@ -72,6 +72,9 @@ public class LatLonHeightGridVolume extends ProductVolume {
     public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
             FilterList list, boolean useFilters, VolumeValue v) {
 
+        synchronized (myLock) {
+            myVolume.startLoading();
+        }
         // Maybe this could be a filter in the color map...  You could clip anything by height heh heh..
         // It would make sense for it to be a filter
         if (loc.getHeightKms() < 0) {

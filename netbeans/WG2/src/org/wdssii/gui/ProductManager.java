@@ -15,6 +15,7 @@ import org.wdssii.core.LRUCache;
 import org.wdssii.core.LRUCache.LRUTrimComparator;
 import org.wdssii.core.W2Config;
 import org.wdssii.datatypes.DataRequest;
+import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.datatypes.builders.BuilderFactory;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.features.Feature;
@@ -33,6 +34,8 @@ import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.xml.*;
+import org.wdssii.xml.W2ColorMap.W2ColorBin;
+import org.wdssii.xml.W2ColorMap.W2ColorBin.W2Color;
 import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
 
 /**
@@ -101,7 +104,7 @@ public class ProductManager implements Singleton {
 
         return pf;
     }
- 
+
     public ProductFeature getTopProductFeature() {
 
         ProductFeature pf = null;
@@ -124,15 +127,17 @@ public class ProductManager implements Singleton {
         log.error("Need to implement deleteSelectedProduct");
     }
 
-    /** Simple Product delete filter based on index key */
+    /**
+     * Simple Product delete filter based on index key
+     */
     private static class ProductDeleteFilter implements FeatureFilter {
 
         private String theKey;
 
-        public ProductDeleteFilter(String k){
+        public ProductDeleteFilter(String k) {
             theKey = k;
         }
-        
+
         @Override
         public boolean matches(Feature f) {
             boolean remove = false;
@@ -193,13 +198,13 @@ public class ProductManager implements Singleton {
         //SourceManager manager = SourceManager.getInstance();
         Source s = SourceList.theSources.getSource(indexName);
         IndexSource is = null;
-        if (s instanceof IndexSource){  // Hack for moment, this code should move
-            is = (IndexSource)(s);
-        }else{
+        if (s instanceof IndexSource) {  // Hack for moment, this code should move
+            is = (IndexSource) (s);
+        } else {
             return;
         }
         HistoricalIndex anIndex = is.getIndex();
-      //  HistoricalIndex anIndex = SourceManager.getIndexByName(indexName);
+        //  HistoricalIndex anIndex = SourceManager.getIndexByName(indexName);
 
         if (anIndex == null) {
             log.error("Index null, cannot create new product");
@@ -212,7 +217,7 @@ public class ProductManager implements Singleton {
             return;
         }
         String indexKey = is.getKey();
-        
+
         aRecord.setSourceName(indexKey);
         String productCacheKey = Product.createCacheKey(indexName, aRecord);
         Product aProduct = ProductManager.CreateProduct(productCacheKey, indexName, aRecord);
@@ -277,7 +282,7 @@ public class ProductManager implements Singleton {
             //Position p = event.getPosition();
             Point point = event.getScreenPoint();
             readout = String.format("(%d, %d)", point.x, point.y);
-	    WorldWindView earth = FeatureList.theFeatures.getWWView();
+            WorldWindView earth = FeatureList.theFeatures.getWWView();
             if (earth != null) {
                 earth.getColor(point.x, point.y);
             }
@@ -365,6 +370,12 @@ public class ProductManager implements Singleton {
         // color (not set)
         private boolean myVisibleInList = true;
         private String myListName = DEFAULTS;
+        // When null, color map key is name of product, otherwise overridden
+        private String myColorMapKey = null;
+        // Min value for our algoritm maps
+        private float myMin = -100;
+        // Max value for out algoritm maps
+        private float myMax = 100;
         /**
          * The current color map for this product
          */
@@ -400,6 +411,41 @@ public class ProductManager implements Singleton {
             return iconSetConfigURL;
         }
 
+        public void setColorKey(String key) {
+
+            if (myName.equals(key)) {  // If key matches product, no need to store it
+                myColorMapKey = null;
+            } else {            // Reflectivity -> Blue_Wave (override)
+                myColorMapKey = key;
+            }
+            setColorMap(null); // needs to reload  FIXME: check it changed?
+            myLoadedXML = false;
+        }
+
+        public String getColorKey() {
+            if (myColorMapKey == null) {
+                return myName;
+            } else {
+                return myColorMapKey;
+            }
+        }
+
+        public float getMinColorKeyValue() {
+            return myMin;
+        }
+
+        public void setMinColorKeyValue(float v) {
+            myMin = v;
+        }
+
+        public float getMaxColorKeyValue() {
+            return myMax;
+        }
+
+        public void setMaxColorKeyValue(float v) {
+            myMax = v;
+        }
+
         /**
          * Load any xml files that pertain to this particular product
          */
@@ -421,22 +467,49 @@ public class ProductManager implements Singleton {
          * Force load a color map from xml and make a new color map from it
          */
         private void loadColorMapFromXML() {
-            URL u = W2Config.getURL("colormaps/" + myName);
-            colorMapURL = u;
-            Tag_colorMap tag = new Tag_colorMap();
-            if (tag.processAsRoot(u)) {
-                myColorMapTag = tag;
+
+            // Look for a file matching product name....
+            W2ColorMap map = Util.load(getColorKey(), W2ColorMap.class);
+            if (map != null) {
                 ColorMap aColorMap = new ColorMap();
-                aColorMap.initFromTag(tag, ProductTextFormatter.DEFAULT_FORMATTER);
+                aColorMap.initToW2ColorMap(map, ProductTextFormatter.DEFAULT_FORMATTER);
+                myColorMap = aColorMap;
+            } else {
+                // Try to look up in point database....
+                // Not found...so try to generate...
+                float minValue = -100;
+                float maxValue = 100;
+                // Gotta be SET somewhere...
+                // DataTypeMetric m = p.getDataTypeMetric();
+                // if (m != null) {
+                //     minValue = m.getMinValue();
+                //     maxValue = m.getMaxValue();
+                //}
+                ColorMap aColorMap = new ColorMap();
+                //PointColorMap pMap = PointColorMap.theIDLList.getByName("Blue_Waves");
+                PointColorMap pMap = PointColorMap.theIDLList.getByName("Blue_Red");
+
+                aColorMap.initToTag(pMap, minValue, maxValue, "Dimensionless", ProductTextFormatter.DEFAULT_FORMATTER);
                 myColorMap = aColorMap;
             }
+
+            /*
+             URL u = W2Config.getURL("colormaps/" + myName);
+             colorMapURL = u;
+             Tag_colorMap tag = new Tag_colorMap();
+             if (tag.processAsRoot(u)) {
+             myColorMapTag = tag;
+             ColorMap aColorMap = new ColorMap();
+             aColorMap.initFromTag(tag, ProductTextFormatter.DEFAULT_FORMATTER);
+             myColorMap = aColorMap;
+             }*/
         }
 
         /**
          * Force load an icon configuration file
          */
         private void loadIconSetConfigFromXML() {
-            URL u = W2Config.getURL("icons/" + myName);
+            URL u = W2Config.getURL("icons/" + getColorKey());
             iconSetConfigURL = u;
             Tag_iconSetConfig tag = new Tag_iconSetConfig();
             if (tag.processAsRoot(u)) {
@@ -652,20 +725,49 @@ public class ProductManager implements Singleton {
         return instance;
     }
 
-    public boolean hasColorMap(String name) {
+    public boolean hasColorMap(String productDatatypeName) {
         // ColorMap aColorMap = myColorMaps.get(name);
         //return (aColorMap != null);
-        ProductDataInfo d = getProductDataInfo(name);
+        ProductDataInfo d = getProductDataInfo(productDatatypeName);
         return (d.getColorMap() != null);
     }
 
-    /**
-     * @param name the name of the color map to return such as 'Reflectivity'
-     * @return the color map
-     */
-    public ColorMap getColorMap(String name) {
-        ProductDataInfo d = getProductDataInfo(name);
-        return d.getColorMap();
+    public ColorMap getColorMap(Product p) {
+
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        ColorMap c = d.getColorMap();
+
+        return c;
+    }
+
+    public void setColorKey(Product p, String key) {
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        d.setColorKey(key);
+    }
+
+    public String getColorKey(Product p) {
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        return d.getColorKey();
+    }
+
+    public float getMinColorKeyValue(Product p) {
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        return d.getMinColorKeyValue();
+    }
+
+    public void setMinColorKeyValue(Product p, float v) {
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        d.setMinColorKeyValue(v);
+    }
+
+    public float getMaxColorKeyValue(Product p) {
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        return d.getMaxColorKeyValue();
+    }
+
+    public void setMaxColorKeyValue(Product p, float v) {
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        d.setMaxColorKeyValue(v);
     }
 
     /**
@@ -839,6 +941,36 @@ public class ProductManager implements Singleton {
     }
 
     /**
+     * Modify a Tag_colorMap, enhancing color names with actually color
+     * information from the color database.
+     */
+    public void updateNamesToColors(W2ColorMap map) {
+        if (myColorDefs.colorDefs != null) {
+            List<W2ColorBin> bins = map.colorBins;
+            if (bins != null) {
+                for (W2ColorBin b : bins) {
+                    List<W2Color> colors = b.colors;
+                    if (colors != null) {
+                        for (W2Color c : colors) {
+                            if (c.name != null) { // If missing, leave color alone
+                                Tag_colorDef t = myColorDefs.colorDefs.get(c.name);
+                                if (t != null) {
+                                    c.r = t.r;
+                                    c.g = t.g;
+                                    c.b = t.b;
+                                    c.a = t.a;
+                                }
+                            }
+                        }
+
+                    }
+
+                }
+            }
+        }
+    }
+
+    /**
      * Return named color from database, fallback to pure white
      */
     public Color getNamedColor(String name) {
@@ -912,6 +1044,7 @@ public class ProductManager implements Singleton {
     // Internal create product method
     private Product makeProduct(String anIndex, IndexRecord init) {
         Product p = null;
+      /* Don't load just from making a Product object 
         DataRequest dr = null;
         if (init != null) {
             try {
@@ -921,6 +1054,9 @@ public class ProductManager implements Singleton {
                 log.error("Exception loading data..." + e.toString());
             }
         }
+        */
+        p = new Product(anIndex, init);
+        //p.startLoading();
         return p;
     }
 
@@ -1020,6 +1156,7 @@ public class ProductManager implements Singleton {
 
         // Move handler to this product
         theHandler.setProduct(aProduct);
+        aProduct.startLoading();  //Initialize loading if not already...
         return theHandler;
     }
 

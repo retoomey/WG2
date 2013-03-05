@@ -3,11 +3,12 @@ package org.wdssii.gui.worldwind;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.event.*;
 import gov.nasa.worldwind.geom.Position;
-
-import javax.swing.*;
-
-import java.awt.event.*;
 import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
+import org.wdssii.gui.products.ProductReadout;
 
 /**
  * @author Robert Toomey
@@ -32,39 +33,34 @@ public class ReadoutStatusBar extends JPanel implements PositionListener,
     private WorldWindow eventSource;
     //protected final JLabel latDisplay = new JLabel("");
     protected final JLabel locDisplay = new JLabel("");
-    protected final JLabel lonDisplay = new JLabel("Off globe");
+   // protected final JLabel lonDisplay = new JLabel("Off globe");
     protected final JLabel altDisplay = new JLabel("");
-    protected final JLabel eleDisplay = new JLabel("");
+  //  protected final JLabel eleDisplay = new JLabel("");
     protected final JLabel dataDisplay = new JLabel("");
     private boolean showNetworkStatus = true;
     private String elevationUnit = UNIT_METRIC;
     private int myLastX = 0;
     private int myLastY = 0;
-    private String myReadoutString = "N/A";
+    private ProductReadout myProductReadout = null;
     public Position lastPosition = null;
 
     public ReadoutStatusBar() {
-        super(new GridLayout(1, 0));
-        this.setBackground(Color.GREEN);
+       // super(new GridLayout(1, 0));
+        super(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+
+        this.setBackground(Color.BLACK);
 
         final JLabel heartBeat = new JLabel("Downloading");
 
         altDisplay.setHorizontalAlignment(SwingConstants.CENTER);
-        //	latDisplay.setHorizontalAlignment(SwingConstants.CENTER);
         locDisplay.setHorizontalAlignment(SwingConstants.LEFT);
-        lonDisplay.setHorizontalAlignment(SwingConstants.CENTER);
         dataDisplay.setHorizontalAlignment(SwingConstants.CENTER);
-        eleDisplay.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // this.add(new JLabel("")); // dummy label to visually balance with
-        // heartbeat
+       // eleDisplay.setHorizontalAlignment(SwingConstants.CENTER);
+        
         this.add(locDisplay);
-
         this.add(altDisplay);
-        //this.add(latDisplay);
-        this.add(lonDisplay);
         this.add(dataDisplay);
-        this.add(eleDisplay);
+      //  this.add(eleDisplay);
         this.add(heartBeat);
 
         heartBeat.setHorizontalAlignment(SwingConstants.CENTER);
@@ -151,25 +147,26 @@ public class ReadoutStatusBar extends JPanel implements PositionListener,
         this.elevationUnit = unit;
     }
 
+    /*
     protected String makeCursorElevationDescription(double metersElevation) {
         String s;
         if (UNIT_IMPERIAL.equals(elevationUnit)) {
-            s = String.format("Elev %,7d feet",
+            s = String.format("(TElev %,7d feet)",
                     (int) (metersElevation * METER_TO_FEET));
         } else // Default to metric units.
         {
-            s = String.format("Elev %,7d meters", (int) metersElevation);
+            s = String.format("(TElev %,7d meters)", (int) metersElevation);
         }
         return s;
     }
-
+*/
     protected String makeEyeAltitudeDescription(double metersAltitude) {
         String s;
         if (UNIT_IMPERIAL.equals(elevationUnit)) {
-            s = String.format("Altitude %,7d mi", (int) Math.round(metersAltitude * METER_TO_MILE));
+            s = String.format("(H %,7d mi)", (int) Math.round(metersAltitude * METER_TO_MILE));
         } else // Default to metric units.
         {
-            s = String.format("Altitude %,7d km", (int) Math.round(metersAltitude / 1e3));
+            s = String.format("(H %,7d km)", (int) Math.round(metersAltitude / 1e3));
         }
         return s;
     }
@@ -186,31 +183,28 @@ public class ReadoutStatusBar extends JPanel implements PositionListener,
         Position newPos = event.getPosition();
         if (newPos != null) {
             lastPosition = newPos;
-            String loc = String.format("(%7.4f\u00B0,%7.4f\u00B0)", newPos.getLatitude().getDegrees(),
-                    newPos.getLongitude().getDegrees());
+            String loc = String.format("(%7.4f\u00B0,%7.4f\u00B0,%,7.4f Meters)", newPos.getLatitude().getDegrees(),
+                    newPos.getLongitude().getDegrees(), newPos.getAltitude());
             //	String las = String.format("Lat %7.4f\u00B0", newPos.getLatitude()
             //			.getDegrees());
             //	String los = String.format("Lon %7.4f\u00B0", newPos.getLongitude()
             //			.getDegrees());
 
-            String els = makeCursorElevationDescription(eventSource.getModel().getGlobe().getElevation(newPos.getLatitude(),
-                    newPos.getLongitude()));
-            //latDisplay.setText(las);
+           // String els = makeCursorElevationDescription(eventSource.getModel().getGlobe().getElevation(newPos.getLatitude(),
+           //         newPos.getLongitude()));
             locDisplay.setText(loc);
-            //	lonDisplay.setText(los);
             // FIXME: should probably go to EarthView
             Point p = event.getScreenPoint();
             myLastX = p.x;
             myLastY = p.y;
-            //	dataDisplay.setText(CommandManager.getInstance().getReadout(event));
-            dataDisplay.setText(myReadoutString);
-            eleDisplay.setText(els);
+            if (myProductReadout != null){
+                dataDisplay.setText(myProductReadout.getReadoutString());
+            }
+           // eleDisplay.setText(els);
         } else {
-            //	latDisplay.setText("");
             locDisplay.setText("");
-            lonDisplay.setText("Off globe");
             dataDisplay.setText("");
-            eleDisplay.setText("");
+            //eleDisplay.setText("");
         }
     }
 
@@ -227,10 +221,10 @@ public class ReadoutStatusBar extends JPanel implements PositionListener,
                     altDisplay.setText("Altitude");
                 }
             }
-        });
+        });   
     }
 
-    public void setReadoutString(String readoutString) {
-        myReadoutString = readoutString;
+    public void setProductReadout(ProductReadout pr) {       
+        myProductReadout = pr;
     }
 }

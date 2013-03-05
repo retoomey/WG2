@@ -12,6 +12,8 @@ import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.gui.features.FeatureGUI;
 
@@ -21,6 +23,8 @@ import org.wdssii.gui.features.FeatureGUI;
  * @author Robert Toomey
  */
 public class ProductFeatureGUI extends FeatureGUI {
+
+    private static Logger log = LoggerFactory.getLogger(ProductFeatureGUI.class);
 
     private ProductFeature myProduct;
 
@@ -54,6 +58,24 @@ public class ProductFeatureGUI extends FeatureGUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 jExportActionPerformed(e);
+            }
+        });
+        
+        JButton Test = new JButton("Test1");
+        add(Test, new CC());
+        Test.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                log.debug("Test 1");
+            }
+        });
+        
+        JButton Test2 = new JButton("Test2");
+        add(Test2, new CC());
+        Test2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                log.debug("Test 2");
             }
         });
     }

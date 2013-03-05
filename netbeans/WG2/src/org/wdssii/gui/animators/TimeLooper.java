@@ -145,7 +145,7 @@ public class TimeLooper extends Animator {
 					}
 					break;
 				case ROCK_LOOP:
-					log.debug("Rock frame from " + myCurrentFrame);
+					//log.debug("Rock frame from " + myCurrentFrame);
 					myCurrentFrame += myFrameDelta;
 					//log.debug(" to "+myCurrentFrame+ " ("+(availableFrames-1)+")");
 					if (myCurrentFrame > availableFrames - 1) {  // Switch direction
@@ -154,14 +154,14 @@ public class TimeLooper extends Animator {
 							myCurrentFrame = 0;
 						}
 						myFrameDelta = -1;
-						log.debug("Go negative");
+						//log.debug("Go negative");
 					} else if (myCurrentFrame < 0) {  // Switch direction
 						myCurrentFrame = 1; // Gotta move left one...
 						if (availableFrames < 2) {
 							myCurrentFrame = 0;
 						}
 						myFrameDelta = +1;
-						log.debug("Go positive");
+						//log.debug("Go positive");
 					}
 					break;
 				default:
@@ -171,7 +171,7 @@ public class TimeLooper extends Animator {
 
 			// -------------------------------------------------------------
 
-			log.debug("Looping on " + name + " (" + (myCurrentFrame + 1) + "/" + availableFrames + ")");
+			//log.debug("Looping on " + name + " (" + (myCurrentFrame + 1) + "/" + availableFrames + ")");
 			IndexRecord rec = recs.list.get(myCurrentFrame);
 			if (rec != null) {
 
@@ -194,9 +194,9 @@ public class TimeLooper extends Animator {
 
 		} else {
 			//monitor.subTask("Select a product as a loop frame base...");
-			log.debug("Select a product as a loop frame base...");
+			//log.debug("Select a product as a loop frame base...");
 		}
-		log.debug("Frame " + myCurrentFrame + ", dwell " + currentDwell);
+		//log.debug("Frame " + myCurrentFrame + ", dwell " + currentDwell);
 		return currentDwell;
 	}
 

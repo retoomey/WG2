@@ -10,13 +10,11 @@ import org.wdssii.datatypes.Table2DView;
 import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
-import org.wdssii.gui.CommandManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.FilterList;
-import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
+import org.wdssii.gui.products.ProductReadout;
 import org.wdssii.gui.swing.SimpleTable.SimpleTableModel;
-import org.wdssii.gui.views.WorldWindView;
 
 /**
  * Links a Table2DView product to a SimpleTableModel
@@ -141,7 +139,7 @@ public class ProductTableModel extends SimpleTableModel {
 					back = new Color(out.redI(), out.greenI(), out.blueI());
 					fore = java.awt.Color.white;
 					fore = ColorMap.getW3cContrast(back, fore);
-					info.text = Product.valueToString(cq.value);
+					info.text = ProductReadout.valueToString(cq.value);
 				} else {
 					fore = java.awt.Color.BLACK;
 					back = java.awt.Color.WHITE;

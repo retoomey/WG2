@@ -1,7 +1,6 @@
 package org.wdssii.xml;
 
 import java.util.ArrayList;
-import javax.xml.stream.XMLStreamReader;
 
 /**
  *  Tag which has the following format:

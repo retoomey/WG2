@@ -21,9 +21,8 @@ import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
  *
  */
 public class LatLonGridVolume extends IndexRecordVolume {
-    
-    private static Logger log = LoggerFactory.getLogger(LatLonGridVolume.class);
 
+    private static Logger log = LoggerFactory.getLogger(LatLonGridVolume.class);
     // Synchronize access to these...
     private final Object myProductLock = new Object();
     /**
@@ -53,7 +52,7 @@ public class LatLonGridVolume extends IndexRecordVolume {
             // Only add products that are loaded to the volume....
             // Note: some may still be loading...
             if (product.getRawDataType() != null) {
-                newProducts.add(product);
+               // newProducts.add(product);
                 newKey.append(product.getCacheKey());
             }
         }
@@ -67,7 +66,7 @@ public class LatLonGridVolume extends IndexRecordVolume {
             //System.out.println("Init volume called... we have "+myRadials.size()+" products ready ");
             //myRecords = newRecords;
         }
-       // log.debug("VOLUME COUNT IS "+p.size());
+        // log.debug("VOLUME COUNT IS "+p.size());
     }
 
     /**
@@ -102,6 +101,12 @@ public class LatLonGridVolume extends IndexRecordVolume {
     public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
             FilterList list, boolean useFilters, VolumeValue v) {
 
+        // Bleh this gonna slow us down...
+        synchronized (myProductLock) {
+            for (Product p : myProducts) {
+                p.startLoading(); // Start loading if not already...
+            }
+        }
         // Maybe this could be a filter in the color map...  You could clip anything by height heh heh..
         // It would make sense for it to be a filter
         if (loc.getHeightKms() < 0) {
@@ -155,7 +160,7 @@ public class LatLonGridVolume extends IndexRecordVolume {
 
         q.inDataValue = value;
         q.outDataValue = value;
-      //  q.outRadialSetNumber = productNumber;
+        //  q.outRadialSetNumber = productNumber;
         out.hWeight = q.outDistanceHeight;
         list.fillColor(output, q, useFilters);
 

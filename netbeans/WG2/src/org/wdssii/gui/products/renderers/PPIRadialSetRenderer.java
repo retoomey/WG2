@@ -56,7 +56,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
             allocateMemory(aRadialSet);
             myQuadRenderer.begin();
             myQuadRenderer.setBatched(false);
-            
+
             Array1DOpenGL verts = myQuadRenderer.getVerts();
             Array1DOpenGL colors = myQuadRenderer.getColors();
             Array1DOpenGL readout = myQuadRenderer.getReadout();
@@ -139,8 +139,6 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                             // v1  v3  v5  v7
                             loc0 = loc2;
                             loc1 = loc3;
-                            //point0 = point2;
-                            //point1 = point3;
                             temp = point01;
                             point01 = point23;
                             point23 = temp;
@@ -148,9 +146,9 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                         } else {
                             // Calculate the closet points to radar center, the bottom
                             // of the quadstrip.
-                            RadialUtil.getAzRan1(loc0, radarLoc, sinStartAzRAD,
-                                    cosStartAzRAD, rangeKms, sinElevAngle, cosElevAngle,
-                                    c.heights[j], c.gcdSinCache[j], c.gcdCosCache[j]);
+                            RadialUtil.getAzRan1(loc0, radarLoc, sinEndAzRAD, cosEndAzRAD,
+                                    rangeKms, sinElevAngle, cosElevAngle, c.heights[j],
+                                    c.gcdSinCache[j], c.gcdCosCache[j]);
                             point0 = myGlobe.computePointFromPosition(
                                     Angle.fromDegrees(loc0.getLatitude()),
                                     Angle.fromDegrees(loc0.getLongitude()),
@@ -158,9 +156,9 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                             point01[0] = (float) point0.x;
                             point01[1] = (float) point0.y;
                             point01[2] = (float) point0.z;
-                            RadialUtil.getAzRan1(loc1, radarLoc, sinEndAzRAD, cosEndAzRAD,
-                                    rangeKms, sinElevAngle, cosElevAngle, c.heights[j],
-                                    c.gcdSinCache[j], c.gcdCosCache[j]);
+                            RadialUtil.getAzRan1(loc1, radarLoc, sinStartAzRAD,
+                                    cosStartAzRAD, rangeKms, sinElevAngle, cosElevAngle,
+                                    c.heights[j], c.gcdSinCache[j], c.gcdCosCache[j]);
                             point1 = myGlobe.computePointFromPosition(
                                     Angle.fromDegrees(loc1.getLatitude()),
                                     Angle.fromDegrees(loc1.getLongitude()),
@@ -198,12 +196,6 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                             idy = out.putUnsignedBytes(colors, idy);
 
                             idx = verts.set(idx, point01);
-                           /* verts.set(idx++, (float) point0.x);
-                            verts.set(idx++, (float) point0.y);
-                            verts.set(idx++, (float) point0.z);
-                            verts.set(idx++, (float) point1.x);
-                            verts.set(idx++, (float) point1.y);
-                            verts.set(idx++, (float) point1.z);*/
                         }
 
                         // Always write the 'top' of the strip
@@ -229,13 +221,6 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                         idy = out.putUnsignedBytes(colors, idy);
 
                         idx = verts.set(idx, point23);
-                        /*verts.set(idx++, (float) point2.x);
-                        verts.set(idx++, (float) point2.y);
-                        verts.set(idx++, (float) point2.z);
-                        verts.set(idx++, (float) point3.x);
-                        verts.set(idx++, (float) point3.y);
-                        verts.set(idx++, (float) point3.z);
-*/
 
                         // Update the offsets last...
                         if (startQuadStrip) {

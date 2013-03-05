@@ -6,9 +6,6 @@ import java.awt.Rectangle;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialSet;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductReadout;
-import org.wdssii.gui.products.RadialSetReadout;
 import org.wdssii.storage.Array1D;
 import org.wdssii.util.RadialUtil;
 
@@ -133,7 +130,7 @@ public abstract class RadialSetRenderer extends ProductRenderer {
             myQuadRenderer.drawData(dc, readoutMode);
         }
     }
-    
+
     /**
      *
      * @param dc Draw context in opengl for drawing our radial set
@@ -142,31 +139,17 @@ public abstract class RadialSetRenderer extends ProductRenderer {
     public void draw(DrawContext dc) {
         drawData(dc, false);
     }
-    
+
     /**
-     * Get the readout for this product
+     * Get the raw float readout for this product using a color trick render
+     * system...
      */
     @Override
-    public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
-
-        RadialSetReadout out = new RadialSetReadout();
+    public float getReadoutValue(Point p, Rectangle view, DrawContext dc) {
+        float value = DataType.MissingData;
         if (p != null) {
-
-            // FIXME: outside of radial should be unavailable...
-            float value = myQuadRenderer.getReadout(p, view, dc, DataType.MissingData);
-            out.setValue(value);
-
-            Product prod = getProduct();
-            String units = "";
-            if (prod != null) {
-                units = prod.getCurrentUnits();
-            }
-            out.setUnits(units);
-
-        } else {
-            //out.setValue(readoutValue);
-            //out = "No readout for renderer";
+            value = myQuadRenderer.getReadout(p, view, dc, DataType.MissingData);
         }
-        return out;
+        return value;
     }
 }

@@ -39,7 +39,7 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.volumes.LLHAreaController;

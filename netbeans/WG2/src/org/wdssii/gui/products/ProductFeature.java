@@ -379,4 +379,16 @@ public class ProductFeature extends Feature {
     public ProductFeatureGUI createNewControls() {
         return new ProductFeatureGUI(this);
     }
+    
+    /**
+     * Sent from list to let us know we were selected
+     */
+    @Override
+    public void wasSelected() {
+        
+       // When selected, try to load that product if not loaded
+       if (myProduct != null && wouldRender()){
+           myProduct.startLoading();
+       }
+    }
 }

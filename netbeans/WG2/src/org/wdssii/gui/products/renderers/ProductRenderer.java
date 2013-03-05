@@ -16,7 +16,7 @@ import org.wdssii.datatypes.Table2DView.LocationType;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.GridVisibleArea;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.readouts.ProductReadout;
 
 /** ProductRenderer is a helper class of Product.  It draws the DataType in the 3D world
  * 
@@ -92,11 +92,14 @@ public abstract class ProductRenderer {
         return myProduct;
     }
 
-    /** Get the product readout for a given screenpoint in the drawcontext */
-    public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
-        return new ProductReadout();
+    /**
+     * Get the raw float readout for this product using a color trick render system...
+     * Not all products will work this way of course...
+     */
+    public float getReadoutValue(Point p, Rectangle view, DrawContext dc) {
+       return DataType.MissingData;
     }
-
+    
     public void highlightObject(Object o){
         
     }

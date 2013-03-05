@@ -23,7 +23,7 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.gui.products.renderers.icons.BaseIconAnnotation;
 import org.wdssii.gui.products.renderers.icons.MesonetIcon.MesonetIconFactory;
 import org.wdssii.gui.products.renderers.icons.PolygonIcon.PolygonIconFactory;
@@ -76,6 +76,7 @@ public class DataTableRenderer extends ProductRenderer {
     /** Experimental readout using drawing to get it..lol 
      * FIXME: generalize this ability for all products
      */
+    /*
     @Override
     public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
         final Object o = hovered;
@@ -92,7 +93,7 @@ public class DataTableRenderer extends ProductRenderer {
         };
         return out;
     }
-
+*/
     /**
      * 
      * @param dc

@@ -12,8 +12,10 @@ import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.FilterList;
+import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
-import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.ProductTextFormatter;
+import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.gui.swing.SimpleTable.SimpleTableModel;
 
 /**
@@ -139,7 +141,9 @@ public class ProductTableModel extends SimpleTableModel {
 					back = new Color(out.redI(), out.greenI(), out.blueI());
 					fore = java.awt.Color.white;
 					fore = ColorMap.getW3cContrast(back, fore);
-					info.text = ProductReadout.valueToString(cq.value);
+                                        Product p = myProductFeature.getProduct();
+                                        ProductTextFormatter f = p.getProductFormatter();
+					info.text = f.formatForTable(cq.value);
 				} else {
 					fore = java.awt.Color.BLACK;
 					back = java.awt.Color.WHITE;

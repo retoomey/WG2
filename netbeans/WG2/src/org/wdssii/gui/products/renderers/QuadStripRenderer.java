@@ -10,7 +10,7 @@ import java.util.Iterator;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
 

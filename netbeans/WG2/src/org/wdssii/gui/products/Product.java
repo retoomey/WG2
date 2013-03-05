@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.core.DelegateHelper;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
@@ -16,6 +17,7 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.navigators.ProductNavigator;
+import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.products.volumes.IndexRecordVolume;
 import org.wdssii.gui.products.volumes.ProductVolume;
@@ -28,8 +30,6 @@ import org.wdssii.index.IndexRecord;
 import org.wdssii.index.IndexSubType;
 import org.wdssii.index.IndexSubType.SubtypeType;
 import org.wdssii.index.VolumeRecord;
-import org.wdssii.xml.PointColorMap;
-import org.wdssii.xml.Tag_colorMap;
 
 /**
  * Product is a holder for everything that can possibly be done for a particular
@@ -54,19 +54,16 @@ import org.wdssii.xml.Tag_colorMap;
  * @author Robert Toomey
  *
  */
-public class Product {
+public class Product extends DelegateHelper {
 
     private static Logger log = LoggerFactory.getLogger(Product.class);
-    // FIXME: Currently products will have only one possible product handler,
-    // when we go to multiple product handler lists design will have to change
-    // to allow for example more than one renderer per product
-    //protected ProductHandler myProductHandler = null;
     public FilterList myCurrentFList = null;
     // Warn once on failed datatype
     private boolean warnOnFail = true;
     // Helper class paths.  These are created by name from the DataType, thus
     // a RadialSetNavigator will be created (if there) for a RadialSet, etc.
     private final String RENDERER_CLASSPATH = "org.wdssii.gui.products.renderers";
+    private final String READOUT_CLASSPATH = "org.wdssii.gui.products.readouts";
     private final String TABLE_CLASSPATH = "org.wdssii.gui.products";
     private final String VOLUME_CLASSPATH = "org.wdssii.gui.products.volumes";
     private final String NAVIGATOR_CLASSPATH = "org.wdssii.gui.products.navigators";
@@ -117,16 +114,13 @@ public class Product {
      * Units of the actual data, if known
      */
     protected String myDataUnits = "";
-    // FIXME: need to sync access to this probably...
-    protected TreeMap<String, Object> myHelperObjects = new TreeMap<String, Object>();
-    // We're going to hide the record details
     /**
      * The index record, if any that we were created from
      */
     protected final IndexRecord myRecord;
     private String myIndexKey; 		// /< The key used to query the source manager
     private boolean myLoaded = false;
-    
+
     /**
      * Create a default unloaded product
      *
@@ -152,7 +146,9 @@ public class Product {
      * background job is complete.
      */
     public void startLoading() {
-        if (myLoaded){ return; }  // Quick..we only turn from false to true once
+        if (myLoaded) {
+            return;
+        }  // Quick..we only turn from false to true once
         synchronized (myDataRequestLock) {
             if (myDataRequest == null) {
                 if (myRecord != null) {
@@ -185,6 +181,29 @@ public class Product {
             }
         }
         return ready;
+    }
+
+    @Override
+    public String getPrefixName() {
+
+        String prefix = null;
+
+        // If we have a completely loaded datatype...
+        if (updateDataTypeIfLoaded()) {
+            DataType dt = myDataRequest.getDataType();
+            if (dt != null) {
+
+                // ...then get its simple name such as "RadialSet"
+                prefix = dt.getClass().getSimpleName();
+            } else {
+                if (warnOnFail) {
+                    log.error("Datatype failed to load");
+                    warnOnFail = false;
+                }
+            }
+
+        }
+        return prefix;
     }
 
     /**
@@ -383,14 +402,6 @@ public class Product {
         return null;
     }
 
-    private Object getHelperClass(String name) {
-        return myHelperObjects.get(name);
-    }
-
-    private void setHelperClass(String name, Object helper) {
-        myHelperObjects.put(name, helper);
-    }
-
 // Stock helper objects -------------------------------------------------------
     // Return the thing that draws this product
     public ProductRenderer getRenderer() {
@@ -398,6 +409,19 @@ public class Product {
         return pr;
     }
 
+    public ProductReadout getProductReadout(Point p, Rectangle aRect, DrawContext dc) {
+
+        // Just one object cached...humm might cause issues later..
+        ProductReadout pr = (ProductReadout) getHelperObject("Readout", true, true, READOUT_CLASSPATH, "");
+        pr.doReadoutAtPoint(this, p, aRect, dc);
+        return pr;
+    }
+
+    public ProductTextFormatter getProductFormatter(){      
+        // For now, using stock formatter for all....
+        return ProductTextFormatter.DEFAULT_FORMATTER;
+    }
+    
     // Return the thing that draws this product
     public ProductVolume getProductVolume(boolean virtual) {
         // We create one Volume for virtual, one for regular. We need unique ones
@@ -432,14 +456,6 @@ public class Product {
         return t;
     }
 
-    // ----------------------------------------------------------------------
-    /**
-     * Return the data value for this product for a location. Subclasses should
-     * override
-     */
-    //public double getValueAtLocation(Location loc, boolean useHeight) {
-    //	return DataType.MissingData;
-    //}
     /**
      * Get the current units for product. This may change as product is loaded
      * into memory, typically it starts as Dimensionless
@@ -506,114 +522,6 @@ public class Product {
             }
         }
         return m;
-    }
-
-    /**
-     * Generate a color map based on data values. This is currently used when
-     * colormap is missing. Subclasses can override to make a map better based
-     * on class (RadialSet, etc.)
-     *
-     * FIXME: move to ProductDataInfo, since we don't ever subclass Product do
-     * to lazy loading...
-     */
-    /* public ColorMap generateColorMap(String units) {
-
-     ColorMap aColorMap = null;
-     if (updateDataTypeIfLoaded()) {
-     aColorMap = new ColorMap();
-     if (myRawDataType != null) {
-     DataTypeMetric m = myRawDataType.getDataTypeMetric();
-     float minValue = -100;
-     float maxValue = 100;
-     if (m != null) {
-     minValue = m.getMinValue();
-     maxValue = m.getMaxValue();
-     }
-
-
-     //PointColorMap map = PointColorMap.getCandidate2();
-     PointColorMap map = PointColorMap.theIDLList.getByName("Blue_Waves");
-     aColorMap.initToTag(map, minValue, maxValue, units, ProductTextFormatter.DEFAULT_FORMATTER);
-     } else {
-     Tag_colorMap map = Tag_colorMap.getCandidate2();
-     aColorMap.initFromTag(map, ProductTextFormatter.DEFAULT_FORMATTER);
-     }
-     }
-     return aColorMap;
-     }*/
-    /**
-     * Get a helper object from cache
-     *
-     * @param classSuffix
-     * @param useBaseClass Fall back to 'base' class if special class missing.
-     * For example, no "RadialSetNavigator" will use "ProductNavigator"
-     * @param cachePerProduct Store an instance per product object, for example
-     * RadialSetRenderer is cached per product
-     * @param root
-     * @param extrainfo
-     * @return
-     */
-    protected Object getHelperObject(String classSuffix, boolean useBaseClass,
-            boolean cachePerProduct, String root, String extrainfo) {
-        Object helper = null;
-
-        // Is it cached?
-        helper = getHelperClass(classSuffix + ":" + extrainfo);
-        if (helper == null) {
-
-            // If we are loaded as of NOW....
-            if (updateDataTypeIfLoaded()) {
-                if (myDataRequest != null) {
-                    DataType dt = myDataRequest.getDataType();
-                    // Try to load by NAME.  This fails only if class doesn't
-                    // actually exist...
-                    if (dt != null) {
-                        String dataName = dt.getClass().getSimpleName();
-                        helper = createClassFromDataType(dataName, root, classSuffix);
-
-                        // If "RadialSetVolume" missing, create "ProductVolume" (example)
-                        if ((helper == null) && (useBaseClass == true)) {
-                            helper = createClassFromDataType("Product", root, classSuffix);
-                        }
-                    } else {
-                        if (warnOnFail) {
-                            log.error("Datatype failed to load");
-                            warnOnFail = false;
-                        }
-                    }
-                }
-            }
-
-            // Store object in cache
-            if ((helper != null) && cachePerProduct) {
-                setHelperClass(classSuffix + ":" + extrainfo, helper);
-            }
-        }
-        return helper;
-    }
-
-    /**
-     * Create a helper object class from a valid DataType
-     */
-    protected Object createClassFromDataType(String dataName, String rootpath, String suffix) {
-
-        Object newClass = null;
-
-        String createIt = rootpath + "." + dataName + suffix;
-
-        Class<?> c = null;
-
-        //boolean foundByName = false;
-        try {
-            c = Class.forName(createIt);
-            newClass = c.newInstance();
-            log.info("Generated " + createIt);
-        } catch (Exception e) {
-            log.warn("DataType " + dataName + " doesn't have a " + suffix + " it seems");
-            log.warn(e.toString());
-        }
-
-        return newClass;
     }
 
     /**
@@ -765,7 +673,7 @@ public class Product {
      */
     public Product getProduct(Navigation nav) {
         Product navigateTo = null;
-        IndexRecord newRecord = null; // do it by a record
+        IndexRecord newRecord; // do it by a record
         newRecord = peekRecord(nav);
         if (newRecord != null) {
 
@@ -845,7 +753,7 @@ public class Product {
         String name = "loading";
 
         if (myDataRequest == null) {
-            name = "failed data";
+            name = "Not requested";
         } else {
             if (updateDataTypeIfLoaded()) {
                 if (myRawDataType == null) {
@@ -957,17 +865,6 @@ public class Product {
         String productCacheKey = Product.createCacheKey(myIndexKey, r);
         Product ourProduct = ProductManager.CreateProduct(productCacheKey, myIndexKey, r);
         return ourProduct;
-    }
-
-    public ProductReadout getProductReadout(Point p, Rectangle aRect, DrawContext dc) {
-
-        // Readout comes from the Renderer....because we use our color trick to get it....
-        // Readout has to render in order to get the value.
-        ProductRenderer r = getRenderer();
-        if (r != null) {
-            return r.getProductReadout(p, aRect, dc);
-        }
-        return new ProductReadout();
     }
 
     // Given an index key, record and direction, try to get the next record

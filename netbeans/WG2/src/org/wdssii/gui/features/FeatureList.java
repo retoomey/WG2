@@ -52,7 +52,7 @@ public class FeatureList {
      * The current 'time' this feature list is at, any feature can be time
      * dependent. Products are, for example
      */
-    protected Date mySimulationTime;
+    protected Date mySimulationTime = new Date();
 
     static {
         Feature testOne = new MapFeature(theFeatures, "shapefiles/usa/ok/okcnty.shp");

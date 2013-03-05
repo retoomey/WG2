@@ -19,9 +19,9 @@ import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.products.LatLonGridReadout;
+import org.wdssii.gui.products.readouts.LatLonGridReadout;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.readouts.ProductReadout;
 
 /**
  * The lat lon grid renderer creates tiles on demand for rendering large scale
@@ -374,25 +374,12 @@ public class LatLonGridRenderer extends TileRenderer {
      * Get the readout for this product
      */
     @Override
-    public ProductReadout getProductReadout(Point p, Rectangle view, DrawContext dc) {
+    public float getReadoutValue(Point p, Rectangle view, DrawContext dc) {
 
-        LatLonGridReadout out = new LatLonGridReadout();
+        float value = DataType.MissingData;
         if (p != null) {
-
-            float value = drawReadout(dc, p, view, DataType.MissingData);
-            out.setValue(value);
-
-            Product prod = getProduct();
-            String units = "";
-            if (prod != null) {
-                units = prod.getCurrentUnits();
-            }
-            out.setUnits(units);
-
-        } else {
-            //out.setValue(readoutValue);
-            //out = "No readout for renderer";
+            value = drawReadout(dc, p, view, DataType.MissingData);
         }
-        return out;
+        return value;
     }
 }

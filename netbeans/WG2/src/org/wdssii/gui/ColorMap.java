@@ -327,9 +327,9 @@ public class ColorMap {
                 // If no name is given for bin, use the bound to make one
                 try {
                     if (sameColor) {
-                        name = f.format(ub);
+                        name = f.formatForColorMap(ub);
                     } else {
-                        name = f.format(lb, ub);
+                        name = f.formatForColorMapRange(lb, ub);
                     }
                 } catch (Exception e) { // FIXME: check format errors?
                     log.error("Exception is" + e.toString());
@@ -428,9 +428,9 @@ public class ColorMap {
                 // If no name is given for bin, use the bound to make one
                 try {
                     if (sameColor) {
-                        name = f.format(ub);
+                        name = f.formatForColorMap(ub);
                     } else {
-                        name = f.format(lb, ub);
+                        name = f.formatForColorMapRange(lb, ub);
                     }
                 } catch (Exception e) { // FIXME: check format errors?
                     log.error("Exception is" + e.toString());
@@ -600,7 +600,7 @@ public class ColorMap {
                     ((short) (p.g * 255.0f)),
                     ((short) (p.b * 255.0f)),
                     ((short) (1.0f * 255.0f)), // alpha 1 for moment
-                    formatter.format(low));
+                    formatter.formatForColorMap(low));
             addOrderedColorBin(aColor);
         }
         return true;
@@ -649,7 +649,7 @@ public class ColorMap {
                     ((short) (p.g * 255.0f)),
                     ((short) (p.b * 255.0f)),
                     ((short) (1.0f * 255.0f)), // alpha 1 for moment
-                    formatter.format(low));
+                    formatter.formatForColorMap(low));
             addOrderedColorBin(aColor);
         }
         return true;
@@ -791,7 +791,7 @@ public class ColorMap {
                     ((short) (greens[i] * 255.0f)),
                     ((short) (blues[i] * 255.0f)),
                     ((short) (1.0f * 255.0f)), // alpha 1 for moment
-                    f.format(low));
+                    f.formatForColorMap(low));
             addOrderedColorBin(aColor);
         }
 

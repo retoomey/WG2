@@ -8,7 +8,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.products.ProductReadout;
+import org.wdssii.gui.products.readouts.ProductReadout;
 
 /**
  * @author Robert Toomey

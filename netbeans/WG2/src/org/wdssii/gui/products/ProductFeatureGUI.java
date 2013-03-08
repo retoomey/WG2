@@ -1,5 +1,6 @@
 package org.wdssii.gui.products;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -7,7 +8,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
@@ -25,8 +29,8 @@ import org.wdssii.gui.features.FeatureGUI;
 public class ProductFeatureGUI extends FeatureGUI {
 
     private static Logger log = LoggerFactory.getLogger(ProductFeatureGUI.class);
-
     private ProductFeature myProduct;
+    private JComponent myParent = null;
 
     public ProductFeatureGUI(ProductFeature p) {
         myProduct = p;
@@ -41,6 +45,7 @@ public class ProductFeatureGUI extends FeatureGUI {
     public void activateGUI(JComponent parent) {
         parent.setLayout(new java.awt.BorderLayout());
         parent.add(this, java.awt.BorderLayout.CENTER);
+        myParent = parent;
         doLayout();
     }
 
@@ -60,24 +65,26 @@ public class ProductFeatureGUI extends FeatureGUI {
                 jExportActionPerformed(e);
             }
         });
-        
-        JButton Test = new JButton("Test1");
+
+        JButton Test = new JButton("Symbology...");
         add(Test, new CC());
         Test.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                log.debug("Test 1");
+                jSymbologyAction(e);
             }
         });
-        
-        JButton Test2 = new JButton("Test2");
-        add(Test2, new CC());
-        Test2.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                log.debug("Test 2");
-            }
-        });
+
+    }
+
+    public void jSymbologyAction(ActionEvent e) {
+        Component something = (Component) SwingUtilities.getRoot(this);
+        if (something instanceof JDialog) {
+            SymbologyDialog myDialog = new SymbologyDialog(myProduct.getProduct(), (JDialog) something, this, true, "Symbology");
+        }else{
+            // Assume JFrame....
+            SymbologyDialog myDialog = new SymbologyDialog(myProduct.getProduct(), (JFrame) something, this, true, "Symbology");
+        }
     }
 
     public void jExportActionPerformed(ActionEvent e) {
@@ -95,8 +102,8 @@ public class ProductFeatureGUI extends FeatureGUI {
                 return "ERSI SHP File Format";
             }
         });
-        fileopen.setDialogTitle("Export Quad Polygons and Values");
-        int ret = fileopen.showSaveDialog(null);
+        fileopen.setDialogTitle("Export Shapefile");
+        int ret = fileopen.showSaveDialog(myParent);
         if (ret == JFileChooser.APPROVE_OPTION) {
             File file = fileopen.getSelectedFile();
             try {

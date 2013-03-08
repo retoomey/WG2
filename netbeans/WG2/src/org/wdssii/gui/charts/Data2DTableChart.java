@@ -402,7 +402,7 @@ public class Data2DTableChart extends ChartViewChart {
             }
         });
         fileopen.setDialogTitle("Export Table Selection");
-        int ret = fileopen.showSaveDialog(null);
+        int ret = fileopen.showSaveDialog(myPanel);
         if (ret == JFileChooser.APPROVE_OPTION) {
             File file = fileopen.getSelectedFile();
             try {

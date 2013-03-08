@@ -688,7 +688,7 @@ public class WdssiiCatalog extends JPanel implements CONUSJPanelListener {
         chooser.setDialogTitle("Add single product");
         // rcp chooiser.setFilterPath("D:/") ?
 
-        int returnVal = chooser.showOpenDialog(null);
+        int returnVal = chooser.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
             try {

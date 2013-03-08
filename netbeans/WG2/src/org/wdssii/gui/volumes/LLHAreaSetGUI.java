@@ -81,7 +81,8 @@ public class LLHAreaSetGUI extends FeatureGUI {
     private javax.swing.JScrollPane jObjectScrollPane;
     private JPanel myContainer;
     private JButton myAddRemoveButton, myNormalButton;
-
+    private JComponent myParent = null;
+    
     /**
      * Creates new form LLHAreaSetGUI
      */
@@ -119,6 +120,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
 
     @Override
     public void activateGUI(JComponent parent) {
+        myParent = parent;
         super.activateGUI(parent);
         // FIXME: Restore old mouse mode?
     }
@@ -299,7 +301,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
             }
         });
         fileopen.setDialogTitle("Export Data Points...");
-        int ret = fileopen.showSaveDialog(null);
+        int ret = fileopen.showSaveDialog(myParent);
         if (ret == JFileChooser.APPROVE_OPTION) {
             File file = fileopen.getSelectedFile();
             if (file != null) {

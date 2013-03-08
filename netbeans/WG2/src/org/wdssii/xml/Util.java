@@ -7,6 +7,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.zip.GZIPInputStream;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
@@ -52,6 +55,23 @@ public class Util {
         }
     }
 
+    private static class CustomValidationEventHandler implements ValidationEventHandler {
+
+        @Override
+        public boolean handleEvent(ValidationEvent evt) {
+            //System.out.println("Event Info: " + evt);
+            if (evt.getMessage().contains("Unexpected element")) {
+                
+                // Just a tag we don't handle..don't want us dying
+                // JAXB you're WAY TOO SENSITIVE
+                log.debug("XML Error "+evt);
+                return true; // Keep going....
+            }
+            log.debug("XML Error "+evt);
+            return true;
+            //return false; // All others stop?
+        }
+    }
     /*
      * We allow integers to be read of the form 0x where it's hex...
      * 0xFF --> 255 integer
@@ -60,6 +80,7 @@ public class Util {
      * XmlJavaTypeAdapter(IntegerHexAdapter.class)
      * public Integer test  (xml = "255" or "0xFF"
      */
+
     public static class IntegerHexAdapter extends XmlAdapter<String, Integer> {
 
         /**
@@ -97,7 +118,7 @@ public class Util {
         }
 
         /**
-         * XML --> Java. 
+         * XML --> Java.
          */
         @Override
         public Float unmarshal(String value) throws Exception {
@@ -108,7 +129,7 @@ public class Util {
                 aFloat = Float.NEGATIVE_INFINITY;
             } else {
                 aFloat = Float.parseFloat(value);
-            }    
+            }
             return aFloat;
         }
     }
@@ -143,9 +164,13 @@ public class Util {
                 // <thisWorks>data<ThiSworks> is treated as
                 // <thisworks>data<thisworks>
                 lowerStreamReaderDelegate l = new lowerStreamReaderDelegate(p);
-
+                Unmarshaller u = context.createUnmarshaller();
+                
+                // Any strange tags and JAXB freaks.
+                u.setEventHandler(new CustomValidationEventHandler());
+                
                 @SuppressWarnings("unchecked")
-                T attemptOrException = (T) (context.createUnmarshaller().unmarshal(l));
+                T attemptOrException = (T) (u.unmarshal(l));
 
                 top = attemptOrException;
             } catch (Exception ex) {
@@ -173,7 +198,9 @@ public class Util {
         URL aURL;
         try {
             aURL = W2Config.getURL(urlString);
-            if (aURL == null){ return null; }
+            if (aURL == null) {
+                return null;
+            }
             top = loadURL(aURL, topClass);
         } catch (Exception c) {
             log.debug("XML exception " + c.toString());

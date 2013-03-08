@@ -232,7 +232,7 @@ public class ColorKeyView extends JThreadPanel implements CommandListener {
         JFileChooser chooser = new mySaveChooser();
         chooser.setFileFilter(new ImageDataFilter());
         chooser.setDialogTitle("Save colormap image file");
-        int returnVal = chooser.showSaveDialog(null);
+        int returnVal = chooser.showSaveDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             pickedFile = chooser.getSelectedFile().getAbsolutePath();
 

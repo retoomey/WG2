@@ -99,7 +99,7 @@ public class IndexRecord {
         // selections (used to categorize record within groups)
         List<String> selectionList = StringUtil.split(selectionsString.trim());
         if (selectionList.size() == 2) {
-            selectionList.add("");
+            selectionList.add("Default");
         }
         String[] selections = selectionList.toArray(new String[0]);
 

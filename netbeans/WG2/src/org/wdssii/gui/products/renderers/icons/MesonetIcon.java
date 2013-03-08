@@ -20,8 +20,8 @@ import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.xml.iconSetConfig.Tag_dataColumn;
-import org.wdssii.xml.iconSetConfig.Tag_mesonetConfig;
+import org.wdssii.xml.iconSetConfig.DataColumn;
+import org.wdssii.xml.iconSetConfig.MesonetConfig;
 
 /**
  *  First hack of mesonet icons
@@ -32,10 +32,10 @@ public class MesonetIcon extends BaseIconAnnotation {
     /** Factory for creating MesonetIcon objects */
     public static class MesonetIconFactory {
 
-        public static void create(WdssiiJobMonitor m, DataTable aDataTable, Tag_mesonetConfig mesonetConfig, ArrayList<BaseIconAnnotation> list) {
+        public static void create(WdssiiJobMonitor m, DataTable aDataTable, MesonetConfig mesonetConfig, ArrayList<BaseIconAnnotation> list) {
 
-            if ((mesonetConfig != null) && (mesonetConfig.wasRead())) {
-                Tag_dataColumn dataCol = mesonetConfig.dataColumn;
+            if ((mesonetConfig != null)) {
+                DataColumn dataCol = mesonetConfig.dataColumn;
 
                 // Try to get the 'Direction' column.
                 Column dirColumn = null;
@@ -102,7 +102,7 @@ public class MesonetIcon extends BaseIconAnnotation {
             //  myProducts.addRenderable(ea);
         }
     }
-    private Tag_mesonetConfig tag;
+    private MesonetConfig tag;
     private float myDirection = DataType.MissingData;
     private float mySpeed = DataType.MissingData;
     int barbRadius = 30; // windbarb tag stuff
@@ -119,7 +119,7 @@ public class MesonetIcon extends BaseIconAnnotation {
             float direction,
             float speed,
             AnnotationAttributes defaults,
-            Tag_mesonetConfig tag) {
+            MesonetConfig tag) {
         super("", p, defaults);
         this.tag = tag;
         this.myDirection = direction;

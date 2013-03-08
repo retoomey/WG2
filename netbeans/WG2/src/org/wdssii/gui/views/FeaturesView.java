@@ -663,7 +663,7 @@ log.debug("Recreated table list..bleh "+myLastSelectedFeature+", "+oldSelect);
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        URL newMap = MapGUI.doSingleMapOpenDialog();
+        URL newMap = MapGUI.doSingleMapOpenDialog(this);
         if (newMap != null) {
             Feature testOne = new MapFeature(FeatureList.theFeatures, newMap);
             FeatureList.theFeatures.addFeature(testOne);

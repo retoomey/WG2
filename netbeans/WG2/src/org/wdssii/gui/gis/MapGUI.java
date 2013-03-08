@@ -3,6 +3,7 @@ package org.wdssii.gui.gis;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
 import javax.swing.filechooser.FileFilter;
@@ -57,7 +58,7 @@ public class MapGUI extends FeatureGUI {
     /**
      * Load an individual file into the ManualLoadIndex
      */
-    public static URL doSingleMapOpenDialog() {
+    public static URL doSingleMapOpenDialog(JComponent center) {
 
         URL pickedFile = null;
         JFileChooser chooser = new JFileChooser();
@@ -78,7 +79,7 @@ public class MapGUI extends FeatureGUI {
         chooser.setDialogTitle("Add single map");
         // rcp chooiser.setFilterPath("D:/") ?
 
-        int returnVal = chooser.showOpenDialog(null);
+        int returnVal = chooser.showOpenDialog(center);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
             try {

@@ -10,13 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.xml.PointColorMap;
-import org.wdssii.xml.Tag_color;
-import org.wdssii.xml.Tag_colorBin;
-import org.wdssii.xml.Tag_colorMap;
-import org.wdssii.xml.Tag_colorMap.Tag_Point;
+import org.wdssii.xml.W2Color;
 import org.wdssii.xml.W2ColorMap;
 import org.wdssii.xml.W2ColorMap.W2ColorBin;
-import org.wdssii.xml.W2ColorMap.W2ColorBin.W2Color;
 
 /**
  * Color map converts from a float value to a Color, using a set of ColorBins.
@@ -254,111 +250,10 @@ public class ColorMap {
             }
         }
 
-        public static ColorBin ColorBinFactory(Tag_colorBin colorbinXML, float previousUpperBound,
-                ProductTextFormatter f) {
-
-            ColorBin newBin = null;
-
-            // -----------------------------------------------------------------------
-            // Bind upper and lower bound values...
-            // <colorBin upperBound=
-            float ub, lb;
-            ub = colorbinXML.upperBound;
-            lb = previousUpperBound;
-
-            // -----------------------------------------------------------------------
-            // Get the colors for the upper and lower bound
-            // <colorBin...<color r= g= b= a=
-            //  NodeList colorsXML = colorbinXML.getElementsByTagName("color");
-            ArrayList<Tag_color> colors = colorbinXML.colors;
-
-            short[] c = {255, 255, 255, 255};
-            short[] lbc = {0, 0, 0, 0};
-            short[] ubc = {255, 255, 255, 255};
-
-            // int size = colorsXML.getLength();
-            int size = colors.size();
-            for (int i = 0; i < size; ++i) {
-                Tag_color aColorXML = colors.get(i);
-                int r = aColorXML.r;
-                int g = aColorXML.g;
-                int b = aColorXML.b;
-                int a = aColorXML.a;
-                c[0] = (short) r;
-                c[1] = (short) g;
-                c[2] = (short) b;
-                c[3] = (short) a; // FIXME: check for lose of precision..shouldn't happen
-
-                switch (i) {
-                    case 0:  // On first color, make lower color and upper the same
-                        //lbc = c;  // copy
-                        lbc[0] = c[0];
-                        lbc[1] = c[1];
-                        lbc[2] = c[2];
-                        lbc[3] = c[3];
-                        ubc[0] = c[0];
-                        ubc[1] = c[1];
-                        ubc[2] = c[2];
-                        ubc[3] = c[3];
-                        break;
-                    case 1:  // On second color, make upper color the new one
-                        //ubc = c;
-                        ubc[0] = c[0];
-                        ubc[1] = c[1];
-                        ubc[2] = c[2];
-                        ubc[3] = c[3];
-                        break;
-                    default:
-                        break; // Add for more colors in list if wanted...
-                }
-            }
-
-            // This is how we determine if start of bin color is the same as the
-            // ending color.
-            boolean sameColor = ((ubc[0] == lbc[0]) && (ubc[1] == lbc[1]) && (ubc[2] == lbc[2]) && (ubc[3] == lbc[3]));
-
-            // <colorBin name=
-            String name;
-            // if (colorbinXML.hasAttribute("name")) { // Because getAttribute can
-            if (colorbinXML.name != null) {
-                //  name = colorbinXML.getAttribute("name");
-                name = colorbinXML.name;
-            } else {
-                // If no name is given for bin, use the bound to make one
-                try {
-                    if (sameColor) {
-                        name = f.formatForColorMap(ub);
-                    } else {
-                        name = f.formatForColorMapRange(lb, ub);
-                    }
-                } catch (Exception e) { // FIXME: check format errors?
-                    log.error("Exception is" + e.toString());
-                    name = "?";
-                }
-            }
-
-            // Determine if color bin is linear or not
-            boolean linear = false;
-            if ((sameColor) || (Double.isInfinite(ub))
-                    || (Double.isInfinite(lb))
-                    || (Double.isNaN(ub))
-                    || (Double.isNaN(lb))) {
-                //myLinear = false;
-            } else {
-                linear = true;
-            }
-            if (linear) {
-                newBin = new Linear(lb, ub, ubc[0], ubc[1], ubc[2], ubc[3], lbc[0], lbc[1], lbc[2], lbc[3], name);
-            } else {
-                newBin = new Single(ub, ubc[0], ubc[1], ubc[2], ubc[3], name);
-            }
-            return newBin;
-        }
-
         public static ColorBin ColorBinFactory(W2ColorBin colorbinXML, float previousUpperBound,
                 ProductTextFormatter f) {
 
-            ColorBin newBin = null;
+            ColorBin newBin;
 
             // -----------------------------------------------------------------------
             // Bind upper and lower bound values...
@@ -548,64 +443,6 @@ public class ColorMap {
         return myColorBins.get(i).myLabel;
     }
 
-    /**
-     * Fill in a colormap object from XML information
-     *
-     * @param Tag_colorMap The root node for generating this color map
-     */
-    public boolean initFromTag(Tag_colorMap aTag, ProductTextFormatter formatter) {
-        if (aTag.unit != null) {
-            myUnits = aTag.unit.name;
-        }
-
-        if ((aTag.colorBins != null) && (aTag.colorBins.size() > 0)) {
-            return processAsColorBins(aTag, formatter);
-        } else {
-            return processAsPoints(aTag, formatter);
-        }
-    }
-
-    /**
-     * Process the Point tags. It's either these OR the ColorBins, not both
-     */
-    @Deprecated
-    private boolean processAsPoints(Tag_colorMap aTag, ProductTextFormatter formatter) {
-        // FIXME: check valid min/max?
-        float minValue = aTag.min;
-        float maxValue = aTag.max;
-        // Need full range of negative to positive, we base the point
-        // map percentage off of this.
-        float fullRange = aTag.max - aTag.min;
-
-        int numOfBins = aTag.Points.size() - 1;
-
-        // Add a special bin at bottom for our extreme data values..
-        // This keeps the point thing from drawing color at missing/special values        
-        ColorBin missing = new ColorBin.Single(DataType.MissingData,
-                (short) 0, (short) 0, (short) 0, (short) 0, "MD");
-        addOrderedColorBin(missing);
-
-        for (int i = 0; i < numOfBins; i++) {
-            Tag_Point p = aTag.Points.get(i);
-            Tag_Point p2 = aTag.Points.get(i + 1);
-
-            float low = minValue + (float) (p.x * fullRange);
-            float high = minValue + (float) (p2.x * fullRange);
-            ColorBin aColor = new ColorBin.Linear(low, high,
-                    ((short) (p2.r * 255.0f)),
-                    ((short) (p2.g * 255.0f)),
-                    ((short) (p2.b * 255.0f)),
-                    ((short) (1.0f * 255.0f)), // alpha 1 for moment
-                    ((short) (p.r * 255.0f)),
-                    ((short) (p.g * 255.0f)),
-                    ((short) (p.b * 255.0f)),
-                    ((short) (1.0f * 255.0f)), // alpha 1 for moment
-                    formatter.formatForColorMap(low));
-            addOrderedColorBin(aColor);
-        }
-        return true;
-    }
-
     public boolean initToTag(PointColorMap aTag, float min, float max, String units, ProductTextFormatter formatter) {
         if (units != null) {
             myUnits = units;
@@ -667,44 +504,6 @@ public class ColorMap {
 
         float previousUpperBound = Float.NEGATIVE_INFINITY;
         for (W2ColorBin bin : aTag.colorBins) {
-            //ColorBin aColor = new ColorBin(aColorBinXML, previousUpperBound);
-            ColorBin aColor = ColorBin.ColorBinFactory(bin, previousUpperBound, ProductTextFormatter.DEFAULT_FORMATTER);
-            previousUpperBound = aColor.getUpperBound();
-            addOrderedColorBin(aColor);
-        }
-
-        // Sort the upperbound, and since the index of it will find our color
-        // bin,
-        // sort the color bins by the same. Usually the xml is in order, but
-        // this
-        // will ensure we always work
-        Collections.sort(myUpperBounds);
-        Collections.sort(myColorBins, new Comparator<ColorBin>() {
-            @Override
-            public int compare(ColorBin o1, ColorBin o2) {
-                double u1 = o1.getUpperBound();
-                double u2 = o2.getUpperBound();
-                if (u1 < u2) {
-                    return -1;
-                }
-                if (u1 > u2) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-        return true;
-    }
-
-    /**
-     * Process the ColorBin tags...one way of doing colors...
-     */
-    private boolean processAsColorBins(Tag_colorMap aTag, ProductTextFormatter formatter) {
-        // Change any names such as 'white' into RGB values...
-        ProductManager.getInstance().updateNamesToColors(aTag);
-
-        float previousUpperBound = Float.NEGATIVE_INFINITY;
-        for (Tag_colorBin bin : aTag.colorBins) {
             //ColorBin aColor = new ColorBin(aColorBinXML, previousUpperBound);
             ColorBin aColor = ColorBin.ColorBinFactory(bin, previousUpperBound, ProductTextFormatter.DEFAULT_FORMATTER);
             previousUpperBound = aColor.getUpperBound();

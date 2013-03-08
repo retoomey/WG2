@@ -14,9 +14,6 @@ import org.wdssii.core.ConfigurationException;
 import org.wdssii.core.LRUCache;
 import org.wdssii.core.LRUCache.LRUTrimComparator;
 import org.wdssii.core.W2Config;
-import org.wdssii.datatypes.DataRequest;
-import org.wdssii.datatypes.DataType.DataTypeMetric;
-import org.wdssii.datatypes.builders.BuilderFactory;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
@@ -34,9 +31,9 @@ import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.xml.*;
+import org.wdssii.xml.ColorDatabase.ColorDef;
 import org.wdssii.xml.W2ColorMap.W2ColorBin;
-import org.wdssii.xml.W2ColorMap.W2ColorBin.W2Color;
-import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
+import org.wdssii.xml.iconSetConfig.IconSetConfig;
 
 /**
  * --Maintains a set of color maps by product name (color map cache FIXME: Move
@@ -55,7 +52,7 @@ public class ProductManager implements Singleton {
     private static ProductManager instance = null;
     final public static int MIN_CACHE_SIZE = 50;
     final public static int MAX_CACHE_SIZE = 500;
-    private Tag_colorDatabase myColorDefs = new Tag_colorDatabase();
+    private ColorDatabase myColorDefs = new ColorDatabase();
     public static final String TOP_PRODUCT = "TOP_PRODUCT_____";
     /**
      * A static database of information about products
@@ -394,8 +391,8 @@ public class ProductManager implements Singleton {
         // <colormap> for float based data to color lookup.  The other
         // is the icon configuration file <iconSetConfig>.  For the moment
         // not going to bother with separate classes for this.
-        private Tag_colorMap myColorMapTag = null;
-        private Tag_iconSetConfig myIconSetConfig = null;
+        private W2ColorMap myColorMapTag = null;
+        private IconSetConfig myIconSetConfig = null;
         private URL colorMapURL;
         private URL iconSetConfigURL;
         /**
@@ -469,7 +466,7 @@ public class ProductManager implements Singleton {
         private void loadColorMapFromXML() {
 
             // Look for a file matching product name....
-            W2ColorMap map = Util.load(getColorKey(), W2ColorMap.class);
+            W2ColorMap map = Util.load("colormaps/"+getColorKey(), W2ColorMap.class);
             if (map != null) {
                 ColorMap aColorMap = new ColorMap();
                 aColorMap.initToW2ColorMap(map, ProductTextFormatter.DEFAULT_FORMATTER);
@@ -511,18 +508,19 @@ public class ProductManager implements Singleton {
         private void loadIconSetConfigFromXML() {
             URL u = W2Config.getURL("icons/" + getColorKey());
             iconSetConfigURL = u;
-            Tag_iconSetConfig tag = new Tag_iconSetConfig();
-            if (tag.processAsRoot(u)) {
+
+            IconSetConfig tag = Util.load("icons/" + getColorKey(), IconSetConfig.class);
+            if (tag != null) {
                 myIconSetConfig = tag;
 
                 // We are going to use the color map of the polygon for 
                 // the moment.  The color of the polygon fill is the key.
                 try {  // since any subtag might be null.  We have no map then
-                    Tag_colorMap c = tag.polygonTextConfig.polygonConfig.colorMap;
-                    ColorMap aColorMap = new ColorMap();
-                    aColorMap.initFromTag(c, ProductTextFormatter.DEFAULT_FORMATTER);
-                    myColorMap = aColorMap;
-                    myColorMapTag = c;
+                   // W2ColorMap c = tag.polygonTextConfig.polygonConfig.colorMap;
+                   //// ColorMap aColorMap = new ColorMap();
+                  //  aColorMap.initToW2ColorMap(c, ProductTextFormatter.DEFAULT_FORMATTER);
+                   // myColorMap = aColorMap;
+                   // myColorMapTag = c;
                 } catch (Exception e) {
                     // Any of it null, etc..ignore it...
                 } finally {
@@ -600,7 +598,7 @@ public class ProductManager implements Singleton {
             myColorMap = theColorMap;
         }
 
-        public Tag_iconSetConfig getIconSetConfig() {
+        public IconSetConfig getIconSetConfig() {
             loadProductXMLFiles(false);
             return myIconSetConfig;
         }
@@ -904,39 +902,11 @@ public class ProductManager implements Singleton {
     public void loadColorDatabase() {
         URL aURL = null;
         try {
-            aURL = W2Config.getURL("colorDatabase.xml");
-            myColorDefs.processAsRoot(aURL);
+            //aURL = W2Config.getURL("colorDatabase.xml");
+             ColorDatabase map = Util.load("colorDatabase.xml", ColorDatabase.class);
+             myColorDefs = map;
         } catch (Exception c) {
-        }
-    }
-
-    /**
-     * Modify a Tag_colorMap, enhancing color names with actually color
-     * information from the color database.
-     */
-    public void updateNamesToColors(Tag_colorMap map) {
-        if (myColorDefs.colorDefs != null) {
-            ArrayList<Tag_colorBin> bins = map.colorBins;
-            if (bins != null) {
-                for (Tag_colorBin b : bins) {
-                    ArrayList<Tag_color> colors = b.colors;
-                    if (colors != null) {
-                        for (Tag_color c : colors) {
-                            if (c.name != null) { // If missing, leave color alone
-                                Tag_colorDef t = myColorDefs.colorDefs.get(c.name);
-                                if (t != null) {
-                                    c.r = t.r;
-                                    c.g = t.g;
-                                    c.b = t.b;
-                                    c.a = t.a;
-                                }
-                            }
-                        }
-
-                    }
-
-                }
-            }
+            log.error("Error loading name to color database...ignoring");
         }
     }
 
@@ -945,7 +915,7 @@ public class ProductManager implements Singleton {
      * information from the color database.
      */
     public void updateNamesToColors(W2ColorMap map) {
-        if (myColorDefs.colorDefs != null) {
+        if (myColorDefs != null) {
             List<W2ColorBin> bins = map.colorBins;
             if (bins != null) {
                 for (W2ColorBin b : bins) {
@@ -953,12 +923,12 @@ public class ProductManager implements Singleton {
                     if (colors != null) {
                         for (W2Color c : colors) {
                             if (c.name != null) { // If missing, leave color alone
-                                Tag_colorDef t = myColorDefs.colorDefs.get(c.name);
+                                ColorDef t = myColorDefs.get(c.name);
                                 if (t != null) {
-                                    c.r = t.r;
-                                    c.g = t.g;
-                                    c.b = t.b;
-                                    c.a = t.a;
+                                    c.r = t.red();
+                                    c.g = t.green();
+                                    c.b = t.blue();
+                                    c.a = t.alpha();
                                 }
                             }
                         }
@@ -977,9 +947,9 @@ public class ProductManager implements Singleton {
         Color c = null;
         boolean success = false;
         if (name != null) {
-            Tag_colorDef t = myColorDefs.colorDefs.get(name);
+            ColorDef t = myColorDefs.get(name);
             if (t != null) {
-                c = new Color(t.r, t.g, t.b, t.a);
+                c = new Color(t.red(), t.green(), t.blue(), t.alpha());
                 success = true;
             }
         }
@@ -1044,17 +1014,17 @@ public class ProductManager implements Singleton {
     // Internal create product method
     private Product makeProduct(String anIndex, IndexRecord init) {
         Product p = null;
-      /* Don't load just from making a Product object 
-        DataRequest dr = null;
-        if (init != null) {
-            try {
-                dr = BuilderFactory.createDataRequest(init);
-                p = new Product(dr, anIndex, init);
-            } catch (Exception e) {
-                log.error("Exception loading data..." + e.toString());
-            }
-        }
-        */
+        /* Don't load just from making a Product object 
+         DataRequest dr = null;
+         if (init != null) {
+         try {
+         dr = BuilderFactory.createDataRequest(init);
+         p = new Product(dr, anIndex, init);
+         } catch (Exception e) {
+         log.error("Exception loading data..." + e.toString());
+         }
+         }
+         */
         p = new Product(anIndex, init);
         //p.startLoading();
         return p;

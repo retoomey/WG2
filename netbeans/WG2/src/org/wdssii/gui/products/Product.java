@@ -548,6 +548,8 @@ public class Product extends DelegateHelper {
      * Get the info string. This is displayed by the navigation view when this
      * product is selected.
      *
+     *  FIXME: This should use the ProductTextFormatter...?
+     * 
      * @return string
      */
     public String getProductInfoString(boolean full) {

@@ -8,8 +8,6 @@ import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.terrain.SectorGeometryList;
 import gov.nasa.worldwind.util.OGLStackHandler;
 import java.awt.Color;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
@@ -23,11 +21,10 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.gui.products.renderers.icons.BaseIconAnnotation;
 import org.wdssii.gui.products.renderers.icons.MesonetIcon.MesonetIconFactory;
 import org.wdssii.gui.products.renderers.icons.PolygonIcon.PolygonIconFactory;
-import org.wdssii.xml.iconSetConfig.Tag_iconSetConfig;
+import org.wdssii.xml.iconSetConfig.IconSetConfig;
 
 /** Renders a DataTable in a worldwind window
  * 
@@ -62,7 +59,13 @@ public class DataTableRenderer extends ProductRenderer {
         ProductDataInfo info = ProductManager.getInstance().getProductDataInfo(aProduct.getDataType());
 
         // Factory
-        Tag_iconSetConfig tag = info.getIconSetConfig();
+        IconSetConfig tag = info.getIconSetConfig();
+        
+        // HACK.  Make one if it's missing..
+        if (tag == null){
+            tag = new IconSetConfig();
+           // tag.polygonTextConfig = new Tag_PolygonTextConfig();
+        }
         // Check for mesonet icons...
         MesonetIconFactory.create(monitor, aDataTable, tag.mesonetConfig, myIcons);
         // Check for polygon icons...

@@ -9,9 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * a PointColorMap is a list of Point tags that define bins of a color map
- * This is the ParaView format
- * 
+ * a PointColorMap is a list of Point tags that define bins of a color map This
+ * is the ParaView format
+ *
  * @author Robert Toomey
  */
 @XmlRootElement(name = "colormap")
@@ -22,7 +22,6 @@ public class PointColorMap extends ColorMapDef {
      * The IDL list, if available
      */
     public static PointColorMapList theIDLList = null;
-    
     @XmlAttribute
     public String space;
     @XmlAttribute
@@ -58,13 +57,12 @@ public class PointColorMap extends ColorMapDef {
         //float versionID;
         @XmlElement(name = "colormap")
         public List<PointColorMap> colormaps = new ArrayList<PointColorMap>();
-
         private Map<String, PointColorMap> myLookup = null;
-        
-        private void createLookup(){
-            if (myLookup == null){
+
+        private void createLookup() {
+            if (myLookup == null) {
                 myLookup = new TreeMap<String, PointColorMap>();
-                 for (PointColorMap m : colormaps) {
+                for (PointColorMap m : colormaps) {
                     if (m.name != null) {
                         myLookup.put(m.name, m);
                         break;
@@ -72,6 +70,7 @@ public class PointColorMap extends ColorMapDef {
                 }
             }
         }
+
         /**
          * O(N)...could map this. Lookup a map in our stock maps by name. This
          * shouldn't be called much
@@ -108,9 +107,9 @@ public class PointColorMap extends ColorMapDef {
         try {
             for (PointColorMap c : theIDLList.colormaps) {
                 int count = c.points.size();
-                log.debug("Got this info " + c.space + ", " + c.name + ", " + count);
+                //  log.debug("Got this info " + c.space + ", " + c.name + ", " + count);
                 Point aPoint = c.points.get(1);
-                log.debug("First is " + aPoint.r + ", " + aPoint.g + ", " + aPoint.b);
+                // log.debug("First is " + aPoint.r + ", " + aPoint.g + ", " + aPoint.b);
 
             }
         } catch (Exception e) {

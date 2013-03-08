@@ -624,7 +624,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
             }
         });
         fileopen.setDialogTitle("Export XML list of sources");
-        int ret = fileopen.showSaveDialog(null);
+        int ret = fileopen.showSaveDialog(this);
         if (ret == JFileChooser.APPROVE_OPTION) {
             File file = fileopen.getSelectedFile();
             try {
@@ -650,7 +650,13 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
      */
     public URL doSingleProductOpenDialog() {
 
-        SourcesURLLoadDialog myDialog = new SourcesURLLoadDialog(null, true, "Open Source");
+        Component something = SwingUtilities.getRoot(this);
+        if (something instanceof JDialog) {
+            SourcesURLLoadDialog myDialog = new SourcesURLLoadDialog((JDialog) something, this, true, "Open Source");
+        } else {
+            // Assume JFrame....
+            SourcesURLLoadDialog myDialog = new SourcesURLLoadDialog((JFrame) something, this, true, "Open Source");
+        }
         return null;
     }
 

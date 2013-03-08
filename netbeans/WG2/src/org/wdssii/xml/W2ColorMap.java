@@ -36,20 +36,6 @@ public class W2ColorMap extends ColorMapDef {
     @XmlRootElement(name = "colorbin")
     public static class W2ColorBin {
 
-        @XmlRootElement(name = "color")
-        public static class W2Color {
-
-            @XmlAttribute
-            public Integer r = 0;  // Have to use Integer to use our hex wrapper
-            @XmlAttribute
-            public Integer g = 0;
-            @XmlAttribute
-            public Integer b = 0;
-            @XmlAttribute
-            public Integer a = 255;
-            @XmlAttribute
-            public String name = null;
-        }
         @XmlAttribute(name="upperbound")
         public Float upperBound;
         @XmlAttribute

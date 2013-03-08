@@ -1,8 +1,5 @@
 package org.wdssii.gui.products.renderers.icons;
 
-import java.nio.DoubleBuffer;
-import org.wdssii.gui.ColorMap.ColorMapOutput;
-import org.wdssii.gui.products.renderers.DataTableRenderer;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.LatLon;
@@ -11,33 +8,38 @@ import gov.nasa.worldwind.render.AnnotationAttributes;
 import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
 import java.awt.Insets;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import javax.media.opengl.GL;
-import org.wdssii.geom.Location;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
+import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
+import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.ProductTextFormatter;
-import org.wdssii.xml.iconSetConfig.Tag_polygonTextConfig;
+import org.wdssii.gui.products.renderers.DataTableRenderer;
+import org.wdssii.xml.iconSetConfig.PolygonTextConfig;
 
 /**
- * First pass use ww annotation object.  Since we have so many icons
- * we'll probably need to make it flyweight
+ * First pass use ww annotation object. Since we have so many icons we'll
+ * probably need to make it flyweight
+ *
  * @author Robert Toomey
  */
 public class PolygonIcon extends BaseIconAnnotation {
 
-    /** Factory for creating MesonetIcon objects */
+    /**
+     * Factory for creating MesonetIcon objects
+     */
     public static class PolygonIconFactory {
 
-        public static void create(WdssiiJobMonitor monitor, DataTable aDataTable, Tag_polygonTextConfig polygonTextConfig, ArrayList<BaseIconAnnotation> list) {
-            if ((polygonTextConfig != null) && (polygonTextConfig.wasRead())) {
+        public static void create(WdssiiJobMonitor monitor, DataTable aDataTable, PolygonTextConfig polygonTextConfig, ArrayList<BaseIconAnnotation> list) {
+            if ((polygonTextConfig != null)) {
                 ColorMap textCM = new ColorMap();
-                textCM.initFromTag(polygonTextConfig.textConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
-
+                textCM.initToW2ColorMap(polygonTextConfig.textConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
                 ColorMap polyCM = new ColorMap();
-                polyCM.initFromTag(polygonTextConfig.polygonConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
+                polyCM.initToW2ColorMap(polygonTextConfig.polygonConfig.colorMap, ProductTextFormatter.DEFAULT_FORMATTER);
 
 
                 // Color lookup is based upon the dcColumn
@@ -69,11 +71,19 @@ public class PolygonIcon extends BaseIconAnnotation {
                         // as well...so we really should parse knowing the column type?
                         // crap.  I need to have column types somehow..at least, int,
                         // and float, string...
-                        tValue = (int) (Float.parseFloat(t));   // SOOOO breakable..      
+                        try {
+                            tValue = (int) (Float.parseFloat(t));   // SOOOO breakable..     
+                        } catch (Exception e) {
+                            tValue = 0;
+                        }
                     }
                     if (pColumn != null) {
                         String t = pColumn.getValue(i);
-                        pValue = (int) (Float.parseFloat(t));   // SOOOO breakable..   
+                        try {
+                            pValue = (int) (Float.parseFloat(t));   // SOOOO breakable..   
+                        } catch (Exception e) {
+                            pValue = 0;
+                        }
                     }
 
                     // Add it
@@ -88,7 +98,7 @@ public class PolygonIcon extends BaseIconAnnotation {
             }
         }
 
-        public static void addIcon(ArrayList<BaseIconAnnotation> list, Location loc, String text, int cText, int cPolygon, Tag_polygonTextConfig tag,
+        public static void addIcon(ArrayList<BaseIconAnnotation> list, Location loc, String text, int cText, int cPolygon, PolygonTextConfig tag,
                 ColorMap textCM, ColorMap polyCM) {
 
             // try to add something....
@@ -121,21 +131,23 @@ public class PolygonIcon extends BaseIconAnnotation {
             //  myProducts.addRenderable(ea);
         }
     }
-    
+
     @Override
-    public String getReadoutString(){
-        return "Polygon: "+this.toString();
+    public String getReadoutString() {
+        return "Polygon: " + this.toString();
     }
-    
-    /** This is the value of the icon for colormap lookup.. 
-    FIXME: Note when we add colorDatabase support this won't work since
-    it will need a string...hummm..
+    /**
+     * This is the value of the icon for colormap lookup.. FIXME: Note when we
+     * add colorDatabase support this won't work since it will need a
+     * string...hummm..
      */
     private int textColorValue;
-    /** This is the value of the polygon for colormap lookup... */
+    /**
+     * This is the value of the polygon for colormap lookup...
+     */
     private int polygonColorValue;
     private Color textColor;
-    private Tag_polygonTextConfig tag;
+    private PolygonTextConfig tag;
     private ColorMap myTextColorMap = null;
     private ColorMap myPolygonColorMap = null;
 
@@ -144,7 +156,7 @@ public class PolygonIcon extends BaseIconAnnotation {
             int textValue,
             int polygonValue,
             AnnotationAttributes defaults,
-            Tag_polygonTextConfig tag,
+            PolygonTextConfig tag,
             ColorMap textC,
             ColorMap polygonC) {
         super(text, p, defaults);
@@ -174,8 +186,10 @@ public class PolygonIcon extends BaseIconAnnotation {
 
     @Override
     protected void applyScreenTransform(DrawContext dc, int x, int y, int width, int height, double scale) {
-        /** This for all purposes sticks the icon on the location without any
-         * extra. Worldwind default icon has a 'leader' from icon to the position.
+        /**
+         * This for all purposes sticks the icon on the location without any
+         * extra. Worldwind default icon has a 'leader' from icon to the
+         * position.
          */
         double finalScale = scale * this.computeScale(dc);
         GL gl = dc.getGL();
@@ -188,17 +202,19 @@ public class PolygonIcon extends BaseIconAnnotation {
     // Override annotation drawing for a simple circle
     private DoubleBuffer shapeBuffer;
 
-    /** Draw our IconAnnotation.  Kinda stuck on how I do this, since
-     * I have to read old files/data from the old c++ display :(
+    /**
+     * Draw our IconAnnotation. Kinda stuck on how I do this, since I have to
+     * read old files/data from the old c++ display :(
+     *
      * @param dc
      * @param width
      * @param height
      * @param opacity
-     * @param pickPosition 
+     * @param pickPosition
      */
     @Override
     protected void doDraw(DrawContext dc, int width, int height, double opacity, Position pickPosition) {
- 
+
         boolean pick = dc.isPickingMode();
         int tWidth = width;
         int tHeight = height;
@@ -214,7 +230,7 @@ public class PolygonIcon extends BaseIconAnnotation {
         GL gl = dc.getGL();
 
         // Draw the background polygon ---------------------------------
-gl.glDisable(GL.GL_DEPTH_TEST);
+        gl.glDisable(GL.GL_DEPTH_TEST);
         // Calculate the radius of a bounding circle around the text...
         double cw = width / 2.0;
         double ch = height / 2.0;

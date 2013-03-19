@@ -38,6 +38,7 @@ import org.wdssii.gui.swing.CONUSJPanel;
 import org.wdssii.gui.swing.CONUSJPanel.CONUSJPanelListener;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
+import org.wdssii.util.StringUtil;
 
 /**
  *
@@ -580,42 +581,12 @@ public class WdssiiCatalog extends JPanel implements CONUSJPanelListener {
                     BookmarkURLSource s = myModel.getDataForRow(row);
                     if (s != null) {
                         jNameTextField.setText(s.name);
-                        String p = convertToLabDomain(s.path);
+                        String p = StringUtil.convertToLabDomain(s.path);
                         jURLTextField.setText(p);
                     }
                 }
             }
         }
-    }
-
-    public String convertToLabDomain(String path) {
-        return pathFilter(path, "protect.nssl");
-    }
-
-    /**
-     * Force add domain to the path if not there, needed on some machines
-     *
-     * @param path
-     * @param domain
-     * @return
-     */
-    public String pathFilter(String path, String domain) {
-        String outPath = path;
-        Pattern p = Pattern.compile("^http://([^:/]*):?([0-9]*)(/.*)");
-        Matcher m = p.matcher(path);
-        if (m.find()) {
-            String host = m.group(1);
-            if (host.indexOf(".") == -1) {
-                host = host + "." + domain;
-                //outPath = "webindex:http://" + host;
-                outPath = "http://" + host;
-                if (m.group(2).length() > 0) {
-                    outPath += ":" + m.group(2);
-                }
-                outPath += m.group(3);
-            }
-        }
-        return outPath;
     }
 
     /**

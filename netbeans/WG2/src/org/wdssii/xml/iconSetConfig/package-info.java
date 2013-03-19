@@ -11,7 +11,7 @@
     @javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter(value=ColorAdapter.class,type=Color.class)
 
 })
-package org.wdssii.xml;
+package org.wdssii.xml.iconSetConfig;
 
 import java.awt.Color;
 import org.wdssii.xml.Util.ColorAdapter;

@@ -104,8 +104,9 @@ public class mIndentingXMLStreamWriter extends mDelegatingXMLStreamWriter {
      */
     private void doIndent() throws XMLStreamException {
         if (depth > 0) {
-            for (int i = 0; i < depth; i++)
+            for (int i = 0; i < depth; i++){
                 super.writeCharacters(indentStep);
+            }
         }
     }
 

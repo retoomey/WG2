@@ -92,6 +92,9 @@ public class CacheView extends JThreadPanel implements CommandListener {
                     case CacheTableModel.COL_DATATYPE:
                         info = e.datatype;
                         break;
+                    case CacheTableModel.COL_LOADED:
+                        info = e.loaded;
+                        break;
                 }
 
                 // For text...
@@ -108,6 +111,7 @@ public class CacheView extends JThreadPanel implements CommandListener {
 
         String name;
         String datatype;
+        String loaded;
     }
 
     /** We have a custom model that stores a single CacheTableEntry
@@ -118,10 +122,11 @@ public class CacheView extends JThreadPanel implements CommandListener {
         //  private static final int COL_VISIBLE = 0;
         private static final int COL_KEY_NAME = 0;
         private static final int COL_DATATYPE = 1;
+        private static final int COL_LOADED = 2;
 
         public CacheTableModel() {
             super(CacheTableEntry.class, new String[]{
-                        "Key", "DataType"});
+                        "Key", "DataType", "Loaded"});
         }
     }
 
@@ -342,6 +347,7 @@ public class CacheView extends JThreadPanel implements CommandListener {
                 if (p != null) {
                     n.name = p.getCacheKey();
                     n.datatype = p.getDataType();
+                    n.loaded = p.loaded()? "Yes":"No";
                 } else {
                     n.name = "null";
                     n.datatype = "None";

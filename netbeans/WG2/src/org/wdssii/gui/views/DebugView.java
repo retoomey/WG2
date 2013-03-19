@@ -9,11 +9,8 @@ import net.infonode.docking.DockingWindow;
 import net.infonode.docking.RootWindow;
 import net.infonode.docking.TabWindow;
 import net.infonode.docking.View;
-import net.infonode.docking.properties.TabWindowProperties;
 import net.infonode.docking.properties.WindowTabProperties;
 import net.infonode.properties.propertymap.PropertyMap;
-import net.infonode.tabbedpanel.TabAreaProperties;
-import net.infonode.tabbedpanel.titledtab.TitledTabProperties;
 import org.wdssii.gui.DockWindow;
 import org.wdssii.gui.swing.JThreadPanel;
 

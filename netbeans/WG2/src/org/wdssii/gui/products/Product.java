@@ -57,16 +57,42 @@ import org.wdssii.index.VolumeRecord;
 public class Product extends DelegateHelper {
 
     private static Logger log = LoggerFactory.getLogger(Product.class);
-    public FilterList myCurrentFList = null;
-    // Warn once on failed datatype
-    private boolean warnOnFail = true;
+    
     // Helper class paths.  These are created by name from the DataType, thus
     // a RadialSetNavigator will be created (if there) for a RadialSet, etc.
-    private final String RENDERER_CLASSPATH = "org.wdssii.gui.products.renderers";
-    private final String READOUT_CLASSPATH = "org.wdssii.gui.products.readouts";
-    private final String TABLE_CLASSPATH = "org.wdssii.gui.products";
-    private final String VOLUME_CLASSPATH = "org.wdssii.gui.products.volumes";
-    private final String NAVIGATOR_CLASSPATH = "org.wdssii.gui.products.navigators";
+    private final static String RENDERER_CLASSPATH = "org.wdssii.gui.products.renderers";
+    private final static String READOUT_CLASSPATH = "org.wdssii.gui.products.readouts";
+    private final static String TABLE_CLASSPATH = "org.wdssii.gui.products";
+    private final static String VOLUME_CLASSPATH = "org.wdssii.gui.products.volumes";
+    private final static String NAVIGATOR_CLASSPATH = "org.wdssii.gui.products.navigators";
+    
+    // Raw DataType, if loaded. DataType is loaded in background thread
+    final protected Object myRawDataSync = new Object();
+    protected DataType myRawDataType = null;
+    /**
+     * The datatype for this product such as 'Reflectivity' The product does not
+     * have to be loaded for this information
+     */
+    protected final String myDataType;
+    protected boolean myDirtyRenderer = true;
+    protected String myCacheKey;
+    protected final SubtypeType mySubtypeType;
+    /**
+     * Our current request for data
+     */
+    protected final Object myDataRequestLock = new Object();
+    protected DataRequest myDataRequest = null;
+    /**
+     * Units of the actual data, if known
+     */
+    protected String myDataUnits = "";
+    /**
+     * The index record, if any that we were created from
+     */
+    protected final IndexRecord myRecord;
+    private String myIndexKey; 		// /< The key used to query the source manager
+    private boolean myLoaded = false;
+    public FilterList myCurrentFList = null;
 
     public static class ProductTimeWindowInfo {
 
@@ -94,32 +120,6 @@ public class Product extends DelegateHelper {
         TOO_OLD,
         BAD_PRODUCT
     };
-    // Raw DataType, if loaded. DataType is loaded in background thread
-    final protected Object myRawDataSync = new Object();
-    protected DataType myRawDataType = null;
-    /**
-     * The datatype for this product such as 'Reflectivity' The product does not
-     * have to be loaded for this information
-     */
-    protected final String myDataType;
-    protected boolean myDirtyRenderer = true;
-    protected String myCacheKey;
-    protected final SubtypeType mySubtypeType;
-    /**
-     * Our current request for data
-     */
-    protected final Object myDataRequestLock = new Object();
-    protected DataRequest myDataRequest = null;
-    /**
-     * Units of the actual data, if known
-     */
-    protected String myDataUnits = "";
-    /**
-     * The index record, if any that we were created from
-     */
-    protected final IndexRecord myRecord;
-    private String myIndexKey; 		// /< The key used to query the source manager
-    private boolean myLoaded = false;
 
     /**
      * Create a default unloaded product
@@ -139,6 +139,9 @@ public class Product extends DelegateHelper {
         myIndexKey = anIndex;
     }
 
+    public boolean loaded(){
+        return myLoaded;
+    }
     /**
      * Actually start loading this product. This can be intensive We create a
      * DataRequest to run in background...basically it's a Future<DataType> I
@@ -195,11 +198,6 @@ public class Product extends DelegateHelper {
 
                 // ...then get its simple name such as "RadialSet"
                 prefix = dt.getClass().getSimpleName();
-            } else {
-                if (warnOnFail) {
-                    log.error("Datatype failed to load");
-                    warnOnFail = false;
-                }
             }
 
         }

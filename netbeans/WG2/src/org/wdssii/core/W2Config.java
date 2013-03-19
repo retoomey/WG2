@@ -10,10 +10,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -22,28 +20,28 @@ import org.w3c.dom.Element;
 /**
  * This configuration class finds and uses the pertinent configuration
  * information from the WDSS2/w2config directory.
- * 
- * Updated to handle URLS and patterns
- * Configuration format is of the form of URL strings with a replacement
- * of the string "{1}", etc. with passed in fields.
- * "http://www.google.com/{1}.xml" with "icons/iconfile1" gives us
+ *
+ * Updated to handle URLS and patterns Configuration format is of the form of
+ * URL strings with a replacement of the string "{1}", etc. with passed in
+ * fields. "http://www.google.com/{1}.xml" with "icons/iconfile1" gives us
  * "http://www.google.com/icons/iconfile1.xml" as a possible location.
- * 
- * We can pull from a cvs repository directly on the fly with a pattern such
- * as:
+ *
+ * We can pull from a cvs repository directly on the fly with a pattern such as:
  * "http://tensor.protect.nssl/cgi-bin/viewcvs.cgi/cvs/w2/w2config/{1}?view=co"
- * 
+ *
  * @author Lakshman
  */
 public class W2Config {
 
     private static final Logger log = LoggerFactory.getLogger(W2Config.class);
-    /** List of configuration strings.  These get converted to URLS
-    after macro substitution of characters.
+    /**
+     * List of configuration strings. These get converted to URLS after macro
+     * substitution of characters.
      */
     private static List<String> configPatterns;
-
-    /** The timeout for trying to pull a URL off a remote web-server */
+    /**
+     * The timeout for trying to pull a URL off a remote web-server
+     */
     private static final float WEB_TIMEOUT_SECS = .5f;
 
     static {
@@ -109,10 +107,12 @@ public class W2Config {
         }
     }
 
-    /** Add directory as a local directory, iff that directory exists
-     * on the local disk.  The final pattern is of the form "dir+"/{1}"
+    /**
+     * Add directory as a local directory, iff that directory exists on the
+     * local disk. The final pattern is of the form "dir+"/{1}"
+     *
      * @param dir
-     * @return 
+     * @return
      */
     private static boolean addDir(String dir) {
         if (dir != null) {
@@ -148,7 +148,7 @@ public class W2Config {
     /**
      * will search the config directories for the first URL that matches the
      * given substitution. can return null.
-     * 
+     *
      * For example, passing colormaps/Reflectivity, you will get a File
      * corresponding to /etc/w2config/colormaps/Reflectivity
      */
@@ -165,16 +165,17 @@ public class W2Config {
         return aURL;
     }
 
-    /** Try reading URL at given location.  For HTTP we read the header
-     * only and check for OK response.  We assume this means it's good and
-     * return this URL for the display to use.  Of course it could fail later,
-     * but that's not our job to check.
-     * 
+    /**
+     * Try reading URL at given location. For HTTP we read the header only and
+     * check for OK response. We assume this means it's good and return this URL
+     * for the display to use. Of course it could fail later, but that's not our
+     * job to check.
+     *
      * @param s
-     * @return 
+     * @return
      */
     private static URL tryReadingURL(String s) {
-        URL aURL = null;
+        URL aURL;
         try {
             aURL = new URL(s);
             try {
@@ -225,8 +226,37 @@ public class W2Config {
         } catch (MalformedURLException ex) {
             aURL = null;
         }
-        log.debug("Tried URL " + s + " and got " + aURL);
+       // log.debug("Tried URL " + s + " and got " + aURL);
         return aURL;
+    }
+
+    /** Our version of openConnection with extra settings to try to avoid
+     hanging
+     */
+    public static URLConnection open(URL aURL) throws IOException {
+        // If it's a web URL, then check for non-404 (missing)
+        // by reading just the html HEAD (cheap)
+        URLConnection c = aURL.openConnection();
+        if (c instanceof HttpURLConnection) {
+            HttpURLConnection h = (HttpURLConnection) (c);
+            // Set the timeout, don't want the display hanging
+            // trying to get a remote file.  Humm.  How to handle
+            // this properly?  Dialog?  FIXME?
+            h.setConnectTimeout((int) (WEB_TIMEOUT_SECS * 1000.0f));
+            h.setAllowUserInteraction(false);
+            // ISPs and others redirect common errors to a 
+            // custom html page, which we would confuse as a valid
+            // data file.
+            h.setInstanceFollowRedirects(false);
+
+            // Don't read all the data at the URL...
+            //  h.setRequestMethod("HEAD");
+            // int code = h.getResponseCode();
+            //if (code != HttpURLConnection.HTTP_OK) {
+            //aURL = null;
+            // }
+        }
+        return c;
     }
 
     public static boolean isLocalFile(URL url) {
@@ -252,10 +282,11 @@ public class W2Config {
 
     /**
      * Parse and return the XML Dom element corresponding to a partial file
-     * name.  (SAX)
-     * 
+     * name. (SAX)
+     *
      * For example, passing colormaps/Reflectivity, you may get the DOM element
      * from /etc/w2config/colormaps/Reflectivity
+     *
      * @deprecated
      */
     public static Element getElement(String filename)

@@ -7,9 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.xml.Tag;
-import org.wdssii.xml.config.Tag_source;
-import org.wdssii.xml.config.Tag_sources;
+import org.wdssii.xml.config.Sources;
 
 /**
  * A list of various sources. Could be WDSSII Index, CFRadial file, etc....
@@ -190,7 +188,7 @@ public class SourceList {
     /**
      * We generate a Tag for this source list
      */
-    public Tag getTag() {
+    /*public Tag getTag() {
         Tag_sources sources = new Tag_sources();
         for (Source s : mySources) {
             Tag_source t = new Tag_source();
@@ -199,6 +197,14 @@ public class SourceList {
             sources.sources.add(t);
         }
         return sources;
+    }*/
+
+    public org.wdssii.xml.config.Sources getSourceXML() {
+        Sources sxml = new Sources();
+        for (Source s : mySources) {
+            sxml.addSource(s.getVisibleName(), s.getURLString(), 120);
+        }
+        return sxml;
     }
 
     /**

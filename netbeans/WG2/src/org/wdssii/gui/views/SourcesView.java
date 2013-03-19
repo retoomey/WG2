@@ -21,6 +21,7 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceFactory;
@@ -634,10 +635,11 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
                 }
                 URL aURL = file.toURI().toURL();
                 log.debug("Trying to write output to " + aURL.toString());
-                Tag root = SourceList.theSources.getTag();
-                if (root != null) {
-                    root.writeAsRoot(aURL);
-                }
+               // Tag root = SourceList.theSources.getTag();
+                PreferencesManager.getInstance().saveConfig(aURL);
+                //if (root != null) {
+               //     root.writeAsRoot(aURL);
+               // }
 
             } catch (MalformedURLException ex) {
             }

@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.core.W2Config;
 import sun.net.www.protocol.file.FileURLConnection;
 
 /**
@@ -368,7 +369,8 @@ public abstract class Tag {
 		if (aURL != null) {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			try {
-				URLConnection urlConnection = aURL.openConnection();
+				//URLConnection urlConnection = aURL.openConnection();
+                                URLConnection urlConnection = W2Config.open(aURL);
 				InputStream is = urlConnection.getInputStream();
 				if (aURL.toString().contains(".gz")) {  // simple hack
 					is = new GZIPInputStream(is);
@@ -381,6 +383,7 @@ public abstract class Tag {
 
 
 			} catch (Exception ex) {
+                            log.debug("Exception reading "+ex.toString());
 			}
 		}
 		return success;
@@ -692,7 +695,8 @@ public abstract class Tag {
 			try {
 				// LOL...java FileURLConnection doesn't support write
 				// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4191800
-				URLConnection urlConnection = aURL.openConnection();
+				//URLConnection urlConnection = aURL.openConnection();
+                                URLConnection urlConnection = W2Config.open(aURL);
 				log.info("URL IS " + aURL.toString());
 				OutputStream is;
 				if (urlConnection instanceof FileURLConnection) {

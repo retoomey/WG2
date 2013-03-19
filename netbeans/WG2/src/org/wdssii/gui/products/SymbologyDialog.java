@@ -65,6 +65,7 @@ public class SymbologyDialog extends JDialog {
                 "[][]"));
 
         String colorkey = prod.getColorKey();
+        p.add(new JLabel("Instance is " + d.getClass().getSimpleName()));
         p.add(new JLabel("DataType is " + type));
         p.add(new JLabel("Colorkey is " + colorkey));
 

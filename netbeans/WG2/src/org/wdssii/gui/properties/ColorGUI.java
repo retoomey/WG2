@@ -1,4 +1,4 @@
-package org.wdssii.properties.gui;
+package org.wdssii.gui.properties;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -9,7 +9,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
-import org.wdssii.properties.PropertyGUI;
 
 /**
  * Stock swing controls for choosing setting a Color property

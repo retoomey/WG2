@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.core.GridVisibleArea;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.products.renderers.ProductRenderer;

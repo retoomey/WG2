@@ -1,6 +1,6 @@
 package org.wdssii.gui.products.navigators;
 
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.AnimateCommand;
 import org.wdssii.gui.commands.ProductJumpToCommand;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveLatestBase;
@@ -13,7 +13,7 @@ import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousLowestSubTy
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousSubType;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousTime;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveSyncCurrent;
-import org.wdssii.gui.commands.WdssiiCommand;
+import org.wdssii.core.WdssiiCommand;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.views.WorldWindView;
 

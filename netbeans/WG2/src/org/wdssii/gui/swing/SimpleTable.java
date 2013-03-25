@@ -23,7 +23,7 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.core.GridVisibleArea;
 
 /**
  * My version of a JSwing Table that avoids all of the O(n) data structures

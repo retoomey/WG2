@@ -5,7 +5,6 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.net.URL;
 import java.util.Arrays;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -13,9 +12,8 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WDSSII;
+import org.wdssii.core.WdssiiJob;
 import org.wdssii.storage.DataManager;
-import org.wdssii.xml.Util;
-import org.wdssii.xml.config.W2Pref;
 
 /**
  * The Application...
@@ -27,16 +25,18 @@ public class Application {
     private static Logger log = LoggerFactory.getLogger(Application.class);
 
     public void start() {
+        
+        GUISingletonManager.setup();
+        
         DataManager.getInstance();
 
         // Create the WDSSII low-level core for products
         WDSSII.getInstance();
 
         // Add the netbeans job creator
-        JobManager.getInstance();
+        WdssiiJob.introduce(new JobSwingFactory());
+        
 
-        // Add the netbeans preference manager
-        PreferencesManager.introduce(new XMLPrefHandler());
 
         // Defaults to UIManager
         // Don't allow double click to work in file chooser

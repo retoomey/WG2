@@ -2,7 +2,7 @@ package org.wdssii.gui.commands;
 
 import org.wdssii.geom.Location;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.ProductButtonStatus;
+import org.wdssii.core.ProductButtonStatus;
 import org.wdssii.gui.views.WorldWindView;
 
 /** Command called by the 'jump' button in the navigator 

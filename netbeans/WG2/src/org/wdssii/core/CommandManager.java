@@ -1,6 +1,5 @@
-package org.wdssii.gui;
+package org.wdssii.core;
 
-import gov.nasa.worldwind.layers.LayerList;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -12,174 +11,86 @@ import java.util.Set;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.commands.WdssiiCommand;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.views.CommandListener;
-import org.wdssii.gui.views.SourceManagerView;
-import org.wdssii.gui.views.WorldWindView;
-import org.wdssii.gui.volumes.LLHAreaController;
-import org.wdssii.index.IndexRecord;
 
 /**
  * ActionListeners are similar to a peer-to-peer network, this is a central
  * management system that requires at times explicit ordering of events (for
  * window syncing/looping properly of multiple windows, etc.)
- * 
+ *
+ * By doing events this way we avoid thrashing of the display. Also, we could
+ * have a 'script' run with a list of commands and have it run smoothly.
+ *
  * @author Robert Toomey
- * 
+ *
  */
 public class CommandManager implements Singleton {
 
     private static CommandManager instance = null;
     private static Logger log = LoggerFactory.getLogger(CommandManager.class);
-    private AnimateManager myVisualCollection = new AnimateManager();
-    public static String CommandPath = "org.wdssii.gui.commands.";
     private final Object myViewLock = new Object();
-
-    /** Keep weak references to command listeners, we don't hold onto them.
-     We purge null references when we send messages out.
+    /**
+     * Keep weak references to command listeners, we don't hold onto them. We
+     * purge null references when we send messages out.
      */
-    private TreeMap<String, WeakReference<CommandListener>> myNamedViews = new TreeMap<String, WeakReference<CommandListener>>();
+    private TreeMap<String, WeakReference<CommandListener>> myListeners = new TreeMap<String, WeakReference<CommandListener>>();
 
     private CommandManager() {
         // Exists only to defeat instantiation.
     }
+    
+    public static Singleton create(){
+        instance = new CommandManager();
+        return instance;
+    }
 
     public static CommandManager getInstance() {
         if (instance == null) {
-            instance = new CommandManager();
-            SingletonManager.registerSingleton(instance);
+            log.debug("Command Manager must be created by SingletonManager");
         }
         return instance;
     }
 
     public void addListener(String name, CommandListener aView) {
         synchronized (myViewLock) {
-		/*
-            if (myNamedViews.containsKey(name)){
-               log.error("ADDED a duplicate listener.  This is a bug "+name);
-	       	WeakReference<CommandListener> c = myNamedViews.get(name);
-		if (c == null){
-                   log.error("Humm the reference was null it's ok...");
+            myListeners.put(name, new WeakReference<CommandListener>(aView));
 
-		}
-	       // Maybe not with weak references...might not have purged the
-	       // old one yet...
-	    }
-		 */
-            myNamedViews.put(name, new WeakReference<CommandListener>(aView));
-	    
         }
     }
 
     public void removeListener(String name) {
         synchronized (myViewLock) {
-            myNamedViews.put(name, null);
-            myNamedViews.remove(name);
+            myListeners.put(name, null);
+            myListeners.remove(name);
         }
     }
 
     public CommandListener getNamedCommandListener(String name) {
         synchronized (myViewLock) {
-	    WeakReference<CommandListener> c = myNamedViews.get(name);
-	    if (c == null){ return null; }
-	    return c.get();
+            WeakReference<CommandListener> c = myListeners.get(name);
+            if (c == null) {
+                return null;
+            }
+            return c.get();
         }
-    }
-
-    // Stuff 'per' earth ball.  The EarthBall view isn't really this since it can be created/destoryed
-    public AnimateManager getVisualCollection() {
-        return myVisualCollection;
-    }
-
-    private WorldWindView getEarthBall() {
-        return ((WorldWindView) getNamedCommandListener(WorldWindView.ID));
-    }
-
-    // / Used by the Layers view to get the list of global worldwind layers from
-    // the primary window
-    public LayerList getLayerList() {
-        LayerList list;
-        WorldWindView v = getEarthBall();
-        if (v != null) {
-            list = v.getLayerList();
-        } else {
-            list = null;
-        }
-        return list;
-    }
-
-    public void setLayerEnabled(String name, boolean flag) {
-        getEarthBall().setLayerEnabled(name, flag);
     }
 
     @Override
     public void singletonManagerCallback() {
     }
 
-    // Hack called by radial set render to force update of window.
-    // Humm...we'll eventually have multiple windows
-    public void updateDuringRender() {
-        if (getEarthBall() != null) {
-            getEarthBall().updateOnMinTime();
-        }
-    }
-
-    // Projection command
-    public String getProjection() {
-        String p = "Mercator";
-        if (getEarthBall() != null) {
-            p = getEarthBall().getProjection();
-        }
-        return p;
-    }
-
-    public void setProjection(String projection) {
-        if (getEarthBall() != null) {
-            getEarthBall().setProjection(projection);
-        }
-    }
-
-    public LLHAreaController getLLHController() {
-        if (getEarthBall() != null) {
-            return getEarthBall().getLLHAreaLayerController();
-        }
-	return null;
-    }
-
-    /*
-     * // Get the simulation time for the current handler list public String
-     * getSimulationTimeStamp() { // Add a product to current product group //
-     * currently we only have one of them return
-     * (myProductOrderedSet.getSimulationTimeStamp()); }
-     * 
-     * // Get the simulation time for the current handler list public Date
-     * getSimulationTime() { // Add a product to current product group //
-     * currently we only have one of them return
-     * (myProductOrderedSet.getSimulationTime()); }
+    /**
+     * Generate a command by name. This isn't used currently, but could be used
+     * to run command from xml
+     *
+     * @param commandPath such as "org.wdssii.gui.commands."
      */
-    public void handleRecord(IndexRecord rec) {
-        CommandListener view = getNamedCommandListener(SourceManagerView.ID);
-        if (view instanceof SourceManagerView) {
-            SourceManagerView smv = (SourceManagerView) (view);
-            smv.update();  // Different thread
-        }
-    }
-
-    public void hackWindField(Product aProduct) {
-        if (getEarthBall() != null) {
-            getEarthBall().loadProduct(aProduct);
-        }
-    }
-
-    /** Generate a command by name */
-    public WdssiiCommand generateCommand(String commandName, Map<String, String> optionalParms) {
+    public WdssiiCommand generateCommand(String commandPath, String commandName, Map<String, String> optionalParms) {
         WdssiiCommand command = null;
 
         // Every '.' in the command name must have Command added:
         // SourceDelete.DeleteALL --> SourceDeleteCommand.DeleteAllCommand
         String createByName = commandName.replaceAll("\\.", "Command\\$");
-        createByName = CommandPath + createByName + "Command";
+        createByName = commandPath + createByName + "Command";
         log.info("Generate command: " + createByName);
         Class<?> aClass = null;
         try {
@@ -198,9 +109,10 @@ public class CommandManager implements Singleton {
         return command;
     }
 
-    /** Execute a command.
-     * 
-     * @param command 	 the command to execute
+    /**
+     * Execute a command.
+     *
+     * @param command the command to execute
      * @param userAction true if caused by a GUI user action
      */
     public void executeCommand(WdssiiCommand command, boolean userAction) {
@@ -214,9 +126,11 @@ public class CommandManager implements Singleton {
         }
     }
 
-    /** Send the GUI/listener update
-     * Normally, you don't call this directly.  You would call this if you had a separate
-     * thread running a command and needed to notify the main GUI thread that you are done.
+    /**
+     * Send the GUI/listener update Normally, you don't call this directly. You
+     * would call this if you had a separate thread running a command and needed
+     * to notify the main GUI thread that you are done.
+     *
      * @see SourceConnectCommand
      * @param command the command to fire update for
      * @param userAction
@@ -236,16 +150,16 @@ public class CommandManager implements Singleton {
 
         // All views are considered to be command listeners for now...
         synchronized (myViewLock) {
-	   Set<Entry<String, WeakReference<CommandListener>>> c = myNamedViews.entrySet();
-	    ArrayList<String> cleanup = new ArrayList<String>();
+            Set<Entry<String, WeakReference<CommandListener>>> c = myListeners.entrySet();
+            ArrayList<String> cleanup = new ArrayList<String>();
             for (Entry<String, WeakReference<CommandListener>> entry : c) {
-		WeakReference<CommandListener> r = entry.getValue();
-		CommandListener v =  r.get();
-		if (v == null){ // It's gone...purge it..
-			cleanup.add(entry.getKey());
-			continue;
-		}
-		
+                WeakReference<CommandListener> r = entry.getValue();
+                CommandListener v = r.get();
+                if (v == null) { // It's gone...purge it..
+                    cleanup.add(entry.getKey());
+                    continue;
+                }
+
                 Class<?> theClass = v.getClass();
                 Class<?> commandClass = command.getClass();
                 String rootClass = WdssiiCommand.class.getSimpleName();
@@ -287,21 +201,21 @@ public class CommandManager implements Singleton {
                     }
                 }
             }
-	    // Purge....
-	    for(String s:cleanup){
-		    myNamedViews.remove(s);
+            // Purge....
+            for (String s : cleanup) {
+                myListeners.remove(s);
 //		    log.debug("COMMAND MANAGER PURGE LISTENER "+s);
-	    }
-	    // Debug dump...
+            }
+            // Debug dump...
 	    /*
-            Set<String> aSet = myNamedViews.keySet();
-	    log.debug("DUMP listeners----------------"+c.size());
-            for (String s:aSet) {
-		    log.debug("CURRENT LISTENER "+s);
-	    }
-	    log.debug("END DUMP listeners");
-	     * 
-	     */
+             Set<String> aSet = myNamedViews.keySet();
+             log.debug("DUMP listeners----------------"+c.size());
+             for (String s:aSet) {
+             log.debug("CURRENT LISTENER "+s);
+             }
+             log.debug("END DUMP listeners");
+             * 
+             */
         }
     }
 }

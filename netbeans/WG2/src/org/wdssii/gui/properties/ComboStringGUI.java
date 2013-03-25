@@ -1,4 +1,4 @@
-package org.wdssii.properties.gui;
+package org.wdssii.gui.properties;
 
 import com.jidesoft.swing.JideMenu;
 import com.jidesoft.swing.JideSplitButton;
@@ -9,7 +9,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
-import org.wdssii.properties.PropertyGUI;
 
 /**
  * Combo-box for choosing among a list of String.

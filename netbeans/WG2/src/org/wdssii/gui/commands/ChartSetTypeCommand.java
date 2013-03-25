@@ -1,7 +1,8 @@
 package org.wdssii.gui.commands;
 
+import org.wdssii.core.WdssiiCommand;
 import java.util.ArrayList;
-import org.wdssii.gui.SingletonManager;
+import org.wdssii.core.SingletonManager;
 import org.wdssii.gui.views.ChartView;
 import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
 import org.wdssii.xml.wdssiiConfig.Tag_setup;

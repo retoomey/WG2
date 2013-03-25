@@ -1,7 +1,9 @@
-package org.wdssii.properties;
+package org.wdssii.gui.properties;
 
 import javax.swing.JComponent;
 import net.miginfocom.layout.CC;
+import org.wdssii.properties.Memento;
+import org.wdssii.properties.Mementor;
 
 /**
  * A GUI for setting a particular property of a momento

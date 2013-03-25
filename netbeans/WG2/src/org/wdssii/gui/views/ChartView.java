@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import org.wdssii.core.CommandListener;
 import java.awt.Component;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -7,9 +8,9 @@ import java.util.List;
 import javax.swing.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.SingletonManager;
+import org.wdssii.core.SingletonManager;
 import org.wdssii.gui.charts.ChartViewChart;
 import org.wdssii.gui.charts.VSliceChart;
 import org.wdssii.gui.commands.*;

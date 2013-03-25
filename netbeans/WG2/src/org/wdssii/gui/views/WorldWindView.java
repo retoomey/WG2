@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import org.wdssii.core.CommandListener;
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.Configuration;
 import gov.nasa.worldwind.Model;
@@ -34,7 +35,7 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
 import org.wdssii.gui.features.FeatureList;
@@ -43,6 +44,7 @@ import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.volumes.LLHAreaController;
+import org.wdssii.gui.volumes.LLHAreaSetGUI;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.gui.worldwind.ReadoutStatusBar;
 import org.wdssii.gui.worldwind.WJSceneController;
@@ -226,7 +228,10 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         // Controller adds listeners to world which keeps reference
         LLHAreaController c = new LLHAreaController(myWorld, myVolumeLayer);
         myLLHAreaController = c;
-
+        // FIXME: really control of these points should be in the feature
+        // not within the world ball, since we might add different viewers
+        LLHAreaSetGUI.theController = c;
+                
         // Create and install the view controls layer and register a controller for it with the World Window.
         // This will be snagged by our LegendFeature
         ViewControlsLayer viewControlsLayer = new ViewControlsLayer();
@@ -234,10 +239,6 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         theLayers.add(viewControlsLayer);
         this.getWwd().addSelectListener(new ViewControlsSelectListener(this.getWwd(), viewControlsLayer));
 
-    }
-
-    public LLHAreaController getLLHAreaLayerController() {
-        return myLLHAreaController;
     }
 
     public void takeDialogSnapshot() {

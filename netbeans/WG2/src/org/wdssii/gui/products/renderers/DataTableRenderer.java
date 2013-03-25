@@ -18,8 +18,9 @@ import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
 import org.wdssii.geom.Location;
+import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.features.FeatureList;
@@ -87,7 +88,7 @@ public class DataTableRenderer extends ProductRenderer {
         //  IconFactory.create(monitor, aDataTable, myIcons);
 
 
-        CommandManager.getInstance().updateDuringRender();  // Humm..different thread...
+        AnimateManager.updateDuringRender();
         setIsCreated();
         return WdssiiJobStatus.OK_STATUS;
     }

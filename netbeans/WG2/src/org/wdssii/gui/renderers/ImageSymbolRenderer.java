@@ -11,7 +11,9 @@ import org.wdssii.gui.swing.SwingIconFactory;
 
 /**
  * Draws an image centered at point...
- *
+ * This loads an Icon using Java, then steals it out with transparency
+ * to draw as an openGL texture.
+ * 
  * FIXME: dispose of GLTexture properly.. alpha
  *
  * @author Robert Toomey

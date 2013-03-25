@@ -6,9 +6,9 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.ProductMoveCommand;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMoveNextTime;
 import org.wdssii.gui.commands.ProductMoveCommand.ProductMovePreviousTime;
-import org.wdssii.gui.commands.WdssiiCommand;
+import org.wdssii.core.WdssiiCommand;
 import org.wdssii.gui.products.Product.Navigation;
-import org.wdssii.gui.products.ProductButtonStatus;
+import org.wdssii.core.ProductButtonStatus;
 
 /**
  *  Handles navigating within the elevations of a LatLonHeightGrid.

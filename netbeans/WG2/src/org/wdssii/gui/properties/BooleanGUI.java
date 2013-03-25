@@ -1,4 +1,4 @@
-package org.wdssii.properties.gui;
+package org.wdssii.gui.properties;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,7 +7,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
-import org.wdssii.properties.PropertyGUI;
 
 /**
  * Stock GUI for changing a boolean setting

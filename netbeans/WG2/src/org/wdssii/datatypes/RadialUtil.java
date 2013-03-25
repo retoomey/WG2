@@ -1,7 +1,12 @@
-package org.wdssii.util;
+package org.wdssii.datatypes;
 
 import org.wdssii.geom.Location;
 
+/**
+ * Static utilities for radial sets
+ * 
+ * @author Robert Toomey
+ */
 public class RadialUtil {
 
     static final float RAD = 0.017453293f;
@@ -65,7 +70,7 @@ public class RadialUtil {
             double cosElevAngle // cos of the elevation (precomputed)
             ) {
         // double elevAngleRAD = RAD*elevAngleDeg;
-        double ret_lat = 0, ret_lon = 0, ret_ht = 0;
+        double ret_lat, ret_lon, ret_ht;
 
         float range = rangeKms * 1000.0f;
         double stationLat = station.getLatitude();
@@ -124,7 +129,7 @@ public class RadialUtil {
             // kilometers
             double sinElevAngle // sin of the elevation (pre-computed)
             ) {
-        double ret_ht = 0;
+        double ret_ht;
 
         //ret_ht = (float) (Math.pow(Math.pow(rangeMeters, 2.0f) + power1
         //		+ rangeMeters * IRE2 * sinElevAngle, 0.5) - IRE);
@@ -171,7 +176,7 @@ public class RadialUtil {
             , double ret_ht, // height (cached)
             double gcdSin, double gcdCos) {
 
-        double ret_lat = 0, ret_lon = 0;
+        double ret_lat, ret_lon;
 
         double stationLat = station.getLatitude();
         double stationLon = station.getLongitude();

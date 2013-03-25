@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import org.wdssii.core.CommandListener;
 import com.jidesoft.swing.JideSplitButton;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -20,7 +21,7 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;

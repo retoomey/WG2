@@ -1,6 +1,7 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.gui.views.CommandListener;
+import org.wdssii.core.WdssiiCommand;
+import org.wdssii.core.CommandListener;
 
 /** Toggle a flag that says if we're using a regular volume or a virtual one
  * The chart view and LLHArea views use this for which volume to follow

@@ -4,7 +4,7 @@ import javax.swing.JScrollPane;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.features.LegendFeature.LegendMemento;
-import org.wdssii.properties.gui.BooleanGUI;
+import org.wdssii.gui.properties.BooleanGUI;
 
 /**
  * LegendGUI handles gui controls for fixed floating 2d overlays

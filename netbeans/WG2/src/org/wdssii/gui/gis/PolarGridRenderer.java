@@ -34,7 +34,7 @@ import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.storage.GrowList;
 import org.wdssii.util.GLUtil;
-import org.wdssii.util.RadialUtil;
+import org.wdssii.datatypes.RadialUtil;
 
 /**
  *

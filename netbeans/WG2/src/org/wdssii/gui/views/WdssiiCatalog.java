@@ -28,7 +28,7 @@ import org.wdssii.core.SourceBookmarks;
 import org.wdssii.core.SourceBookmarks.BookmarkURLData;
 import org.wdssii.core.SourceBookmarks.BookmarkURLSource;
 import org.wdssii.datatypes.builders.Builder.BuilderFileInfo;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
 import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;

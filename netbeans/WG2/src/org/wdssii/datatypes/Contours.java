@@ -4,7 +4,7 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import org.wdssii.geom.Location;
-import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.core.GridVisibleArea;
 
 /** A set of contour objects inside a DataType 
  * 

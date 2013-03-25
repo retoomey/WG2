@@ -2,6 +2,8 @@ package org.wdssii.gui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.core.CommandManager;
+import org.wdssii.core.Singleton;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
 import org.wdssii.index.HistoricalIndex;
@@ -13,7 +15,7 @@ import org.wdssii.index.Index;
  * non-Index based sources.
  *
  * @author Robert Toomey
- *
+ * @deprecated
  */
 public class SourceManager implements Singleton {
 
@@ -25,12 +27,15 @@ public class SourceManager implements Singleton {
         // Exists only to defeat instantiation.
     }
 
+    public static Singleton create() {
+        instance = new SourceManager();
+        return instance;
+    }
+
     public static SourceManager getInstance() {
         if (instance == null) {
-            Index.setGUIMode(true);
-            instance = new SourceManager();
+            log.debug("SourceManager must be created by SingletonManager");
         }
-
         return instance;
     }
 
@@ -40,10 +45,12 @@ public class SourceManager implements Singleton {
     @Override
     public void singletonManagerCallback() {
         try {
+            Index.setGUIMode(true);
+            instance = new SourceManager();
             CommandManager c = CommandManager.getInstance();
             boolean connect = true;
             IndexSourceAddParams p = new IndexSourceAddParams("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml", false, connect, HistoricalIndex.HISTORY_ARCHIVE);
-            c.executeCommand(new SourceAddCommand(p), false);                     
+            c.executeCommand(new SourceAddCommand(p), false);
         } catch (Exception e) {
             // Recover
         }

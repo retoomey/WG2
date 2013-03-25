@@ -2,9 +2,9 @@ package org.wdssii.gui.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.core.WdssiiCommand;
 import org.wdssii.gui.AnimateManager;
-import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.products.ProductButtonStatus;
+import org.wdssii.core.ProductButtonStatus;
 
 /** The root class of the animation commands.  This command turns on the animation/loop state of the GUI
  */
@@ -26,7 +26,7 @@ public class AnimateCommand extends WdssiiCommand {
     @Override
     public boolean execute() {
 
-        AnimateManager v = CommandManager.getInstance().getVisualCollection();
+        AnimateManager v = AnimateManager.getVisualCollection();
         if (myHaveFlag) {
             v.setLoopEnabled(myOn);
 
@@ -61,7 +61,7 @@ public class AnimateCommand extends WdssiiCommand {
         status.setEnabled(true);
 
         useColor = true;
-        AnimateManager v = CommandManager.getInstance().getVisualCollection();
+        AnimateManager v = AnimateManager.getVisualCollection();
         if (v.getLoopEnabled()) {
             red = blue = 0;
             green = 255;

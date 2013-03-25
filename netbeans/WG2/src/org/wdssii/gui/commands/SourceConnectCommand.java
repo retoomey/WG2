@@ -1,9 +1,10 @@
 package org.wdssii.gui.commands;
 
+import org.wdssii.core.WdssiiCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.sources.Source;
 
 public class SourceConnectCommand extends SourceCommand {

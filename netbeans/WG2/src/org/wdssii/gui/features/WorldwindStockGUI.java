@@ -15,7 +15,7 @@ import javax.swing.table.TableRowSorter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.features.WorldwindStockFeature.WorldwindStockMemento;
 import org.wdssii.gui.swing.RowEntryTableModel;

@@ -5,8 +5,8 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.features.LoopFeature.LoopMemento;
 import org.wdssii.properties.Memento;
-import org.wdssii.properties.gui.BooleanGUI;
-import org.wdssii.properties.gui.IntegerGUI;
+import org.wdssii.gui.properties.BooleanGUI;
+import org.wdssii.gui.properties.IntegerGUI;
 
 /**
  * LoopGUI handles gui controls for looping

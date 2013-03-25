@@ -11,9 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.writers.RadialSetESRIWriter;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.core.GridVisibleArea;
 import org.wdssii.storage.Array1D;
-import org.wdssii.util.RadialUtil;
 
 /*
  * This is the original RadialSet which handles PPI, or Plan Position Indicator

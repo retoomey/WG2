@@ -11,7 +11,7 @@ import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.core.GridVisibleArea;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.views.WorldWindView;
 

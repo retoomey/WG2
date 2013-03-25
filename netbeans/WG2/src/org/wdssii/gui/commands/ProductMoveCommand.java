@@ -5,7 +5,7 @@ import java.util.Date;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.Product.Navigation;
-import org.wdssii.gui.products.ProductButtonStatus;
+import org.wdssii.core.ProductButtonStatus;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.index.IndexRecord;
 

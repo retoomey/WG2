@@ -4,7 +4,7 @@ import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.util.ArrayList;
 import javax.swing.JComponent;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;

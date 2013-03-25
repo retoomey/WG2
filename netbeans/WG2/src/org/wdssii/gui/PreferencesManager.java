@@ -1,18 +1,16 @@
 package org.wdssii.gui;
 
-import java.io.File;
 import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.core.CommandManager;
+import org.wdssii.core.Singleton;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.sources.SourceList;
-import org.wdssii.index.HistoricalIndex;
 import org.wdssii.util.StringUtil;
 import org.wdssii.xml.Util;
 import org.wdssii.xml.config.Source;
 import org.wdssii.xml.config.W2Pref;
-import org.wdssii.xml.iconSetConfig.PolygonSymbol;
-import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
  * Preference manager handles wdssii preferences. It has a PreferenceHandler
@@ -86,10 +84,14 @@ public class PreferencesManager implements Singleton {
     }
     private static PreferencesManager instance = null;
 
+    public static Singleton create() {
+        instance = new PreferencesManager();
+        return instance;
+    }
+
     public static PreferencesManager getInstance() {
         if (instance == null) {
-            instance = new PreferencesManager();
-            SingletonManager.registerSingleton(instance);
+            log.debug("Preference Manager must be created by SingletonManager");
         }
         return instance;
     }
@@ -111,11 +113,8 @@ public class PreferencesManager implements Singleton {
     }
 
     public static void introduce(PreferenceHandler p) {
-
         if (instance == null) {
-            instance = new PreferencesManager();
-            instance.setupPrefs(p);
-            SingletonManager.registerSingleton(instance);
+            log.debug("Preference Manager must be created by SingletonManager");
         } else {
             instance.setupPrefs(p);
         }
@@ -186,16 +185,16 @@ public class PreferencesManager implements Singleton {
             String file = aURL.getFile();
             Util.save(theW2Prefs, file, theW2Prefs.getClass());
             /*SimpleSymbol test = new SimpleSymbol();      // is JAXB smart enough?  
-            Util.save(test, file, test.getClass());
+             Util.save(test, file, test.getClass());
 
-            try {
-                File f = new File(file);
-                URL u = f.toURI().toURL();
-                Symbol readback = Util.loadURL(u, Symbol.class);
-                log.debug("Class back is "+readback.getClass().getSimpleName());
-            } catch (Exception c) {
-                log.error("Error load back"+file+", "+c.toString());
-            }*/
+             try {
+             File f = new File(file);
+             URL u = f.toURI().toURL();
+             Symbol readback = Util.loadURL(u, Symbol.class);
+             log.debug("Class back is "+readback.getClass().getSimpleName());
+             } catch (Exception c) {
+             log.error("Error load back"+file+", "+c.toString());
+             }*/
         }
     }
 }

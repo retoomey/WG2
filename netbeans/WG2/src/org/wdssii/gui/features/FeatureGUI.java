@@ -5,7 +5,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.wdssii.gui.GUIPlugInPanel;
 import org.wdssii.properties.Memento;
-import org.wdssii.properties.PropertyGUI;
+import org.wdssii.gui.properties.PropertyGUI;
 
 /**
  * Used to create a swing based GUI for controlling the properties of a Feature

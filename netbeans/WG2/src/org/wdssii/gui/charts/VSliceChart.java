@@ -30,7 +30,7 @@ import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.FeatureCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand;

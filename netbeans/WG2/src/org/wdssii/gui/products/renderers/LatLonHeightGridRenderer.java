@@ -11,7 +11,8 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonHeightGrid;
 import org.wdssii.datatypes.LatLonHeightGrid.LatLonHeightGridQuery;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.AnimateManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
@@ -249,7 +250,7 @@ public class LatLonHeightGridRenderer extends ProductRenderer {
                     // Update during render call...
                     updateCounter++;
                     if (updateCounter > 200) {
-                        CommandManager.getInstance().updateDuringRender();  // These queue up anyway 
+                        AnimateManager.updateDuringRender();  // These queue up anyway 
                         //Thread.sleep(50);
                         updateCounter = 0;
                     }
@@ -270,7 +271,7 @@ public class LatLonHeightGridRenderer extends ProductRenderer {
         myQuadRenderer.end();
 
         // System.out.println("********Ending radial set creation");
-        CommandManager.getInstance().updateDuringRender();
+        AnimateManager.updateDuringRender();
 
         setIsCreated();
         return WdssiiJob.WdssiiJobStatus.OK_STATUS;

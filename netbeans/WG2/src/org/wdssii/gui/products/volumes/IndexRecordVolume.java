@@ -9,7 +9,7 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.ProductMoveCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.Product.Navigation;
-import org.wdssii.gui.products.ProductButtonStatus;
+import org.wdssii.core.ProductButtonStatus;
 import org.wdssii.gui.sources.IndexSource;
 import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceList;

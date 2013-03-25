@@ -48,17 +48,17 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.PointRemoveCommand;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.properties.ComboStringGUI;
+import org.wdssii.gui.properties.IntegerGUI;
+import org.wdssii.gui.properties.PropertyGUI;
 import org.wdssii.gui.swing.*;
 import org.wdssii.gui.views.ChartView;
 import org.wdssii.gui.volumes.LLHAreaController.ToolbarMode;
 import org.wdssii.gui.volumes.LLHAreaSet.LLHAreaSetMemento;
-import org.wdssii.properties.PropertyGUI;
-import org.wdssii.properties.gui.ComboStringGUI;
-import org.wdssii.properties.gui.IntegerGUI;
 
 /**
  * LLHAreaSetGUI
@@ -74,6 +74,10 @@ import org.wdssii.properties.gui.IntegerGUI;
 public class LLHAreaSetGUI extends FeatureGUI {
 
     private static org.slf4j.Logger log = LoggerFactory.getLogger(LLHAreaSetGUI.class);
+   
+    /** Eventually this controller stuff all in us I think */
+    public static LLHAreaController theController = null;
+    
     private LLHAreaFeature myFeature;
     private final LLHAreaSet myLLHAreaSet;
     private LLHAreaSetTableModel myLLHAreaSetTableModel;
@@ -128,9 +132,8 @@ public class LLHAreaSetGUI extends FeatureGUI {
     @Override
     public void deactivateGUI() {
         // Go back to normal mouse mode when we aren't the GUI...
-        LLHAreaController l = CommandManager.getInstance().getLLHController();
-        if (l != null) {
-            l.setMouseMode(ToolbarMode.NORMAL);
+        if (theController != null) {
+            theController.setMouseMode(ToolbarMode.NORMAL);
             updateToolbar();
         }
         super.deactivateGUI();
@@ -161,9 +164,8 @@ public class LLHAreaSetGUI extends FeatureGUI {
         aButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                LLHAreaController l = CommandManager.getInstance().getLLHController();
-                if (l != null) {
-                    l.setMouseMode(ToolbarMode.ADD_REMOVE);
+                if (theController != null) {
+                    theController.setMouseMode(ToolbarMode.ADD_REMOVE);
                     updateToolbar();
                 }
             }
@@ -176,9 +178,8 @@ public class LLHAreaSetGUI extends FeatureGUI {
         bButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                LLHAreaController l = CommandManager.getInstance().getLLHController();
-                if (l != null) {
-                    l.setMouseMode(ToolbarMode.NORMAL);
+                if (theController != null) {
+                    theController.setMouseMode(ToolbarMode.NORMAL);
                     updateToolbar();
                 }
             }
@@ -239,10 +240,9 @@ public class LLHAreaSetGUI extends FeatureGUI {
     }
 
     public void updateToolbar() {
-        LLHAreaController l = CommandManager.getInstance().getLLHController();
         ToolbarMode m = ToolbarMode.INACTIVE;
-        if (l != null) {
-            m = l.getMouseMode();
+        if (theController != null) {
+            m = theController.getMouseMode();
         }
         if (m == ToolbarMode.ADD_REMOVE) {
             myAddRemoveButton.setSelected(true);

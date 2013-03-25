@@ -1,7 +1,6 @@
 package org.wdssii.datatypes;
 
-import org.wdssii.gui.CommandManager;
-import org.wdssii.gui.commands.ProductChangeCommand;
+import org.wdssii.core.SingletonManager;
 
 /** A wrapper to a DataType.  This is used by builders to allow lazy create of a DataType
  * in a thread.  isReady() is true once the DataType is completely created/loaded.
@@ -33,11 +32,8 @@ public class DataRequest {
      */
     public void setReady(DataType dt) {
         myDataType = dt;  // Completed datatype
-        myDataTypeReady = true;
-        // Product is different now, since data exists...this sends message to views....
-        // FIXME: Kind of a hack at this level in the code I think
-        CommandManager.getInstance().fireUpdate(new ProductChangeCommand());
-
+        myDataTypeReady = true;        
+        SingletonManager.getInstance().notifyDataRequestDone();       
     }
 
     public DataType getDataType() {

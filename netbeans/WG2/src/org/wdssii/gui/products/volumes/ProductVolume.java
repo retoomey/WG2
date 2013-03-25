@@ -1,6 +1,7 @@
 package org.wdssii.gui.products.volumes;
 
 // I want to remove these dependencies
+import org.wdssii.core.ProductButtonStatus;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.geom.Vec4;

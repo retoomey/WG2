@@ -22,7 +22,8 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.datatypes.LatLonGrid.LatLonGridQuery;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.AnimateManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
@@ -285,7 +286,7 @@ public class LatLonGridTile extends TileRenderer.Tile {
         myQuadRenderer.end();
 
         setTileCreated();
-        CommandManager.getInstance().updateDuringRender();
+        AnimateManager.updateDuringRender();
     }
 
     public void setBatched(boolean flag) {

@@ -1,11 +1,13 @@
 package org.wdssii.gui;
 
 import java.util.ArrayList;
+import org.wdssii.core.CommandManager;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.gui.animators.Animator;
 import org.wdssii.gui.animators.Mover3D;
 import org.wdssii.gui.animators.TimeLooper;
 import org.wdssii.gui.commands.AnimateCommand.AnimateNotifyCancelCommand;
+import org.wdssii.gui.views.WorldWindView;
 
 /* Animate manager handles grouping all Animators...
  * TimeLooper handles looping in the display...
@@ -24,6 +26,10 @@ public class AnimateManager {
     private AnimatorJob myLoopJob = null;
     /** Sync object for the RCP loop job */
     private final Object myLoopJobSync = new Object();
+    /** The single world wind earth ball */
+    private static WorldWindView theEarth = null;
+    /** The single visual collection */
+    private static AnimateManager myVisualCollection = new AnimateManager();
 
     /** Create a new visual collection containing the default animators */
     public AnimateManager() {
@@ -33,6 +39,29 @@ public class AnimateManager {
         myAnimatorList.add(new Mover3D());
     }
 
+    // Not sure where the earth ball should be in design really..
+    // probably will finalize when we create multiple views...
+    // Since updating 'could' affect looping we'll put it here for now
+    
+    /** Update the drawing of the main earth ball */
+    public static void updateDuringRender() {
+        // FIXME: disable this update if we are looping...loop
+        // will update us...
+        if (theEarth != null) {
+            theEarth.updateOnMinTime();
+        }
+    }
+    
+    // Collection of animators
+    public static AnimateManager getVisualCollection() {
+        return myVisualCollection;
+    }
+    
+    /** Set the single earth view */
+    public static void setEarthView(WorldWindView v){
+        theEarth = v;
+    }
+    
     /** Get the list of animators that show up in the animation view */
     public ArrayList<Animator> getAnimatorList() {
         return myAnimatorList;

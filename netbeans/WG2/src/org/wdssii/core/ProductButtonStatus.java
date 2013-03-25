@@ -1,6 +1,4 @@
-package org.wdssii.gui.products;
-
-import org.wdssii.gui.commands.WdssiiCommand;
+package org.wdssii.core;
 
 /** Button status used to update the product navigation buttons.
  * It is up to the navigation GUI to use the IconString and color info

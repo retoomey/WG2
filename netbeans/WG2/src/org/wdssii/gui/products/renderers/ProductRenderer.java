@@ -14,7 +14,7 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView;
 import org.wdssii.datatypes.Table2DView.LocationType;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.core.GridVisibleArea;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.readouts.ProductReadout;
 

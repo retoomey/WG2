@@ -1,5 +1,6 @@
 package org.wdssii.gui.commands;
 
+import org.wdssii.core.WdssiiCommand;
 import com.jidesoft.swing.JideMenu;
 import com.jidesoft.swing.JideSplitButton;
 import java.util.*;
@@ -7,7 +8,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import org.wdssii.gui.swing.SwingIconFactory;
-import org.wdssii.gui.views.CommandListener;
+import org.wdssii.core.CommandListener;
 
 /**
  * Command to create a chart

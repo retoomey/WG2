@@ -30,11 +30,11 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.Radial;
+import org.wdssii.datatypes.RadialATHeightGateCache;
 import org.wdssii.datatypes.RadialSet;
+import org.wdssii.datatypes.RadialUtil;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.products.renderers.RadialSetRenderer;
 import org.wdssii.storage.Array1D;
-import org.wdssii.util.RadialUtil;
 
 /**
  * Writer to output a RadialSet to ESRI file
@@ -80,8 +80,8 @@ public class RadialSetESRIWriter extends ESRIWriter {
             // --------------------------------------------------------
             // On first radial, create an attenuation cache...
             Radial firstRadial = (numRadials > 0) ? rs.getRadial(0) : null;
-            RadialSetRenderer.RadialATHeightGateCache c =
-                    new RadialSetRenderer.RadialATHeightGateCache(rs, firstRadial, maxGateCount, sinElevAngle, cosElevAngle);
+            RadialATHeightGateCache c =
+                    new RadialATHeightGateCache(rs, firstRadial, maxGateCount, sinElevAngle, cosElevAngle);
 
             int featureId = 0;
             int currentRadial = 0;

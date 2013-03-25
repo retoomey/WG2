@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import org.wdssii.core.CommandListener;
 import java.awt.Component;
 import java.awt.Font;
 import java.util.Map;
@@ -8,7 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.JobManager;
+import org.wdssii.core.WdssiiJob;
 import org.wdssii.gui.swing.JThreadPanel;
 
 /**
@@ -169,8 +170,9 @@ public class JobsView extends JThreadPanel implements CommandListener {
         // Update the list of running jobs...
         int total = myJobs.size();
         int children = myPanel.getComponentCount();
+        
         //myInfo.setText("Current running " + total + " ch:" + children+ " a,a,r,r "+add+", "+add2+", "+remove+", "+remove2);
-          myInfo.setText("Start/Finished "+JobManager.totalJobsStarted+", " +JobManager.totalJobsFinished+", "+add+", " +remove+", "
+          myInfo.setText("Start/Finished "+WdssiiJob.getStartCount()+", " +WdssiiJob.getEndCount()+", "+add+", " +remove+", "
                   + ""+add2+", "+remove2+", "+addEx+", " +removeEx);
         validate();
         doLayout();

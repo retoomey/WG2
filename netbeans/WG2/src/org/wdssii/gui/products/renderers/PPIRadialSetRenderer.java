@@ -12,13 +12,15 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetQuery;
 import org.wdssii.datatypes.Radial;
+import org.wdssii.datatypes.RadialATHeightGateCache;
+import org.wdssii.datatypes.RadialUtil;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.AnimateManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.products.*;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
-import org.wdssii.util.RadialUtil;
 
 /**
  * Renders a RadialSet
@@ -232,7 +234,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                     // Update during render call...
                     updateCounter++;
                     if (updateCounter > 200) {
-                        CommandManager.getInstance().updateDuringRender();  // These queue up anyway 
+                        AnimateManager.updateDuringRender();  // These queue up anyway 
                         //Thread.sleep(50);
                         updateCounter = 0;
                     }
@@ -252,7 +254,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
         myQuadRenderer.end();
 
         // System.out.println("********Ending radial set creation");
-        CommandManager.getInstance().updateDuringRender();
+        AnimateManager.updateDuringRender();
 
         setIsCreated();
         return WdssiiJobStatus.OK_STATUS;

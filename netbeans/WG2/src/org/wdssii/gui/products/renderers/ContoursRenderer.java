@@ -14,7 +14,7 @@ import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.Contour;
 import org.wdssii.datatypes.Contours;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.Product;
@@ -30,6 +30,7 @@ import org.wdssii.storage.Array1DfloatAsNodes;
 public class ContoursRenderer extends ProductRenderer {
 
     /** We use vector (vector is synchronized for opengl thread and worker thread) */
+    // FIXME: Replace with GrowList
     private Vector<Integer> myOffsets;
     
     /** points for the contour line strips */
@@ -117,7 +118,7 @@ public class ContoursRenderer extends ProductRenderer {
                    // colors.set(idy++, (float)1.0);
                     }
                 }
-                CommandManager.getInstance().updateDuringRender();
+                AnimateManager.updateDuringRender();
             }
             // Add last offset if we had at least one...
             if (myOffsets.size() > 0){

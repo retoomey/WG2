@@ -1,4 +1,4 @@
-package org.wdssii.properties.gui;
+package org.wdssii.gui.properties;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -8,7 +8,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
-import org.wdssii.properties.PropertyGUI;
 
 /**
  * Stock GUI for changing a Integer property

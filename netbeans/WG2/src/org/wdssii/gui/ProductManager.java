@@ -1,5 +1,7 @@
 package org.wdssii.gui;
 
+import org.wdssii.core.SingletonManager;
+import org.wdssii.core.Singleton;
 import gov.nasa.worldwind.event.PositionEvent;
 import java.awt.Color;
 import java.awt.Point;
@@ -466,7 +468,7 @@ public class ProductManager implements Singleton {
         private void loadColorMapFromXML() {
 
             // Look for a file matching product name....
-            W2ColorMap map = Util.load("colormaps/"+getColorKey(), W2ColorMap.class);
+            W2ColorMap map = Util.load("colormaps/" + getColorKey(), W2ColorMap.class);
             if (map != null) {
                 ColorMap aColorMap = new ColorMap();
                 aColorMap.initToW2ColorMap(map, ProductTextFormatter.DEFAULT_FORMATTER);
@@ -516,11 +518,11 @@ public class ProductManager implements Singleton {
                 // We are going to use the color map of the polygon for 
                 // the moment.  The color of the polygon fill is the key.
                 try {  // since any subtag might be null.  We have no map then
-                   // W2ColorMap c = tag.polygonTextConfig.polygonConfig.colorMap;
-                   //// ColorMap aColorMap = new ColorMap();
-                  //  aColorMap.initToW2ColorMap(c, ProductTextFormatter.DEFAULT_FORMATTER);
-                   // myColorMap = aColorMap;
-                   // myColorMapTag = c;
+                    // W2ColorMap c = tag.polygonTextConfig.polygonConfig.colorMap;
+                    //// ColorMap aColorMap = new ColorMap();
+                    //  aColorMap.initToW2ColorMap(c, ProductTextFormatter.DEFAULT_FORMATTER);
+                    // myColorMap = aColorMap;
+                    // myColorMapTag = c;
                 } catch (Exception e) {
                     // Any of it null, etc..ignore it...
                 } finally {
@@ -712,13 +714,17 @@ public class ProductManager implements Singleton {
         myProductCache.setCacheSize(aSize);
     }
 
+    public static Singleton create() {
+        instance = new ProductManager();
+        return instance;
+    }
+
     /**
      * @return the singleton for the manager
      */
     public static ProductManager getInstance() {
         if (instance == null) {
-            instance = new ProductManager();
-            SingletonManager.registerSingleton(instance);
+            log.debug("Product Manager must be created by SingletonManager");
         }
         return instance;
     }
@@ -903,8 +909,8 @@ public class ProductManager implements Singleton {
         URL aURL = null;
         try {
             //aURL = W2Config.getURL("colorDatabase.xml");
-             ColorDatabase map = Util.load("colorDatabase.xml", ColorDatabase.class);
-             myColorDefs = map;
+            ColorDatabase map = Util.load("colorDatabase.xml", ColorDatabase.class);
+            myColorDefs = map;
         } catch (Exception c) {
             log.error("Error loading name to color database...ignoring");
         }

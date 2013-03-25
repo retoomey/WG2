@@ -9,7 +9,7 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.GUIPlugInPanel;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;

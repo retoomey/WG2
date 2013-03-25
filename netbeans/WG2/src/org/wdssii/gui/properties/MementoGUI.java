@@ -1,4 +1,4 @@
-package org.wdssii.properties;
+package org.wdssii.gui.properties;
 
 import org.wdssii.gui.GUIPlugInPanel;
 

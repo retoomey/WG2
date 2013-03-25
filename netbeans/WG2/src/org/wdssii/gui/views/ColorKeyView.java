@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import org.wdssii.core.CommandListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.File;
@@ -13,7 +14,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableModel;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMapRenderer;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.commands.ProductCommand;

@@ -1,12 +1,13 @@
 package org.wdssii.gui.views;
 
+import org.wdssii.core.CommandListener;
 import java.awt.Component;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.swing.JThreadPanel;
 
 /**

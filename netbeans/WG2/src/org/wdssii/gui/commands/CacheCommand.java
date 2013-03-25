@@ -1,5 +1,7 @@
 package org.wdssii.gui.commands;
 
+import org.wdssii.core.WdssiiCommand;
+
 /**
  *
  * @author Robert Toomey

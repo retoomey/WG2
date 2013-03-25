@@ -7,7 +7,7 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.sources.IndexSource;

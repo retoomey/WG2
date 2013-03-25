@@ -13,7 +13,7 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.ProductLoadCommand;
 import org.wdssii.gui.commands.ProductLoadCommand.ProductLoadCaller;

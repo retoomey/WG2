@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.wdssii.geom.Location;
-import org.wdssii.gui.GridVisibleArea;
+import org.wdssii.core.GridVisibleArea;
 
 /**
  * @author lakshman

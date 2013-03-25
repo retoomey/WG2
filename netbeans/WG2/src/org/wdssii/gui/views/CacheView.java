@@ -1,5 +1,6 @@
 package org.wdssii.gui.views;
 
+import org.wdssii.core.CommandListener;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -14,7 +15,7 @@ import javax.swing.table.TableColumnModel;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.CommandManager;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.products.Product;

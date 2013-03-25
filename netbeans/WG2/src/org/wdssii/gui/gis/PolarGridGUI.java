@@ -5,8 +5,8 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.gis.PolarGridFeature.PolarGridMemento;
-import org.wdssii.properties.gui.ColorGUI;
-import org.wdssii.properties.gui.IntegerGUI;
+import org.wdssii.gui.properties.ColorGUI;
+import org.wdssii.gui.properties.IntegerGUI;
 
 /**
  * PolarGridGUI handles gui controls for a PolarGrid overlay

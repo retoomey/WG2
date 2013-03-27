@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
  * Could call this a PropertySet as well. I'm reinventing the wheel here, but
  * haven't found a library I like that does everything I want.
  *
+ * FIXME: Think we should use a numbered list for properties and avoid
+ * the whole 'string' for key lookup.  Faster and less memory.
+ * 
  * @author Robert Toomey
  */
 public class Memento {

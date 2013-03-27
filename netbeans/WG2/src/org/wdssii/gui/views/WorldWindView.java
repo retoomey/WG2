@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.core.CommandManager;
+import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
 import org.wdssii.gui.features.FeatureList;
@@ -141,6 +142,9 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
                 w = new WorldWindowGLJPanel();
             }
         }
+        if (first == null) {
+            AnimateManager.setEarthView(this);
+        }
 
         w.setModel(m);
 
@@ -190,10 +194,10 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
 
         worldHolder.add((Component) myWorld, new CC().growX().growY());
 
-       // for (int i = 0; i < 1; i++) {
-       //     WorldWindow number2 = makeWorldWindow(myWorld);
-       //     worldHolder.add((Component) number2, new CC().growX().growY());
-       // }
+        // for (int i = 0; i < 1; i++) {
+        //     WorldWindow number2 = makeWorldWindow(myWorld);
+        //     worldHolder.add((Component) number2, new CC().growX().growY());
+        // }
 
         myStatusBar = new ReadoutStatusBar();
         myStatusBar.setEventSource(myWorld);
@@ -231,7 +235,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         // FIXME: really control of these points should be in the feature
         // not within the world ball, since we might add different viewers
         LLHAreaSetGUI.theController = c;
-                
+
         // Create and install the view controls layer and register a controller for it with the World Window.
         // This will be snagged by our LegendFeature
         ViewControlsLayer viewControlsLayer = new ViewControlsLayer();

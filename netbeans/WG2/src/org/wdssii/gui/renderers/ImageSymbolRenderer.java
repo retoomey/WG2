@@ -8,18 +8,20 @@ import javax.media.opengl.GL;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.xml.iconSetConfig.ImageSymbol;
+import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
- * Draws an image centered at point...
- * This loads an Icon using Java, then steals it out with transparency
- * to draw as an openGL texture.
- * 
+ * Draws an image centered at point... This loads an Icon using Java, then
+ * steals it out with transparency to draw as an openGL texture.
+ *
  * FIXME: dispose of GLTexture properly.. alpha
  *
  * @author Robert Toomey
  */
 public class ImageSymbolRenderer extends SymbolRenderer {
 
+    private ImageSymbol s = null;
     private final int TEXTURE_TARGET = GL.GL_TEXTURE_2D;
     private final boolean FORCE_POWER_OF_TWO = true;
     private float normalizedWidth = 1f;
@@ -28,6 +30,13 @@ public class ImageSymbolRenderer extends SymbolRenderer {
     private int imageWidth = 0;
     private int imageHeight = 0;
     private ByteBuffer myBuffer = null;
+
+    @Override
+    public void setSymbol(Symbol symbol) {
+        if (symbol instanceof ImageSymbol) {
+            s = (ImageSymbol) symbol;
+        }
+    }
 
     public void setUpTexture(GL gl) {
         // stupid slow, get it to work..
@@ -116,6 +125,11 @@ public class ImageSymbolRenderer extends SymbolRenderer {
 
         setUpTexture(gl);
 
+        int w;
+        int h;
+        w = h = s.pointsize;
+        int w2 = w/2;
+        int h2 = h/2;
         if (texture >= 0) {
             gl.glEnable(TEXTURE_TARGET);
 
@@ -136,21 +150,27 @@ public class ImageSymbolRenderer extends SymbolRenderer {
             // or context changing somehow???
             gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat, imageWidth, imageHeight, 0, dataFmt, dataType, myBuffer);
 
+            // Humm...if we generalize the glRotate might have to not do this and just move
+            // the coordinates themselves..(to keep the rotation center)
+            gl.glTranslatef(-w2, -h2, 0f); // Center icon
+            
             gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);  // Color affects texture
             gl.glBegin(GL.GL_QUADS);
-            gl.glTexCoord2f(0f, 0f); // Top LEFT
+            gl.glTexCoord2f(0f, 0f);
             gl.glVertex2f(0, 0);
 
-            gl.glTexCoord2f(0f, normalizedHeight); // Bottom LEFT
-            gl.glVertex2f(0, 0 + imageHeight);
+            gl.glTexCoord2f(0f, normalizedHeight); 
+            gl.glVertex2f(0, h);
 
-            gl.glTexCoord2f(normalizedWidth, normalizedHeight); // Bottom RIGHT
-            gl.glVertex2f(0 + imageWidth, 0 + imageHeight);
+            gl.glTexCoord2f(normalizedWidth, normalizedHeight);
+            gl.glVertex2f(w, h);
 
-            gl.glTexCoord2f(normalizedWidth, 0f); // Top RIGHT
-            gl.glVertex2f(imageWidth, 0);
+            gl.glTexCoord2f(normalizedWidth, 0f);
+            gl.glVertex2f(w, 0);
             gl.glEnd();
             gl.glDisable(TEXTURE_TARGET);
+            gl.glTranslatef(w2, h2, 0f);
+
 
         }
     }

@@ -60,11 +60,22 @@ public class DataTableRenderer extends ProductRenderer {
     private ArrayList<Vec4> myWorldPoints = null;
     private ArrayList<SymbolRenderer> myRenderers = null;
     private SymbolRenderer myRenderer = null;
-
+    private static boolean refreshRenderers = true;
+    
+    private static Symbol hackme = new StarSymbol();
     public DataTableRenderer() {
-        super(true);
+        super(true);                 
     }
 
+    public static void setHackMe(Symbol s){
+        refreshRenderers = true;
+        hackme = s;
+    }
+    
+    public static Symbol getHackMe(){
+        return hackme;
+    }
+    
     @Override
     public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
 
@@ -159,7 +170,7 @@ public class DataTableRenderer extends ProductRenderer {
         // Warning: If you change project (round to flat, etc.. need to 
         // recalculate)
 
-        if (myWorldPoints == null) {
+        if ((myWorldPoints == null) || refreshRenderers){
             myWorldPoints = new ArrayList<Vec4>();
             // Only needed if renderer can change per point (such as category)
             myRenderers = new ArrayList<SymbolRenderer>();
@@ -178,14 +189,8 @@ public class DataTableRenderer extends ProductRenderer {
                 if (symbolColumn != null) {
                     String text = symbolColumn.getValue(row);
                     if (text.equalsIgnoreCase("ds")) {   // Snow
-                        StarSymbol newOne = new StarSymbol();
-                        newOne.color = Color.WHITE;
-                        newOne.ocolor = Color.BLUE;
-                        rr = SymbolFactory.getSymbolRenderer(newOne);
-                        rr.setSymbol(newOne);
-                        newOne.toAsterisk();
-                        //  newOne.toSquare();
-                        newOne.pointsize = 20;
+                        rr = SymbolFactory.getSymbolRenderer(hackme);
+                        rr.setSymbol(hackme);
                     } else if (text.equalsIgnoreCase("ws")) {  // wet snow
                         StarSymbol newOne = new StarSymbol();
                         newOne.color = Color.BLUE;
@@ -216,6 +221,8 @@ public class DataTableRenderer extends ProductRenderer {
                 // log.debug("Compare "+rr+" --"+getback);
                 row++;
             }
+            // sync?
+            refreshRenderers = false;
         }
 
         // FIXME: add a pass check for LOD maybe....skipping for now

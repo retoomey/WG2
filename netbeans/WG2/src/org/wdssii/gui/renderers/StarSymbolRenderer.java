@@ -6,8 +6,8 @@ import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
  *
- * Star symbol draws a collection of equal angled lines through a center
- * point of the location.
+ * Star symbol draws a collection of equal angled lines through a center point
+ * of the location.
  *
  * @author Robert Toomey
  */
@@ -26,8 +26,8 @@ public class StarSymbolRenderer extends SymbolRenderer {
      * Cross -- star(gl, polyRadius, 0,4); GL_LINES
      */
     public static void star(GL gl, double radius, double phase, int points) {
-        points = (points/2);   // Have to be multiple of 2    
-        final double m =  Math.PI / points;
+        points = (points / 2);   // Have to be multiple of 2    
+        final double m = Math.PI / points;
         final double pr = Math.toRadians(phase);
         double angle = pr;  // Start angle
         double a2 = pr + Math.PI; // Other side
@@ -47,16 +47,17 @@ public class StarSymbolRenderer extends SymbolRenderer {
     public void render(GL gl) {
 
         final double polyRadius = s.pointsize / 2.0;
-
         // Translate icon.   (this could be done outside for speed)
         gl.glTranslatef((float) s.xoffset, (float) s.yoffset, 0);
 
         /**
-         * Draw outline of symbol (first for lines, make outline the 'background')
+         * Draw outline of symbol (first for lines, make outline the
+         * 'background')
          */
         if (s.useOutline) {
-            gl.glLineWidth(s.osize);
-            gl.glColor4f(s.ocolor.getRed(), s.ocolor.getGreen(), s.ocolor.getBlue(), s.color.getAlpha());
+            gl.glLineWidth(s.lsize+(2*s.osize));
+            gl.glColor4f(s.ocolor.getRed() / 255.0f, s.ocolor.getGreen() / 255.0f,
+                    s.ocolor.getBlue() / 255.0f, s.ocolor.getAlpha() / 255.0f);
             gl.glBegin(GL.GL_LINES);
             star(gl, polyRadius, s.phaseangle, s.numpoints);
             gl.glEnd();
@@ -66,7 +67,8 @@ public class StarSymbolRenderer extends SymbolRenderer {
          * Draw symbol
          */
         gl.glLineWidth(s.lsize);
-        gl.glColor4f(s.color.getRed(), s.color.getGreen(), s.color.getBlue(), s.color.getAlpha());
+        gl.glColor4f(s.color.getRed() / 255.0f, s.color.getGreen() / 255.0f,
+                s.color.getBlue() / 255.0f, s.color.getAlpha() / 255.0f);
         gl.glBegin(GL.GL_LINES);
         star(gl, polyRadius, s.phaseangle, s.numpoints);
         gl.glEnd();

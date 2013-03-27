@@ -12,31 +12,46 @@ import org.wdssii.properties.Mementor;
  */
 public class PropertyGUI {
 
-	public PropertyGUI(Mementor f, String p) {
-		feature = f;
-		property = p;
-	}
+    public PropertyGUI(Mementor f, String p) {
+        feature = f;
+        property = p;
+    }
 
-	public void setTriple(JComponent l, JComponent v, JComponent u) {
-		label = l;
-		value = v;
-		unit = u;
-	}
-	public JComponent label;
-	public JComponent value;
-	public JComponent unit;
-	public String property;
-	public Mementor feature;
+    public void setTriple(JComponent l, JComponent v, JComponent u) {
+        label = l;
+        value = v;
+        unit = u;
+    }
+    public JComponent label;
+    public JComponent value;
+    public JComponent unit;
+    public String property;
+    public Mementor feature;
 
-	/**
-	 * Util to add to a MigLayout
-	 */
-	public void addToMigLayout(JComponent to) {
-		to.add(label, new CC().growX());
-		to.add(value, new CC().growX().width("min:pref:"));
-		to.add(unit, new CC().growX().wrap());
-	}
+    /**
+     * Util to add to a MigLayout
+     */
+    public void addToMigLayout(JComponent to) {
+        to.add(label, new CC().growX());
+        to.add(value, new CC().growX().width("min:pref:"));
+        to.add(unit, new CC().growX().wrap());
+    }
 
-	public void update(Memento use) {
-	}
+    public void update(Memento use) {
+    }
+
+    /**
+     * Set the standard triple as enabled or not
+     */
+    public void setEnabled(boolean flag) {
+        if (label != null) {
+            label.setEnabled(flag);
+        }
+        if (value != null) {
+            value.setEnabled(flag);
+        }
+        if (unit != null) {
+            unit.setEnabled(flag);
+        }
+    }
 }

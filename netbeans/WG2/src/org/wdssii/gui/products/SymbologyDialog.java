@@ -1,7 +1,9 @@
 package org.wdssii.gui.products;
 
 import java.awt.Container;
+import java.util.ArrayList;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -10,10 +12,15 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import net.miginfocom.layout.CC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.datatypes.DataType;
+import org.wdssii.gui.AnimateManager;
+import org.wdssii.gui.products.renderers.DataTableRenderer;
+import org.wdssii.gui.renderers.StarSymbolGUI;
+import org.wdssii.gui.renderers.SymbolFactory;
+import org.wdssii.gui.renderers.SymbolGUI;
+import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
- * Dialog for changing symbology of our products
+ * Dialog for changing symbology of our products Not sure where this belongs.
  *
  * (alpha)
  *
@@ -51,47 +58,96 @@ public class SymbologyDialog extends JDialog {
         // number (attribute) --> bin lookup (colormap)
         // string (attribute) --> colordef lookup (colordatabase)
 
-        setTitle("Symbology");
+        setTitle("Experimental Symbol Edit");
         Container content = getContentPane();
-        DataType d = prod.getRawDataType();
-        String type = "unknown";
-        if (d != null) {
-            type = d.getTypeName();
-        }
+
+        //DataType d = prod.getRawDataType();
+        //String type = "unknown";
+        //if (d != null) {
+        //    type = d.getTypeName();
+        //}
         JPanel p;
         myPanel = p = new JPanel();
         p.setLayout(new MigLayout("",
                 "[pref!][grow, fill]",
                 "[][]"));
 
-        String colorkey = prod.getColorKey();
-        p.add(new JLabel("Instance is " + d.getClass().getSimpleName()));
-        p.add(new JLabel("DataType is " + type));
-        p.add(new JLabel("Colorkey is " + colorkey));
+        // String colorkey = prod.getColorKey();
+        // p.add(new JLabel("Instance is " + d.getClass().getSimpleName()));
+        // p.add(new JLabel("DataType is " + type));
+        // p.add(new JLabel("Colorkey is " + colorkey));
 
+        // FIXME: All the symbology layer stuff from product...
+        ArrayList<String> list = SymbolFactory.getSymbolNameList();
+        JComboBox typeList = new JComboBox(list.toArray());
+        p.add(new JLabel("Symbol Type:"), new CC());
+        p.add(typeList, new CC().growX().wrap());
 
         // The extra information panel...
         myGUIHolder = new JPanel();
-        myGUIHolder.setSize(200, 50);
-        p.add(myGUIHolder, new CC().growX().span().wrap());
+        //myGUIHolder.setSize(200, 50);
+        p.add(myGUIHolder, new CC().growX().growY().pushY().span().wrap());
+
+        // Soon to be from the product symbology data
+        Symbol theSymbol = DataTableRenderer.getHackMe();
+
+        SymbolGUI first = SymbolFactory.getSymbolGUI(theSymbol);
+        String symbolName = SymbolFactory.getSymbolTypeString(theSymbol);
+
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).equalsIgnoreCase(symbolName)) {
+                typeList.setSelectedIndex(i);
+                break;
+            }
+        }
+        first.activateGUI(myGUIHolder);
+
+        JPanel buttonPanel = new JPanel();
 
         // The OK button...we allow GUIPlugInPanels to hook into this
         myOKButton = new JButton("OK");
-        p.add(myOKButton, new CC().skip(1));
+        buttonPanel.add(myOKButton, new CC());
 
         // The cancel button
-        myCancelButton = new JButton("Cancel");
-        p.add(myCancelButton);
+        //myCancelButton = new JButton("Cancel");
+        //buttonPanel.add(myCancelButton);
+        p.add(buttonPanel, new CC().dockSouth());
 
         content.add(myPanel);
         pack();
 
-        myCancelButton.addActionListener(new java.awt.event.ActionListener() {
+        /**
+         * Add listener for changing symbol type
+         */
+        typeList.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dispose();
+                JComboBox comboBox = (JComboBox) evt.getSource();
+                Object selected = comboBox.getSelectedItem();
+                String text = selected.toString();
+                Symbol newOne = SymbolFactory.getSymbolByName(text);
+                if (newOne != null) {
+                    SymbolGUI gui = SymbolFactory.getSymbolGUI(newOne);
+                    if (gui != null) {
+                        myGUIHolder.removeAll();
+                        gui.activateGUI(myGUIHolder);
+                        myGUIHolder.validate();
+                        myGUIHolder.repaint();
+                        // Replace hacked symbol
+                        DataTableRenderer.setHackMe(newOne);
+                        AnimateManager.updateDuringRender();
+                    }
+                }
+
             }
         });
+
+        // myCancelButton.addActionListener(new java.awt.event.ActionListener() {
+        //     @Override
+        //     public void actionPerformed(java.awt.event.ActionEvent evt) {
+        //         dispose();
+        //     }
+        // });
         myOKButton.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {

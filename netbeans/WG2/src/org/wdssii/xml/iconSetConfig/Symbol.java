@@ -23,7 +23,7 @@ public class Symbol {
      * The size in points
      */
     @XmlAttribute(name = "points")
-    public int pointsize = 10;
+    public int pointsize = 16;
     /**
      * The X offset from point of this symbol
      */

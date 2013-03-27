@@ -17,12 +17,14 @@ import org.wdssii.properties.Mementor;
  */
 public class ColorGUI extends PropertyGUI {
 
+    private JButton myBackground;
     public ColorGUI(Mementor f, String property, String plabel, JComponent dialogRoot) {
         super(f, property);
         // Create colored button...
         JButton b = new JButton("     ");
         b.setBackground((Color) f.getMemento().getPropertyValue(property));
-
+        myBackground = b;
+        
         // Humm is this ok?
         final JComponent myRoot = dialogRoot;
         final String myTitle = "Choose " + plabel;
@@ -33,7 +35,7 @@ public class ColorGUI extends PropertyGUI {
         b.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                jColorButtonChanged(myRoot, myTitle, myF, myP, ae);
+                jColorButtonChanged(myBackground, myRoot, myTitle, myF, myP, ae);
             }
         });
 
@@ -49,13 +51,14 @@ public class ColorGUI extends PropertyGUI {
      * Handle a color button change by changing its property value to the new
      * color
      */
-    private static void jColorButtonChanged(JComponent root, String title, Mementor f, String property, ActionEvent evt) {
+    private static void jColorButtonChanged(JButton b, JComponent root, String title, Mementor f, String property, ActionEvent evt) {
 
         JComponent j = (JComponent) evt.getSource();
         // Bring up color dialog with current color setting....
         Color aLineColor = JColorChooser.showDialog(root,
                 title,
                 j.getBackground());
+        b.setBackground(aLineColor);
         if (aLineColor != null) {
             Memento m = f.getNewMemento();
             m.setProperty(property, aLineColor);

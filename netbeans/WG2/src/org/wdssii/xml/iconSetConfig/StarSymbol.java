@@ -23,15 +23,23 @@ public class StarSymbol extends Symbol {
     /** Base color of the symbol */
     @XmlJavaTypeAdapter(Util.ColorAdapter.class) // Use ColorAdapter
     @XmlAttribute(name = "color")
+    /** Fill color of the star */
     public Color color = Color.BLUE;
+    /** Line size for drawing star */
     public int lsize = 1;
 
+    /** Set to true if we use the outline */
     public boolean useOutline = true;
     /** Outline color of the symbol */
     @XmlJavaTypeAdapter(Util.ColorAdapter.class) // Use ColorAdapter
     @XmlAttribute(name = "ocolor")
+    /** Outline color of the star, if any */
     public Color ocolor = Color.BLACK;
+    
+    /** Outline line size, if outline is used */
     public int osize = 2;
+    
+    /** Number of points in the star, multiple of 2 */
     public int numpoints = 4;
      
     public void toX(){

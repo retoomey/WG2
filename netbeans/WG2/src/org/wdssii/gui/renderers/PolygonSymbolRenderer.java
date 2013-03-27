@@ -50,7 +50,8 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
         /**
          * Draw symbol
          */
-        gl.glColor4f(s.color.getRed(), s.color.getGreen(), s.color.getBlue(), s.color.getAlpha());
+        gl.glColor4f(s.color.getRed() / 255.0f, s.color.getGreen() / 255.0f,
+                s.color.getBlue() / 255.0f, s.color.getAlpha() / 255.0f);
         gl.glBegin(GL.GL_POLYGON);
         polygon(gl, polyRadius, s.phaseangle, s.numpoints);
         gl.glEnd();
@@ -60,7 +61,8 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
          */
         if (s.useOutline) {
             gl.glLineWidth(s.osize);
-            gl.glColor4f(s.ocolor.getRed(), s.ocolor.getGreen(), s.ocolor.getBlue(), s.color.getAlpha());
+            gl.glColor4f(s.ocolor.getRed() / 255.0f, s.ocolor.getGreen() / 255.0f,
+                    s.ocolor.getBlue() / 255.0f, s.ocolor.getAlpha() / 255.0f);
             gl.glBegin(GL.GL_LINE_LOOP);
             polygon(gl, polyRadius, s.phaseangle, s.numpoints);
             gl.glEnd();

@@ -1,5 +1,7 @@
 package org.wdssii.geom;
 
+import com.vividsolutions.jts.geom.Coordinate;
+
 /**
  * @author lakshman
  * 
@@ -15,6 +17,7 @@ public class Location {
     /** lat, lon in degrees and height in kilometers. */
     public Location(double lat, double lon, double ht) {
         init(lat, lon, ht);
+        Coordinate c = new Coordinate(lat, lon, ht);
     }
 
     public final void init(double lat, double lon, double ht) {

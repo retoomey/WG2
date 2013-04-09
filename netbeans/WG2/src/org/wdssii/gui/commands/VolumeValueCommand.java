@@ -1,6 +1,5 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.core.WdssiiCommand;
 import com.jidesoft.swing.JideMenu;
 import com.jidesoft.swing.JideSplitButton;
 import java.util.ArrayList;
@@ -8,8 +7,10 @@ import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
-import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.core.CommandListener;
+import org.wdssii.core.WdssiiCommand;
+import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.gui.swing.WdssiiCommandGUI;
 
 /**
  * Command to change way in which the volume is interpreted.
@@ -132,7 +133,7 @@ public class VolumeValueCommand extends WdssiiCommand {
             public void customize(JPopupMenu menu) {
                 VolumeValueCommand f = new VolumeValueCommand();
                 f.setTargetListener(target);
-                WdssiiCommand.fillCheckMenuFor(menu, f);
+                WdssiiCommandGUI.fillCheckMenuFor(menu, f);
             }
         });
         return b;

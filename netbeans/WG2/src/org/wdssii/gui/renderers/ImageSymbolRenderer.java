@@ -128,8 +128,8 @@ public class ImageSymbolRenderer extends SymbolRenderer {
         int w;
         int h;
         w = h = s.pointsize;
-        int w2 = w/2;
-        int h2 = h/2;
+        int w2 = w / 2;
+        int h2 = h / 2;
         if (texture >= 0) {
             gl.glEnable(TEXTURE_TARGET);
 
@@ -150,16 +150,20 @@ public class ImageSymbolRenderer extends SymbolRenderer {
             // or context changing somehow???
             gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat, imageWidth, imageHeight, 0, dataFmt, dataType, myBuffer);
 
-            // Humm...if we generalize the glRotate might have to not do this and just move
-            // the coordinates themselves..(to keep the rotation center)
-            gl.glTranslatef(-w2, -h2, 0f); // Center icon
+            // Remember opengl 'backwards'.. this centers icon, then rotates around that center..
+            // then moves to the xoffset, yoffset point
+            gl.glTranslatef(s.xoffset, s.yoffset, 0f);
             
+            gl.glRotatef(s.phaseangle, 0, 0, 1);
+
+            gl.glTranslatef(-w2, -h2, 0f); // Center icon 
+
             gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);  // Color affects texture
             gl.glBegin(GL.GL_QUADS);
             gl.glTexCoord2f(0f, 0f);
             gl.glVertex2f(0, 0);
 
-            gl.glTexCoord2f(0f, normalizedHeight); 
+            gl.glTexCoord2f(0f, normalizedHeight);
             gl.glVertex2f(0, h);
 
             gl.glTexCoord2f(normalizedWidth, normalizedHeight);
@@ -170,6 +174,8 @@ public class ImageSymbolRenderer extends SymbolRenderer {
             gl.glEnd();
             gl.glDisable(TEXTURE_TARGET);
             gl.glTranslatef(w2, h2, 0f);
+            gl.glRotatef(-s.phaseangle, 0, 0, 1);
+            gl.glTranslatef(-s.xoffset, -s.yoffset, 0f);
 
 
         }

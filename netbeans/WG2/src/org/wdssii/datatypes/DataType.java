@@ -13,6 +13,7 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.geom.Location;
 
 /**
@@ -370,7 +371,7 @@ public class DataType {
         return myDataTypeMetric;
     }
     
-    public void exportToESRI(URL aURL){
+    public void exportToESRI(URL aURL, WdssiiJobMonitor m){
         
     }
 }

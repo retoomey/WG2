@@ -15,7 +15,7 @@ import org.wdssii.xml.Util;
  * @author Robert Toomey
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlRootElement(name = "polygon")
+@XmlRootElement(name = "polygonsymbol")
 public class PolygonSymbol extends Symbol {
 
     /**
@@ -32,7 +32,6 @@ public class PolygonSymbol extends Symbol {
     @XmlAttribute(name = "ocolor")
     public Color ocolor = Color.BLACK;
     public int osize = 2;
-    
     public int numpoints = 4;
 
     /**
@@ -58,12 +57,26 @@ public class PolygonSymbol extends Symbol {
         phaseangle = 0;
         numpoints = 20;  // 20 points
     }
-    
-    /** Set up as a triangle
-     * 
+
+    /**
+     * Set up as a triangle
+     *
      */
-    public void toTriangle(){
+    public void toTriangle() {
         phaseangle = 0;
         numpoints = 3;
+    }
+
+    @Override
+    public void copyFrom(Symbol s) {
+        super.copyFrom(s);
+        if (s instanceof PolygonSymbol) {
+            PolygonSymbol o = (PolygonSymbol) s;
+            color = o.color;
+            useOutline = o.useOutline;
+            ocolor = o.ocolor;
+            numpoints = o.numpoints;
+            osize = o.osize;
+        }
     }
 }

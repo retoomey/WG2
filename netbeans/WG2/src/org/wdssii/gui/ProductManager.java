@@ -5,6 +5,7 @@ import org.wdssii.core.Singleton;
 import gov.nasa.worldwind.event.PositionEvent;
 import java.awt.Color;
 import java.awt.Point;
+import java.io.File;
 import java.net.URL;
 import java.util.*;
 import org.slf4j.Logger;
@@ -35,7 +36,13 @@ import org.wdssii.index.IndexRecord;
 import org.wdssii.xml.*;
 import org.wdssii.xml.ColorDatabase.ColorDef;
 import org.wdssii.xml.W2ColorMap.W2ColorBin;
+import org.wdssii.xml.iconSetConfig.Category;
 import org.wdssii.xml.iconSetConfig.IconSetConfig;
+import org.wdssii.xml.iconSetConfig.ImageSymbol;
+import org.wdssii.xml.iconSetConfig.PolygonSymbol;
+import org.wdssii.xml.iconSetConfig.StarSymbol;
+import org.wdssii.xml.iconSetConfig.Symbol;
+import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**
  * --Maintains a set of color maps by product name (color map cache FIXME: Move
@@ -454,6 +461,7 @@ public class ProductManager implements Singleton {
                 myLoadedXML = false;
             }
             if (myLoadedXML == false) {
+                loadSymbologyFromXML();
                 loadIconSetConfigFromXML();
                 if (!forceGenerated) {
                     loadColorMapFromXML();
@@ -504,6 +512,31 @@ public class ProductManager implements Singleton {
              }*/
         }
 
+        /**
+         * The new symbology file.  This will include all the old stuff
+         * from color maps, etc.
+         * ColorMaps are really a value --> color lookup which could
+         * occur differently for datatable, etc. We need to refactor this
+         * get away from the old display way.
+         */
+        private void loadSymbologyFromXML() {
+             Symbology s = Util.load("symbology/" + getName()+".xml", Symbology.class);
+             if (s != null){
+             log.debug("SYMBOLOGY for "+getName()+ " is "+s);
+             
+             StarSymbol test = new StarSymbol();      // is JAXB smart enough?  
+             Category c = s.categories.list.get(0);
+             c.symbols = new ArrayList<Symbol>();
+             c.symbols.add(test);// Add a Star
+             c.symbols.add(new ImageSymbol());
+             c.symbols.add(new PolygonSymbol());
+             
+             
+                 URL u2 = W2Config.getURL("symbology/" + getName()+"2.xml");
+                
+             Util.save(s,  u2.getFile(), s.getClass());
+             }
+        }
         /**
          * Force load an icon configuration file
          */

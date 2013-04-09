@@ -1,14 +1,14 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.core.WdssiiCommand;
 import com.jidesoft.swing.JideMenu;
 import com.jidesoft.swing.JideSplitButton;
 import java.util.*;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
-import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.core.CommandListener;
+import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.gui.swing.WdssiiCommandGUI;
 
 /**
  * Command to create a chart
@@ -98,7 +98,7 @@ public class ChartCreateCommand extends ProductCommand {
             public void customize(JPopupMenu menu) {
                 ChartCreateCommand f = new ChartCreateCommand();
                 f.setTargetListener(target);
-                WdssiiCommand.fillMenuFor(menu, f);
+                WdssiiCommandGUI.fillMenuFor(menu, f);
             }
         });
         return b;

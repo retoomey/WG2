@@ -12,6 +12,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import org.geotools.data.DefaultTransaction;
+import org.geotools.data.FeatureEvent;
+import org.geotools.data.FeatureListener;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
@@ -27,6 +29,8 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
+import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.Radial;
@@ -43,19 +47,19 @@ import org.wdssii.storage.Array1D;
  */
 public class RadialSetESRIWriter extends ESRIWriter {
 
+    private final int NUM_STATES = 4;
+    // Create radials, add features, transaction commit
     private static Logger log = LoggerFactory.getLogger(PPIRadialSet.class);
 
     @Override
-    public void export(Object data, URL aURL){
-        
-    }
-    /**
-     * Export the points as a shp file and prj, etc... ESRI format
-     */
-    public void exportSHPPointData(RadialSet rs, URL aURL) {
+    protected WdssiiJobStatus export(DataType data, URL aURL, WdssiiJobMonitor monitor) {
+
+        if (!(data instanceof RadialSet)) {
+            return WdssiiJobStatus.CANCEL_STATUS;
+        }
+        RadialSet rs = (RadialSet) (data);
 
         try {
-
             // Setup for JTS feature
             final SimpleFeatureType TYPE = createFeatureType();
             SimpleFeatureCollection collection = FeatureCollections.newCollection();
@@ -69,6 +73,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
             final float firstGateKms = rs.getRangeToFirstGateKms();
             final int maxGateCount = rs.getNumGates();
             final int numRadials = rs.getNumRadials();
+            monitor.beginTask("", NUM_STATES);// For write task
 
             // Gate and point cache
             Location gate = new Location(0, 0, 0);
@@ -76,7 +81,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
             Location gate2 = new Location(0, 0, 0);
             Location gate3 = new Location(0, 0, 0);
             Coordinate c0, c1, c2, c3;
-            
+
             // --------------------------------------------------------
             // On first radial, create an attenuation cache...
             Radial firstRadial = (numRadials > 0) ? rs.getRadial(0) : null;
@@ -85,9 +90,12 @@ public class RadialSetESRIWriter extends ESRIWriter {
 
             int featureId = 0;
             int currentRadial = 0;
-            
-            for(int i=0; i< numRadials; i++){
-                Radial r = rs.getRadial(i);          
+            monitor.subTask("Creating Radial Features");
+            monitor.worked(1);
+            // Do it first to ensure it's called
+
+            for (int i = 0; i < numRadials; i++) {
+                Radial r = rs.getRadial(i);
 
                 // If missing, just continue on
                 int numGates = r.getNumGates();
@@ -161,7 +169,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
                         c3 = new Coordinate(gate3.getLatitude(),
                                 gate3.getLongitude());
 
-                       // log.debug("OUTPUT " + c0 + c1 + c2 + c3);
+                        // log.debug("OUTPUT " + c0 + c1 + c2 + c3);
                         // Write a polygon for data.  Bleh we have to make unique objects
                         Coordinate[] a = new Coordinate[5];
                         a[0] = new Coordinate(c0);
@@ -184,18 +192,28 @@ public class RadialSetESRIWriter extends ESRIWriter {
             }
 
             // Write output to disk...
-            writeFeatureToFile(aURL, TYPE, collection);
+            monitor.subTask("Writing output file (wait)");
+            writeFeatureToFile(aURL, TYPE, collection, monitor);
         } catch (Exception e) {
             log.error("Error during RadialSet to shp generation " + e.toString());
+            return WdssiiJobStatus.CANCEL_STATUS;
         }
+        monitor.done();
+        return WdssiiJobStatus.OK_STATUS;
     }
 
     private static void writeFeatureToFile(URL aURL, SimpleFeatureType type,
-            SimpleFeatureCollection collection) throws MalformedURLException, IOException {
+            SimpleFeatureCollection collection, WdssiiJobMonitor monitor) throws MalformedURLException, IOException {
+        monitor.subTask("Prepping file");
+        monitor.worked(1);   // D
         /*
          * Get an output file name and create the new shapefile
          */
         File newFile = new File(aURL.getFile());
+        String name = newFile.getPath();
+        if (!name.toLowerCase().endsWith(".shp")) {
+            newFile = new File(newFile.getPath() + ".shp");
+        }
 
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
@@ -218,13 +236,23 @@ public class RadialSetESRIWriter extends ESRIWriter {
 
         String typeName = newDataStore.getTypeNames()[0];
         SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
-
+        final WdssiiJobMonitor pp = monitor;
         if (featureSource instanceof SimpleFeatureStore) {
             SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
 
             featureStore.setTransaction(transaction);
             try {
+                monitor.subTask("GeoTools: Adding features (can take a min)");
+                monitor.worked(1);   // Do it first to ensure it's called
+                featureStore.addFeatureListener(new FeatureListener() {
+                    @Override
+                    public void changed(FeatureEvent fe) {
+                        pp.subTask("Feature changed");
+                    }
+                });
                 featureStore.addFeatures(collection);
+                monitor.subTask("GeoTools: Transaction commit (can take a min)");
+                monitor.worked(1);   // D
                 transaction.commit();
 
             } catch (Exception problem) {

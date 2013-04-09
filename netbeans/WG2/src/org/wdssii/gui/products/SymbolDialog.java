@@ -1,6 +1,5 @@
 package org.wdssii.gui.products;
 
-import com.jidesoft.swing.JideSplitPane;
 import java.awt.Component;
 import java.awt.Container;
 import java.util.ArrayList;
@@ -10,17 +9,12 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeModel;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
@@ -31,29 +25,25 @@ import org.wdssii.gui.renderers.SymbolGUI;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
- * Dialog for changing symbology of our products Not sure where this belongs.
- *
- * (alpha)
+ * Dialog for editing a single symbol
  *
  * @author Robert Toomey
  */
-public class SymbologyDialog extends JDialog {
+public class SymbolDialog extends JDialog {
 
     private JPanel myPanel = null;
     private JButton myOKButton;
     private JPanel myGUIHolder;
     private SymbolGUI myCurrentGUI = null;
-    private JButton mySymbolButton;
-    private Product myProduct = null;
 
     // Because Java is brain-dead with JDialog/JFrame silliness
-    public SymbologyDialog(Product prod, JFrame owner, Component location, boolean modal, String myMessage) {
+    public SymbolDialog(Product prod, JFrame owner, Component location, boolean modal, String myMessage) {
 
         super(owner, modal);
         init(prod, location, myMessage);
     }
 
-    public SymbologyDialog(Product prod, JDialog owner, Component location, boolean modal, String myMessage) {
+    public SymbolDialog(Product prod, JDialog owner, Component location, boolean modal, String myMessage) {
 
         super(owner, modal);
         init(prod, location, myMessage);
@@ -61,37 +51,40 @@ public class SymbologyDialog extends JDialog {
 
     private void init(Product prod, Component location, String myMessage) {
 
-        myProduct = prod;
-        setTitle("Symbology");
+        setTitle("Edit Symbol");
         Container content = getContentPane();
-
-        // Root panel, containing split pane top and buttons bottom
         JPanel p;
         myPanel = p = new JPanel();
-        p.setLayout(new MigLayout(new LC().fill().insetsAll("10"), null, null));
+        p.setLayout(new MigLayout("",
+                "[pref!][grow, fill]",
+                "[][]"));
+
+        // FIXME: All the symbology layer stuff from product...
+        ArrayList<String> list = SymbolFactory.getSymbolNameList();
+        JComboBox typeList = new JComboBox(list.toArray());
+        p.add(new JLabel("Symbol Type:"), new CC());
+        p.add(typeList, new CC().growX().wrap());
 
         // The extra information panel...
         myGUIHolder = new JPanel();
-        //myGUIHolder.setSize(200, 50);
-        //p.add(myGUIHolder, new CC().growX().growY().pushY().span().wrap());
+        p.add(myGUIHolder, new CC().growX().growY().pushY().span().wrap());
+
+        // Soon to be from the product symbology data
+        Symbol theSymbol = DataTableRenderer.getHackMe();
+
+        SymbolGUI first = SymbolFactory.getSymbolGUI(theSymbol);
+        myCurrentGUI = first;
+        String symbolName = SymbolFactory.getSymbolTypeString(theSymbol);
+
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).equalsIgnoreCase(symbolName)) {
+                typeList.setSelectedIndex(i);
+                break;
+            }
+        }
+        first.activateGUI(myGUIHolder);
 
         JPanel buttonPanel = new JPanel();
-        String listData[] = {
-            "Single Symbol",
-            "Categories:Unique Values",
-        };
-        JList tree = new JList(listData);
-        mySymbolButton = new JButton("Edit Symbol");
-
-        JideSplitPane s = new JideSplitPane(JideSplitPane.HORIZONTAL_SPLIT);
-        s.setProportionalLayout(true);
-        s.setShowGripper(true);
-        s.add(new JScrollPane(tree));
-        s.add(new JScrollPane(mySymbolButton));
-
-        //p.add(mySymbolButton);
-
-        p.add(s, new CC().growX().growY()); // Fill with split pane
 
         // The OK button...we allow GUIPlugInPanels to hook into this
         myOKButton = new JButton("OK");
@@ -105,14 +98,39 @@ public class SymbologyDialog extends JDialog {
         content.setLayout(new MigLayout(new LC().fill().insetsAll("10"), null, null));
         content.add(myPanel, new CC().growX().growY());
         pack();
-        setLocationRelativeTo(this);
 
-        mySymbolButton.addActionListener(new java.awt.event.ActionListener() {
+        /**
+         * Add listener for changing symbol type
+         */
+        typeList.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                SymbolDialog myDialog = new SymbolDialog(myProduct, SymbologyDialog.this, SymbologyDialog.this, true, "Symbology");
+                JComboBox comboBox = (JComboBox) evt.getSource();
+                Object selected = comboBox.getSelectedItem();
+                String text = selected.toString();
+                Symbol oldOne = null;
+                if (myCurrentGUI != null) {
+                    oldOne = myCurrentGUI.getSymbol();
+                }
+                Symbol newOne = SymbolFactory.getSymbolByName(text, oldOne);
+                if (newOne != null) {
+                    SymbolGUI gui = SymbolFactory.getSymbolGUI(newOne);
+
+                    if (gui != null) {
+                        myGUIHolder.removeAll();
+                        gui.activateGUI(myGUIHolder);
+                        myGUIHolder.validate();
+                        myGUIHolder.repaint();
+                        myCurrentGUI = gui;
+                        // Replace hacked symbol
+                        DataTableRenderer.setHackMe(newOne);
+                        AnimateManager.updateDuringRender();
+                    }
+                }
+
             }
         });
+
         // myCancelButton.addActionListener(new java.awt.event.ActionListener() {
         //     @Override
         //     public void actionPerformed(java.awt.event.ActionEvent evt) {

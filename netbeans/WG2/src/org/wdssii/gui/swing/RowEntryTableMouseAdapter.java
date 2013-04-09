@@ -43,7 +43,13 @@ public class RowEntryTableMouseAdapter extends MouseAdapter {
      */
     public void handleClick(Object line, int row, int column) {
     }
-
+    
+    /** Handle click on object at row and column.  This is used for
+    special columns such as 'visible' or 'only' toggles, etc.
+     */
+    public void handleDoubleClick(Object line, int row, int column) {
+    }
+    
     @Override
     public void mouseClicked(MouseEvent e) {
         if (e.getComponent().isEnabled()
@@ -56,7 +62,11 @@ public class RowEntryTableMouseAdapter extends MouseAdapter {
                 int orgColumn = myTable.convertColumnIndexToModel(column);
                 int orgRow = myTable.convertRowIndexToModel(row);
                 Object stuff = myModel.getValueAt(orgRow, orgColumn);
-                handleClick(stuff, orgRow, orgColumn);
+                if (e.getClickCount() == 1){
+                     handleClick(stuff, orgRow, orgColumn);
+                }else{
+                    handleDoubleClick(stuff, orgRow, orgColumn);
+                }
             }
         }
     }

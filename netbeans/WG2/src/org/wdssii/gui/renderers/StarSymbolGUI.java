@@ -1,16 +1,18 @@
 package org.wdssii.gui.renderers;
 
+import com.jidesoft.swing.JideButton;
 import java.awt.Color;
 import javax.swing.JScrollPane;
+import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.properties.BooleanGUI;
 import org.wdssii.gui.properties.ColorGUI;
 import org.wdssii.gui.properties.IntegerGUI;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 import org.wdssii.xml.iconSetConfig.StarSymbol;
+import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
  * GUI for editing a StarSymbol FIXME: Need to work on properties/memento,
@@ -25,7 +27,10 @@ public class StarSymbolGUI extends SymbolGUI {
      */
     private StarSymbolMementor myMementor;
 
-    private static class StarSymbolMemento extends Memento {
+    /**
+     * Holds all the flags of StarSymbol
+     */
+    public static class StarSymbolMemento extends SymbolMemento {
 
         // Properties
         public static final String NUMPOINTS = "numpoints";
@@ -33,35 +38,39 @@ public class StarSymbolGUI extends SymbolGUI {
         public static final String COLOR = "color";
         public static final String USEOUTLINE = "useoutline";
         public static final String OCOLOR = "ocolor";
-        public static final String SIZE = "size";
-        
+
         public StarSymbolMemento(StarSymbolMemento m) {
             super(m);
         }
 
         public StarSymbolMemento() {
-            // Override initial feature delete to false
+            super();
             initProperty(NUMPOINTS, 4);
             initProperty(LINESIZE, 1);
             initProperty(COLOR, Color.BLUE);
             initProperty(USEOUTLINE, true);
             initProperty(OCOLOR, Color.BLACK);
-            initProperty(SIZE, 16);
         }
     }
 
     /**
      * Provides the properties for a StarSymbol
      */
-    private static class StarSymbolMementor implements Mementor {
+    public static class StarSymbolMementor extends SymbolMementor {
 
         private StarSymbol myStarSymbol;
 
-        private StarSymbolMementor() {
+        public StarSymbolMementor(StarSymbol data) {
+            super(data);
+            myStarSymbol = data;
         }
 
-        public StarSymbolMementor(StarSymbol data) {
-            myStarSymbol = data;
+        public void toX() {
+            myStarSymbol.toX();
+        }
+
+        public void toAsterisk() {
+            myStarSymbol.toAsterisk();
         }
 
         @Override
@@ -88,12 +97,7 @@ public class StarSymbolGUI extends SymbolGUI {
             if (c != null) {
                 myStarSymbol.ocolor = c;
             }
-            v = ((Integer) m.getPropertyValue(StarSymbolMemento.SIZE));
-            if (v != null) {
-                myStarSymbol.pointsize = v.intValue();
-            }
-            AnimateManager.updateDuringRender();  // Bleh
-
+            super.propertySetByGUI(name, m);
         }
 
         @Override
@@ -104,15 +108,22 @@ public class StarSymbolGUI extends SymbolGUI {
         }
 
         @Override
+        public void setMemento(Memento m) {
+            super.setMemento(m);
+            if (m instanceof StarSymbolMemento) {
+                m.setProperty(StarSymbolMemento.NUMPOINTS, myStarSymbol.numpoints);
+                m.setProperty(StarSymbolMemento.LINESIZE, myStarSymbol.lsize);
+                m.setProperty(StarSymbolMemento.COLOR, myStarSymbol.color);
+                m.setProperty(StarSymbolMemento.USEOUTLINE, myStarSymbol.useOutline);
+                m.setProperty(StarSymbolMemento.OCOLOR, myStarSymbol.ocolor);
+            }
+        }
+
+        @Override
         public Memento getMemento() {
             // Get the current settings...patch from StarSymbol...
             StarSymbolMemento m = new StarSymbolMemento();
-            m.setProperty(StarSymbolMemento.NUMPOINTS, myStarSymbol.numpoints);
-            m.setProperty(StarSymbolMemento.LINESIZE, myStarSymbol.lsize);
-            m.setProperty(StarSymbolMemento.COLOR, myStarSymbol.color);
-            m.setProperty(StarSymbolMemento.USEOUTLINE, myStarSymbol.useOutline);
-            m.setProperty(StarSymbolMemento.OCOLOR, myStarSymbol.ocolor);
-            m.setProperty(StarSymbolMemento.SIZE, myStarSymbol.pointsize);
+            setMemento(m);
             return m;
         }
     }
@@ -125,12 +136,51 @@ public class StarSymbolGUI extends SymbolGUI {
         setupComponents();
     }
 
+    @Override
+    public Symbol getSymbol() {
+        return myMementor.myStarSymbol;
+    }
+
     /**
      * General update call
      */
     @Override
     public void updateGUI() {
         updateToMemento(myMementor.getNewMemento());
+    }
+
+    public final void addStarSymbolComponents(Mementor m) {
+        add(new IntegerGUI(myMementor, StarSymbolMemento.NUMPOINTS, "Count", this,
+                2, 16, 2, "points"));
+        // Quick selects
+        JideButton b;
+        b = new JideButton("Asterisk");
+        b.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                myMementor.toAsterisk();
+                updateGUI();
+            }
+        });
+        add(b, new CC());
+        b = new JideButton("Big X");
+        b.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                myMementor.toX();
+                updateGUI();
+            }
+        });
+        add(b, new CC().wrap());
+
+        add(new IntegerGUI(myMementor, StarSymbolMemento.LINESIZE, "Linewidth", this,
+                1, 10, 1, "points"));
+        add(new ColorGUI(myMementor, StarSymbolMemento.COLOR, "Base Color", this));
+        add(new BooleanGUI(myMementor, StarSymbolMemento.USEOUTLINE, "Use outline", this));
+        add(new ColorGUI(myMementor, StarSymbolMemento.OCOLOR, "Outline Color", this));
+
+        // Get the stock Symbol controls
+        super.addSymbolComponents(myMementor);
     }
 
     /**
@@ -141,18 +191,8 @@ public class StarSymbolGUI extends SymbolGUI {
         JScrollPane s = new JScrollPane();
         s.setViewportView(this);
         setRootComponent(s);
-
         setLayout(new MigLayout(new LC(), null, null));
-        add(new IntegerGUI(myMementor, StarSymbolMemento.NUMPOINTS, "Count", this,
-                2, 16, 2, "points"));
-        add(new IntegerGUI(myMementor, StarSymbolMemento.LINESIZE, "Linewidth", this,
-                1, 10, 1, "points"));
-        add(new ColorGUI(myMementor, StarSymbolMemento.COLOR, "Base Color", this));
-        add(new BooleanGUI(myMementor, StarSymbolMemento.USEOUTLINE, "Use outline", this));
-        add(new ColorGUI(myMementor, StarSymbolMemento.OCOLOR, "Outline Color", this));
 
-         add(new IntegerGUI(myMementor, StarSymbolMemento.SIZE, "Size", this,
-                5, 50, 1, "points"));
-
+        addStarSymbolComponents(myMementor);
     }
 }

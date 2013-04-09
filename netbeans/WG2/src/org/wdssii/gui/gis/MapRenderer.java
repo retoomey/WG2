@@ -39,7 +39,7 @@ import org.wdssii.gui.gis.MapFeature.MapMemento;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
-import org.wdssii.util.GLUtil;
+import org.wdssii.gui.GLUtil;
 
 /**
  *

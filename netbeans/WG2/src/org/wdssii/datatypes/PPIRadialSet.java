@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.writers.RadialSetESRIWriter;
 import org.wdssii.geom.Location;
 import org.wdssii.core.GridVisibleArea;
+import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.storage.Array1D;
 
 /*
@@ -678,8 +679,8 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
      * Eventually create by reflection to disconnect.
      */
     @Override
-    public void exportToESRI(URL aURL) {
+    public void exportToESRI(URL aURL, WdssiiJobMonitor m) {
         RadialSetESRIWriter w = new RadialSetESRIWriter();
-        w.exportSHPPointData(this, aURL);
+        w.export("RadialSet to Quads", this, aURL, m);
     }
 }

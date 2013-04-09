@@ -1,4 +1,4 @@
-package org.wdssii.util;
+package org.wdssii.gui;
 
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.View;

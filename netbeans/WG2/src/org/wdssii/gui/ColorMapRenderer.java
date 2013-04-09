@@ -16,7 +16,6 @@ import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LegendFeature.LegendMemento;
 import org.wdssii.gui.products.ProductFeature;
-import org.wdssii.util.GLUtil;
 
 /**
  * ColorMapRenderer. Base class for rendering a ColorMap. Since I'm only

@@ -2,6 +2,7 @@ package org.wdssii.gui;
 
 import java.util.concurrent.ExecutorService;
 import org.wdssii.core.WdssiiJob;
+import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.gui.views.JobsView;
 
 /**
@@ -41,7 +42,7 @@ public class JobSwingFactory implements WdssiiJob.WdssiiJobFactory {
          * The monitor object for this job. Used by the job to send back info on
          * the job state/status as it runs.
          */
-        private JobSwingMonitor myWdssiiJobMonitor;
+        private WdssiiJobMonitor myWdssiiJobMonitor;
 
         private JobSwingRunner(WdssiiJob job) {
             myWdssiiJob = job;
@@ -146,6 +147,7 @@ public class JobSwingFactory implements WdssiiJob.WdssiiJobFactory {
                 return myCanceled;
             }
 
+            @Override
             public void cancel() {
                 synchronized (myStartSync) {
                     if (myIsStarted) {
@@ -173,7 +175,14 @@ public class JobSwingFactory implements WdssiiJob.WdssiiJobFactory {
                         // Multiple runners....
                         WdssiiJob.upStartCount();  
                         synchronized (jobSync) {
+                            // if monitor was passed to job, we will use it instead
+                            // FIXME: should piggy back two...
+                            WdssiiJobMonitor m = myWdssiiJob.getMonitor();
+                            if (m != null){
+                                myWdssiiJobMonitor = m;
+                            }else{
                             myWdssiiJobMonitor = new JobSwingMonitor(myWdssiiJob);
+                            }
                         }
                         myWdssiiJob.run(myWdssiiJobMonitor);
                     } finally {

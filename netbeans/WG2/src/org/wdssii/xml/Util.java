@@ -240,7 +240,7 @@ public class Util {
         try {
             // setup object mapper using the AppConfig class
             JAXBContext context = JAXBContext.newInstance(topClass);
-
+log.debug("JAXB "+context.toString());
             XMLInputFactory factory = XMLInputFactory.newInstance();
 
             try {
@@ -311,7 +311,7 @@ public class Util {
 
             // output pretty printed
             jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
+            jaxbMarshaller.setProperty("com.sun.xml.internal.bind.xmlHeaders", "\n<!-- Created by WG2. Recommend not editing by hand -->");
             jaxbMarshaller.marshal(root, file);
             jaxbMarshaller.marshal(root, System.out);
 

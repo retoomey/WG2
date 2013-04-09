@@ -50,7 +50,7 @@ public class SymbolFactory {
         return r;
     }
     
-    public static Symbol getSymbolByName(String name){
+    public static Symbol getSymbolByName(String name, Symbol oldSymbol){
         Symbol s = null;
          if (name.equals("Star")) {
             s = new StarSymbol();
@@ -60,6 +60,9 @@ public class SymbolFactory {
         }
         if (name.equals("Image")) {
             s = new ImageSymbol();
+        }
+        if ((s != null) && (oldSymbol != null)){
+            s.copyFrom(oldSymbol);
         }
         return s;
     }

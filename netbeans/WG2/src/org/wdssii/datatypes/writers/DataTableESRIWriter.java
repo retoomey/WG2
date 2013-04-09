@@ -1,6 +1,8 @@
 package org.wdssii.datatypes.writers;
 
 import java.net.URL;
+import org.wdssii.core.WdssiiJob;
+import org.wdssii.datatypes.DataType;
 
 /**
  * Write out a DataTable DataType to an ESRI point pointfile with the table as
@@ -10,7 +12,7 @@ import java.net.URL;
  */
 public class DataTableESRIWriter extends ESRIWriter {
 
-    @Override
-    public void export(Object data, URL aURL) {
-    }
+   // @Override
+    //public WdssiiJobStatus export(DataType data, URL aURL) {
+   // }
 }

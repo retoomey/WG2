@@ -361,6 +361,18 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
                     }
                 }
             }
+            
+            @Override
+            public void handleDoubleClick(Object stuff, int row, int column) {
+                 if (stuff instanceof SourceListTableData) {
+                    SourceListTableData entry = (SourceListTableData) (stuff);
+
+                   if (!entry.connecting && !entry.connected){
+                       SourceConnectCommand r = new SourceConnectCommand(entry.sourceKey);
+                       CommandManager.getInstance().executeCommand(r, true);
+                   }
+                }
+            }
         });
 
         setUpSortingColumns();

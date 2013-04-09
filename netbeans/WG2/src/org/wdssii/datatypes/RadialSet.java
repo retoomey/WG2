@@ -226,57 +226,66 @@ public class RadialSet extends DataType {
      * @FIXME: This might only apply to PPI RadialSet, not sure yet..
      */
     public void locationToSphere(Location l, PPIRadialSet.SphericalLocation out) {
-
-        // The direct way, but slower...crazy amounts of newing and memory fluctuation
-        // during render
-	/*
-         * CPoint pt = l.getCPoint(); CVector fromConeApex =
-         * pt.minus(radarLocation); CVector vxy =
-         * fromConeApex.crossProduct(myUz); double norm =
-         * fromConeApex.norm(); out.elev =
-         * Math.asin(fromConeApex.dotProduct(myUz) / norm) * 180 /
-         * Math.PI; out.range = norm; // Get azimuth for a location
-         * (always for filters in GUI) // The atan2 gives us 0 at north,
-         * 90 to west. Radar is 0 to north, 90 to east double dotx2 =
-         * vxy.dotProduct(myUx); double doty2 = vxy.dotProduct(myUy);
-         * double az2 = (float)(360.0 -
-         * (Math.toDegrees(Math.atan2(doty2, dotx2)))); float azimuth =
-         * Radial.normalizeAzimuth((float) az2); out.azimuth = azimuth;
-         */
-
         // All the math expanded (avoids new allows some short cuts for speed)
         // Remember in a GUI volume render we typically call this in a monster loop
         // while the user is dragging so every ms counts...
-
-        // pt = q.inLocation.getCPoint();
+        double ree = Location.EarthRadius + originLocation.getHeightKms(); // kms
+        double phi2 = originLocation.getLongitude() * Math.PI / 180.0; // radians();
+        double beta2 = originLocation.getLatitude() * Math.PI / 180.0; // .radians();
+       
+        double cosBeta2 = Math.cos(beta2);
+        double rlx = ree * Math.cos(phi2) * cosBeta2;
+        double rly = ree * Math.sin(phi2) * cosBeta2;
+        double rlz = ree * Math.sin(beta2);
+        
+        double zvx, zvy, zvz;
+        double zvNorm = Math.sqrt(rlx * rlx + rly * rly + rlz * rlz);
+        if (zvNorm > 0) {
+            zvx = rlx/zvNorm;
+            zvy = rly/zvNorm;
+            zvz = rlz/zvNorm;
+        }else{
+            zvx = 0;
+            zvy = 0;
+            zvz = 0;
+        }
+        double xvx, xvy, xvz;
+        double xvNorm = Math.sqrt(zvy*zvy + zvx*zvx);
+        if (xvNorm > 0) {
+            xvx = -zvy/xvNorm;
+            xvy = zvx/xvNorm;
+            xvz = 0; // 0/xvNorm;
+        }else{
+            xvx = 0;
+            xvy = 0;
+            xvz = 0;
+        }
+        double yvx, yvy, yvz;
+        yvx = zvy * xvz - zvz * xvy;
+        yvy = zvz * xvx - zvx * xvz;
+        yvz = zvx * xvy - zvy * xvx;
+        
         double r = Location.EarthRadius + l.getHeightKms(); // kms
         double phi = l.getLongitude() * Math.PI / 180.0; // radians();
         double beta = l.getLatitude() * Math.PI / 180.0; // .radians();
-        double x = r * Math.cos(phi) * Math.cos(beta);
-        double y = r * Math.sin(phi) * Math.cos(beta);
-        double z = r * Math.sin(beta);
+        double cosBeta = Math.cos(beta);
 
-        //CVector fromConeApex = pt.minus(radarLocation);
-        double coneX = x - radarLocation.x;  // Cheaper
-        double coneY = y - radarLocation.y;
-        double coneZ = z - radarLocation.z;
+        double coneX = (r * Math.cos(phi) * cosBeta) - rlx; 
+        double coneY = (r * Math.sin(phi) * cosBeta) - rly;
+        double coneZ = (r * Math.sin(beta)) - rlz;
 
-        //CVector vxy = fromConeApex.crossProduct(myUz);
-        double crossX = coneY * myUz.z - coneZ * myUz.y;
-        double crossY = coneZ * myUz.x - coneX * myUz.z;
-        double crossZ = coneX * myUz.y - coneY * myUz.x;
+        double crossX = coneY * zvz - coneZ * zvy;
+        double crossY = coneZ * zvx - coneX * zvz;
+        double crossZ = coneX * zvy - coneY * zvx;
 
-        //double norm = fromConeApex.norm();
         out.range = Math.sqrt(coneX * coneX + coneY * coneY + coneZ * coneZ);
 
-        // Calculate the azimuth of the location in respect to the radar center
-        //double dotx = vxy.dotProduct(myUx);
-        double dotx = crossX * myUx.x + crossY * myUx.y + crossZ * myUx.z;
-        double doty = crossX * myUy.x + crossY * myUy.y + crossZ * myUy.z;
+        double dotx = crossX * xvx + crossY * xvy + crossZ * xvz;
+        double doty = crossX * yvx + crossY * yvy + crossZ * yvz;
         double az = (360.0 - (Math.toDegrees(Math.atan2(doty, dotx))));
         out.azimuthDegs = Radial.normalizeDegrees((float) az);
 
-        double dotz = coneX * myUz.x + coneY * myUz.y + coneZ * myUz.z;
+        double dotz = coneX * zvx + coneY * zvy + coneZ * zvz;
         out.elevDegs = Math.asin(dotz / out.range) * 180 / Math.PI;
     }
 

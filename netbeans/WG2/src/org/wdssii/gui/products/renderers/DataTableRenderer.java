@@ -28,7 +28,7 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.renderers.icons.BaseIconAnnotation;
 import org.wdssii.gui.renderers.SymbolFactory;
 import org.wdssii.gui.renderers.SymbolRenderer;
-import org.wdssii.util.GLUtil;
+import org.wdssii.gui.GLUtil;
 import org.wdssii.xml.iconSetConfig.ImageSymbol;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
 import org.wdssii.xml.iconSetConfig.StarSymbol;
@@ -67,13 +67,13 @@ public class DataTableRenderer extends ProductRenderer {
         super(true);                 
     }
 
+    public static Symbol getHackMe(){
+        return hackme;
+    }
+    
     public static void setHackMe(Symbol s){
         refreshRenderers = true;
         hackme = s;
-    }
-    
-    public static Symbol getHackMe(){
-        return hackme;
     }
     
     @Override

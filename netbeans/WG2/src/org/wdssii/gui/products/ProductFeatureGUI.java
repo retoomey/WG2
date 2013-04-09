@@ -18,8 +18,10 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.gui.features.FeatureGUI;
+import org.wdssii.gui.swing.ProgressDialog;
 
 /**
  * Create the GUI for a product feature
@@ -81,9 +83,117 @@ public class ProductFeatureGUI extends FeatureGUI {
         Component something = (Component) SwingUtilities.getRoot(this);
         if (something instanceof JDialog) {
             SymbologyDialog myDialog = new SymbologyDialog(myProduct.getProduct(), (JDialog) something, this, true, "Symbology");
-        }else{
+        } else {
             // Assume JFrame....
             SymbologyDialog myDialog = new SymbologyDialog(myProduct.getProduct(), (JFrame) something, this, true, "Symbology");
+        }
+    }
+
+    public static class ProgressDialogJobMonitor implements WdssiiJob.WdssiiJobMonitor {
+
+        private JDialog myRootDialog;
+        private JFrame myRootFrame;
+        private JComponent myLocation;
+        private volatile ProgressDialog myDialog = null;
+        private int myProgress = 0;
+        private String myTaskName;
+        private String myTitle;
+        private int myTotalUnits = 0;
+
+        /**
+         * Called from GUI thread
+         */
+        public ProgressDialogJobMonitor(JDialog d, JComponent location, String title) {
+            myRootDialog = d;
+            myRootFrame = null;
+            myLocation = location;
+            myTitle = title;
+        }
+
+        public ProgressDialogJobMonitor(JFrame f, JComponent location, String title) {
+            myRootDialog = null;
+            myRootFrame = f;
+            myLocation = location;
+            myTitle = title;
+        }
+
+        public void createGUIIfNeeded() {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    initInGUIThread();
+                }
+            });
+        }
+
+        public final void initInGUIThread() {
+            if (myDialog == null) {  // Only we create and change value, so no sync needed...
+                if (myRootDialog != null) {
+                    myDialog = new ProgressDialog(myRootDialog, myLocation, myTitle);
+                    myDialog.setVisible(true); // Have to call AFTER creation this locks this thread
+                } else {
+                    myDialog = new ProgressDialog(myRootFrame, myLocation, myTitle);
+                    myDialog.setVisible(true); // Have to call AFTER creation this locks this thread
+                }
+            }
+        }
+
+        @Override
+        public void done() {
+
+            // Hide it....or possible show 'ok' 'error' messages, etc...
+            ProgressDialog d = getDialog();
+            if (d != null) {
+                if (d.isVisible()) {
+                    d.setVisible(false);
+                }
+            }
+        }
+
+        @Override
+        public void beginTask(String taskName, int totalUnits) {
+            createGUIIfNeeded();  // Non-locking separate 
+            myTaskName = taskName;
+            myTotalUnits = totalUnits;
+        }
+
+        @Override
+        public void subTask(String subTaskName) {
+            myTaskName = subTaskName;
+        }
+
+        public ProgressDialog getDialog() {
+            ProgressDialog d = null;
+            if (myDialog != null) {  // We only read value...
+                d = myDialog;
+            }
+            return d;
+        }
+
+        @Override
+        public void worked(int howMany) {
+
+            myProgress += howMany;
+
+            ProgressDialog d = getDialog();
+            if (d != null) {
+                if (d.isVisible()) {
+                    d.setMinMax(1, myTotalUnits);
+                    d.setProgress(myProgress);
+                    d.setMessage(myTaskName);
+                }
+            }
+
+
+        }
+
+        @Override
+        public boolean isCanceled() {
+            return true;
+        }
+
+        @Override
+        public void cancel() {
         }
     }
 
@@ -113,7 +223,22 @@ public class ProductFeatureGUI extends FeatureGUI {
                 if (myProduct != null) {
                     DataType d = myProduct.getLoadedDatatype();
                     if (d != null) {
-                        d.exportToESRI(aURL);
+                        log.debug("Create progress monitor ");
+                        // ProgressMonitor m = new ProgressMonitor(this, "Test", "GOOP", 0, 1000);
+                        // m.setProgress(500);
+                        // m.setMillisToPopup(100);
+
+                        Component something = (Component) SwingUtilities.getRoot(this);
+                        ProgressDialogJobMonitor m;
+                        String title = "Exporting ESRI .shp Data";
+                        if (something instanceof JDialog) {
+                            m = new ProgressDialogJobMonitor((JDialog) something, this, title);
+                        } else {
+                            // Assume JFrame....
+                            m = new ProgressDialogJobMonitor((JFrame) something, this, title);
+                        }
+
+                        d.exportToESRI(aURL, m);
                     } else {
                         // warn or something?
                     }

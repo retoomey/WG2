@@ -73,6 +73,8 @@ public class WdssiiJob {
             return totalJobsFinished;
         }
     }
+    
+    
     /**
      * The job runner for our job
      */
@@ -143,6 +145,9 @@ public class WdssiiJob {
          * Has the job been canceled?
          */
         public boolean isCanceled();
+        
+        /** Cancel this job */
+        public void cancel();
     };
 
     public static interface WdssiiJobRunner {
@@ -165,15 +170,30 @@ public class WdssiiJob {
      */
     private String myName;
 
+    /** A monitor for this job */
+    private WdssiiJobMonitor myMonitor = null;
+    
     /**
      * Create a job with given name
      */
     public WdssiiJob(String jobName) {
         myName = jobName;
     }
+    
+    /**
+     * Create a job with given name and an extra job listener
+     */
+    public WdssiiJob(String jobName, WdssiiJobMonitor monitor) {
+        myName = jobName;
+        myMonitor = monitor;
+    }
 
     public String getName() {
         return myName;
+    }
+    
+    public WdssiiJobMonitor getMonitor(){
+        return myMonitor;
     }
 
     /**
@@ -229,6 +249,10 @@ public class WdssiiJob {
         @Override
         public boolean isCanceled() {
             return true;
+        }
+        
+        @Override
+        public void cancel() {
         }
     }
 }

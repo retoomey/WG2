@@ -1,17 +1,18 @@
 package org.wdssii.gui.renderers;
 
+import com.jidesoft.swing.JideButton;
 import java.awt.Color;
 import javax.swing.JScrollPane;
+import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.properties.BooleanGUI;
 import org.wdssii.gui.properties.ColorGUI;
 import org.wdssii.gui.properties.IntegerGUI;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
-import org.wdssii.xml.iconSetConfig.StarSymbol;
+import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
  * GUI for editing a PolygonSymbol
@@ -25,43 +26,53 @@ public class PolygonSymbolGUI extends SymbolGUI {
      */
     private PolygonSymbolMementor myMementor;
 
-    private static class PolygonSymbolMemento extends Memento {
+    public static class PolygonSymbolMemento extends SymbolMemento {
 
         // Properties
         public static final String NUMPOINTS = "numpoints";
-      //  public static final String LINESIZE = "linesize";
         public static final String COLOR = "color";
         public static final String USEOUTLINE = "useoutline";
         public static final String OCOLOR = "ocolor";
-        public static final String SIZE = "size";
-        
+
         public PolygonSymbolMemento(PolygonSymbolMemento m) {
             super(m);
         }
 
         public PolygonSymbolMemento() {
-            // Override initial feature delete to false
+            super();
             initProperty(NUMPOINTS, 4);
-           // initProperty(LINESIZE, 1);
             initProperty(COLOR, Color.BLUE);
             initProperty(USEOUTLINE, true);
             initProperty(OCOLOR, Color.BLACK);
-            initProperty(SIZE, 16);
         }
     }
 
     /**
      * Provides the properties for a StarSymbol
      */
-    private static class PolygonSymbolMementor implements Mementor {
+    private static class PolygonSymbolMementor extends SymbolMementor {
 
         private PolygonSymbol mySymbol;
 
-        private PolygonSymbolMementor() {
+        public PolygonSymbolMementor(PolygonSymbol data) {
+            super(data);
+            mySymbol = data;
         }
 
-        public PolygonSymbolMementor(PolygonSymbol data) {
-            mySymbol = data;
+        public void toSquare() {
+            mySymbol.toSquare();
+        }
+
+        public void toCircle() {
+            mySymbol.toCircle();
+        }
+
+        public void toDiamond() {
+            mySymbol.toDiamond();
+        }
+
+        public void toTriangle() {
+            mySymbol.toTriangle();
         }
 
         @Override
@@ -72,10 +83,6 @@ public class PolygonSymbolGUI extends SymbolGUI {
             if (v != null) {
                 mySymbol.numpoints = v.intValue();
             }
-          //  v = ((Integer) m.getPropertyValue(PolygonSymbolMemento.LINESIZE));
-          //  if (v != null) {
-          //      mySymbol.lsize = v.intValue();
-          //  }
             Color c = (Color) m.getPropertyValue(PolygonSymbolMemento.COLOR);
             if (c != null) {
                 mySymbol.color = c;
@@ -88,11 +95,7 @@ public class PolygonSymbolGUI extends SymbolGUI {
             if (c != null) {
                 mySymbol.ocolor = c;
             }
-            v = ((Integer) m.getPropertyValue(PolygonSymbolMemento.SIZE));
-            if (v != null) {
-                mySymbol.pointsize = v.intValue();
-            }
-            AnimateManager.updateDuringRender();  // Bleh
+            super.propertySetByGUI(name, m);
 
         }
 
@@ -104,15 +107,21 @@ public class PolygonSymbolGUI extends SymbolGUI {
         }
 
         @Override
+        public void setMemento(Memento m) {
+            super.setMemento(m);
+            if (m instanceof PolygonSymbolMemento) {
+                m.setProperty(PolygonSymbolMemento.NUMPOINTS, mySymbol.numpoints);
+                m.setProperty(PolygonSymbolMemento.COLOR, mySymbol.color);
+                m.setProperty(PolygonSymbolMemento.USEOUTLINE, mySymbol.useOutline);
+                m.setProperty(PolygonSymbolMemento.OCOLOR, mySymbol.ocolor);
+            }
+        }
+
+        @Override
         public Memento getMemento() {
             // Get the current settings...patch from StarSymbol...
             PolygonSymbolMemento m = new PolygonSymbolMemento();
-            m.setProperty(PolygonSymbolMemento.NUMPOINTS, mySymbol.numpoints);
-           // m.setProperty(PolygonSymbolMemento.LINESIZE, mySymbol.lsize);
-            m.setProperty(PolygonSymbolMemento.COLOR, mySymbol.color);
-            m.setProperty(PolygonSymbolMemento.USEOUTLINE, mySymbol.useOutline);
-            m.setProperty(PolygonSymbolMemento.OCOLOR, mySymbol.ocolor);
-            m.setProperty(PolygonSymbolMemento.SIZE, mySymbol.pointsize);
+            setMemento(m);      
             return m;
         }
     }
@@ -124,13 +133,70 @@ public class PolygonSymbolGUI extends SymbolGUI {
         myMementor = new PolygonSymbolMementor(owner);
         setupComponents();
     }
-
+    
+    @Override
+    public Symbol getSymbol(){
+        return myMementor.mySymbol;
+    }
     /**
      * General update call
      */
     @Override
     public void updateGUI() {
         updateToMemento(myMementor.getNewMemento());
+    }
+
+    public final void addPolygonSymbolComponents(Mementor m) {
+        add(new IntegerGUI(myMementor, PolygonSymbolMemento.NUMPOINTS, "Sides", this,
+                3, 20, 1, "points"));
+
+        // Quick selects
+        JideButton b;
+        b = new JideButton("Square");
+        b.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                myMementor.toSquare();
+                updateGUI();
+            }
+        });
+        add(b, new CC());
+        b = new JideButton("Circle");
+        b.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                myMementor.toCircle();
+                updateGUI();
+            }
+        });
+        add(b, new CC());
+        b = new JideButton("Diamond");
+        b.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                myMementor.toDiamond();
+                updateGUI();
+            }
+        });
+        add(b, new CC());
+        b = new JideButton("Triangle");
+        b.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                myMementor.toTriangle();
+                updateGUI();
+            }
+        });
+        add(b, new CC().wrap());
+
+        // add(new IntegerGUI(myMementor, PolygonSymbolMemento.LINESIZE, "Linewidth", this,
+        //         1, 10, 1, "points"));
+        add(new ColorGUI(myMementor, PolygonSymbolMemento.COLOR, "Base Color", this));
+        add(new BooleanGUI(myMementor, PolygonSymbolMemento.USEOUTLINE, "Use outline", this));
+        add(new ColorGUI(myMementor, PolygonSymbolMemento.OCOLOR, "Outline Color", this));
+
+         // Get the stock Symbol controls
+        super.addSymbolComponents(myMementor);
     }
 
     /**
@@ -141,18 +207,8 @@ public class PolygonSymbolGUI extends SymbolGUI {
         JScrollPane s = new JScrollPane();
         s.setViewportView(this);
         setRootComponent(s);
-
         setLayout(new MigLayout(new LC(), null, null));
-        add(new IntegerGUI(myMementor, PolygonSymbolMemento.NUMPOINTS, "Sides", this,
-                3, 16, 1, "points"));
-       // add(new IntegerGUI(myMementor, PolygonSymbolMemento.LINESIZE, "Linewidth", this,
-       //         1, 10, 1, "points"));
-        add(new ColorGUI(myMementor, PolygonSymbolMemento.COLOR, "Base Color", this));
-        add(new BooleanGUI(myMementor, PolygonSymbolMemento.USEOUTLINE, "Use outline", this));
-        add(new ColorGUI(myMementor, PolygonSymbolMemento.OCOLOR, "Outline Color", this));
 
-         add(new IntegerGUI(myMementor, PolygonSymbolMemento.SIZE, "Size", this,
-                5, 50, 1, "points"));
-
+        addPolygonSymbolComponents(myMementor);
     }
 }

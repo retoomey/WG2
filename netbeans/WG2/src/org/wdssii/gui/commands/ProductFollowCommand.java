@@ -1,16 +1,16 @@
 package org.wdssii.gui.commands;
 
-import org.wdssii.core.WdssiiCommand;
 import com.jidesoft.swing.JideMenu;
 import com.jidesoft.swing.JideSplitButton;
 import java.util.*;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
+import org.wdssii.core.CommandListener;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.SwingIconFactory;
-import org.wdssii.core.CommandListener;
+import org.wdssii.gui.swing.WdssiiCommandGUI;
 
 /**
  * Command to follow a particular product, such as in a chart where it is
@@ -135,7 +135,7 @@ public class ProductFollowCommand extends ProductCommand {
             public void customize(JPopupMenu menu) {
                 ProductFollowCommand f = new ProductFollowCommand();
                 f.setTargetListener(target);
-                WdssiiCommand.fillCheckMenuFor(menu, f);
+                WdssiiCommandGUI.fillCheckMenuFor(menu, f);
             }
         });
         return b;

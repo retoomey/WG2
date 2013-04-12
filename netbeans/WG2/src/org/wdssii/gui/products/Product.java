@@ -30,6 +30,7 @@ import org.wdssii.index.IndexRecord;
 import org.wdssii.index.IndexSubType;
 import org.wdssii.index.IndexSubType.SubtypeType;
 import org.wdssii.index.VolumeRecord;
+import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**
  * Product is a holder for everything that can possibly be done for a particular
@@ -57,7 +58,6 @@ import org.wdssii.index.VolumeRecord;
 public class Product extends DelegateHelper {
 
     private static Logger log = LoggerFactory.getLogger(Product.class);
-    
     // Helper class paths.  These are created by name from the DataType, thus
     // a RadialSetNavigator will be created (if there) for a RadialSet, etc.
     private final static String RENDERER_CLASSPATH = "org.wdssii.gui.products.renderers";
@@ -65,7 +65,6 @@ public class Product extends DelegateHelper {
     private final static String TABLE_CLASSPATH = "org.wdssii.gui.products";
     private final static String VOLUME_CLASSPATH = "org.wdssii.gui.products.volumes";
     private final static String NAVIGATOR_CLASSPATH = "org.wdssii.gui.products.navigators";
-    
     // Raw DataType, if loaded. DataType is loaded in background thread
     final protected Object myRawDataSync = new Object();
     protected DataType myRawDataType = null;
@@ -139,9 +138,10 @@ public class Product extends DelegateHelper {
         myIndexKey = anIndex;
     }
 
-    public boolean loaded(){
+    public boolean loaded() {
         return myLoaded;
     }
+
     /**
      * Actually start loading this product. This can be intensive We create a
      * DataRequest to run in background...basically it's a Future<DataType> I
@@ -415,11 +415,11 @@ public class Product extends DelegateHelper {
         return pr;
     }
 
-    public ProductTextFormatter getProductFormatter(){      
+    public ProductTextFormatter getProductFormatter() {
         // For now, using stock formatter for all....
         return ProductTextFormatter.DEFAULT_FORMATTER;
     }
-    
+
     // Return the thing that draws this product
     public ProductVolume getProductVolume(boolean virtual) {
         // We create one Volume for virtual, one for regular. We need unique ones
@@ -495,6 +495,15 @@ public class Product extends DelegateHelper {
         cman.setColorKey(this, f);
     }
 
+     public void setSymbology(Symbology s) {
+        ProductManager cman = ProductManager.getInstance();
+        cman.setSymbology(this, s);
+    }
+    public Symbology getSymbology() {
+        ProductManager cman = ProductManager.getInstance();
+        return cman.getSymbology(this);
+    }
+
     // Return the current color map for this product
     public ColorMap getColorMap() {
         ProductManager cman = ProductManager.getInstance();
@@ -546,8 +555,8 @@ public class Product extends DelegateHelper {
      * Get the info string. This is displayed by the navigation view when this
      * product is selected.
      *
-     *  FIXME: This should use the ProductTextFormatter...?
-     * 
+     * FIXME: This should use the ProductTextFormatter...?
+     *
      * @return string
      */
     public String getProductInfoString(boolean full) {

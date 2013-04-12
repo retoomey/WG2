@@ -36,6 +36,7 @@ import org.wdssii.index.IndexRecord;
 import org.wdssii.xml.*;
 import org.wdssii.xml.ColorDatabase.ColorDef;
 import org.wdssii.xml.W2ColorMap.W2ColorBin;
+import org.wdssii.xml.iconSetConfig.Categories;
 import org.wdssii.xml.iconSetConfig.Category;
 import org.wdssii.xml.iconSetConfig.IconSetConfig;
 import org.wdssii.xml.iconSetConfig.ImageSymbol;
@@ -387,6 +388,10 @@ public class ProductManager implements Singleton {
          */
         private ColorMap myColorMap = null;
         /**
+         * The symbology for this product
+         */
+        private Symbology mySymbology = null;
+        /**
          * Set to true if we have tried to load the xml files for this type,
          * such as the colormap.xml or iconconfig.xml
          */
@@ -513,30 +518,39 @@ public class ProductManager implements Singleton {
         }
 
         /**
-         * The new symbology file.  This will include all the old stuff
-         * from color maps, etc.
-         * ColorMaps are really a value --> color lookup which could
-         * occur differently for datatable, etc. We need to refactor this
+         * The new symbology file. This will include all the old stuff from
+         * color maps, etc. ColorMaps are really a value --> color lookup which
+         * could occur differently for datatable, etc. We need to refactor this
          * get away from the old display way.
          */
         private void loadSymbologyFromXML() {
-             Symbology s = Util.load("symbology/" + getName()+".xml", Symbology.class);
-             if (s != null){
-             log.debug("SYMBOLOGY for "+getName()+ " is "+s);
-             
-             StarSymbol test = new StarSymbol();      // is JAXB smart enough?  
-             Category c = s.categories.list.get(0);
-             c.symbols = new ArrayList<Symbol>();
-             c.symbols.add(test);// Add a Star
-             c.symbols.add(new ImageSymbol());
-             c.symbols.add(new PolygonSymbol());
-             
-             
-                 URL u2 = W2Config.getURL("symbology/" + getName()+"2.xml");
-                
-             Util.save(s,  u2.getFile(), s.getClass());
-             }
+            // If we don't have a symbology...
+            if (mySymbology == null) {
+                Symbology s = Util.load("symbology/" + getName() + ".xml", Symbology.class);
+                if (s == null) {
+                    s = new Symbology();
+                } else {
+                    log.debug("Loaded Symbology for " + getName());
+                }
+
+                // Put some test stuff in there....
+                s.use = Symbology.SINGLE;
+
+                StarSymbol test = new StarSymbol();
+                Categories cs = s.getCategories();
+                Category c = new Category();
+                c.addSymbol(test); // Add a Star
+                c.addSymbol(new ImageSymbol());
+                c.addSymbol(new PolygonSymbol());
+                cs.addCategory(c);
+
+                //URL u2 = W2Config.getURL("symbology/" + getName() + "2.xml");
+                //Util.save(s, u2.getFile(), s.getClass());
+                // ...then make one
+                mySymbology = s;
+            }
         }
+
         /**
          * Force load an icon configuration file
          */
@@ -631,6 +645,15 @@ public class ProductManager implements Singleton {
 
         public void setColorMap(ColorMap theColorMap) {
             myColorMap = theColorMap;
+        }
+
+        public Symbology getSymbology() {
+            loadSymbologyFromXML();
+            return mySymbology;
+        }
+
+        public void setSymbology(Symbology s) {
+            mySymbology = s;
         }
 
         public IconSetConfig getIconSetConfig() {
@@ -777,9 +800,21 @@ public class ProductManager implements Singleton {
         return c;
     }
 
+    public Symbology getSymbology(Product p) {
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        Symbology s = d.getSymbology();
+
+        return s;
+    }
+
     public void setColorKey(Product p, String key) {
         ProductDataInfo d = getProductDataInfo(p.getDataType());
         d.setColorKey(key);
+    }
+
+    public void setSymbology(Product p, Symbology s) {
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        d.setSymbology(s);
     }
 
     public String getColorKey(Product p) {

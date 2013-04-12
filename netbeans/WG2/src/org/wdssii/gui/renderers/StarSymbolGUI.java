@@ -9,6 +9,8 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.properties.BooleanGUI;
 import org.wdssii.gui.properties.ColorGUI;
 import org.wdssii.gui.properties.IntegerGUI;
+import org.wdssii.gui.renderers.PointSymbolGUI.PointSymbolMemento;
+import org.wdssii.gui.renderers.PointSymbolGUI.PointSymbolMementor;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 import org.wdssii.xml.iconSetConfig.StarSymbol;
@@ -20,7 +22,7 @@ import org.wdssii.xml.iconSetConfig.Symbol;
  *
  * @author Robert Toomey
  */
-public class StarSymbolGUI extends SymbolGUI {
+public class StarSymbolGUI extends PointSymbolGUI {
 
     /**
      * The StarSymbol we are using
@@ -30,7 +32,7 @@ public class StarSymbolGUI extends SymbolGUI {
     /**
      * Holds all the flags of StarSymbol
      */
-    public static class StarSymbolMemento extends SymbolMemento {
+    public static class StarSymbolMemento extends PointSymbolMemento {
 
         // Properties
         public static final String NUMPOINTS = "numpoints";
@@ -56,7 +58,7 @@ public class StarSymbolGUI extends SymbolGUI {
     /**
      * Provides the properties for a StarSymbol
      */
-    public static class StarSymbolMementor extends SymbolMementor {
+    public static class StarSymbolMementor extends PointSymbolMementor {
 
         private StarSymbol myStarSymbol;
 
@@ -180,7 +182,7 @@ public class StarSymbolGUI extends SymbolGUI {
         add(new ColorGUI(myMementor, StarSymbolMemento.OCOLOR, "Outline Color", this));
 
         // Get the stock Symbol controls
-        super.addSymbolComponents(myMementor);
+        super.addPointSymbolComponents(myMementor);
     }
 
     /**

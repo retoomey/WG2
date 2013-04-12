@@ -6,7 +6,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
@@ -26,4 +25,12 @@ public class Category {
     /** The symbols for this category */
     @XmlElement
     public List<Symbol> symbols;
+    
+    /** Add symbol to our symbol list */
+    public void addSymbol(Symbol s){
+        if (symbols == null){
+            symbols = new ArrayList<Symbol>();
+        }
+        symbols.add(s);
+    }
 }

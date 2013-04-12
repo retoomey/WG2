@@ -325,36 +325,10 @@ public class Feature implements Mementor {
         return new defaultGUI();
     }
 
-    /**
-     * Activate our GUI within the given JComponent. The JComponent is assumed
-     * empty. We should assign the layout we want to it. The caller is trusting
-     * us to handle this properly.
-     *
-     * @param source
-     */
-    public final boolean activateGUI(JComponent parent) {
-
-        if (myControls == null) {
-            myControls = createNewControls();
+    public FeatureGUI getControls(){
+        if (myControls == null){
+          myControls = createNewControls();
         }
-
-        // Set the layout and add our controls
-        if (myControls != null) {
-            myControls.activateGUI(parent);
-            updateGUI();
-        }
-        return true;
-    }
-    
-    public final void deactivateGUI(){
-        if (myControls != null){
-            myControls.deactivateGUI();
-        }
-    }
-
-    public final void updateGUI() {
-        if (myControls != null) {
-            myControls.updateGUI();
-        }
+        return myControls;
     }
 }

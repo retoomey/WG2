@@ -22,8 +22,10 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
+import org.wdssii.gui.SwingGUIPlugInPanel;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.gis.MapFeature;
@@ -349,8 +351,8 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
             @Override
             public void handleClick(Object stuff, int orgRow, int orgColumn) {
-log.debug("Clicking here "+stuff+", "+orgRow);
-        
+                log.debug("Clicking here " + stuff + ", " + orgRow);
+
                 if (stuff instanceof FeatureListTableData) {
                     FeatureListTableData entry = (FeatureListTableData) (stuff);
 
@@ -492,7 +494,6 @@ log.debug("Clicking here "+stuff+", "+orgRow);
         }
         myFeatureListTableModel.setDataTypes(newList);
         myFeatureListTableModel.fireTableDataChanged();
-log.debug("Recreated table list..bleh "+myLastSelectedFeature+", "+oldSelect);
         // Keep old selection unless it's gone...
         if (!changeSelection) {
             // Use old selection if exists...
@@ -512,42 +513,30 @@ log.debug("Recreated table list..bleh "+myLastSelectedFeature+", "+oldSelect);
             // infinite loop.  So we have a flag.  We don't use isAdjusting
             // because it still fires and event when you set it false
             myFeatureListTableModel.setRebuilding(true);
+           
             jObjects3DListTable.setRowSelectionInterval(select, select);
-            //	log.debug("Select row of "+select);
-
-            if (myLastSelectedFeature != topFeature) {
-                //       log.debug("LAST/top "+myLastSelectedFeature+","+topFeature);
-                //	log.debug("Change out gui "+changeSelection+", "+oldSelect);
-                jFeatureGUIPanel.removeAll();
-               // jFeatureGUITablePanel.removeAll();// getting rid of this...
-                try {
-                    topFeature.activateGUI(jFeatureGUIPanel);
-                } catch (Exception e) {
-                    log.debug("Exception setting up GUI for feature " + e.toString());
-                    log.debug("GUI for this feature needs to be fixed.");
-                }
-                jFeatureGUIPanel.validate();
-                jFeatureGUIPanel.repaint();
-               // jFeatureGUITablePanel.validate();
-               // jFeatureGUITablePanel.repaint();
-               // jControlScrollPane.revalidate();
-                // jTableScrollPane.revalidate();
-                if ((myLastSelectedFeature != null) && (myLastSelectedFeature != topFeature)){
-                    myLastSelectedFeature.deactivateGUI();
-                }
-                myLastSelectedFeature = topFeature;
-            } else {
-                topFeature.updateGUI();
+            
+            // Swap from old controls to new controls
+            FeatureGUI newControls = null;
+            if (topFeature != null){
+                newControls = topFeature.getControls();
             }
-
+            FeatureGUI lastControls = null;
+            if (myLastSelectedFeature != null){
+                lastControls = myLastSelectedFeature.getControls();
+            }
+            boolean swapped = SwingGUIPlugInPanel.swapToPanel(jFeatureGUIPanel, lastControls, newControls);
+            myLastSelectedFeature = topFeature;
+            if (swapped) {
+                myLastSelectedFeature = topFeature;
+            }
+            
             myFeatureListTableModel.setRebuilding(false);
 
         } else {
             setEmptyControls();
             jFeatureGUIPanel.validate();
             jFeatureGUIPanel.repaint();
-            //jFeatureGUITablePanel.validate();
-            //jFeatureGUITablePanel.repaint();
             myLastSelectedFeature = null;
         }
         jObjects3DListTable.repaint();
@@ -566,13 +555,13 @@ log.debug("Recreated table list..bleh "+myLastSelectedFeature+", "+oldSelect);
         // setEmptyControls();
         // return jControlScrollPane;
 
-       // JSplitPane split = new JSplitPane();
+        // JSplitPane split = new JSplitPane();
         //split.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
 
         // The top part of feature controls
         jFeatureGUIPanel = new JPanel();
         jFeatureGUIPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-       // jControlScrollPane = new JScrollPane();
+        // jControlScrollPane = new JScrollPane();
         //jControlScrollPane.setViewportView(jFeatureGUIPanel);
         //split.setTopComponent(jControlScrollPane);
 
@@ -654,13 +643,6 @@ log.debug("Recreated table list..bleh "+myLastSelectedFeature+", "+oldSelect);
         t.setEditable(false);
         jFeatureGUIPanel.setLayout(new java.awt.BorderLayout());
         jFeatureGUIPanel.add(t, java.awt.BorderLayout.CENTER);
-
-      //  jFeatureGUITablePanel.removeAll();
-      //  JTextField t2 = new javax.swing.JTextField();
-      //  t2.setText("Secondary controls");
-      //  t2.setEditable(false);
-      //  jFeatureGUITablePanel.setLayout(new java.awt.BorderLayout());
-      //  jFeatureGUITablePanel.add(t2, java.awt.BorderLayout.CENTER);
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {

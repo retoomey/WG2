@@ -13,14 +13,14 @@ import org.wdssii.xml.iconSetConfig.Symbol;
  *
  * @author Robert Toomey
  */
-public class ImageSymbolGUI extends SymbolGUI {
+public class ImageSymbolGUI extends PointSymbolGUI {
 
     /**
      * The ImageSymbol we are using
      */
     private ImageSymbolMementor myMementor;
 
-    private static class ImageSymbolMemento extends SymbolMemento {
+    private static class ImageSymbolMemento extends PointSymbolMemento {
 
         public ImageSymbolMemento(ImageSymbolMemento m) {
             super(m);
@@ -34,7 +34,7 @@ public class ImageSymbolGUI extends SymbolGUI {
     /**
      * Provides the properties for a StarSymbol
      */
-    private static class ImageSymbolMementor extends SymbolMementor {
+    private static class ImageSymbolMementor extends PointSymbolMementor {
 
         private ImageSymbol mySymbol;
 
@@ -97,7 +97,7 @@ public class ImageSymbolGUI extends SymbolGUI {
 
      public final void addImageSymbolComponents(Mementor m) {
          // Get the stock Symbol controls
-        super.addSymbolComponents(myMementor);
+        super.addPointSymbolComponents(myMementor);
      }
      
     /**

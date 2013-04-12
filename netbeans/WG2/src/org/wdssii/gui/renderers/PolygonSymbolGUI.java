@@ -9,6 +9,8 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.properties.BooleanGUI;
 import org.wdssii.gui.properties.ColorGUI;
 import org.wdssii.gui.properties.IntegerGUI;
+import org.wdssii.gui.renderers.PointSymbolGUI.PointSymbolMemento;
+import org.wdssii.gui.renderers.PointSymbolGUI.PointSymbolMementor;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
@@ -19,14 +21,14 @@ import org.wdssii.xml.iconSetConfig.Symbol;
  *
  * @author Robert Toomey
  */
-public class PolygonSymbolGUI extends SymbolGUI {
+public class PolygonSymbolGUI extends PointSymbolGUI {
 
     /**
      * The PolygonSymbol we are using
      */
     private PolygonSymbolMementor myMementor;
 
-    public static class PolygonSymbolMemento extends SymbolMemento {
+    public static class PolygonSymbolMemento extends PointSymbolMemento {
 
         // Properties
         public static final String NUMPOINTS = "numpoints";
@@ -50,7 +52,7 @@ public class PolygonSymbolGUI extends SymbolGUI {
     /**
      * Provides the properties for a StarSymbol
      */
-    private static class PolygonSymbolMementor extends SymbolMementor {
+    private static class PolygonSymbolMementor extends PointSymbolMementor {
 
         private PolygonSymbol mySymbol;
 
@@ -196,7 +198,7 @@ public class PolygonSymbolGUI extends SymbolGUI {
         add(new ColorGUI(myMementor, PolygonSymbolMemento.OCOLOR, "Outline Color", this));
 
          // Get the stock Symbol controls
-        super.addSymbolComponents(myMementor);
+        super.addPointSymbolComponents(myMementor);
     }
 
     /**

@@ -16,7 +16,7 @@ import org.wdssii.xml.Util;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "polygonsymbol")
-public class PolygonSymbol extends Symbol {
+public class PolygonSymbol extends PointSymbol {
 
     /**
      * Base color of the symbol

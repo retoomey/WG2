@@ -16,7 +16,7 @@ import org.wdssii.xml.Util;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "starsymbol")
-public class StarSymbol extends Symbol {
+public class StarSymbol extends PointSymbol {
 
     /**
      * Base color of the symbol

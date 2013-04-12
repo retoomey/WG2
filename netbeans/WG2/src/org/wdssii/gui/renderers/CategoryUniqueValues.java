@@ -1,33 +1,39 @@
 package org.wdssii.gui.renderers;
 
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import org.wdssii.gui.GUIPlugInPanel;
+import javax.swing.JButton;
+import javax.swing.JScrollPane;
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
+import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**
  * Panel for editing category unique values....
- * 
+ *
  * @author Robert Toomey
  */
-public class CategoryUniqueValues extends JPanel implements GUIPlugInPanel {
-   protected JComponent myRoot = null;
-    @Override
-    public void updateGUI() {
-       
-    }
+public class CategoryUniqueValues extends SymbologyGUI {
 
     @Override
-    public void activateGUI(JComponent parent) {
-         if (myRoot != null) {
-            parent.setLayout(new java.awt.BorderLayout());
-            parent.add(myRoot, java.awt.BorderLayout.CENTER);
-            doLayout();
-        }
-    }
-
-    @Override
-    public void deactivateGUI() {
-        
+    public int getType() {
+        return Symbology.CATEGORY_UNIQUE_VALUES;
     }
     
+    public CategoryUniqueValues() {
+        setupComponents();
+    }
+
+    /**
+     * Set up the components. We haven't completely automated this because you
+     * never know what little change you need that isn't supported.
+     */
+    private void setupComponents() {
+        JScrollPane s = new JScrollPane();
+        s.setViewportView(this);
+        setRootComponent(s);
+        setLayout(new MigLayout(new LC(), null, null));
+        JButton b = new JButton("Category");
+        add(b, new CC());
+    }
+
 }

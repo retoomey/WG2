@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "imagesymbol")
-public class ImageSymbol extends Symbol {
+public class ImageSymbol extends PointSymbol {
 
     @Override
     public void copyFrom(Symbol s) {

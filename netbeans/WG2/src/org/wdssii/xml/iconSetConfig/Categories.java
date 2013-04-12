@@ -30,5 +30,10 @@ public class Categories {
     public String column3= null;
     
     @XmlElement(name = "category", required = true)
-    public List<Category> list = new ArrayList<Category>();
+    public List<Category> list; // = new ArrayList<Category>();
+
+    public void addCategory(Category c){
+        if (list == null){ list = new ArrayList<Category>(); }
+        list.add(c);
+    }
 }

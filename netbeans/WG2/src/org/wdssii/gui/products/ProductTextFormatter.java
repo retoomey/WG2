@@ -16,7 +16,7 @@ public class ProductTextFormatter {
     /**
      * A default for passing into other objects
      */
-    public static ProductTextFormatter DEFAULT_FORMATTER = new ProductTextFormatter();
+    public final static ProductTextFormatter DEFAULT_FORMATTER = new ProductTextFormatter();
 
     /**
      * Shared default logic

@@ -20,7 +20,7 @@ import org.wdssii.gui.swing.JThreadPanel;
  */
 public class CatalogView extends JThreadPanel implements CommandListener {
 
-    private static Logger log = LoggerFactory.getLogger(CatalogView.class);
+    private final static Logger LOG = LoggerFactory.getLogger(CatalogView.class);
 
     private javax.swing.JTabbedPane jRootTab;
     

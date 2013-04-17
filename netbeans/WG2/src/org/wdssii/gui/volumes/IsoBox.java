@@ -9,7 +9,7 @@ import org.wdssii.gui.GLShader;
 /** Alpha beginnings of an IsoSurface ability.. */
 public class IsoBox {
 
-    private static Logger log = LoggerFactory.getLogger(IsoBox.class);
+    private final static Logger LOG = LoggerFactory.getLogger(IsoBox.class);
     private int myProgramID = -1;
 
     public IsoBox() {
@@ -20,7 +20,7 @@ public class IsoBox {
         // This can crash whole program if called out of GLContext.  No exception is thrown, it's a native library full crash.
         myProgramID = gl.glCreateProgram();
 
-        log.info("******Shader loading/testing (ProgramID is " + myProgramID + ") *****");
+        LOG.info("******Shader loading/testing (ProgramID is " + myProgramID + ") *****");
 
         GLShader.initShader(gl, myProgramID, "shaders/MarchCubesFS", GL.GL_FRAGMENT_SHADER);
         GLShader.initShader(gl, myProgramID, "shaders/MarchCubesGS2", GL.GL_GEOMETRY_SHADER_EXT);

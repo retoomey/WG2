@@ -18,7 +18,7 @@ import org.wdssii.index.IndexRecord;
  */
 public abstract class BuilderFactory {
 
-    private static Logger log = LoggerFactory.getLogger(BuilderFactory.class);
+    private final static Logger LOG = LoggerFactory.getLogger(BuilderFactory.class);
     /** name to Builder */
     private static final PrototypeFactory<Builder> factory;
 
@@ -54,13 +54,13 @@ public abstract class BuilderFactory {
         String builderName = rec.getBuilderName();
         Builder builder = factory.getPrototypeMaster(builderName);
         if (builder == null) {
-            log.error("ERROR: no such builder: " + builderName);
+            LOG.error("ERROR: no such builder: " + builderName);
             return null;
         }
 	*/
 	Builder builder = rec.getBuilder();
 	if (builder == null){
-            log.error("No builder for this record");
+            LOG.error("No builder for this record");
             return null;
 	}
         return builder.createDataType(rec, null);
@@ -73,13 +73,13 @@ public abstract class BuilderFactory {
         /*String builderName = rec.getBuilderName();
         Builder builder = factory.getPrototypeMaster(builderName);
         if (builder == null) {
-            log.error("ERROR: no such builder: " + builderName);
+            LOG.error("ERROR: no such builder: " + builderName);
             return null;
         }
 	* */
 	Builder builder = rec.getBuilder();
 	if (builder == null){
-            log.error("No builder for this record");
+            LOG.error("No builder for this record");
             return null;
 	}
         return builder.createDataRequest(rec);

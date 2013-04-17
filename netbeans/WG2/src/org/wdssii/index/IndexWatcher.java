@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public class IndexWatcher implements HistoryListener {
 
-    private static Logger log = LoggerFactory.getLogger(IndexWatcher.class);
+    private final static Logger LOG = LoggerFactory.getLogger(IndexWatcher.class);
     protected IndexCollection myCollection;
     protected String myName;
     private HistoricalIndex myIndex = null;
@@ -92,7 +92,7 @@ public class IndexWatcher implements HistoryListener {
                 myIndex = new HistoricalIndex(myPath, IndexCollection.myDefaultHistorySize);
             } catch (Exception e) {
                 // If index fails, we'll try to recover
-                log.error("Index could not be created: '" + myPath + "'");
+                LOG.error("Index could not be created: '" + myPath + "'");
                 myIndex = null;
             }
             if (myIndex != null) {

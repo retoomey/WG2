@@ -97,7 +97,7 @@ public class MesonetIcon extends BaseIconAnnotation {
                     Angle.fromDegrees(loc.getLatitude()),
                     Angle.fromDegrees(loc.getLongitude())), 0);
             // loc.getHeightKms());
-            MesonetIcon ea = new MesonetIcon(p, direction, speed, eqAttributes, null);
+            MesonetIcon ea = new MesonetIcon(p, direction, speed, eqAttributes);
             list.add(ea);
             //  myProducts.addRenderable(ea);
         }
@@ -118,10 +118,8 @@ public class MesonetIcon extends BaseIconAnnotation {
     public MesonetIcon(Position p,
             float direction,
             float speed,
-            AnnotationAttributes defaults,
-            MesonetConfig tag) {
+            AnnotationAttributes defaults) {
         super("", p, defaults);
-        this.tag = tag;
         this.myDirection = direction;
         this.mySpeed = speed;
         try { // sloppy for now, clean up

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ChartViewJFreeChart extends ChartViewChart {
 
-    private static Logger log = LoggerFactory.getLogger(ChartViewJFreeChart.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ChartViewJFreeChart.class);
     /**
      * The ChartPanel from JFreeChart
      */
@@ -64,6 +64,16 @@ public class ChartViewJFreeChart extends ChartViewChart {
             myAllowNegative = allowNegative;
         }
 
+        @Override
+        public boolean equals(Object obj){
+            return super.equals(obj);
+        }
+
+        @Override
+        public int hashCode() {
+           return super.hashCode();
+        }
+        
         /** Our stock axis for dynamic regenerating by zoom charts such as VSlice
          * and readout */
         public static FixedRangeNumberAxis getStockAxis(String label, boolean allownegative) {
@@ -207,7 +217,7 @@ public class ChartViewJFreeChart extends ChartViewChart {
         try {
             ChartUtilities.saveChartAsPNG(new File(name), myJFreeChart, width, height);
         } catch (IOException e) {
-            log.error("IO exception trying to output snapshot of chart " + e.toString());
+            LOG.error("IO exception trying to output snapshot of chart " + e.toString());
         }
     }
 }

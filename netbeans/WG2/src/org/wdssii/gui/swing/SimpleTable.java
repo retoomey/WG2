@@ -42,7 +42,7 @@ public class SimpleTable extends JLabel
 	implements Scrollable,
 	MouseListener, MouseMotionListener {
 
-	private static Logger log = LoggerFactory.getLogger(SimpleTable.class);
+	private final static Logger LOG = LoggerFactory.getLogger(SimpleTable.class);
 	private final JScrollPane myScrollPane;
 
 	/** Simple table model, unlike the swing counter part, doesn't
@@ -177,7 +177,7 @@ public class SimpleTable extends JLabel
 			a.lastFullRow = a.lastPartialRow - 1;
 			a.lastFullColumn = a.lastPartialColumn - 1;
 
-			//log.debug("Rectangle is " + clipBounds + ", " + rows + ", " + cols);
+			//LOG.debug("Rectangle is " + clipBounds + ", " + rows + ", " + cols);
 			myCurrentGrid = a;
 			return a;
 
@@ -596,8 +596,6 @@ public class SimpleTable extends JLabel
 
 	@Override
 	public void paintComponent(Graphics g) {
-		Graphics2D g2 = (Graphics2D) (g);
-
 		if (myModel != null) {
 			GridVisibleArea a = myModel.updateVisibleGrid(getVisibleRect());
 
@@ -659,12 +657,10 @@ public class SimpleTable extends JLabel
 			// ----------------------------------------------
 			// Drag the window centered on mouse....
 			SimpleTable me = (SimpleTable) e.getSource();
-			Rectangle r = me.getVisibleRect();
 			JViewport vport = myScrollPane.getViewport();
 			Point cp = e.getPoint();
 			Point vp = vport.getViewPosition();
 			vp.translate(start.x - cp.x, start.y - cp.y);
-			Rectangle visible = new Rectangle(vp, vport.getSize());
 			me.scrollRectToVisible(new Rectangle(vp, vport.getSize()));
 			// Since table is source, the point is in the coordinates of the whole table,
 			// so we have to move this point the opposite direction

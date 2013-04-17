@@ -55,7 +55,7 @@ import org.wdssii.gui.GLUtil;
  */
 public class MapRenderer implements Feature3DRenderer {
 
-    private static Logger log = LoggerFactory.getLogger(MapRenderer.class);
+    private final static Logger LOG = LoggerFactory.getLogger(MapRenderer.class);
     /**
      * Lock for changing offsets/polygonData
      */
@@ -157,7 +157,7 @@ public class MapRenderer implements Feature3DRenderer {
                 if (crs == null) {
                     // Should warn that we have no .prj and 'guess' or
                     // allow user to set it...
-                    log.error("shapefile is missing projection information (.prj), assuming it's lat/lon data...map could be wrong.");
+                    LOG.error("shapefile is missing projection information (.prj), assuming it's lat/lon data...map could be wrong.");
                 } else {
 
                     // If we have .prj, we want it in a projection system with
@@ -167,11 +167,11 @@ public class MapRenderer implements Feature3DRenderer {
                     try {
                         transform = CRS.findMathTransform(crs, world, lenient);
                     } catch (FactoryException ex) {
-                        log.debug("Couldn't get tranformation to world coordinate system");
+                        LOG.debug("Couldn't get tranformation to world coordinate system");
                     }
                 }
             } catch (IOException ex) {
-                log.error("Can't crete map " + ex.toString());
+                LOG.error("Can't crete map " + ex.toString());
                 return WdssiiJobStatus.OK_STATUS;
             }
 
@@ -222,10 +222,10 @@ public class MapRenderer implements Feature3DRenderer {
 			    geo = geo1;
 		    }
                 } catch (MismatchedDimensionException ex) {
-                    log.error("Couldn't tranform map, mismatched dimensions");
+                    LOG.error("Couldn't tranform map, mismatched dimensions");
                     continue;
                 } catch (TransformException ex) {
-                    log.error("Transform exception with map");
+                    LOG.error("Transform exception with map");
                     continue;
                 }
                 if (geo instanceof MultiPolygon) {
@@ -270,7 +270,7 @@ public class MapRenderer implements Feature3DRenderer {
                 }
             }
             workPolygons.end();
-            log.debug("Map points allocated/actual" + multiPolyPointCount + ", " + actualCount);
+            LOG.debug("Map points allocated/actual" + multiPolyPointCount + ", " + actualCount);
 
             // Update our renderer once a ring...abort if we're stale
             r.updateData(this, workOffsets, workPolygons, false);

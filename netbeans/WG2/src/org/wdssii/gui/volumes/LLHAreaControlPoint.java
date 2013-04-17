@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 public class LLHAreaControlPoint  {
 
-	private static Logger log = LoggerFactory.getLogger(LLHAreaControlPoint.class);
+	private final static Logger LOG = LoggerFactory.getLogger(LLHAreaControlPoint.class);
 
 	public static class CircleMarker extends BasicMarker {
 
@@ -125,9 +125,9 @@ public class LLHAreaControlPoint  {
 		}
 	}
 	/** Default bottom marker used if one has not been set */
-	public static Marker sharedBottomMarker;
+	private static Marker sharedBottomMarker;
 	/** Default top marker used if one has not been set */
-	public static Marker sharedTopMarker;
+	private static Marker sharedTopMarker;
 
         public boolean selected = false;
         

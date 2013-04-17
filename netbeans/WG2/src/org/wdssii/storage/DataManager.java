@@ -14,13 +14,13 @@ import org.wdssii.core.LRUCache.LRUCacheListener;
  * The data manager will handle: Loading/Offloading data from disk to ram...
  * Keep track of total data size... Other things as developed...
  *
- *  This works at a raw data level, not DataType or Products or anything, at
+ * This works at a raw data level, not DataType or Products or anything, at
  * least for now the purpose is to allow access to massive numbers of floats.
- *DataManager
- * 
+ * DataManager
+ *
  * DataManager keeps a key counter of integer for tiles.
- * 
- *  @author Robert Toomey
+ *
+ * @author Robert Toomey
  *
  */
 public class DataManager implements LRUCacheListener<DataNode> {
@@ -30,13 +30,13 @@ public class DataManager implements LRUCacheListener<DataNode> {
      */
     public final static String tempNodes = "datanodes";
     private static DataManager instance = null;
-    private static Logger log = LoggerFactory.getLogger(DataManager.class);
+    private final static Logger LOG = LoggerFactory.getLogger(DataManager.class);
     private String myDiskLocation;
     private File myTempDir = null;
-    /** Our counter for returning id values for cache items
-     * We start at 'min' value of int and rise....in theory if we roll over
-     * it might confuse the system if by chance we're storing that full
-     * number of tiles.
+    /**
+     * Our counter for returning id values for cache items We start at 'min'
+     * value of int and rise....in theory if we roll over it might confuse the
+     * system if by chance we're storing that full number of tiles.
      */
     private final Object myCounterSync = new Object();
     private int myCounter = Integer.MIN_VALUE;
@@ -63,40 +63,46 @@ public class DataManager implements LRUCacheListener<DataNode> {
      * Number of bytes failed to allocate by program
      */
     private long myFailedAllocatedBytes = 0;
-
     private boolean myAddListener = true;
-    
+
     private DataManager() {
         // Exists only to defeat instantiation.
         // FIXME: make GUI able to change this....
         myDiskLocation = System.getProperty("java.io.tmpdir");
+        LOG.info("OS temporary directory is: " + myDiskLocation);
         try {
             myTempDir = createTempDir();
+            LOG.info("Using root temp directory:" + myTempDir.getAbsolutePath());
+            System.setProperty("java.io.tmpdir", myTempDir.getAbsolutePath());
+            LOG.info("DataManager temp is " + myTempDir.getAbsolutePath());
         } catch (IOException e) {
+             String t = System.getProperty("java.io.tmpdir");
+             LOG.error("Unable to create temp directory...default is "+t);
+             LOG.error("Reason: "+e.toString());
         }
 
-        log.info("OS temporary directory is: " + myDiskLocation);
-        log.info("Using root temp directory:" + myTempDir.getAbsolutePath());
-        System.setProperty("java.io.tmpdir", myTempDir.getAbsolutePath());
-        log.info("DataManager temp is " + myTempDir.getAbsolutePath());
+
+
         // We create a 'datacache' array...
-       
+
     }
 
-    /** Get a single new  key for our LRU cache */
+    /**
+     * Get a single new key for our LRU cache
+     */
     public int getNewTileKey() {
         return getNewTileKeyRange(1);
     }
 
-    /** Return the base of a range of tiles.  So if a data structure could
-     * have say 1000 tiles, it passes in 1000 and we return the base and add
-     * 1000.
-     * 
-     * Note this is cheap, just a counter.  Tiles are lazy created later, this
+    /**
+     * Return the base of a range of tiles. So if a data structure could have
+     * say 1000 tiles, it passes in 1000 and we return the base and add 1000.
+     *
+     * Note this is cheap, just a counter. Tiles are lazy created later, this
      * just reserves a key for them.
-     * 
+     *
      * @param needed number of tiles needed
-     * @return 
+     * @return
      */
     public int getNewTileKeyRange(int needed) {
         int base;
@@ -112,7 +118,7 @@ public class DataManager implements LRUCacheListener<DataNode> {
      * track the memory usage better...caller should call deallocate below when
      * the ByteBuffer is set to null
      *
-     *  @return new ByteBuffer or null
+     * @return new ByteBuffer or null
      */
     public ByteBuffer allocate(int aSize, String who) {
         ByteBuffer bb = ByteBuffer.allocateDirect(aSize);
@@ -129,8 +135,8 @@ public class DataManager implements LRUCacheListener<DataNode> {
      * nulled. Doesn't mean JVM or native library has Garbage collected it
      * though...just counting for debugging purposes.
      *
-     *  @param aSize
-     *  @param who
+     * @param aSize
+     * @param who
      */
     public void deallocate(int aSize, String who) {
         myAllocatedBytes -= aSize;
@@ -162,7 +168,7 @@ public class DataManager implements LRUCacheListener<DataNode> {
         String path = getRootTempDir();
         File temporaryDir = new File(path, subname);
         if (!temporaryDir.exists()) {
-            log.info("Creating temp directory " + temporaryDir.getAbsolutePath());
+            LOG.info("Creating temp directory " + temporaryDir.getAbsolutePath());
             temporaryDir.delete();
             temporaryDir.mkdir();
             temporaryDir.deleteOnExit();
@@ -178,8 +184,8 @@ public class DataManager implements LRUCacheListener<DataNode> {
      * FIXME: I'm going to use this dir as 'root' for the entire display, even
      * tricking others into using it
      *
-     *  @return
-     *  @throws IOException
+     * @return
+     * @throws IOException
      */
     public static File createTempDir() throws IOException {
         final File sysTempDir = new File(System.getProperty("java.io.tmpdir"));
@@ -200,14 +206,14 @@ public class DataManager implements LRUCacheListener<DataNode> {
             // Use date as part of temp directory for debugging.
             String extra = (attemptCount == 1) ? "" : Integer.toString(attemptCount);
             String dirName = "WG2-" + dateFormat.format(date) + extra;
-            log.info("Trying to create directory " + dirName);
+            LOG.info("Trying to create directory " + dirName);
             // The name of the 'root' directory just as a random number
             //String dirName = "WG2-"+UUID.randomUUID().toString();
             newTempDir = new File(sysTempDir, dirName);
         } while (newTempDir.exists());
 
         if (newTempDir.mkdirs()) {
-            log.info("Created temp dir of name " + newTempDir.getAbsolutePath());
+            LOG.info("Created temp dir of name " + newTempDir.getAbsolutePath());
             return newTempDir;
         }
 
@@ -225,7 +231,7 @@ public class DataManager implements LRUCacheListener<DataNode> {
      * require purging of all products, etc. Would be a big deal, so changing
      * this other than startup probably not a good idea.
      *
-     *  @return tile length
+     * @return tile length
      */
     public int getRecommendedNodeSize() {
         return mySizePerNode;
@@ -237,22 +243,26 @@ public class DataManager implements LRUCacheListener<DataNode> {
 
     public static DataManager getInstance() {
         if (instance == null) {
-            instance = new DataManager();
-            int RAMsizeBytes = instance.getMaxMemoryInBytes();
+            DataManager newOne = new DataManager();
+            
+            // Don't set instance until initialization stuff is complete
+            int RAMsizeBytes = newOne.getMaxMemoryInBytes();
             float inGB = (RAMsizeBytes / 1024.0f / 1024.0f / 1024.0f);
-            log.info("DataManager initialized, max RAM allowed is currently " + inGB + " GB");
+            LOG.info("DataManager initialized, max RAM allowed is currently " + inGB + " GB");
+            
+            instance = newOne; // Safe now to set (for reading)
         }
         return instance;
     }
     /**
      * Get a tile from the DataManager
      *
-     *  @param key the 'key' of tile...
-     *  @return null or the found tile
+     * @param key the 'key' of tile...
+     * @return null or the found tile
      */
-    public static long getCount = 0;
-    public static long hitCount = 0;
-    public static long printCount = 0;
+    private static long getCount = 0;
+    private static long hitCount = 0;
+    private static long printCount = 0;
 
     public DataNode popTile(int key, int firstSize, float background) {
         DataNode theTile;
@@ -264,19 +274,19 @@ public class DataManager implements LRUCacheListener<DataNode> {
             theTile = new DataNode(key, firstSize, background);
             theTile.loadNodeIntoRAM();
         } else {
-            // log.debug("Cache hit POP "+theTile);
+            // LOG.debug("Cache hit POP "+theTile);
         }
         return (theTile);
     }
 
     public void pushTile(int key, DataNode tile) {
         if (tile != null) {
-            if (myAddListener){  // Add listener on first push....
-                 myRAMCache.addListener(this);
-                 myAddListener = false;
+            if (myAddListener) {  // Add listener on first push....
+                myRAMCache.addListener(this);
+                myAddListener = false;
             }
             myRAMCache.put(key, tile);
-            //log.debug("PUSH TILE "+tile);
+            //LOG.debug("PUSH TILE "+tile);
         }
     }
 
@@ -292,22 +302,22 @@ public class DataManager implements LRUCacheListener<DataNode> {
             boolean success = ((theTile != null) && (theTile.loadNodeIntoRAM()));
             if (success) {
                 // theTile.setCacheKey() constructor
-                log.debug("Tile RAM Loaded: " + theTile.getCacheKey() + " read: " + success);
+                LOG.debug("Tile RAM Loaded: " + theTile.getCacheKey() + " read: " + success);
                 myRAMCache.put(key, theTile);
                 // CommandManager.getInstance().cacheManagerNotify();
             } else {
-                log.error("Wasn't able to create/load a tile");
+                LOG.error("Wasn't able to create/load a tile");
             }
             // Tile already found in cache
         } else {
             hitCount++;
-            // log.debug("Tile RAM HIT: "+theTile.getCacheKey());
+            // LOG.debug("Tile RAM HIT: "+theTile.getCacheKey());
         }
         getCount++;
         // }
         if (printCount++ > 100) {
             printCount = 0;
-            //    log.debug("Current tile stats: " + getCount + " with " + hitCount + " --> " + hitCount / getCount);
+            //    LOG.debug("Current tile stats: " + getCount + " with " + hitCount + " --> " + hitCount / getCount);
         }
         return (theTile);
     }
@@ -316,21 +326,21 @@ public class DataManager implements LRUCacheListener<DataNode> {
         //myCurrentData.put(storage, memoryGuess);
     }
 
-    /** Used for debugging...causes purge of all RAM tiles and forces them
+    /**
+     * Used for debugging...causes purge of all RAM tiles and forces them
      * written to disk...
      */
     public void purgeAllTiles() {
-        log.debug("Tile PURGING ALL FROM RAM ");
+        LOG.debug("Tile PURGING ALL FROM RAM ");
         myRAMCache.clear();
     }
-    
-    
+
     /**
-     *     Called by LRUCache when we are trimmed from the LRU. This DataManager LRU
+     * Called by LRUCache when we are trimmed from the LRU. This DataManager LRU
      * is for tiles currently in RAM. So we need to purge our stuff to disk
      */
     @Override
     public void trimmed(DataNode o) {
-         o.purgeNodeFromRAM();
+        o.purgeNodeFromRAM();
     }
 }

@@ -28,7 +28,7 @@ import org.wdssii.xml.W2ColorMap.W2ColorBin;
  */
 public class ColorMap {
 
-    private static Logger log = LoggerFactory.getLogger(ColorMap.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ColorMap.class);
 
     /**
      * Output object for color map queries. You can pre-new this outside of
@@ -328,7 +328,7 @@ public class ColorMap {
                         name = f.formatForColorMapRange(lb, ub);
                     }
                 } catch (Exception e) { // FIXME: check format errors?
-                    log.error("Exception is" + e.toString());
+                    LOG.error("Exception is" + e.toString());
                     name = "?";
                 }
             }
@@ -547,7 +547,6 @@ public class ColorMap {
             ProductTextFormatter f) {
 
         // Experimental 'cool' to 'warm'
-        minValue = 0.0f;
         //maxValue = 256.0f;  Use max from the data...
 
         // FIXME: will read these from 'point' tags like matlab

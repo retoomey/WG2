@@ -18,7 +18,7 @@ import org.wdssii.gui.views.SourcesURLLoadDialog;
  */
 public abstract class SourceFactory {
 
-	private static Logger log = LoggerFactory.getLogger(SourceFactory.class);
+	private final static Logger LOG = LoggerFactory.getLogger(SourceFactory.class);
 	private final static ArrayList<String> sourceNames = new ArrayList<String>();
 	private final static ArrayList<SourceFactory> factories;
 
@@ -41,10 +41,10 @@ public abstract class SourceFactory {
 				aClass = Class.forName(s);
 				SourceFactory factory = (SourceFactory) aClass.newInstance();
 				f.add(factory);
-				log.info("Created SourceFactory "+s);
+				LOG.info("Created SourceFactory "+s);
 			} catch (Exception e) {
 				// ? just warn
-				log.error("Error during source factory " + e.toString());
+				LOG.error("Error during source factory " + e.toString());
 			}
 		}
 		return f;
@@ -87,7 +87,7 @@ public abstract class SourceFactory {
 	 * @return factory for this URL, if any
 	 */
 	public static SourceFactory getFactoryForURL(URL aURL){
-		log.debug("Source factory getting factory for "+aURL);
+		LOG.debug("Source factory getting factory for "+aURL);
 		SourceFactory worker = null;
 		for (SourceFactory f : factories) {
 	              if (f.canCreateFromURL(aURL)){;

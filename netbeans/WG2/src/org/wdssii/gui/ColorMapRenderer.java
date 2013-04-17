@@ -27,7 +27,7 @@ import org.wdssii.gui.products.ProductFeature;
  */
 public class ColorMapRenderer implements Feature3DRenderer {
 
-	private static Logger log = LoggerFactory.getLogger(ColorMapRenderer.class);
+	private final static Logger LOG = LoggerFactory.getLogger(ColorMapRenderer.class);
 	/**
 	 * ColorMap used by the renderer
 	 */
@@ -92,7 +92,7 @@ public class ColorMapRenderer implements Feature3DRenderer {
 				// Get the extension use it as the file type.  Supported types are
 				// "PNG", "JPEG", "gif", "BMP"
 				// "Mypicture.gif" --> ".gif"
-				int dot = fileName.lastIndexOf(".");
+				int dot = fileName.lastIndexOf('.');
 				String type = fileName.substring(dot + 1);
 
 				// Default is ".png" file
@@ -151,13 +151,13 @@ public class ColorMapRenderer implements Feature3DRenderer {
 						// ImageIO.write(bi, "JPEG", new File("c:\\yourImageName.JPG"));
 						// ImageIO.write(bi, "gif", new File("c:\\yourImageName.GIF"));
 						// ImageIO.write(bi, "BMP", new File("c:\\yourImageName.BMP"));
-						log.info("Drew color key to '" + fileName + "' as type '" + type + "'");
+						LOG.info("Drew color key to '" + fileName + "' as type '" + type + "'");
 					}
 				} else {
 					success = "Writing image failed because there is no writer for '" + type + "'";
 				}
 			} catch (Exception e) {
-				log.error(e.toString());
+				LOG.error(e.toString());
 				success = "Writing image failed:" + e.toString();
 			}
 		} else {

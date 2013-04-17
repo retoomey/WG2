@@ -35,7 +35,7 @@ import org.wdssii.storage.Array1DfloatAsNodes;
  */
 public class WindFieldTile extends TileRenderer.Tile {
 
-    private static Logger log = LoggerFactory.getLogger(WindFieldTile.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WindFieldTile.class);
     protected int counter = 0;
     protected boolean tileCreated = false;
     protected boolean atMaxLevel = false;
@@ -331,7 +331,7 @@ public class WindFieldTile extends TileRenderer.Tile {
         if (!tileCreated) {
             // createTile will get called over and over again while worker thread is running...
             // Reason for lock is that worker thread could finish and set tileCreated = true right here, thus we need sync
-            log.info("CREATING TILE>>SHOULD PAUSE");
+            LOG.info("CREATING TILE>>SHOULD PAUSE");
             createTile(dc, latlon);
         }
     }
@@ -370,7 +370,7 @@ public class WindFieldTile extends TileRenderer.Tile {
                     }
                 }
             } catch (Exception e) {
-                log.error("Exeception while drawing tile :" + e.toString());
+                LOG.error("Exeception while drawing tile :" + e.toString());
             }
         }
     }

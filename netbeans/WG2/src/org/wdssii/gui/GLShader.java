@@ -20,7 +20,7 @@ import org.wdssii.gui.volumes.IsoBox;
  */
 public class GLShader {
 
-    private static Logger log = LoggerFactory.getLogger(GLShader.class);
+    private final static Logger LOG = LoggerFactory.getLogger(GLShader.class);
 
     /** Just trying to compile a shader here...
      *  This has to be called while the GLContext is valid, either during the draw
@@ -37,7 +37,7 @@ public class GLShader {
         // This can crash whole program if called out of GLContext.  No exception is thrown, it's a native library full crash.
         myProgramID = gl.glCreateProgram();
         
-        log.info("******Shader loading/testing (ProgramID is "+myProgramID+" *****");
+        LOG.info("******Shader loading/testing (ProgramID is "+myProgramID+" *****");
         
         initShader(gl, myProgramID, "shaders/MarchCubesFS", GL.GL_FRAGMENT_SHADER);
         initShader(gl, myProgramID, "shaders/MarchCubesGS2", GL.GL_GEOMETRY_SHADER_EXT);
@@ -49,16 +49,16 @@ public class GLShader {
         
         int buf[] = new int[1];
         gl.glGetIntegerv(GL.GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, buf, 0);	
-        log.info("MAX GEOMETRY OUT "+buf[0]);
+        LOG.info("MAX GEOMETRY OUT "+buf[0]);
         
         gl.glGetIntegerv(GL.GL_MAX_VARYING_COMPONENTS_EXT, buf, 0);
-        log.info("MAX VARYING COMPONENTS IS "+buf[0]);
+        LOG.info("MAX VARYING COMPONENTS IS "+buf[0]);
         
         gl.glGetIntegerv(GL.GL_MAX_TEXTURE_UNITS, buf, 0);
-        log.info("MAX TEXTURE UNITS IS "+buf[0]);
+        LOG.info("MAX TEXTURE UNITS IS "+buf[0]);
         
         gl.glGetIntegerv(GL.GL_MAX_VARYING_FLOATS, buf, 0);
-        log.info("MAX VARYING FLOATS IS "+buf[0]);
+        LOG.info("MAX VARYING FLOATS IS "+buf[0]);
          */
 
     }
@@ -94,11 +94,11 @@ public class GLShader {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(FileUtil.streamFromFile(shaderName + ".glsl")));
 
-            StringBuffer buffer = new StringBuffer("");
+            StringBuilder buffer = new StringBuilder("");
             String line = reader.readLine();
             while (line != null) {
                 buffer.append(line);
-                buffer.append("\n");
+                buffer.append('\n');
                 line = reader.readLine();
             }
             String[] data = new String[]{buffer.toString()};
@@ -107,15 +107,16 @@ public class GLShader {
             gl.glShaderSource(shaderID, 1, data, (int[]) null, 0);
             gl.glCompileShader(shaderID);
 
+            reader.close();
             success = true;
-            log.info("Compiled shader " + shaderName + " sucessfully");
+            LOG.info("Compiled shader " + shaderName + " sucessfully");
 
         } catch (FileNotFoundException e) {
-            log.warn("Couldn't load the shader file:" + shaderName);
+            LOG.warn("Couldn't load the shader file:" + shaderName);
         } catch (IOException e) {
-            log.warn("IO exception on shader " + shaderName + ". Probably a bad shader file or your video card hardware can't run this shader");
+            LOG.warn("IO exception on shader " + shaderName + ". Probably a bad shader file or your video card hardware can't run this shader");
         } catch (Exception e) {
-            log.warn("Exception trying to compile shader " + shaderName + " == " + e.toString());
+            LOG.warn("Exception trying to compile shader " + shaderName + " == " + e.toString());
         }
 
         return success;

@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class WdssiiCommand {
 
-    private static Logger log = LoggerFactory.getLogger(WdssiiCommand.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WdssiiCommand.class);
     /**
      * Parameter that is the main option for this command in a list. For
      * example, ProductFollowCommand has to tell what product to follow. There
@@ -110,12 +110,12 @@ public abstract class WdssiiCommand {
      */
     public void setParameters(Map<String, String> params) {
         myParameters = params;
-        if (params != null) {
-            Set<String> keys = params.keySet();
+        //if (params != null) {
+        //    Set<String> keys = params.keySet();
             // for (String s : keys) {
             //     System.out.println("Got param: " + s + " which is " + params);
             // }
-        }
+        //}
     }
 
     /**

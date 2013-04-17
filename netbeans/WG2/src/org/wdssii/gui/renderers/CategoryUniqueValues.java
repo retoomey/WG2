@@ -18,16 +18,17 @@ public class CategoryUniqueValues extends SymbologyGUI {
     public int getType() {
         return Symbology.CATEGORY_UNIQUE_VALUES;
     }
-    
+
     public CategoryUniqueValues() {
-        setupComponents();
+       // setupComponents();
     }
 
     /**
      * Set up the components. We haven't completely automated this because you
      * never know what little change you need that isn't supported.
      */
-    private void setupComponents() {
+    @Override
+    public void setupComponents() {
         JScrollPane s = new JScrollPane();
         s.setViewportView(this);
         setRootComponent(s);
@@ -36,4 +37,14 @@ public class CategoryUniqueValues extends SymbologyGUI {
         add(b, new CC());
     }
 
+    @Override
+    public void useSymbology(Symbology symbology) {
+        super.useSymbology(symbology);
+        
+        // If we're using it, make sure it's set to our mode....
+        if (mySymbology.use != Symbology.CATEGORY_UNIQUE_VALUES) {
+            mySymbology.use = Symbology.CATEGORY_UNIQUE_VALUES;
+            notifyChanged();
+        }
+    }
 }

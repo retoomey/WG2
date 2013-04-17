@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 public class FileUtil {
 
-    private static Logger log = LoggerFactory.getLogger(FileUtil.class);
+    private final static Logger LOG = LoggerFactory.getLogger(FileUtil.class);
     /*
     public static URL resolveURLPath(String path) {
     
@@ -22,7 +22,7 @@ public class FileUtil {
     // or just FileUtil.class.getResource(path);
     
     URL url = loader.getResource(path);
-    log.info("resolve url path for "+path+" GOT "+url);
+    LOG.info("resolve url path for "+path+" GOT "+url);
     
     if (url == null){
     
@@ -106,7 +106,7 @@ public class FileUtil {
         java.net.URL url = FileUtil.class.getResource(relativePath);
         if (url != null) {
             try {
-                return url != null ? url.openStream() : null;
+                return url.openStream();
             } catch (IOException e) {
             }
         }

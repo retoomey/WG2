@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 @XmlRootElement(name = "colordatabase")
 public class ColorDatabase {
 
-    private static Logger log = LoggerFactory.getLogger(ColorDatabase.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ColorDatabase.class);
     @XmlElement(name = "colordef")
     public List<ColorDef> colorDefs = new ArrayList<ColorDef>();
 
@@ -87,7 +87,7 @@ public class ColorDatabase {
         myLookup = new TreeMap<String, ColorDef>();
         for (ColorDef d : colorDefs) {
             myLookup.put(d.name, d);
-            //log.debug("Created lookup " + d.name + " --> " + d.red() + ", " + d.green() + ", " + d.blue() + ", " + d.alpha());
+            //LOG.debug("Created lookup " + d.name + " --> " + d.red() + ", " + d.green() + ", " + d.blue() + ", " + d.alpha());
         }
     }
 

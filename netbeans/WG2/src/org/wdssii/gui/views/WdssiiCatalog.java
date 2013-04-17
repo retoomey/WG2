@@ -50,7 +50,7 @@ import org.wdssii.util.StringUtil;
  */
 public class WdssiiCatalog extends JPanel implements CONUSJPanelListener {
 
-    private static Logger log = LoggerFactory.getLogger(WdssiiCatalog.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WdssiiCatalog.class);
     private ArrayList<BookmarkURLSource> mySourceList;
     private static final String ALLGROUPS = "All";
     private javax.swing.JTable jSourceListTable;
@@ -89,7 +89,7 @@ public class WdssiiCatalog extends JPanel implements CONUSJPanelListener {
     /**
      * Filter for local files.
      */
-    private class SingleProductFileFilter extends FileFilter {
+    private static class SingleProductFileFilter extends FileFilter {
 
         @Override
         public boolean accept(File f) {
@@ -109,7 +109,7 @@ public class WdssiiCatalog extends JPanel implements CONUSJPanelListener {
     /**
      * A class that uses a BookmarkURLData as its model
      */
-    private class BookmarkURLDataTableModel extends RowEntryTableModel<BookmarkURLSource> {
+    private static class BookmarkURLDataTableModel extends RowEntryTableModel<BookmarkURLSource> {
 
         // FIXME: should be an enum class probably...
         public static final int BOOK_NAME = 0;
@@ -127,7 +127,7 @@ public class WdssiiCatalog extends JPanel implements CONUSJPanelListener {
         }
 
         // Set up a row filter for the group combo box
-        private class BookmarkRowFilter extends RowFilter<Object, Object> {
+        private static class BookmarkRowFilter extends RowFilter<Object, Object> {
 
             private String myGroupName;
             private boolean myFilterOn = false;

@@ -28,7 +28,7 @@ public class DataTable extends DataType implements Table2DView {
     @Override
     public int getNumRows() {
         int rows = 0;
-        if (myColumns.size() > 0){
+        if (!myColumns.isEmpty()){
             rows = myColumns.get(0).getNumRows();
         }
         return rows;

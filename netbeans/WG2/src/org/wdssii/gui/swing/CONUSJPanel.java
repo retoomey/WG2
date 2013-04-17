@@ -132,12 +132,14 @@ public class CONUSJPanel extends JPanel {
 
                         // Cross reference to the current source list...
                         if (mySourceList != null) {
+                            StringBuilder b = new StringBuilder(key);
                             for (BookmarkURLSource s : mySourceList) {
                                 if (s.name.equals(key)) {
-                                    key += ": ";
-                                    key += d.id;
+                                    b.append(": ");
+                                    b.append(d.id);   
                                 }
                             }
+                            key = b.toString();
                         }
 
                         // Hilight the actual radar color rectangle..

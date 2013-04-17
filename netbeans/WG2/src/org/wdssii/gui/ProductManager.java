@@ -57,7 +57,7 @@ import org.wdssii.xml.iconSetConfig.Symbology;
  */
 public class ProductManager implements Singleton {
 
-    private static Logger log = LoggerFactory.getLogger(ProductManager.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ProductManager.class);
     public static final String DEFAULTS = "defaults";
     private static ProductManager instance = null;
     final public static int MIN_CACHE_SIZE = 50;
@@ -131,7 +131,7 @@ public class ProductManager implements Singleton {
     }
 
     public void deleteSelectedProduct() {
-        log.error("Need to implement deleteSelectedProduct");
+        LOG.error("Need to implement deleteSelectedProduct");
     }
 
     /**
@@ -162,8 +162,8 @@ public class ProductManager implements Singleton {
 
     // Called from ProductDeleteCommand (with a source filter parameter)
     public void deleteProductsMatchingSource(String toDelete) {
-        log.info("Delete product matching source " + toDelete);
-        log.error("Need to implement delete products matching source");
+        LOG.info("Delete product matching source " + toDelete);
+        LOG.error("Need to implement delete products matching source");
         ProductDeleteFilter filter = new ProductDeleteFilter(toDelete);
         FeatureList.theFeatures.removeFeatures(filter);
     }
@@ -180,7 +180,7 @@ public class ProductManager implements Singleton {
 
         Product p = getTopProduct();
         if (p == null) {
-            log.warn("Can't move from a null record, no reference");
+            LOG.warn("Can't move from a null record, no reference");
         } else {
             Product aProduct = p.getProduct(message);
             ProductFeature pf = loadProduct(aProduct);
@@ -199,7 +199,6 @@ public class ProductManager implements Singleton {
      */
     public void recordPickerSelectedProduct(String indexName, String datatype, String subtype, Date time) {
 
-        FeatureList toAdd = FeatureList.theFeatures;
         // ----------------------------------------------------------------
         // Try to create default product from selections.
         //SourceManager manager = SourceManager.getInstance();
@@ -214,13 +213,13 @@ public class ProductManager implements Singleton {
         //  HistoricalIndex anIndex = SourceManager.getIndexByName(indexName);
 
         if (anIndex == null) {
-            log.error("Index null, cannot create new product");
+            LOG.error("Index null, cannot create new product");
             return;
         }
 
         IndexRecord aRecord = anIndex.getRecord(datatype, subtype, time);
         if (aRecord == null) {
-            log.error("Record is null, cannot create new product");
+            LOG.error("Record is null, cannot create new product");
             return;
         }
         String indexKey = is.getKey();
@@ -391,6 +390,7 @@ public class ProductManager implements Singleton {
          * The symbology for this product
          */
         private Symbology mySymbology = null;
+        private final Object mySymLock = new Object();
         /**
          * Set to true if we have tried to load the xml files for this type,
          * such as the colormap.xml or iconconfig.xml
@@ -528,26 +528,18 @@ public class ProductManager implements Singleton {
             if (mySymbology == null) {
                 Symbology s = Util.load("symbology/" + getName() + ".xml", Symbology.class);
                 if (s == null) {
-                    s = new Symbology();
+                    s = new Symbology();  // New empty symbology...
+                    
+                    // How do we know what to init to?
+                    // Need to know the type of what symbology is for..
+                    s.toDefaultForPointData();
+
                 } else {
-                    log.debug("Loaded Symbology for " + getName());
+                    LOG.debug("Loaded Symbology for " + getName());
                 }
-
-                // Put some test stuff in there....
-                s.use = Symbology.SINGLE;
-
-                StarSymbol test = new StarSymbol();
-                Categories cs = s.getCategories();
-                Category c = new Category();
-                c.addSymbol(test); // Add a Star
-                c.addSymbol(new ImageSymbol());
-                c.addSymbol(new PolygonSymbol());
-                cs.addCategory(c);
-
-                //URL u2 = W2Config.getURL("symbology/" + getName() + "2.xml");
-                //Util.save(s, u2.getFile(), s.getClass());
-                // ...then make one
-                mySymbology = s;
+                synchronized (mySymLock) {
+                    mySymbology = s;
+                }
             }
         }
 
@@ -653,7 +645,9 @@ public class ProductManager implements Singleton {
         }
 
         public void setSymbology(Symbology s) {
-            mySymbology = s;
+            synchronized (mySymLock) {
+                mySymbology = s;
+            }
         }
 
         public IconSetConfig getIconSetConfig() {
@@ -716,7 +710,7 @@ public class ProductManager implements Singleton {
                 Integer b = parseColorValue(aDataXML.getAttribute("b"));
                 color = new Color(r, g, b);
             } catch (Exception e) {
-                // log.warn("Missing or incorrect colors in product info");
+                // LOG.warn("Missing or incorrect colors in product info");
             }
             ref.myListColor = color;
 
@@ -780,7 +774,7 @@ public class ProductManager implements Singleton {
      */
     public static ProductManager getInstance() {
         if (instance == null) {
-            log.debug("Product Manager must be created by SingletonManager");
+            LOG.debug("Product Manager must be created by SingletonManager");
         }
         return instance;
     }
@@ -930,7 +924,7 @@ public class ProductManager implements Singleton {
                 String nodeName = some.getNodeName();
 
                 // If we find a 'data' node
-                if (nodeName == "data") {
+                if (nodeName.equalsIgnoreCase("data")) {
                     if (some instanceof Element) {
                         Element aDataXML = (Element) (some);
                         parseDataXML(myDefaults, aDataXML, DEFAULTS); // fill
@@ -980,7 +974,7 @@ public class ProductManager implements Singleton {
             ColorDatabase map = Util.load("colorDatabase.xml", ColorDatabase.class);
             myColorDefs = map;
         } catch (Exception c) {
-            log.error("Error loading name to color database...ignoring");
+            LOG.error("Error loading name to color database...ignoring");
         }
     }
 
@@ -1067,7 +1061,7 @@ public class ProductManager implements Singleton {
                     // to the new lower size actually.  This only works with new cache == old
                     myProductCache.put(productCacheKey, theProduct);
                 } else {
-                    log.error("Wasn't able to create the product for data.  Nothing will show");
+                    LOG.error("Wasn't able to create the product for data.  Nothing will show");
                 }
 
                 // Product already found in cache.  Raise it in the LRU to top
@@ -1095,7 +1089,7 @@ public class ProductManager implements Singleton {
          dr = BuilderFactory.createDataRequest(init);
          p = new Product(dr, anIndex, init);
          } catch (Exception e) {
-         log.error("Exception loading data..." + e.toString());
+         LOG.error("Exception loading data..." + e.toString());
          }
          }
          */
@@ -1195,7 +1189,7 @@ public class ProductManager implements Singleton {
             ProductFeature newOne = new ProductFeature(toAdd, aProduct);
             toAdd.addFeature(newOne);
             theHandler = newOne;
-            log.debug("Created NEW ProductFeature for product");
+            LOG.debug("Created NEW ProductFeature for product");
         }
 
         // Move handler to this product

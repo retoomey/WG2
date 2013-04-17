@@ -3,7 +3,7 @@ package org.wdssii.gui.products;
 import com.jidesoft.swing.JideSplitPane;
 import java.awt.Component;
 import java.awt.Container;
-import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -19,12 +19,12 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.SwingGUIPlugInPanel;
-import org.wdssii.gui.renderers.CategoryUniqueValues;
-import org.wdssii.gui.renderers.SingleSymbol;
 import org.wdssii.gui.renderers.SymbolGUI;
 import org.wdssii.gui.renderers.SymbologyFactory;
 import org.wdssii.gui.renderers.SymbologyGUI;
+import org.wdssii.gui.renderers.SymbologyGUI.SymbologyGUIListener;
 import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**
@@ -34,15 +34,16 @@ import org.wdssii.xml.iconSetConfig.Symbology;
  *
  * @author Robert Toomey
  */
-public class SymbologyDialog extends JDialog {
+public class SymbologyDialog extends JDialog implements SymbologyGUIListener {
 
-    private static Logger log = LoggerFactory.getLogger(SymbologyDialog.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SymbologyDialog.class);
     private JPanel myPanel = null;
     private JButton myOKButton;
     private JPanel myGUIHolder;
     private SymbolGUI myCurrentGUI = null;
     private JButton mySymbolButton;
     private Product myProduct = null;
+    private Symbology mySymbology = null;
 
     // Because Java is brain-dead with JDialog/JFrame silliness
     public SymbologyDialog(Product prod, JFrame owner, Component location, boolean modal, String myMessage) {
@@ -70,9 +71,6 @@ public class SymbologyDialog extends JDialog {
 
         // The extra information panel...
         myGUIHolder = new JPanel();
-        //myGUIHolder.setSize(200, 50);
-        //p.add(myGUIHolder, new CC().growX().growY().pushY().span().wrap());
-
         JPanel buttonPanel = new JPanel();
 
         // FIXME: Get list from the Datatype right?
@@ -83,14 +81,9 @@ public class SymbologyDialog extends JDialog {
             "Single Symbol",
             "Categories:Unique Values",};
 
-        // Which way do we link Symbology to DataType?
-        // Do we ask product for valid symbology types..what if symbology is
-        // WRONG for product?  Seems like Symbology should be 'highter' than
-        // the DataType. Or do we ask Symbology if it can handle a given
-        // Datatype?
-        ArrayList<String> list = SymbologyFactory.getSymbologyNameList();
-
-        Symbology symbology = prod.getSymbology();
+        Symbology orgSymbology = prod.getSymbology();
+        // Deep copy it to avoid having to synchronize
+        mySymbology = new Symbology(orgSymbology);
 
         final JList theList = new JList(listData);
         mySymbolButton = new JButton("Edit Symbol");
@@ -99,7 +92,7 @@ public class SymbologyDialog extends JDialog {
         s.setProportionalLayout(true);
         s.setShowGripper(true);
         s.add(new JScrollPane(theList));
-        s.add(new JScrollPane(myGUIHolder));
+        s.add(myGUIHolder);  // No scroll pane...individual classes decide on this
 
         // Initial symbology GUI based on Symbology.use value...
         // Up to the GUI to parse Symbology properly.
@@ -108,8 +101,8 @@ public class SymbologyDialog extends JDialog {
         // overkill but this allows for instance having a single symbol, and
         // keeping your category settings to 'switch' back to instead of them
         // just going away with a change in use type.
-        SymbologyGUI newControls = SymbologyFactory.getSymbologyGUIFor(symbology);
-        SwingGUIPlugInPanel.install(myGUIHolder, newControls);
+        SymbologyGUI newControls = SymbologyFactory.getSymbologyGUIFor(mySymbology);
+        changeOutSymbologyGUI(newControls);       
 
         // Select the string matching the symbology display name...
         String name = newControls.getDisplayName();
@@ -147,7 +140,7 @@ public class SymbologyDialog extends JDialog {
         mySymbolButton.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                SymbolDialog myDialog = new SymbolDialog(myProduct, SymbologyDialog.this, SymbologyDialog.this, true, "Symbology");
+                SymbolDialog myDialog = new SymbolDialog(SymbologyDialog.this, myProduct, SymbologyDialog.this, SymbologyDialog.this, true, "Symbology");
             }
         });
         // myCancelButton.addActionListener(new java.awt.event.ActionListener() {
@@ -165,23 +158,36 @@ public class SymbologyDialog extends JDialog {
         ListSelectionModel listSelectionModel = theList.getSelectionModel();
         listSelectionModel.addListSelectionListener(
                 new ListSelectionListener() {
-                    @Override
-                    public void valueChanged(ListSelectionEvent e) {
-                        boolean adjust = e.getValueIsAdjusting();
-                        if (!adjust) {
-                            ListModel model = theList.getModel();
-                            if (!theList.isSelectionEmpty()) {
-                                String name = (String) model.getElementAt(theList.getSelectedIndex());
-
-                                // log.debug("Selection item " + firstIndex);
-                                SymbologyGUI newControls = SymbologyFactory.getSymbologyByName(name);
-                                SwingGUIPlugInPanel.install(myGUIHolder, newControls);
-                            }
-                        }
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                boolean adjust = e.getValueIsAdjusting();
+                if (!adjust) {
+                    ListModel model = theList.getModel();
+                    if (!theList.isSelectionEmpty()) {
+                        String name = (String) model.getElementAt(theList.getSelectedIndex());
+                        SymbologyGUI newControls = SymbologyFactory.getSymbologyByName(name);
+                        changeOutSymbologyGUI(newControls);       
                     }
-                });
+                }
+            }
+        });
         setLocationRelativeTo(location);
 
         setVisible(true);
+    }
+
+    public void changeOutSymbologyGUI(SymbologyGUI gui){
+        gui.addListener(this);
+        gui.useSymbology(mySymbology);
+        gui.setupComponents();
+        SwingGUIPlugInPanel.install(myGUIHolder, gui);
+    }
+    
+    @Override
+    public void symbologyChanged() {
+       // LOG.debug("Got back symbology changed notification...");
+        final Symbology symbology = new Symbology(mySymbology);  //Copy it AGAIN
+        myProduct.setSymbology(symbology);
+        AnimateManager.updateDuringRender(); // bleh
     }
 }

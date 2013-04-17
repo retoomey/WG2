@@ -290,7 +290,7 @@ public class Feature implements Mementor {
         return getVisible();  // Default is visible manual setting
     }
 
-    public class defaultGUI extends FeatureGUI {
+    public static class defaultGUI extends FeatureGUI {
 
         @Override
         public void updateGUI() {

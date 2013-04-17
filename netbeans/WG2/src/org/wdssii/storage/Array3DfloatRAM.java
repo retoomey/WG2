@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Array3DfloatRAM implements Array3D<Float> {
 
-    private static Logger log = LoggerFactory.getLogger(Array2DfloatRAM.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Array2DfloatRAM.class);
     private int myX;
     private int myY;
     private int myZ;
@@ -40,7 +40,7 @@ public class Array3DfloatRAM implements Array3D<Float> {
                 }
             }
         } catch (OutOfMemoryError mem) {
-            log.warn("Array3D storage not enough heap space for float[" + x + "][" + y + "][" + z + "] array");
+            LOG.warn("Array3D storage not enough heap space for float[" + x + "][" + y + "][" + z + "] array");
         }
     }
 

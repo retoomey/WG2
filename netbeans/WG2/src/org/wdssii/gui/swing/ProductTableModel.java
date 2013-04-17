@@ -28,7 +28,7 @@ import org.wdssii.gui.swing.SimpleTable.SimpleTableModel;
  */
 public class ProductTableModel extends SimpleTableModel {
 
-	private static Logger log = LoggerFactory.getLogger(ProductTableModel.class);
+	private final static Logger LOG = LoggerFactory.getLogger(ProductTableModel.class);
 	/** The Product feature we were created for */
 	ProductFeature myProductFeature = null;
 	/** Raw datatype we are viewing...which is lazy loading */
@@ -128,15 +128,6 @@ public class ProductTableModel extends SimpleTableModel {
 					FilterList list = myProductFeature.getFList();
 					ColorMapOutput out = new ColorMapOutput();
 					dq.inDataValue = dq.outDataValue = cq.value;
-					if (out == null) {
-						log.debug("out is null");
-					}
-					if (dq == null) {
-						log.debug("dq is null");
-					}
-					if (list == null) {
-						log.debug("list is null");
-					}
 					list.fillColor(out, dq, true);
 					back = new Color(out.redI(), out.greenI(), out.blueI());
 					fore = java.awt.Color.white;

@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Memento {
 
-	private static Logger log = LoggerFactory.getLogger(Memento.class);
+	private final static Logger LOG = LoggerFactory.getLogger(Memento.class);
 
 	public static class Property {
 
@@ -102,7 +102,7 @@ public class Memento {
 		Property f = myProperties.get(key);
 		if (f == null) {
 			// You need to call initProperty on the memento before setting
-			log.error("Tried to set uninitialized property: " + key);
+			LOG.error("Tried to set uninitialized property: " + key);
 		} else {
 			// FIXME: Might be able to modify the original, this makes
 			// a copy...

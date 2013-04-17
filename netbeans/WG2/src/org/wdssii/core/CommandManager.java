@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 public class CommandManager implements Singleton {
 
     private static CommandManager instance = null;
-    private static Logger log = LoggerFactory.getLogger(CommandManager.class);
+    private final static Logger LOG = LoggerFactory.getLogger(CommandManager.class);
     private final Object myViewLock = new Object();
     /**
      * Keep weak references to command listeners, we don't hold onto them. We
@@ -45,7 +45,7 @@ public class CommandManager implements Singleton {
 
     public static CommandManager getInstance() {
         if (instance == null) {
-            log.debug("Command Manager must be created by SingletonManager");
+            LOG.debug("Command Manager must be created by SingletonManager");
         }
         return instance;
     }
@@ -91,19 +91,19 @@ public class CommandManager implements Singleton {
         // SourceDelete.DeleteALL --> SourceDeleteCommand.DeleteAllCommand
         String createByName = commandName.replaceAll("\\.", "Command\\$");
         createByName = commandPath + createByName + "Command";
-        log.info("Generate command: " + createByName);
+        LOG.info("Generate command: " + createByName);
         Class<?> aClass = null;
         try {
             aClass = Class.forName(createByName);
             Constructor<?> c = aClass.getConstructor();
             if (c == null) {
-                log.error("Couldn't find a constructor " + commandName);
+                LOG.error("Couldn't find a constructor " + commandName);
             }
             command = (WdssiiCommand) c.newInstance();
             command.setParameters(optionalParms);
-            log.debug("Generated command " + commandName);
+            LOG.debug("Generated command " + commandName);
         } catch (Exception e) {
-            log.error("Couldn't create WdssiiCommand by name '"
+            LOG.error("Couldn't create WdssiiCommand by name '"
                     + createByName + "' because " + e.toString());
         }
         return command;
@@ -118,7 +118,7 @@ public class CommandManager implements Singleton {
     public void executeCommand(WdssiiCommand command, boolean userAction) {
 
         if (command != null) {
-            //log.info("CommandManager: Executing command "+command);
+            //LOG.info("CommandManager: Executing command "+command);
             // Does the command require an immediate update message sent?
             if (command.execute()) {
                 fireUpdate(command);
@@ -185,14 +185,14 @@ public class CommandManager implements Singleton {
                             test.invoke(v, command);
                         } catch (IllegalArgumentException e) {  // We keep looking if arguments are wrong
                             // Maybe tell programmer the arguments are wrong?
-                            log.warn("Warning.  Found method " + methodName + " in " + currentName + ", but expected same class name.");
+                            LOG.warn("Warning.  Found method " + methodName + " in " + currentName + ", but expected same class name.");
                         } catch (IllegalAccessException e) {	// We keep looking if we don't have access
                             // Maybe tell programmer the access is wrong?
-                            log.warn("Warning.  Found method " + methodName + " in " + currentName + ", but access is not public.");
+                            LOG.warn("Warning.  Found method " + methodName + " in " + currentName + ", but access is not public.");
                         } catch (InvocationTargetException e) {  // This is caused by something in your code
-                            log.warn("Warning.  Unhandled exception in method '" + methodName + "' in " + theClass.getSimpleName());
-                            log.warn("Exception is " + e.toString());
-                            log.warn("This is a bug and needs to be fixed.  GUI will likely act strangely");
+                            LOG.warn("Warning.  Unhandled exception in method '" + methodName + "' in " + theClass.getSimpleName());
+                            LOG.warn("Exception is " + e.toString());
+                            LOG.warn("This is a bug and needs to be fixed.  GUI will likely act strangely");
                         }
                     } catch (SecurityException e) {
                     } catch (NoSuchMethodException e) {
@@ -204,16 +204,16 @@ public class CommandManager implements Singleton {
             // Purge....
             for (String s : cleanup) {
                 myListeners.remove(s);
-//		    log.debug("COMMAND MANAGER PURGE LISTENER "+s);
+//		    LOG.debug("COMMAND MANAGER PURGE LISTENER "+s);
             }
             // Debug dump...
 	    /*
              Set<String> aSet = myNamedViews.keySet();
-             log.debug("DUMP listeners----------------"+c.size());
+             LOG.debug("DUMP listeners----------------"+c.size());
              for (String s:aSet) {
-             log.debug("CURRENT LISTENER "+s);
+             LOG.debug("CURRENT LISTENER "+s);
              }
-             log.debug("END DUMP listeners");
+             LOG.debug("END DUMP listeners");
              * 
              */
         }

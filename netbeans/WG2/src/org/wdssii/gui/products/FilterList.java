@@ -10,10 +10,11 @@ import org.wdssii.gui.products.filters.LowCutFilter;
 import org.wdssii.gui.products.filters.StormRMFilter;
 import org.wdssii.gui.products.volumes.ProductVolume;
 
-/** This object is a ColorMap plus a list of DataFilters 
- * FIXME: a ColorMap should become just another Filter.
- * Filter should have ability to change colors...say I want a filter that turns off 'blue' for example...
- * 
+/**
+ * This object is a ColorMap plus a list of DataFilters FIXME: a ColorMap should
+ * become just another Filter. Filter should have ability to change colors...say
+ * I want a filter that turns off 'blue' for example...
+ *
  * @author Robert Toomey
  *
  */
@@ -40,8 +41,10 @@ public class FilterList {
         return myFilters;
     }
 
-    /** Allow filters to do any prep work for a volume generation.
-     * This is for speed during things like vslice rendering or isosurfaces
+    /**
+     * Allow filters to do any prep work for a volume generation. This is for
+     * speed during things like vslice rendering or isosurfaces
+     *
      * @param v
      */
     public void prepForVolume(ProductVolume v) {
@@ -50,7 +53,9 @@ public class FilterList {
         }
     }
 
-    /** Fill a ColorMapOutput given original input */
+    /**
+     * Fill a ColorMapOutput given original input
+     */
     public void fillColor(ColorMapOutput out, DataTypeQuery q, boolean filter) {
 
         if (myColorMap == null) {
@@ -65,7 +70,9 @@ public class FilterList {
         }
     }
 
-    /** Apply the filters */
+    /**
+     * Apply the filters
+     */
     public float f(DataTypeQuery q) {
         float value = q.inDataValue;
         for (DataFilter d : myFilters) {
@@ -75,14 +82,17 @@ public class FilterList {
         return value;
     }
 
-    /** Get a unique key for the state of the filter list */
+    /**
+     * Get a unique key for the state of the filter list
+     */
     public String getFilterKey(boolean useFilters) {
-        String filterKey = "";
+        StringBuilder buf = new StringBuilder();
         if (useFilters) {
             for (DataFilter d : myFilters) {
-                filterKey += d.getKey();
+                buf.append(d.getKey());
             }
         }
+        String filterKey = buf.toString();
         return filterKey;
     }
 }

@@ -22,7 +22,7 @@ import org.wdssii.storage.GrowList;
  */
 public class QuadStripRenderer {
 
-    private static Logger log = LoggerFactory.getLogger(QuadStripRenderer.class);
+    private final static Logger LOG = LoggerFactory.getLogger(QuadStripRenderer.class);
     /**
      * Offsets for the quad strips
      */

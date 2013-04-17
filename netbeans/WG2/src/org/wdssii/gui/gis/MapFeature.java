@@ -38,7 +38,7 @@ public class MapFeature extends Feature {
             initProperty(LINE_COLOR, Color.WHITE);
         }
     }
-    private static Logger log = LoggerFactory.getLogger(MapFeature.class);
+    private final static Logger LOG = LoggerFactory.getLogger(MapFeature.class);
     public static final String MapGroup = "MAPS";
 
     /**
@@ -79,8 +79,8 @@ public class MapFeature extends Feature {
                 setKey(s);
 
                 // Does this always work?  Get short name of map from URL
-                int dot = s.lastIndexOf(".");
-                int sep = s.lastIndexOf("/");  // "\"?
+                int dot = s.lastIndexOf('.');
+                int sep = s.lastIndexOf('/');  // "\"?
                 String sub = s.substring(sep + 1, dot);
                 setName(sub);
 
@@ -90,13 +90,13 @@ public class MapFeature extends Feature {
                 setMessage("?? " + source);
                 setKey(source);
                 // Does this always work?  Get short name of map from URL
-                int dot = source.lastIndexOf(".");
-                int sep = source.lastIndexOf("/");  // "\"?
+                int dot = source.lastIndexOf('.');
+                int sep = source.lastIndexOf('/');  // "\"?
                 String sub = source.substring(sep + 1, dot);
                 setName(sub);
             }
         } catch (Exception e) {
-            log.error("Got exception trying to use GeoTools. " + e.toString());
+            LOG.error("Got exception trying to use GeoTools. " + e.toString());
         }
     }
 

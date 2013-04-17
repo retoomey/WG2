@@ -14,7 +14,7 @@ import org.wdssii.gui.features.FeatureMemento;
  */
 public class FeatureChangeCommand extends FeatureCommand {
 
-    private static Logger log = LoggerFactory.getLogger(FeatureChangeCommand.class);
+    private final static Logger LOG = LoggerFactory.getLogger(FeatureChangeCommand.class);
     /**
      * The key of the Feature we will set visible for
      */

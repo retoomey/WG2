@@ -25,7 +25,7 @@ import org.wdssii.index.HistoricalIndex;
  */
 public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 
-	private static Logger log = LoggerFactory.getLogger(IndexSourceParamsGUI.class);
+	private final static Logger LOG = LoggerFactory.getLogger(IndexSourceParamsGUI.class);
 	private JComboBox myHistoryComboBox;
 	private SourcesURLLoadDialog myOwner;
 	private ActionListener myOKListener;
@@ -144,7 +144,7 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 			if (item < historyValues.length) {
 				history = historyValues[item];
 			} else {
-				log.error("Have no history number value for " + cb.getSelectedItem());
+				LOG.error("Have no history number value for " + cb.getSelectedItem());
 			}
 		}
 

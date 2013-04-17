@@ -24,7 +24,7 @@ import org.wdssii.gui.swing.SimpleTable;
  */
 public class Product2DTable implements Feature3DRenderer {
 
-	private static Logger log = LoggerFactory.getLogger(Product2DTable.class);
+	private final static Logger LOG = LoggerFactory.getLogger(Product2DTable.class);
 	// The default 2D table for a product uses the virtual table for
 	// really large datasets.  This is default for RadialSets, etc.
 	// There's not much to this table other than it is purely virtual and

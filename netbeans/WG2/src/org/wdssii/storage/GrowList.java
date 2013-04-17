@@ -1,6 +1,7 @@
 package org.wdssii.storage;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GrowList<E> {
 
-  private static Logger log = LoggerFactory.getLogger(GrowList.class);
+  private final static Logger LOG = LoggerFactory.getLogger(GrowList.class);
 
 	/** Create a node...single linked list.  We could save a bit of
 	 * memory by 'blocking' items into chunks...might do that later
@@ -70,7 +71,7 @@ public class GrowList<E> {
 		}
 
 		@Override
-		public E next() {
+		public E next() throws NoSuchElementException {                
 			E item = null;
 			if (at != null) {
 				// First call, use root, otherwise move forward 1
@@ -83,6 +84,9 @@ public class GrowList<E> {
 		  	}
 			}
 			cursor++;
+                        if (item == null) {
+                               throw new NoSuchElementException();
+                        }
 			return item;
 		}
 
@@ -116,7 +120,8 @@ public class GrowList<E> {
 			last.next = n;
 			last = n;
 		}
-		setSize(size + 1);
+		//setSize(size + 1);
+                increaseSize();
 		return true;
 	}
 
@@ -126,7 +131,7 @@ public class GrowList<E> {
 		return size;
 	}
 
-	private synchronized void setSize(int s) {
-		size = s;
+	private synchronized void increaseSize() {
+		size +=1;
 	}
 }

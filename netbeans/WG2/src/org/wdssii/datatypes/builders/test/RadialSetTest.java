@@ -104,7 +104,7 @@ public class RadialSetTest extends DataTypeTest {
             float as = 1.0f;
             float gw = 1.0f;
             float ny = nyquist;
-            float deltaAz = 360 / num_radials;
+            float deltaAz = (float) (360 / num_radials);
 
             for (int i = 0; i < num_radials; ++i) {
                 // This wraps around the column of the 2D array, _not_ a copy
@@ -122,7 +122,7 @@ public class RadialSetTest extends DataTypeTest {
 
     @Override
     public void createFakeRecords(Index index) {
-        String indexLocation = index.getIndexLocation();
+        //String indexLocation = index.getIndexLocation();
 
         // Subtract mySecondsPerElev from current time for total number
         // of records we're making
@@ -130,7 +130,7 @@ public class RadialSetTest extends DataTypeTest {
         cal.add(Calendar.SECOND, -(mySecondsPerElev * myFakeElevs.length * myNumVolumes));
         Date d = cal.getTime();
 
-        String[] paramList = new String[]{"test"};  // Use the test builder
+        //String[] paramList = new String[]{"test"};  // Use the test builder
         String product = "Reflectivity ";
         String timeString = IndexRecord.getStringFromDate(d) + " ";
         for (int v = 0; v < myNumVolumes; v++) {

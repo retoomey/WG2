@@ -41,7 +41,7 @@ import org.wdssii.xml.Tag;
 public class SourcesView extends JThreadPanel implements SDockView, CommandListener {
 
     public static final String ID = "wdssii.SourcesView";
-    private static Logger log = LoggerFactory.getLogger(SourcesView.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SourcesView.class);
     private Source myLastSelectedSource = null;
 
     // ----------------------------------------------------------------
@@ -91,7 +91,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
         b1.setToolTipText("Source options");
         b1.setAlwaysDropdown(true);
 
-        JPopupMenu menu = new JPopupMenu();
+        //JPopupMenu menu = new JPopupMenu();
 
         JMenuItem item;
         item = new JMenuItem("Add Source...");
@@ -141,7 +141,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
         public String message;
     }
 
-    private class SourceListTableModel extends RowEntryTableModel<SourceListTableData> {
+    private static class SourceListTableModel extends RowEntryTableModel<SourceListTableData> {
 
         public static final int SOURCE_STATUS = 0;
         public static final int SOURCE_NAME = 1;
@@ -151,8 +151,8 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
 
         public SourceListTableModel() {
             super(SourceListTableData.class, new String[]{
-                        "Connected", "Source", "Type", "Path"
-                    });
+                "Connected", "Source", "Type", "Path"
+            });
         }
 
         @Override
@@ -352,25 +352,25 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
             @Override
             public void handleClick(Object stuff, int orgRow, int orgColumn) {
 
-                if (stuff instanceof SourceListTableData) {
+               /* if (stuff instanceof SourceListTableData) {
                     SourceListTableData entry = (SourceListTableData) (stuff);
 
                     switch (orgColumn) {
                         default:
                             break;
                     }
-                }
+                }*/
             }
-            
+
             @Override
             public void handleDoubleClick(Object stuff, int row, int column) {
-                 if (stuff instanceof SourceListTableData) {
+                if (stuff instanceof SourceListTableData) {
                     SourceListTableData entry = (SourceListTableData) (stuff);
 
-                   if (!entry.connecting && !entry.connected){
-                       SourceConnectCommand r = new SourceConnectCommand(entry.sourceKey);
-                       CommandManager.getInstance().executeCommand(r, true);
-                   }
+                    if (!entry.connecting && !entry.connected) {
+                        SourceConnectCommand r = new SourceConnectCommand(entry.sourceKey);
+                        CommandManager.getInstance().executeCommand(r, true);
+                    }
                 }
             }
         });
@@ -400,12 +400,10 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
         int row = jObjects3DListTable.getSelectedRow();
         if (row > -1) {
             int dataRow = jObjects3DListTable.convertRowIndexToModel(row);
-            if (mySourceListTableModel != null) {
-                SourceListTableData d = (SourceListTableData) (mySourceListTableModel.getDataForRow(dataRow));
-                if (d != null) {
-                    SourceSelectCommand c = new SourceSelectCommand(d.sourceKey);
-                    CommandManager.getInstance().executeCommand(c, true);
-                }
+            SourceListTableData d = (SourceListTableData) (mySourceListTableModel.getDataForRow(dataRow));
+            if (d != null) {
+                SourceSelectCommand c = new SourceSelectCommand(d.sourceKey);
+                CommandManager.getInstance().executeCommand(c, true);
             }
         }
     }
@@ -425,12 +423,12 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
          */
         Collections.sort(f,
                 new Comparator<Source>() {
-                    @Override
-                    public int compare(Source o1, Source o2) {
-                        int c = o1.getVisibleName().compareTo(o2.getVisibleName());
-                        return c;
-                    }
-                });
+            @Override
+            public int compare(Source o1, Source o2) {
+                int c = o1.getVisibleName().compareTo(o2.getVisibleName());
+                return c;
+            }
+        });
 
         int currentLine = 0;
         int select = -1;
@@ -518,11 +516,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
         jInfoLabel = new JLabel("---");
         return jObjectScrollPane;
     }
-
-    private JToolBar initToolBar() {
-        return null;
-    }
-
+    
     private void addSourceFromDialog(java.awt.event.ActionEvent evt) {
         // Open dialog for single file adding.....
 
@@ -596,11 +590,10 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
     /**
      * Filter for local files.
      */
-    private class SourceFileFilter extends FileFilter {
+    private static class SourceFileFilter extends FileFilter {
 
         @Override
         public boolean accept(File f) {
-            String t = f.getName().toLowerCase();
             boolean canBeHandled = SourceFactory.canAnyHandleFileType(f);
             return (f.isDirectory() || canBeHandled);
         }
@@ -608,12 +601,13 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
         @Override
         public String getDescription() {
             Set<String> types = SourceFactory.getAllHandledFileDescriptions();
-            String d = "";
+            StringBuilder buf = new StringBuilder();
             for (String s : types) {
-                d += s;
-                d += " ";
+                buf.append(s);
+                buf.append(' ');
             }
-            d += "Files";
+            buf.append("Files");
+            String d = buf.toString();
             return d;
         }
     }
@@ -647,12 +641,12 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
                     file = new File(temp + ".xml");
                 }
                 URL aURL = file.toURI().toURL();
-                log.debug("Trying to write output to " + aURL.toString());
-               // Tag root = SourceList.theSources.getTag();
+                LOG.debug("Trying to write output to " + aURL.toString());
+                // Tag root = SourceList.theSources.getTag();
                 PreferencesManager.getInstance().saveConfig(aURL);
                 //if (root != null) {
-               //     root.writeAsRoot(aURL);
-               // }
+                //     root.writeAsRoot(aURL);
+                // }
 
             } catch (MalformedURLException ex) {
             }

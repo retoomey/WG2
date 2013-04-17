@@ -19,7 +19,7 @@ import org.wdssii.index.Index;
  */
 public class SourceManager implements Singleton {
 
-    private static Logger log = LoggerFactory.getLogger(SourceManager.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SourceManager.class);
     private static SourceManager instance = null;
     private SourceRecordLog mySourceRecordLog = new SourceRecordLog();
 
@@ -34,7 +34,7 @@ public class SourceManager implements Singleton {
 
     public static SourceManager getInstance() {
         if (instance == null) {
-            log.debug("SourceManager must be created by SingletonManager");
+            LOG.debug("SourceManager must be created by SingletonManager");
         }
         return instance;
     }

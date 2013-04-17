@@ -46,7 +46,7 @@ public class LLHAreaControlPointRenderer {
 	}
 
 	public void setLightMaterial(Material material) {
-		if (material != null) {
+		if (material == null) {
 			String message = Logging.getMessage("nullValue.MaterialIsNull");
 			Logging.logger().severe(message);
 			throw new IllegalArgumentException(message);
@@ -60,7 +60,7 @@ public class LLHAreaControlPointRenderer {
 	}
 
 	public void setLightDirection(Vec4 direction) {
-		if (direction != null) {
+		if (direction == null) {
 			String message = Logging.getMessage("nullValue.DirectionIsNull");
 			Logging.logger().severe(message);
 			throw new IllegalArgumentException(message);

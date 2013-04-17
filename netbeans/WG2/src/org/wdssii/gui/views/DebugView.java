@@ -75,8 +75,6 @@ public class DebugView extends JThreadPanel
             TabWindow stuff = new TabWindow(new DockingWindow[]{v, v2, v3});
             root.setWindow(stuff);
             stuff.setSelectedTab(0);
-            WindowTabProperties prop = stuff.getTabWindowProperties().getTabProperties();
-            PropertyMap pp = prop.getMap();
            
             // ------------------------------------------------------------
             

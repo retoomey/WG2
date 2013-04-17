@@ -47,6 +47,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.PointRemoveCommand;
@@ -73,10 +74,10 @@ import org.wdssii.gui.volumes.LLHAreaSet.LLHAreaSetMemento;
  */
 public class LLHAreaSetGUI extends FeatureGUI {
 
-    private static org.slf4j.Logger log = LoggerFactory.getLogger(LLHAreaSetGUI.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LLHAreaSetGUI.class);
    
     /** Eventually this controller stuff all in us I think */
-    public static LLHAreaController theController = null;
+    private static LLHAreaController theController = null;
     
     private LLHAreaFeature myFeature;
     private final LLHAreaSet myLLHAreaSet;
@@ -96,6 +97,10 @@ public class LLHAreaSetGUI extends FeatureGUI {
         setupComponents();
     }
 
+    public static void setLLHAreaController(LLHAreaController c){
+        theController = c;
+    }
+    
     /**
      * General update call
      */
@@ -367,7 +372,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
                 b = 0;
             }
             for (LatLon l : list) {
-                LLHAreaSetTableData d = new LLHAreaSetTableData();
+                //LLHAreaSetTableData d = new LLHAreaSetTableData();
                 double latitude = l.latitude.degrees;
                 double longitude = l.longitude.degrees;
                 /*
@@ -422,7 +427,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
 
                 } catch (Exception problem) {
                     // problem.printStackTrace();
-                    log.debug("Exception writing file: " + problem.toString());
+                    LOG.debug("Exception writing file: " + problem.toString());
                     transaction.rollback();
 
                 } finally {
@@ -430,10 +435,10 @@ public class LLHAreaSetGUI extends FeatureGUI {
                 }
 
             } else {
-                log.debug(typeName + " does not support read/write access");
+                LOG.debug(typeName + " does not support read/write access");
             }
         } catch (Exception e) {
-            log.debug("Exception trying to write file:" + e.toString());
+            LOG.debug("Exception trying to write file:" + e.toString());
         }
 
     }
@@ -449,7 +454,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
         public int index;
     }
 
-    private class LLHAreaSetTableModel extends RowEntryTableModel<LLHAreaSetTableData> {
+    private static class LLHAreaSetTableModel extends RowEntryTableModel<LLHAreaSetTableData> {
 
         public static final int OBJ_NUMBER = 0;
         public static final int OBJ_LATITUDE = 1;
@@ -534,8 +539,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
 
         int count = myTable.getColumnCount();
         TableColumnModel cm = myTable.getColumnModel();
-        JCheckBox aBox = new JCheckBox();
-        Dimension d = aBox.getMinimumSize();
+        //Dimension d = aBox.getMinimumSize();
         // IconHeaderRenderer r = new IconHeaderRenderer();
         for (int i = 0;
                 i < count;
@@ -681,7 +685,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
          * // Keep old selection unless it's gone... if
          * (!changeSelection) { // Use old selection if exists... if
          * (oldSelect > 0) { select = oldSelect; topFeature =
-         * myLastSelectedFeature; } } else { //log.debug("CHANGE
+         * myLastSelectedFeature; } } else { //LOG.debug("CHANGE
          * SELECTION IS TRUE"); }
          *
          */

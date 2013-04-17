@@ -34,7 +34,7 @@ public class ImageSymbolGUI extends PointSymbolGUI {
     /**
      * Provides the properties for a StarSymbol
      */
-    private static class ImageSymbolMementor extends PointSymbolMementor {
+    private class ImageSymbolMementor extends PointSymbolMementor {
 
         private ImageSymbol mySymbol;
 

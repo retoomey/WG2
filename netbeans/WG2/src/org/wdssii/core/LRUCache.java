@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LRUCache<K, V> {
 
-    private static Logger log = LoggerFactory.getLogger(LRUCache.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LRUCache.class);
 
     /**
      * A Cache Listener that gets notified when certain events happen in the
@@ -227,7 +227,7 @@ public class LRUCache<K, V> {
     /*
     private void dumpStack(String who) {
         synchronized (myLRULock) {
-            //log.debug("DUMP STACK: " + who);
+            //LOG.debug("DUMP STACK: " + who);
             boolean done = false;
             int counter = 0;
             LRUCacheItem<K, V> current = myTopItem;
@@ -237,7 +237,7 @@ public class LRUCache<K, V> {
                     if (myBottomItem != null) {
                         b = Integer.toString(myBottomItem.hashCode());
                     }
-                    //log.debug("This is Bottom " + b);
+                    //LOG.debug("This is Bottom " + b);
                 }
                 LRUCacheItem<K, V> next = current.next;
                 LRUCacheItem<K, V> prev = current.previous;
@@ -250,7 +250,7 @@ public class LRUCache<K, V> {
                     p = Integer.toString(prev.hashCode());
                 }
 
-                // log.debug(counter + " : " + current.hashCode() + " (p " + p + ")(n " + n);
+                // LOG.debug(counter + " : " + current.hashCode() + " (p " + p + ")(n " + n);
                 current = current.next;
                 counter++;
                 if (counter > myStackSize) {
@@ -258,12 +258,12 @@ public class LRUCache<K, V> {
                 }
             }
             if (counter == myStackSize) {
-                //log.debug("Stack size is consistent at " + counter);
+                //LOG.debug("Stack size is consistent at " + counter);
             } else {
-                log.debug("BAD STACK SIZE " + myStackSize + " != " + counter);
+                LOG.debug("BAD STACK SIZE " + myStackSize + " != " + counter);
             }
             if (myLRUCache.size() != counter) {
-                log.debug("BAD TREEMAP SIZE " + counter + " != " + myLRUCache.size());
+                LOG.debug("BAD TREEMAP SIZE " + counter + " != " + myLRUCache.size());
             }
         }
     }
@@ -454,7 +454,7 @@ public class LRUCache<K, V> {
             }
 
         } catch (Exception e) {
-            log.error("Exception purging cache element " + e.toString());
+            LOG.error("Exception purging cache element " + e.toString());
         }
     }
 
@@ -486,7 +486,7 @@ public class LRUCache<K, V> {
                 }
             }
         } catch (Exception e) {
-            log.error("Exception purging cache for index " + e.toString());
+            LOG.error("Exception purging cache for index " + e.toString());
         }
         return removed;
     }

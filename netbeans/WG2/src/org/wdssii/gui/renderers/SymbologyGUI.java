@@ -15,8 +15,26 @@ import org.wdssii.xml.iconSetConfig.Symbology;
  */
 public abstract class SymbologyGUI extends SwingGUIPlugInPanel {
     
+    private SymbologyGUIListener myListener;
+    
+    public static interface SymbologyGUIListener {
+        public void symbologyChanged();
+    }
+    
+    protected Symbology mySymbology = null;
+    
     public SymbologyGUI() {
-        setupComponents();
+        //setupComponents();
+    }
+    
+    public void addListener(SymbologyGUIListener l){
+        myListener = l;  // Just one for now
+    }
+    
+    public void notifyChanged(){
+        if (myListener !=null){
+            myListener.symbologyChanged();
+        }
     }
 
     /** Get the symbology.use type that we edit for, each will have a unique number */
@@ -24,20 +42,24 @@ public abstract class SymbologyGUI extends SwingGUIPlugInPanel {
     
     /** Return the string used to define us in a list */
     public String getDisplayName() {
-        return Symbology.theListNames[getType()];
+        return Symbology.getType(getType());
     }
     
     /**
      * Set up the components. We haven't completely automated this because you
      * never know what little change you need that isn't supported.
      */
-    private void setupComponents() {
+    public void setupComponents() {
+        
+        // Default encloses root within a scroll pane
         JScrollPane s = new JScrollPane();
         s.setViewportView(this);
         setRootComponent(s);
         setLayout(new MigLayout(new LC(), null, null));
-       // JButton b = new JButton("Symbology");
-        //add(b, new CC());
+    }
+
+    public void useSymbology(Symbology symbology) {
+       mySymbology = symbology;
     }
 
 }

@@ -44,7 +44,7 @@ import ucar.nc2.Variable;
  */
 public class NetcdfBuilder extends Builder {
 
-    private static Logger log = LoggerFactory.getLogger(NetcdfBuilder.class);
+    private final static Logger LOG = LoggerFactory.getLogger(NetcdfBuilder.class);
 
     /**
      * Info snagged from a netcdf file. Used by GUI to prefetch Product, Choice
@@ -62,10 +62,10 @@ public class NetcdfBuilder extends Builder {
      */
     @Override
     public DataType createDataType(IndexRecord rec, WdssiiJobMonitor m) {
-        log.debug("trying to createDataType for IndexRecord " + rec);
+        LOG.debug("trying to createDataType for IndexRecord " + rec);
         URL url = rec.getDataLocationURL(this);
         if (url == null) {
-            log.debug("Data location URL is NULL");
+            LOG.debug("Data location URL is NULL");
             return null;
         }
 
@@ -77,7 +77,7 @@ public class NetcdfBuilder extends Builder {
      */
     public DataType createDataTypeFromURL(URL aURL, WdssiiJobMonitor m) {
 
-        log.debug("reading URL " + aURL.toString());
+        LOG.debug("reading URL " + aURL.toString());
         if (m != null) {
             m.beginTask("NetcdfBuilder", WdssiiJobMonitor.UNKNOWN);
             m.subTask("Reading " + aURL.toString());
@@ -109,7 +109,7 @@ public class NetcdfBuilder extends Builder {
     private File downloadURLToTempFile(URL aURL, WdssiiJobMonitor m) {
         File localFile = null;
         String path = "";
-        log.debug("trying to make temp file for " + aURL.toString());
+        LOG.debug("trying to make temp file for " + aURL.toString());
         try {
             // read from remote file and store it as uncompressed file,
             // so that netcdf doesn't need to uncompress a copy (saves IO)
@@ -149,10 +149,10 @@ public class NetcdfBuilder extends Builder {
         NetcdfFile ncfile = null;
         DataType obj = null;
 
-        log.debug("trying to netcdf read " + path);
+        LOG.debug("trying to netcdf read " + path);
         try {
             m.subTask("Opening " + path);
-            log.info("Opening " + path + " for reading");
+            LOG.info("Opening " + path + " for reading");
             ncfile = NetcdfFile.open(path);
 
             // First type to get the 'DataType' field from the netcdf, we use this
@@ -192,7 +192,7 @@ public class NetcdfBuilder extends Builder {
                     String oldName = dataType;
                     dataType = dataType.replaceFirst("Sparse", ""); // "SparseRadialSet" handled by "RadialSet"
                     sparse = true;
-                    log.info("Replaced class name " + oldName + " with class name " + dataType);
+                    LOG.info("Replaced class name " + oldName + " with class name " + dataType);
                 }
 
                 // Create class from reflection.  Note this will create a 'RadialSetNetcdf',
@@ -212,14 +212,14 @@ public class NetcdfBuilder extends Builder {
                 obj = (DataType) aMethod.invoke(classInstance, args);
             } catch (Exception e) {
                 // System.out.println("ERROR " + createByName + ", " + e.toString());
-                // log.warn("Couldn't create object by name '"
+                // LOG.warn("Couldn't create object by name '"
                 //         + createByName + "' because " + e.toString());
             } finally {
                 // FIXME: Probably will create a "NetcdfDataType" object for the display
                 // so it can still display unknown netcdf data for debugging purposes
             }
         } catch (Exception e) {
-            log.warn("Couldn't open netcdf local file " + e.toString());
+            LOG.warn("Couldn't open netcdf local file " + e.toString());
         } finally {
             try {
                 if (ncfile != null) {
@@ -277,7 +277,7 @@ public class NetcdfBuilder extends Builder {
                 aMethod.invoke(classInstance, args);
             } catch (Exception e) {
                 System.out.println("ERROR " + createByName + ", " + e.toString());
-                log.warn("Couldn't create object by name '"
+                LOG.warn("Couldn't create object by name '"
                         + createByName + "' because " + e.toString());
             } finally {
                 // FIXME: Probably will create a "NetcdfDataType" object for the display
@@ -363,7 +363,7 @@ public class NetcdfBuilder extends Builder {
         Index pixel_index = data_values.getIndex();
         Array2D<Float> values = new Array2DfloatAsTiles(numx, numy, backgroundValue);
 
-        log.info("Array from sparse data " + numx + "," + numy + " " + backgroundValue);
+        LOG.info("Array from sparse data " + numx + "," + numy + " " + backgroundValue);
 
         int actualData = 0;
         if (optional != null) {
@@ -393,7 +393,7 @@ public class NetcdfBuilder extends Builder {
                 actualData++;
             }
         }
-        log.warn("Actual data count was " + actualData);
+        LOG.warn("Actual data count was " + actualData);
 
         return values;
     }
@@ -431,11 +431,11 @@ public class NetcdfBuilder extends Builder {
 
         URL url = null;
         try {
-            url = new URL(path.toString());
+            url = new URL(path);
             // a bit too noisy and slows reading down
-            // log.error("SUCCESS URL IS "+url.toString());
+            // LOG.error("SUCCESS URL IS "+url.toString());
         } catch (MalformedURLException e) {
-            //log.error("URL FAILURE "+path);
+            //LOG.error("URL FAILURE "+path);
         }
         return url;
     }

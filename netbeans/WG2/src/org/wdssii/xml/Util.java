@@ -32,7 +32,7 @@ import org.wdssii.core.W2Config;
  */
 public class Util {
 
-    private static Logger log = LoggerFactory.getLogger(Util.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Util.class);
 
     /**
      * A Stream reader delegate that will convert all xml tags to lower case
@@ -68,10 +68,10 @@ public class Util {
 
                 // Just a tag we don't handle..don't want us dying
                 // JAXB you're WAY TOO SENSITIVE
-                log.debug("XML Error " + evt);
+                LOG.debug("XML Error " + evt);
                 return true; // Keep going....
             }
-            log.debug("XML Error " + evt);
+            LOG.debug("XML Error " + evt);
             return true;
             //return false; // All others stop?
         }
@@ -240,7 +240,7 @@ public class Util {
         try {
             // setup object mapper using the AppConfig class
             JAXBContext context = JAXBContext.newInstance(topClass);
-log.debug("JAXB "+context.toString());
+            //LOG.debug("JAXB "+context.toString());
             XMLInputFactory factory = XMLInputFactory.newInstance();
 
             try {
@@ -269,12 +269,12 @@ log.debug("JAXB "+context.toString());
 
                 top = attemptOrException;
             } catch (Exception ex) {
-                log.error("JAXB Read exception " + ex.toString());
+                LOG.error("JAXB Read exception " + ex.toString());
             }
 
 
         } catch (Exception e) {
-            log.error("JAXB Exception " + e.toString());
+            LOG.error("JAXB Exception " + e.toString());
         }
 
 
@@ -297,7 +297,7 @@ log.debug("JAXB "+context.toString());
             }
             top = loadURL(aURL, topClass);
         } catch (Exception c) {
-            log.debug("XML exception " + c.toString());
+            LOG.debug("XML exception " + c.toString());
         }
         return top;
     }
@@ -316,7 +316,7 @@ log.debug("JAXB "+context.toString());
             jaxbMarshaller.marshal(root, System.out);
 
         } catch (JAXBException e) {
-            log.debug("Error writing file " + e.toString());
+            LOG.debug("Error writing file " + e.toString());
         }
 
     }

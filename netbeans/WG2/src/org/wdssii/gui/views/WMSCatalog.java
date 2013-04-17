@@ -29,7 +29,7 @@ import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
  */
 public class WMSCatalog extends JPanel {
     
-    private static Logger log = LoggerFactory.getLogger(WMSCatalog.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WMSCatalog.class);
     private javax.swing.JTable jCatalogTable;
     private CatalogListTableModel myModel;
     private javax.swing.JScrollPane jScrollPane;
@@ -43,7 +43,7 @@ public class WMSCatalog extends JPanel {
         public String urlLocation; // location of the source
     }
 
-    private class CatalogListTableModel extends RowEntryTableModel<CatalogListData> {
+    private static class CatalogListTableModel extends RowEntryTableModel<CatalogListData> {
 
         public static final int CATALOG_NAME = 0;
         public static final int CATALOG_URL = 1;
@@ -216,7 +216,7 @@ public class WMSCatalog extends JPanel {
                 CommandManager.getInstance().executeCommand(c, false);
             } catch (Exception ex) {
                 // recover by just doing nothing...
-                log.debug("Couldn't create WMS source, "+ex.toString());
+                LOG.debug("Couldn't create WMS source, "+ex.toString());
             }
         }
 

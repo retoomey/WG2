@@ -53,7 +53,7 @@ public class WorldwindStockGUI extends FeatureGUI {
      */
     @Override
     public void updateGUI() {
-        WorldwindStockMemento m = (WorldwindStockMemento) myFeature.getNewMemento();
+       // WorldwindStockMemento m = (WorldwindStockMemento) myFeature.getNewMemento();
         updateLayerList();
     }
 

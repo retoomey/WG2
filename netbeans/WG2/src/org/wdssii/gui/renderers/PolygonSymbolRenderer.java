@@ -1,5 +1,10 @@
 package org.wdssii.gui.renderers;
 
+import java.awt.BasicStroke;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
 import javax.media.opengl.GL;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
 import org.wdssii.xml.iconSetConfig.Symbol;
@@ -11,7 +16,7 @@ import org.wdssii.xml.iconSetConfig.Symbol;
  * @author Robert Toomey
  */
 public class PolygonSymbolRenderer extends SymbolRenderer {
-
+    
     private PolygonSymbol s = null;
 
     /**
@@ -22,12 +27,24 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
         final double m = 2.0 * Math.PI / points;
         final double pr = Math.toRadians(phase);
         double angle = pr;  // Start angle
+        // OpenGL starts bottomleft...
         for (int i = 0; i < points; i++) {
             gl.glVertex2d(radius * Math.cos(angle), radius * Math.sin(angle));
             angle += m;
         }
     }
-
+    
+    public static void polygon(Graphics g, Polygon p, double radius, double phase, int points) {
+        final double m = 2.0 * Math.PI / points;
+        final double pr = Math.toRadians(phase);
+        double angle = pr;  // Start angle
+        // Java 2D starts topleft....
+        for (int i = 0; i < points; i++) {
+            p.addPoint((int) (-radius * Math.cos(angle)), (int) (-radius * Math.sin(angle)));
+            angle += m;
+        }
+    }
+    
     @Override
     public void setSymbol(Symbol symbol) {
         if (symbol instanceof PolygonSymbol) {
@@ -41,7 +58,7 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
      */
     @Override
     public void render(GL gl) {
-
+        
         final double polyRadius = s.pointsize / 2.0;
 
         // Translate icon.   (this could be done outside for speed)
@@ -70,6 +87,35 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
 
         // Translate back.  Wasteful if all icons translate the same
         gl.glTranslatef((float) -s.xoffset, (float) -s.yoffset, 0);
-
+        
+    }
+    
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+        if (s != null) {
+            
+            int size = getIconHeight();
+            final double polyRadius = size / 2.0;
+            /**
+             * Draw symbol
+             */
+            Graphics2D g2d = (Graphics2D) (g);
+            g2d.setColor(s.color);
+            Polygon p = new Polygon();
+            g2d.translate(x + polyRadius, y + polyRadius);
+            polygon(g2d, p, polyRadius, s.phaseangle, s.numpoints);
+            g2d.fillPolygon(p);
+            /**
+             * Draw outline of symbol
+             */
+            if (s.useOutline) {
+                g2d.setStroke(new BasicStroke(s.osize));
+                g2d.setColor(s.ocolor);
+                g2d.drawPolygon(p);
+            }
+            
+        } else {
+            // Humm blank?
+        }
     }
 }

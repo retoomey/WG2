@@ -47,7 +47,7 @@ import org.wdssii.gui.volumes.LLHAreaSet;
  */
 public class Data2DTableChart extends ChartViewChart {
 
-    private static Logger log = LoggerFactory.getLogger(Data2DTableChart.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Data2DTableChart.class);
     /**
      * The scroll panel we use to show chart
      */
@@ -163,7 +163,7 @@ public class Data2DTableChart extends ChartViewChart {
         updateDataTable();
     }
 
-    private class JMToggleButton extends JToggleButton {
+    private static class JMToggleButton extends JToggleButton {
 
         private int myMode;
 
@@ -237,12 +237,12 @@ public class Data2DTableChart extends ChartViewChart {
         switch (myMouseMode) {
             case 0: // Mode mode
                 myPanel.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-                log.debug("CURSOR SET TO MOVE");
+                LOG.debug("CURSOR SET TO MOVE");
             default:
                 break;
             case 1:  // Hand mode
                 myPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                log.debug("CURSOR SET TO HAND");
+                LOG.debug("CURSOR SET TO HAND");
                 break;
         }
 
@@ -250,7 +250,7 @@ public class Data2DTableChart extends ChartViewChart {
 
     private void updateDataTable() {
         if (myPanel != null) {  // GUI might not exist yet
-            log.debug("UPDATE TABLE CALLED....");
+            LOG.debug("UPDATE TABLE CALLED....");
             Product2DTable newTable;
             Product2DTable oldTable = myTable;
 
@@ -282,9 +282,9 @@ public class Data2DTableChart extends ChartViewChart {
                 // Add new stuff if there
                 if (newTable != null) {
                     newTable.createInScrollPane(jDataTableScrollPane, f, myMouseMode);
-                    //	log.debug("Installed 2D table " + newTable);
+                    //	LOG.debug("Installed 2D table " + newTable);
                 }
-                log.debug("Installed 2D table " + myTable + " --> " + newTable);
+                LOG.debug("Installed 2D table " + myTable + " --> " + newTable);
                 myTable = newTable;
 
                 // Link 3DRenderer (usually outline of product) to current stick...
@@ -338,7 +338,7 @@ public class Data2DTableChart extends ChartViewChart {
             // FIXME: would be nice to have a Position ability
             List<LatLon> list = stick.getLocations();
             double[] alts = stick.getAltitudes();
-            if (list.size() > 0) {
+            if (!list.isEmpty()) {
                 LatLon l = list.get(0);
                 double a = alts[0]; // assuming correct
                 L = new Location(l.latitude.degrees, l.longitude.degrees, a);
@@ -408,7 +408,7 @@ public class Data2DTableChart extends ChartViewChart {
             try {
                 // Bim's format....
                 URL aURL = file.toURI().toURL();
-                log.debug("Would try to write to " + aURL.toString());
+                LOG.debug("Would try to write to " + aURL.toString());
                 if (myTable != null) {
                     myTable.exportToURL(aURL);
                 }

@@ -46,7 +46,7 @@ public class ProductGroupView extends JPanel {
         public String keyName;
     }
 
-    private class DataGroupTableModel extends RowEntryTableModel<DataGroupTableData> {
+    private static class DataGroupTableModel extends RowEntryTableModel<DataGroupTableData> {
 
         public static final int GROUP_NAME = 0;
         private boolean isRebuilding = false;
@@ -127,16 +127,6 @@ public class ProductGroupView extends JPanel {
         DataGroupTableCellRenderer p = new DataGroupTableCellRenderer();
         jObjects3DListTable.setDefaultRenderer(DataGroupTableData.class, p);
 
-        JCheckBox aBox = new JCheckBox();
-        Dimension d = aBox.getMinimumSize();
-
-        int count = myTable.getColumnCount();
-      //  TableColumnModel cm = myTable.getColumnModel();
-      //  for (int i = 0; i < count; i++) {
-      //      TableColumn col = cm.getColumn(i);
-      //      
-      //  }
-
         jObjects3DListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
             @Override
@@ -171,8 +161,8 @@ public class ProductGroupView extends JPanel {
 
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        Item i = (Item) (e.getSource());
-                        String text = i.getText();
+                      //  Item i = (Item) (e.getSource());
+                      //  String text = i.getText();
                       //  if (text.startsWith("Delete")) {
                      //      LLHAreaDeleteCommand del = new LLHAreaDeleteCommand(i.getData().keyName);
                       //      CommandManager.getInstance().executeCommand(del, true);
@@ -191,7 +181,7 @@ public class ProductGroupView extends JPanel {
             @Override
             public void handleClick(Object stuff, int orgRow, int orgColumn) {
 
-                if (stuff instanceof DataGroupTableData) {
+                /*if (stuff instanceof DataGroupTableData) {
                     DataGroupTableData entry = (DataGroupTableData) (stuff);
 
                     switch (orgColumn) {
@@ -202,7 +192,7 @@ public class ProductGroupView extends JPanel {
                         default:
                             break;
                     }
-                }
+                }*/
             }
         });
 

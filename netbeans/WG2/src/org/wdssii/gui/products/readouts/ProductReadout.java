@@ -12,11 +12,10 @@ import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.renderers.ProductRenderer;
 
 /**
- * The root helper class of all product readouts. This classes job is 
- * hide the details of getting a readout.  Currently I get readout from
- * RadialSet and LatLonGrids by color sampling, but other products might do
- * this differently.
- * 
+ * The root helper class of all product readouts. This classes job is hide the
+ * details of getting a readout. Currently I get readout from RadialSet and
+ * LatLonGrids by color sampling, but other products might do this differently.
+ *
  * Formatting of the text output is given to the ProductTextFormatter
  *
  * @author Robert Toomey
@@ -24,7 +23,7 @@ import org.wdssii.gui.products.renderers.ProductRenderer;
  */
 public class ProductReadout {
 
-    private static Logger log = LoggerFactory.getLogger(ProductReadout.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ProductReadout.class);
     /**
      * The data value
      */
@@ -58,22 +57,23 @@ public class ProductReadout {
         // Default for now uses color trick...this works for RadialSets,
         // LatLonGrids
         float value = DataType.MissingData;
-        ProductRenderer pr = prod.getRenderer();
-        if (pr != null) {
-            value = pr.getReadoutValue(p, view, dc);
-        }
-        setValue(value);
-
-        // Get the formatter for this product...
-        ProductTextFormatter f = prod.getProductFormatter();
-        if (f != null) {
-            myFormatter = f;
-        }
-        // Setup units of readout
         String units = "";
+
         if (prod != null) {
+            ProductRenderer pr = prod.getRenderer();
+            if (pr != null) {
+                value = pr.getReadoutValue(p, view, dc);
+            }
+            // Get the formatter for this product...
+            ProductTextFormatter f = prod.getProductFormatter();
+            if (f != null) {
+                myFormatter = f;
+            }
+            // Setup units of readout
             units = prod.getCurrentUnits();
         }
+
+        setValue(value);
         setUnits(units);
     }
 
@@ -94,7 +94,7 @@ public class ProductReadout {
         }
         return readout;
     }
-    
+
     /**
      * Get if this readout is valid
      */

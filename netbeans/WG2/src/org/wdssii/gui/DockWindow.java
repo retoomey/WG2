@@ -218,7 +218,7 @@ public class DockWindow {
 	 * @return the dynamic view
 	 */
 	private View getDynamicView(int id) {
-		View view = (View) dynamicViews.get(new Integer(id));
+		View view = (View) dynamicViews.get(Integer.valueOf(id));
 
 		if (view == null) {
 			view = new DynamicView("Dynamic View " + id, null,
@@ -236,7 +236,7 @@ public class DockWindow {
 	private int getDynamicViewId() {
 		int id = 0;
 
-		while (dynamicViews.containsKey(new Integer(id))) {
+		while (dynamicViews.containsKey(Integer.valueOf(id))) {
 			id++;
 		}
 
@@ -313,7 +313,7 @@ public class DockWindow {
 	 */
 	public static RootWindow createARootWindow() {
 
-		RootWindowProperties override = new RootWindowProperties();
+		//RootWindowProperties override = new RootWindowProperties();
 		RootWindow aWindow;
 
 		ViewMap someViewMap = new ViewMap();
@@ -515,7 +515,6 @@ public class DockWindow {
 		// Stick all views in one tab..except those explicited referenced
 		// later
 		DockingWindow[] v = views.toArray(new DockingWindow[views.size()]);
-		TabWindow all = new TabWindow(v);
 
 		// Special windows
 		DockingWindow earth = getViewByID("WorldWindView");

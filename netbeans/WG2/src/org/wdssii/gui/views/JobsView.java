@@ -168,12 +168,12 @@ public class JobsView extends JThreadPanel implements CommandListener {
     @Override
     public void updateInSwingThread(Object info) {
         // Update the list of running jobs...
-        int total = myJobs.size();
-        int children = myPanel.getComponentCount();
+        //int total = myJobs.size();
+        //int children = myPanel.getComponentCount();
         
         //myInfo.setText("Current running " + total + " ch:" + children+ " a,a,r,r "+add+", "+add2+", "+remove+", "+remove2);
           myInfo.setText("Start/Finished "+WdssiiJob.getStartCount()+", " +WdssiiJob.getEndCount()+", "+add+", " +remove+", "
-                  + ""+add2+", "+remove2+", "+addEx+", " +removeEx);
+                  +add2+", "+remove2+", "+addEx+", " +removeEx);
         validate();
         doLayout();
         repaint();
@@ -204,7 +204,6 @@ public class JobsView extends JThreadPanel implements CommandListener {
             updateGUI();
         } catch (Exception e) {
             addEx++;
-            String a = e.toString();
         }
        
     }
@@ -229,8 +228,6 @@ public class JobsView extends JThreadPanel implements CommandListener {
             updateGUI();
         } catch (Exception e) {
             removeEx++;
-            String a = e.toString();
-            int b = 1;
         }
     }
 

@@ -33,7 +33,7 @@ import org.wdssii.gui.products.readouts.ProductReadout;
 public class LatLonGridRenderer extends TileRenderer {
 
     @SuppressWarnings("unused")
-    private static Logger log = LoggerFactory.getLogger(LatLonGridRenderer.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LatLonGridRenderer.class);
 
     @Override
     public void initToProduct(DrawContext dc, Product aProduct) {
@@ -287,7 +287,7 @@ public class LatLonGridRenderer extends TileRenderer {
             // Queue up any unmade tiles...
             queueUnmadeTiles(tiles, dc);
 
-            Tile first = tiles.get(0);
+            tiles.get(0);
 
             LatLonGridTile.beginBatch(dc.getGL());
 

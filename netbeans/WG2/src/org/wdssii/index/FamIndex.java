@@ -23,7 +23,7 @@ import org.wdssii.xml.index.Tag_item;
  */
 public class FamIndex extends XMLIndex {
 
-	private static Logger log = LoggerFactory.getLogger(FamIndex.class);
+	private final static Logger LOG = LoggerFactory.getLogger(FamIndex.class);
 	private boolean initComplete = false;
 	private final File indexDir;
 	/**
@@ -51,8 +51,8 @@ public class FamIndex extends XMLIndex {
 		throws DataUnavailableException {
 
 		super(Index.getParent(aURL), Index.getParent(aURL), listeners);
-		log.error("*****************FAM IN IS " + aURL.toString());
-		log.error("****PARENT IS " + Index.getParent(aURL));
+		LOG.error("*****************FAM IN IS " + aURL.toString());
+		LOG.error("****PARENT IS " + Index.getParent(aURL));
 		// We can link to any local directory.
 		// FIXME: could filter directories that don't end in '.fam', but why bother?
 		boolean canHandle = false;
@@ -92,7 +92,7 @@ public class FamIndex extends XMLIndex {
 				}
 			}
 		}
-		log.debug("FamIndex HANDLE " + url + "," + canHandle);
+		LOG.debug("FamIndex HANDLE " + url + "," + canHandle);
 		return canHandle;
 	}
 
@@ -100,26 +100,26 @@ public class FamIndex extends XMLIndex {
 
 		@Override
 		public void fileCreated(int i, String string, String string1) {
-			log.debug("FileCreated " + i + ", " + string + ", " + string1);
+			LOG.debug("FileCreated " + i + ", " + string + ", " + string1);
 		}
 
 		@Override
 		public void fileDeleted(int i, String string, String string1) {
-			log.debug("FileDeleted " + i + ", " + string + ", " + string1);
+			LOG.debug("FileDeleted " + i + ", " + string + ", " + string1);
 		}
 
 		@Override
 		public void fileModified(int i, String string, String string1) {
-			log.debug("FileModified " + i + ", " + string + ", " + string1);
+			LOG.debug("FileModified " + i + ", " + string + ", " + string1);
 		}
 
 		@Override
 		public void fileRenamed(int i, String string, String string1, String string2) {
-			log.debug("FileRenamed " + i + ", " + string + ", " + string1);
+			LOG.debug("FileRenamed " + i + ", " + string + ", " + string1);
 		}
 	}
 
-	public class FmlFilesOnlyFilter implements FilenameFilter {
+	public static class FmlFilesOnlyFilter implements FilenameFilter {
 
 		@Override
 		public boolean accept(File dirParameterIgnored, String baseName) {
@@ -134,9 +134,9 @@ public class FamIndex extends XMLIndex {
 	public void loadInitialRecords() {
 		//	throw new UnsupportedOperationException("Not supported yet.");
 		// The 
-		log.debug("FAM WAS CALLED LOAD INITIAL RECORDS>>>>>********");
+		LOG.debug("FAM WAS CALLED LOAD INITIAL RECORDS>>>>>********");
 		if (indexDir == null) {
-			log.warn("no directory to load fml files or to watch");
+			LOG.warn("no directory to load fml files or to watch");
 			return;
 		}
 
@@ -163,10 +163,10 @@ public class FamIndex extends XMLIndex {
 			// JNotify maps IN_CREATE and IN_MOVED_TO to these constants
 			final int mask = JNotify.FILE_CREATED | JNotify.FILE_RENAMED;
 			myJNotifyWatchID = JNotify.addWatch(indexDir.getAbsolutePath(), mask, false, new test());
-			log.info("JNotify watch added for " + indexDir + " (" + myJNotifyWatchID + ")");
+			LOG.info("JNotify watch added for " + indexDir + " (" + myJNotifyWatchID + ")");
 			myJNotifyConnected = true;
 		} catch (JNotifyException e) {
-			log.error("JNotify error connecting to " + indexDir + ", " + e.toString());
+			LOG.error("JNotify error connecting to " + indexDir + ", " + e.toString());
 		}
 
 	}
@@ -176,9 +176,9 @@ public class FamIndex extends XMLIndex {
 			try {
 				JNotify.removeWatch(myJNotifyWatchID);
 				myJNotifyConnected = false;
-				log.info("JNotify watch removed for " + indexDir + " (" + myJNotifyWatchID + ")");
+				LOG.info("JNotify watch removed for " + indexDir + " (" + myJNotifyWatchID + ")");
 			} catch (JNotifyException e) {
-				log.error("JNotify error disconnecting from " + indexDir + ", " + e.toString());
+				LOG.error("JNotify error disconnecting from " + indexDir + ", " + e.toString());
 			} finally {
 				myJNotifyConnected = false;
 				myJNotifyWatchID = -1;

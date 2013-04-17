@@ -30,7 +30,7 @@ import org.wdssii.storage.GrowList;
  */
 public class RHIRadialSetRenderer extends RadialSetRenderer {
 
-    private static Logger log = LoggerFactory.getLogger(RHIRadialSetRenderer.class);
+    private final static Logger LOG = LoggerFactory.getLogger(RHIRadialSetRenderer.class);
     protected int updateCounter = 0;
 
     public RHIRadialSetRenderer() {
@@ -99,7 +99,7 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                 monitor.subTask("Radial " + i + "/" + numRadials);
                 monitor.worked(1);   // Do it first to ensure it's called
 
-                //log.info("counter "+i+"/"+numRadials);
+                //LOG.info("counter "+i+"/"+numRadials);
                 // Get each radial from center out to end
                 Radial aRadial = aRadialSet.getRadial(i);
                 // Need heights for THIS radial....
@@ -245,7 +245,7 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
             }
 
         } catch (Exception e) {
-            log.error("3D gen error" + e.toString());
+            LOG.error("3D gen error" + e.toString());
             return WdssiiJobStatus.CANCEL_STATUS; // We should make this a 'cleaner' exception/catch FIXME
         }
         //long end = System.currentTimeMillis() - start;

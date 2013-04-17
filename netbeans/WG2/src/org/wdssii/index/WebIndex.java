@@ -22,7 +22,7 @@ import org.wdssii.xml.index.Tag_records;
  */
 public class WebIndex extends XMLIndex {
 
-	private static Logger log = LoggerFactory.getLogger(WebIndex.class);
+	private final static Logger LOG = LoggerFactory.getLogger(WebIndex.class);
 	private final URL indexServicePath;
 	/**
 	 * LastRead value passed in for a single latest record only
@@ -78,7 +78,7 @@ public class WebIndex extends XMLIndex {
 		try {
 			aURL = Index.appendQuery(indexServicePath, "lastRead=" + lastRead);
 		} catch (Exception e) {
-			log.error("Couldn't create url to read xml records with :(");
+			LOG.error("Couldn't create url to read xml records with :(");
 		}
 		return aURL;
 	}
@@ -99,7 +99,7 @@ public class WebIndex extends XMLIndex {
 		try {
 			baseURL = new URL(aURL.toString() + params.get("source"));
 		} catch (Exception e) {
-			log.error("Webindex URL failed " + aURL);
+			LOG.error("Webindex URL failed " + aURL);
 		}
 
 		return new WebIndex(baseURL, fullURL, listeners);
@@ -130,7 +130,7 @@ public class WebIndex extends XMLIndex {
 				}
 			}
 		}
-		log.error("WebIndex HANDLE " + url + "," + valid);
+		LOG.error("WebIndex HANDLE " + url + "," + valid);
 		return valid;
 	}
 

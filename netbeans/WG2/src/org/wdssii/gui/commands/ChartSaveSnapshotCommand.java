@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 public class ChartSaveSnapshotCommand extends WdssiiCommand {
 
-    private static Logger log = LoggerFactory.getLogger(ChartSaveSnapshotCommand.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ChartSaveSnapshotCommand.class);
 
     /** Take snapshot of the current chart, saves as a png file using the JFreeChart library */
     @Override
@@ -42,7 +42,7 @@ public class ChartSaveSnapshotCommand extends WdssiiCommand {
         
         if (name != null){
         e.takeSnapshot(name);
-        log.info("Took snapshot of chart '"+name+"'");
+        LOG.info("Took snapshot of chart '"+name+"'");
         }
         }
         }*/

@@ -30,7 +30,7 @@ import org.wdssii.storage.GrowList;
  */
 public class PPIRadialSetRenderer extends RadialSetRenderer {
 
-    private static Logger log = LoggerFactory.getLogger(PPIRadialSetRenderer.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PPIRadialSetRenderer.class);
     protected int updateCounter = 0;
 
     public PPIRadialSetRenderer() {
@@ -243,7 +243,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
             }
 
         } catch (Exception e) {
-            log.error("3D gen error" + e.toString());
+            LOG.error("3D gen error" + e.toString());
             return WdssiiJobStatus.CANCEL_STATUS; // We should make this a 'cleaner' exception/catch FIXME
         }
         //long end = System.currentTimeMillis() - start;

@@ -58,7 +58,7 @@ import org.wdssii.gui.worldwind.WorldwindUtil;
  */
 public class WorldWindView extends JThreadPanel implements CommandListener {
 
-    private static Logger log = LoggerFactory.getLogger(WorldWindView.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WorldWindView.class);
     public static final String ID = "worldwind";
     /**
      * Determines if we use a heavyweight or lightweight java widget for
@@ -234,8 +234,8 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         myLLHAreaController = c;
         // FIXME: really control of these points should be in the feature
         // not within the world ball, since we might add different viewers
-        LLHAreaSetGUI.theController = c;
-
+        LLHAreaSetGUI.setLLHAreaController(c);
+        
         // Create and install the view controls layer and register a controller for it with the World Window.
         // This will be snagged by our LegendFeature
         ViewControlsLayer viewControlsLayer = new ViewControlsLayer();
@@ -516,7 +516,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
                 if (e != null) {
                     e.gotoLocation(l, true);
                 }
-                WorldwindUtil.inPosition = true;
+                WorldwindUtil.setInPosition(true);
             }
         };
         // Jobmanager not ready either (it uses swing to update job statuses) grrrrr

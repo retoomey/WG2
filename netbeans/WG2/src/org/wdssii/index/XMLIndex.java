@@ -21,7 +21,7 @@ import org.wdssii.xml.index.Tag_params;
  */
 public class XMLIndex extends Index {
 
-	private static Logger log = LoggerFactory.getLogger(XMLIndex.class);
+	private final static Logger LOG = LoggerFactory.getLogger(XMLIndex.class);
 	/**
 	 * The XML URL for directly reading items
 	 */
@@ -99,7 +99,7 @@ public class XMLIndex extends Index {
 				valid = false;
 			}
 		}
-		log.debug("XMLINDEX HANDLE " + url + "," + valid);
+		LOG.debug("XMLINDEX HANDLE " + url + "," + valid);
 		return valid;
 	}
 
@@ -126,7 +126,7 @@ public class XMLIndex extends Index {
 	@Override
 	public void loadInitialRecords() {
 		Tag_codeindex root = new Tag_codeindex();
-		int counter = processRoot(root);
+		processRoot(root);
 	}
 
 	/**
@@ -140,8 +140,8 @@ public class XMLIndex extends Index {
 		URL b = this.getXMLReadURL();
 		try {
 
-			if (log.isInfoEnabled()) {
-				log.info("XML reading IndexRecords from " + b);
+			if (LOG.isInfoEnabled()) {
+				LOG.info("XML reading IndexRecords from " + b);
 			}
 
 			try {
@@ -160,7 +160,7 @@ public class XMLIndex extends Index {
 			}
 
 		} catch (Exception e) {
-			log.error("Failed to load XML format index from " + b, e);
+			LOG.error("Failed to load XML format index from " + b, e);
 		}
 		if (!valid) {
 			counter = -1;
@@ -186,7 +186,7 @@ public class XMLIndex extends Index {
 				}
 			}
 		}
-		log.debug("Total records(skipped) read " + counter + "(" + skipped + ")");
+		LOG.debug("Total records(skipped) read " + counter + "(" + skipped + ")");
 		return counter;
 	}
 
@@ -198,7 +198,7 @@ public class XMLIndex extends Index {
 			return false;
 		}
 		if (params.size() < 1) {
-			log.error("Missing params in xml item, ignoring record");
+			LOG.error("Missing params in xml item, ignoring record");
 			return false;
 		}
 		// FIXME: by doing array we slow down our reading

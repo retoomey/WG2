@@ -63,7 +63,7 @@ public class ContoursRenderer extends ProductRenderer {
             // Make sure and always start monitor
             Contours aContourSet = (Contours) aProduct.getRawDataType();
             monitor.beginTask("ContoursRenderer:", aContourSet.getNumberOfContours());
-            int size = aContourSet.getNumberOfContours();
+            //int size = aContourSet.getNumberOfContours();
             Globe myGlobe = dc.getGlobe();
             
             // COUNT pass.  We should stick this in the Contour object,
@@ -78,7 +78,7 @@ public class ContoursRenderer extends ProductRenderer {
                     numOfLocations += l.size();  // 3 floats per location
                 }
             }
-            int vertCount = numOfLocations;
+            //int vertCount = numOfLocations;
             verts = new Array1DfloatAsNodes(numOfLocations*3, 0.0f);
             colors = new Array1DfloatAsNodes(numOfLocations, 0.0f);
             readout = new Array1DfloatAsNodes(numOfLocations, 0.0f);

@@ -156,9 +156,6 @@ public class CacheView extends JThreadPanel implements CommandListener {
         CacheTableCellRenderer l = new CacheTableCellRenderer();
         t.setDefaultRenderer(CacheTableEntry.class, l);
 
-        JCheckBox aBox = new JCheckBox();
-        Dimension d = aBox.getMinimumSize();
-
         int count = t.getColumnCount();
         TableColumnModel cm = t.getColumnModel();
         for (int i = 0; i < count; i++) {
@@ -202,12 +199,12 @@ public class CacheView extends JThreadPanel implements CommandListener {
                     int row = t.rowAtPoint(p);
                     int column = t.columnAtPoint(p);
 
-                    if ((row > -1) && (column > -1)) {
-                        int orgColumn = myTable.convertColumnIndexToModel(column);
-                        int orgRow = myTable.convertRowIndexToModel(row);
-                        Object stuff = myModel.getValueAt(orgRow, orgColumn);
-                        if (stuff instanceof CacheTableEntry) {
-                            CacheTableEntry entry = (CacheTableEntry) (stuff);
+                   // if ((row > -1) && (column > -1)) {
+                   //     int orgColumn = myTable.convertColumnIndexToModel(column);
+                   //     int orgRow = myTable.convertRowIndexToModel(row);
+                   //     Object stuff = myModel.getValueAt(orgRow, orgColumn);
+                        //if (stuff instanceof CacheTableEntry) {
+                          //  CacheTableEntry entry = (CacheTableEntry) (stuff);
 
 
                             /** a click on visible checkbox toggles layer visibility */
@@ -219,8 +216,8 @@ public class CacheView extends JThreadPanel implements CommandListener {
                             }
                             updateCacheList();
                             }*/
-                        }
-                    }
+                        //}
+                   // }
 
                 }
             }

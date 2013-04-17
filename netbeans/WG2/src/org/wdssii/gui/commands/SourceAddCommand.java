@@ -101,7 +101,7 @@ public class SourceAddCommand extends SourceClearCommand {
             return new WMSSource(getNiceName(), getSourceURL());
         }
     }
-    private static Logger log = LoggerFactory.getLogger(SourceAddCommand.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SourceAddCommand.class);
     private SourceAddParams myParams;
     /**
      * By default if user clicks a button, require a confirm dialog

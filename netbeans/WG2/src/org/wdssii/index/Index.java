@@ -239,7 +239,7 @@ public abstract class Index {
 		try {
 			newURL = new URL(base, keepQuery ? (extra + '?' + q) : extra);
 		} catch (MalformedURLException e) {
-			// log.error("Couldn't append string to URL "+base+" + "+extra);
+			// LOG.error("Couldn't append string to URL "+base+" + "+extra);
 		}
 
 		return newURL;

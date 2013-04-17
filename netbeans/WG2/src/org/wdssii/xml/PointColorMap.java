@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 @XmlRootElement(name = "colormap")
 public class PointColorMap extends ColorMapDef {
 
-    private static Logger log = LoggerFactory.getLogger(PointColorMap.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PointColorMap.class);
     /**
      * The IDL list, if available
      */
@@ -107,13 +107,13 @@ public class PointColorMap extends ColorMapDef {
         try {
             for (PointColorMap c : theIDLList.colormaps) {
                 int count = c.points.size();
-                //  log.debug("Got this info " + c.space + ", " + c.name + ", " + count);
+                //  LOG.debug("Got this info " + c.space + ", " + c.name + ", " + count);
                 Point aPoint = c.points.get(1);
-                // log.debug("First is " + aPoint.r + ", " + aPoint.g + ", " + aPoint.b);
+                // LOG.debug("First is " + aPoint.r + ", " + aPoint.g + ", " + aPoint.b);
 
             }
         } catch (Exception e) {
-            log.debug("ERROR DURING TEST " + e);
+            LOG.debug("ERROR DURING TEST " + e);
         }
 
     }

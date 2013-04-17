@@ -18,9 +18,8 @@ import org.slf4j.LoggerFactory;
  * @author Robert Toomey
  */
 public abstract class DelegateHelper {
-    
-    private static Logger log = LoggerFactory.getLogger(DelegateHelper.class);
 
+    private final static Logger LOG = LoggerFactory.getLogger(DelegateHelper.class);
     /**
      * The cached map of named delegateHelpers to objects
      */
@@ -72,7 +71,7 @@ public abstract class DelegateHelper {
 
         // Is it cached?
         helper = getHelperClass(classSuffix + ":" + extrainfo);
-        
+
         // Fixme: Should check that fallback class doesn't need to be
         // replaced with specialized class...
         if (helper == null) {
@@ -113,10 +112,10 @@ public abstract class DelegateHelper {
         try {
             c = Class.forName(createIt);
             newClass = c.newInstance();
-            log.info("Generated " + createIt);
+            //LOG.info("Generated " + createIt);
         } catch (Exception e) {
-            log.warn("Type " + dataName + " doesn't have a " + suffix + " it seems");
-            log.warn(e.toString());
+            // LOG.warn("Type " + dataName + " doesn't have a " + suffix + " it seems");
+            //LOG.warn(e.toString());
         }
 
         return newClass;

@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Array1DfloatRAM implements Array1D<Float> {
 
-    private static Logger log = LoggerFactory.getLogger(Array1DfloatRAM.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Array1DfloatRAM.class);
     private int mySize;
     private float myBackground;
     private float[] myArray;
@@ -29,7 +29,7 @@ public class Array1DfloatRAM implements Array1D<Float> {
             myArray = new float[mySize];
             myValid = true;
         } catch (OutOfMemoryError mem) {
-            log.warn("Array1D storage not enough heap space for float[" + mySize + "]");
+            LOG.warn("Array1D storage not enough heap space for float[" + mySize + "]");
         }
     }
 

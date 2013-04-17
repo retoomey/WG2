@@ -32,7 +32,7 @@ public class HistoricalIndex implements IndexRecordListener {
 	 * should be used only for set archives otherwise memory will fill up.
 	 * FIXME: Might actually disable autoupdate for this case
 	 */
-	public static int HISTORY_ARCHIVE = 0;
+	public final static int HISTORY_ARCHIVE = 0;
 	/**
 	 * The size of our history
 	 */

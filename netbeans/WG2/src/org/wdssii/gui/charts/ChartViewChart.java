@@ -32,7 +32,7 @@ import org.wdssii.gui.commands.ProductFollowCommand;
  */
 public class ChartViewChart {
 
-    private static Logger log = LoggerFactory.getLogger(ChartViewChart.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ChartViewChart.class);
 
     /**
      * Update chart when needed (check should be done by chart)
@@ -114,7 +114,7 @@ public class ChartViewChart {
      * Generate a snapshot of this chart, if possible
      */
     public void takeSnapshot(String name) {
-        log.info("Snapshot not implemented for this chart. :(");
+        LOG.info("Snapshot not implemented for this chart. :(");
     }
 
     /**

@@ -26,19 +26,19 @@ import org.slf4j.LoggerFactory;
  */
 public class WdssiiJob {
 
-    private static Logger log = LoggerFactory.getLogger(WdssiiJob.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WdssiiJob.class);
     /**
      * The factory used for all created jobs
      */
     private static WdssiiJobFactory myFactory = null;
     /**
-     * Our single executor service, for now at least
-     */
-    private static ExecutorService myService;
-    /**
      * The max threads
      */
     private static final int myMaxThreads = 10;
+    /**
+     * Our single executor service, for now at least
+     */
+    private static final ExecutorService myService = Executors.newFixedThreadPool(myMaxThreads);
     /**
      * Count of total started jobs
      */
@@ -73,8 +73,6 @@ public class WdssiiJob {
             return totalJobsFinished;
         }
     }
-    
-    
     /**
      * The job runner for our job
      */
@@ -84,9 +82,6 @@ public class WdssiiJob {
      * The Executor service for all WdssiiJobs
      */
     public static ExecutorService getService() {
-        if (myService == null) {
-            myService = Executors.newFixedThreadPool(myMaxThreads);
-        }
         return myService;
     }
 
@@ -145,8 +140,10 @@ public class WdssiiJob {
          * Has the job been canceled?
          */
         public boolean isCanceled();
-        
-        /** Cancel this job */
+
+        /**
+         * Cancel this job
+         */
         public void cancel();
     };
 
@@ -169,17 +166,18 @@ public class WdssiiJob {
      * The name of the job
      */
     private String myName;
-
-    /** A monitor for this job */
+    /**
+     * A monitor for this job
+     */
     private WdssiiJobMonitor myMonitor = null;
-    
+
     /**
      * Create a job with given name
      */
     public WdssiiJob(String jobName) {
         myName = jobName;
     }
-    
+
     /**
      * Create a job with given name and an extra job listener
      */
@@ -191,8 +189,8 @@ public class WdssiiJob {
     public String getName() {
         return myName;
     }
-    
-    public WdssiiJobMonitor getMonitor(){
+
+    public WdssiiJobMonitor getMonitor() {
         return myMonitor;
     }
 
@@ -214,7 +212,7 @@ public class WdssiiJob {
                 myJobRunner.WdssiiStartJob();
             }
         } else {
-            log.error("No JobFactory exists.  You must call WdssiiJob.introduce(WdssiiJobFactory) to run background jobs");
+            LOG.error("No JobFactory exists.  You must call WdssiiJob.introduce(WdssiiJobFactory) to run background jobs");
         }
 
     }
@@ -250,7 +248,7 @@ public class WdssiiJob {
         public boolean isCanceled() {
             return true;
         }
-        
+
         @Override
         public void cancel() {
         }

@@ -14,8 +14,15 @@ public class WorldwindUtil {
 	public final static Position start = new Position(Angle.fromDegreesLatitude(35.2225d), // Norman
 			Angle.fromDegreesLongitude(-97.4391667d), 2200.0d * 1000.0d); // KM * 1000;
 
-	public static boolean inPosition = false;
+	private static boolean inPosition = false;
 
+        public static boolean getInPosition(){
+            return inPosition;
+        }
+        
+        public static void setInPosition(boolean b){
+            inPosition = b;
+        }
 	public static Position getNewShapePosition(WorldWindow wwd) {
 
 		Position p = start;

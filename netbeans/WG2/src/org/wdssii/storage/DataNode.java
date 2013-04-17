@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DataNode {
 
-    private static Logger log = LoggerFactory.getLogger(DataManager.class);  // use datamanager log?
+    private final static Logger LOG = LoggerFactory.getLogger(DataManager.class);  // use datamanager log?
     /**
      * The key representing this data tile. Final
      */
@@ -169,14 +169,14 @@ public class DataNode {
                     myDataByte.asFloatBuffer().put(index, value);
                     mySetChanged = true;
                 } catch (IndexOutOfBoundsException i) {
-                    log.error("Tried to put v[" + index + "] = " + value);
-                    log.error("Size is " + mySize);
+                    LOG.error("Tried to put v[" + index + "] = " + value);
+                    LOG.error("Size is " + mySize);
                 }
             } else {
                 if (!myLoaded) {
-                    log.error("Can't set value on unloaded tile:" + myKey + ".  Out of memory?");
+                    LOG.error("Can't set value on unloaded tile:" + myKey + ".  Out of memory?");
                 } else {
-                    log.error("Out of bounds. " + index + "> " + mySize + " on tile " + myKey);
+                    LOG.error("Out of bounds. " + index + "> " + mySize + " on tile " + myKey);
                 }
                 // FIXME: notify DataManager, try to get more RAM? 
             }
@@ -201,14 +201,14 @@ public class DataNode {
                     fb.position(0);
                     mySetChanged = true;
                 } catch (IndexOutOfBoundsException i) {
-                    log.error("Tried to put array v[" + index + "] += array size " + data.length);
-                    log.error("Size is " + mySize);
+                    LOG.error("Tried to put array v[" + index + "] += array size " + data.length);
+                    LOG.error("Size is " + mySize);
                 }
             } else {
                 if (!myLoaded) {
-                    log.error("Can't set value on unloaded tile:" + myKey + ".  Out of memory?");
+                    LOG.error("Can't set value on unloaded tile:" + myKey + ".  Out of memory?");
                 } else {
-                    log.error("Out of bounds. " + index + "> " + mySize + " on tile " + myKey);
+                    LOG.error("Out of bounds. " + index + "> " + mySize + " on tile " + myKey);
                 }
                 // FIXME: notify DataManager, try to get more RAM? 
             }
@@ -245,7 +245,7 @@ public class DataNode {
             boolean success = false;
             try {
 
-                // log.info("Allocation node " + this);
+                // LOG.info("Allocation node " + this);
 
                 myDataByte = DataManager.getInstance().allocate(mySize * 4, "DataNode");
                 // myDataByte = ByteBuffer.allocateDirect(mySize * 4);
@@ -268,7 +268,7 @@ public class DataNode {
                 //}
             } catch (OutOfMemoryError m) {
                 myLoaded = false;
-                log.error("Could not allocate " + mySize + " floats for Tile " + myKey);
+                LOG.error("Could not allocate " + mySize + " floats for Tile " + myKey);
             }
             return success;
         }
@@ -339,15 +339,15 @@ public class DataNode {
                         fc.close();
                         success = true;
                     } catch (FileNotFoundException e) {
-                        log.error("Can't offload Tile to disk " + myKey + " " + e);
+                        LOG.error("Can't offload Tile to disk " + myKey + " " + e);
                     } catch (IOException e) {
-                        log.error("Can't offload Tile to disk " + myKey + " " + e);
+                        LOG.error("Can't offload Tile to disk " + myKey + " " + e);
                     }
                 } else {
-                    //  log.debug("Skip writing " + getCacheKey() + " to disk because it's the same data");
+                    //  LOG.debug("Skip writing " + getCacheKey() + " to disk because it's the same data");
                 }
             } else {
-                log.error("offload to disk with null myDataByte? " + myWasLoadedFromDisk);
+                LOG.error("offload to disk with null myDataByte? " + myWasLoadedFromDisk);
             }
             return success;
         }
@@ -361,7 +361,7 @@ public class DataNode {
         // We're reading from disk and _write_ing to the data
         synchronized (getWriteLock()) {
             boolean success = false;
-            //log.info("Restore tile: "+myKey);
+            //LOG.info("Restore tile: "+myKey);
             try {
                 String basepath = getBaseFilePath();
                 String path = basepath + ".gz";
@@ -394,7 +394,7 @@ public class DataNode {
             } catch (SecurityException s) {
                 success = false;
             } catch (IOException e) {
-                log.error("Disk error restoring tile " + myKey + " " + e);
+                LOG.error("Disk error restoring tile " + myKey + " " + e);
             }
             return success;
         }

@@ -101,7 +101,7 @@ public class LatLonHeightGridTest extends DataTypeTest {
 
     @Override
     public void createFakeRecords(Index index) {
-        String indexLocation = index.getIndexLocation();
+        //String indexLocation = index.getIndexLocation();
 
         // Subtract mySecondsPerElev from current time for total number
         // of records we're making
@@ -109,7 +109,7 @@ public class LatLonHeightGridTest extends DataTypeTest {
         cal.add(Calendar.SECOND, -(mySecondsPerElev * myNumVolumes));
         Date d = cal.getTime();
 
-        String[] paramList = new String[]{"test"};  // Use the test builder
+        //String[] paramList = new String[]{"test"};  // Use the test builder
         String product = "MergerReflectivityQC ";
         String timeString = IndexRecord.getStringFromDate(d) + " ";
         for (int v = 0; v < myNumVolumes; v++) {

@@ -14,7 +14,7 @@ import org.wdssii.gui.ProductManager;
  *
  */
 public abstract class DataCommand extends WdssiiCommand {
-    private static Logger log = LoggerFactory.getLogger(DataCommand.class);
+    private final static Logger LOG = LoggerFactory.getLogger(DataCommand.class);
 
     /**
      * Utility function. Clear the products matching key from the list of
@@ -24,7 +24,7 @@ public abstract class DataCommand extends WdssiiCommand {
      */
     protected void clearFromHandlerList(String indexKey) {
 
-        log.info("---Clear products from current handler list....");
+        LOG.info("---Clear products from current handler list....");
         if (indexKey == null) {
             ProductManager.getInstance().deleteSelectedProduct();
         } else {

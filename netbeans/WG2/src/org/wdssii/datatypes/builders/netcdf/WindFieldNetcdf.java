@@ -19,7 +19,7 @@ import ucar.nc2.NetcdfFile;
 public class WindFieldNetcdf extends DataTypeNetcdf {
 
     /** The log for errors */
-    private static Logger log = LoggerFactory.getLogger(PPIRadialSetNetcdf.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PPIRadialSetNetcdf.class);
 
     /** Try to create a LatLonGrid by reflection.  This is called from NetcdfBuilder by reflection	
      * @param ncfile	the Netcdf file to read from
@@ -68,11 +68,11 @@ public class WindFieldNetcdf extends DataTypeNetcdf {
 
                 } catch (OutOfMemoryError mem) {
                     // Windfield is currently a LOT smaller than conus..shouldn't see this
-                    log.warn("Running out of ram trying to read in WindField data (FIXME)");
+                    LOG.warn("Running out of ram trying to read in WindField data (FIXME)");
                 }
             } catch (Exception e) {
                 // FIXME: recover or throw instead, not 100% sure yet
-                log.warn("WindField failing " + e.toString());
+                LOG.warn("WindField failing " + e.toString());
             }
             w.deltaLat = latres;
             w.deltaLon = lonres;
@@ -80,14 +80,14 @@ public class WindFieldNetcdf extends DataTypeNetcdf {
             w.vArray = gridv;
 
             if (gridu != null) {
-                log.info("Windfield managed to read in uArray of " + gridu.size());
+                LOG.info("Windfield managed to read in uArray of " + gridu.size());
             } else {
-                log.warn("Windfield didn't get the uArray");
+                LOG.warn("Windfield didn't get the uArray");
             }
             if (gridv != null) {
-                log.info("Windfield managed to read in vArray of " + gridv.size());
+                LOG.info("Windfield managed to read in vArray of " + gridv.size());
             } else {
-                log.warn("Windfield didn't get the vArray");
+                LOG.warn("Windfield didn't get the vArray");
             }
         }
     }

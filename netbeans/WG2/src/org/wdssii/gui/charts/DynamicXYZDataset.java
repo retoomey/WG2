@@ -23,25 +23,20 @@ public class DynamicXYZDataset implements XYZDataset {
      * resolution of samples we will have.
      */
     public int mySampleSize;
-    
     /* A way to turn off visibility by pretending we have zero samples */
     private boolean myShowSamples;
-    
     /**
      * Storage for sample values
      */
     private double[] mySamples;
-    
     /**
      * The 'delta' range per sample point of axis
      */
     private double myXDelta;
-    
     /**
      * The starting range location (left side) of range line
      */
     private double myXLower;
-    
     /**
      * The key for this series of data
      */
@@ -78,15 +73,14 @@ public class DynamicXYZDataset implements XYZDataset {
 
     @Override
     public Number getZ(int series, int item) {
-
-        // This number is meaningless since the 'value' is
-        // the same as the height, we might find a use for this later
-        return 0;
+        return new Double(getZValue(series, item));
     }
 
     @Override
     public double getZValue(int series, int item) {
-        return new Double(getZValue(series, item));
+        // This number is meaningless since the 'value' is
+        // the same as the height, we might find a use for this later
+        return 0;
     }
 
     @Override

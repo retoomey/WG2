@@ -41,7 +41,7 @@ import org.wdssii.gui.views.WdssiiSDockedViewFactory.SDockView;
 public class FeaturesView extends JThreadPanel implements SDockView, CommandListener {
 
     public static final String ID = "wdssii.FeaturesView";
-    private static Logger log = LoggerFactory.getLogger(FeaturesView.class);
+    private final static Logger LOG = LoggerFactory.getLogger(FeaturesView.class);
 
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
@@ -168,7 +168,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         public boolean candelete;
     }
 
-    private class FeatureListTableModel extends RowEntryTableModel<FeatureListTableData> {
+    private static class FeatureListTableModel extends RowEntryTableModel<FeatureListTableData> {
 
         public static final int OBJ_VISIBLE = 0;
         public static final int OBJ_ONLY = 1;
@@ -179,8 +179,8 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
         public FeatureListTableModel() {
             super(FeatureListTableData.class, new String[]{
-                        "Visible", "Only", "Name", "Type", "Message"
-                    });
+                "Visible", "Only", "Name", "Type", "Message"
+            });
         }
 
         @Override
@@ -351,7 +351,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
             @Override
             public void handleClick(Object stuff, int orgRow, int orgColumn) {
-                log.debug("Clicking here " + stuff + ", " + orgRow);
+                LOG.debug("Clicking here " + stuff + ", " + orgRow);
 
                 if (stuff instanceof FeatureListTableData) {
                     FeatureListTableData entry = (FeatureListTableData) (stuff);
@@ -410,12 +410,10 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         int row = jObjects3DListTable.getSelectedRow();
         if (row > -1) {
             int dataRow = jObjects3DListTable.convertRowIndexToModel(row);
-            if (myFeatureListTableModel != null) {
-                FeatureListTableData d = (FeatureListTableData) (myFeatureListTableModel.getDataForRow(dataRow));
-                if (d != null) {
-                    FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
-                    CommandManager.getInstance().executeCommand(c, true);
-                }
+            FeatureListTableData d = (FeatureListTableData) (myFeatureListTableModel.getDataForRow(dataRow));
+            if (d != null) {
+                FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
+                CommandManager.getInstance().executeCommand(c, true);
             }
         }
     }
@@ -430,7 +428,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             FeatureSelectCommand c = (FeatureSelectCommand) (info);
             changeSelection = true;
             fromSelect = c.getFeature();
-            log.debug("******SELECTCOMMAND " + fromSelect);
+            LOG.debug("******SELECTCOMMAND " + fromSelect);
 
         }
         final FeatureList flist = FeatureList.theFeatures;
@@ -444,33 +442,33 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         // the FeatureList...we'll see how much this gets 'hit'
         Collections.sort(f,
                 new Comparator<Feature>() {
-                    @Override
-                    public int compare(Feature o1, Feature o2) {
-                        String k1 = o1.getFeatureGroup();
-                        String k2 = o2.getFeatureGroup();
-                        if (k1.equals(ProductFeature.ProductGroup)) {
-                            k1 = "0";
-                        }
-                        if (k2.equals(ProductFeature.ProductGroup)) {
-                            k2 = "0";
-                        }
-                        int c = k1.compareTo(k2);
-                        if (c == 0) { // same group, sort by key name...
-                            c = o1.getKey().compareTo(o2.getKey());
-                        }
-                        return c;
-                    }
-                });
+            @Override
+            public int compare(Feature o1, Feature o2) {
+                String k1 = o1.getFeatureGroup();
+                String k2 = o2.getFeatureGroup();
+                if (k1.equals(ProductFeature.ProductGroup)) {
+                    k1 = "0";
+                }
+                if (k2.equals(ProductFeature.ProductGroup)) {
+                    k2 = "0";
+                }
+                int c = k1.compareTo(k2);
+                if (c == 0) { // same group, sort by key name...
+                    c = o1.getKey().compareTo(o2.getKey());
+                }
+                return c;
+            }
+        });
 
         int currentLine = 0;
         int select = -1;
         int oldSelect = -1;
         ArrayList<FeatureListTableData> newList = new ArrayList<FeatureListTableData>();
         Feature topFeature = flist.getTopSelected();
-        //log.debug("Top selected in was "+topFeature);
+        //LOG.debug("Top selected in was "+topFeature);
         if (changeSelection) {
             if (fromSelect != topFeature) {
-                //	log.error("**********NOT THE SAME "+fromSelect+", "+topFeature);
+                //	LOG.error("**********NOT THE SAME "+fromSelect+", "+topFeature);
             }
         }
 
@@ -502,7 +500,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
                 topFeature = myLastSelectedFeature;
             }
         } else {
-            //log.debug("CHANGE SELECTION IS TRUE");
+            //LOG.debug("CHANGE SELECTION IS TRUE");
         }
 
         if (select > -1) {
@@ -513,16 +511,16 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             // infinite loop.  So we have a flag.  We don't use isAdjusting
             // because it still fires and event when you set it false
             myFeatureListTableModel.setRebuilding(true);
-           
+
             jObjects3DListTable.setRowSelectionInterval(select, select);
-            
+
             // Swap from old controls to new controls
             FeatureGUI newControls = null;
-            if (topFeature != null){
+            if (topFeature != null) {
                 newControls = topFeature.getControls();
             }
             FeatureGUI lastControls = null;
-            if (myLastSelectedFeature != null){
+            if (myLastSelectedFeature != null) {
                 lastControls = myLastSelectedFeature.getControls();
             }
             boolean swapped = SwingGUIPlugInPanel.swapToPanel(jFeatureGUIPanel, lastControls, newControls);
@@ -530,7 +528,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             if (swapped) {
                 myLastSelectedFeature = topFeature;
             }
-            
+
             myFeatureListTableModel.setRebuilding(false);
 
         } else {
@@ -588,10 +586,6 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         jObjectScrollPane.setBorder(null);
         jInfoLabel = new JLabel("---");
         return jObjectScrollPane;
-    }
-
-    private JToolBar initToolBar() {
-        return null;
     }
 
     private void initComponents(boolean dockControls) {
@@ -655,7 +649,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     }
 
     private void addSetActionPerformed(java.awt.event.ActionEvent evt, int count) {
-        FeatureCreateCommand doit = new FeatureCreateCommand("Set", new Integer(count));
+        FeatureCreateCommand doit = new FeatureCreateCommand("Set", Integer.valueOf(count));
         CommandManager.getInstance().executeCommand(doit, true);
         //FeatureList.theFeatures.addFeature(new LLHAreaFeature(0));
     }

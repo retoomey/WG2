@@ -64,10 +64,17 @@ public class StarSymbol extends PointSymbol {
     }
 
     @Override
+    public Symbol copy() {
+        StarSymbol s = new StarSymbol();
+        s.copyFrom(this);
+        return s;
+    }
+
+    @Override
     public void copyFrom(Symbol s) {
-        super.copyFrom(s);   
-        if (s instanceof StarSymbol){
-            StarSymbol o = (StarSymbol)s;
+        super.copyFrom(s);
+        if (s instanceof StarSymbol) {
+            StarSymbol o = (StarSymbol) s;
             color = o.color;
             lsize = o.lsize;
             useOutline = o.useOutline;

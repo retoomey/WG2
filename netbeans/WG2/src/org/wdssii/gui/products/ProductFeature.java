@@ -26,7 +26,7 @@ import org.wdssii.gui.sources.SourceList;
  */
 public class ProductFeature extends Feature {
 
-    private static Logger log = LoggerFactory.getLogger(ProductFeature.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ProductFeature.class);
     /**
      * The current product we are using
      */

@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Array2DfloatSparse extends DataStorage implements Array2D<Float> {
 
-    private static Logger log = LoggerFactory.getLogger(Array2DfloatSparse.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Array2DfloatSparse.class);
     private static int counter = 0;
     private int myX;
     private int myY;
@@ -100,15 +100,15 @@ public class Array2DfloatSparse extends DataStorage implements Array2D<Float> {
                 actualData++;
             }
         }
-        log.warn("Actual data count was " + actualData);
+        LOG.warn("Actual data count was " + actualData);
         // Verify the X creation...
-        log.warn("Created Sparse X of total size " + myXData.size());
+        LOG.warn("Created Sparse X of total size " + myXData.size());
 
         DataManager.getInstance().dataCreated(this, actualData);
 
         for (int i = 0; i < myXData.size(); i++) {
             //ArrayNode n = myXData.get(i);
-            //log.warn("VALUE OF X: "+n.myIndex);
+            //LOG.warn("VALUE OF X: "+n.myIndex);
         }
     }
 
@@ -136,7 +136,7 @@ public class Array2DfloatSparse extends DataStorage implements Array2D<Float> {
         //int radialIndex = (index < 0) ? -(index + 1) : index;
         if (index < 0) {
             if (counter < 20) {
-                log.warn("Creating a node for " + x.myIndex);
+                LOG.warn("Creating a node for " + x.myIndex);
                 counter++;
             }
             // Not found, so create it...
@@ -263,7 +263,7 @@ public class Array2DfloatSparse extends DataStorage implements Array2D<Float> {
     @Override
     public void set(int x, int y, Float value) {
         // FIXME: don't actually do anything yet....
-        log.error("Can't set value in sparse array (read only implementation)");
+        LOG.error("Can't set value in sparse array (read only implementation)");
     }
 
     @Override

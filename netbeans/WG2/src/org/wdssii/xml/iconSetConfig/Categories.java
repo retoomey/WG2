@@ -36,4 +36,18 @@ public class Categories {
         if (list == null){ list = new ArrayList<Category>(); }
         list.add(c);
     }
+    
+    public Categories(){}
+    
+    public Categories(Categories c){
+        this.column = c.column;
+        this.column2 = c.column2;
+        this.column3 = c.column3;
+        if (c.list != null){
+            this.list = new ArrayList<Category>();
+            for(Category cat:c.list){
+                this.list.add(new Category(cat));
+            }  
+        }
+    }
 }

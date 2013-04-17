@@ -15,7 +15,7 @@ import org.wdssii.storage.Array2D;
  */
 public class WindField extends DataType implements Table2DView {
 
-    private static Logger log = LoggerFactory.getLogger(LatLonGrid.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LatLonGrid.class);
 
     // Class passed in to pull back a value.
     public static class WindFieldDataPoint {
@@ -95,7 +95,7 @@ public class WindField extends DataType implements Table2DView {
     /*
     public void convertToUnit(Unit toUnit) {
     if (this.getUnit() == null) {
-    log.debug("Missing units in " + this.getTypeName() + " assuming "
+    LOG.debug("Missing units in " + this.getTypeName() + " assuming "
     + toUnit);
     return;
     }
@@ -112,7 +112,7 @@ public class WindField extends DataType implements Table2DView {
     }
     }
     } catch (ConversionException e) {
-    log.error("Unit in " + this.getTypeName() + " is " + gridUnit
+    LOG.error("Unit in " + this.getTypeName() + " is " + gridUnit
     + "; expected something compatible with " + toUnit);
     }
     }

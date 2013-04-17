@@ -25,7 +25,7 @@ import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
  */
 public class PPIRadialSetVolume extends IndexRecordVolume {
 
-    private static Logger log = LoggerFactory.getLogger(PPIRadialSetVolume.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PPIRadialSetVolume.class);
     /**
      * Synchronize access to myRadials
      */

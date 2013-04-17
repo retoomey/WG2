@@ -1,6 +1,7 @@
 package org.wdssii.gui.renderers;
 
 import com.sun.opengl.util.BufferUtil;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
@@ -61,7 +62,6 @@ public class ImageSymbolRenderer extends SymbolRenderer {
                         BufferedImage.TYPE_INT_ARGB);
                 Graphics g = bi.createGraphics();
                 icon.paintIcon(null, g, 0, 0);
-                ImageIcon test = (ImageIcon) (icon);
 
                 ByteBuffer buffer = BufferUtil.newByteBuffer(w * h * 4);
                 for (int y = h - 1; y >= 0; y--) {
@@ -179,5 +179,10 @@ public class ImageSymbolRenderer extends SymbolRenderer {
 
 
         }
+    }
+
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+       
     }
 }

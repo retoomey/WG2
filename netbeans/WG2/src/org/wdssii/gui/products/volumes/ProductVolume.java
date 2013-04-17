@@ -38,7 +38,7 @@ public class ProductVolume {
         }
     }
 
-    public static ProductNAVolume nullVolume = new ProductNAVolume();
+    public final static ProductNAVolume nullVolume = new ProductNAVolume();
     
     /** The key that uniquely defines this volume (for caching/updating purposes) */
     protected String myKey = "";

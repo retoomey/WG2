@@ -17,7 +17,7 @@ import org.wdssii.util.StringUtil;
  */
 public class IndexRecord {
 
-    private static Logger log = LoggerFactory.getLogger(IndexRecord.class);
+    private final static Logger LOG = LoggerFactory.getLogger(IndexRecord.class);
 	
     // Data format for all index records
     private static Format myFormatter = new SimpleDateFormat("yyyyMMdd-HHmmss");
@@ -108,7 +108,7 @@ public class IndexRecord {
 	// param is the buildername
 	Builder b = BuilderFactory.getBuilder(builderName);
         if (b == null) {
-            log.error("Can't create record, no builder named " + builderName);
+            LOG.error("Can't create record, no builder named " + builderName);
             return null;
         }
         URL aURL = b.createURLForParams(builderParams, indexLocation);
@@ -135,7 +135,7 @@ public class IndexRecord {
 
     @Override
     public String toString() {
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         b.append("IndexRecord: ");
         for (int i = 0; i < selections.length; ++i) {
             b.append(selections[i]);

@@ -45,7 +45,7 @@ public class LatLonHeightGridNavigator extends ProductNavigator {
     }
 
     /** Root class for product move command */
-    public class LatProductMoveCommand extends ProductMoveCommand {
+    public static class LatProductMoveCommand extends ProductMoveCommand {
         
     }
     
@@ -157,7 +157,7 @@ public class LatLonHeightGridNavigator extends ProductNavigator {
             DataType dt = getOurDataType();
             if (dt != null) {
                 if (dt instanceof LatLonHeightGrid) {
-                    LatLonHeightGrid g = (LatLonHeightGrid) (dt);
+                  //  LatLonHeightGrid g = (LatLonHeightGrid) (dt);
                     myCurrentH = 0;
                 }
             }

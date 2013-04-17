@@ -45,7 +45,7 @@ import org.wdssii.gui.volumes.*;
  */
 public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
-    private static Logger log = LoggerFactory.getLogger(LLHAreaLayer.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LLHAreaLayer.class);
     public static final String DRAW_STYLE_FILL = "Airspace.DrawStyleFill";
     public static final String DRAW_STYLE_OUTLINE = "Airspace.DrawStyleOutline";
     // private final java.util.Collection<LLHArea> myLLHAreas = new java.util.concurrent.ConcurrentLinkedQueue<LLHArea>();
@@ -1065,7 +1065,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
                 double dlat = newPosition.latitude.degrees - origin.latitude.degrees;
                 double dlon = newPosition.longitude.degrees - origin.longitude.degrees;
 
-                if (originList.size() > 0) {  // Need at least one existing point for reference...
+                if (!originList.isEmpty()) {  // Need at least one existing point for reference...
                     int index = 0;
                     for (LatLon l : originList) {
                         LatLon l2 = LatLon.fromDegrees(l.latitude.degrees + dlat, l.longitude.degrees + dlon);

@@ -20,13 +20,13 @@ import org.wdssii.index.*;
  */
 public class IndexSource extends Source implements HistoryListener {
 
-    private static Logger log = LoggerFactory.getLogger(IndexSource.class);
+    private final static Logger LOG = LoggerFactory.getLogger(IndexSource.class);
     /**
      * Zero is special case for keeping all records and never deleting, this
      * should be used only for set archives otherwise memory will fill up.
      * FIXME: Might actually disable autoupdate for this case
      */
-    public static int HISTORY_ARCHIVE = 0;
+    public final static int HISTORY_ARCHIVE = 0;
 
     /**
      * The small helper object for making this source
@@ -168,7 +168,7 @@ public class IndexSource extends Source implements HistoryListener {
             try {
                 myIndex = new HistoricalIndex(myPath, myHistory);
             } catch (Exception e) {
-                log.error("Index could not be created: '" + myPath + "'");
+                LOG.error("Index could not be created: '" + myPath + "'");
                 myIndex = null;
             }
             if (myIndex != null) {
@@ -196,7 +196,7 @@ public class IndexSource extends Source implements HistoryListener {
      */
     public HistoricalIndex getIndex() {
         // Assume index not ready for use if we're still connecting...
-        // log.debug("GET INDEX " + myIndex + " " + myConnecting + ", " + !myConnected);
+        // LOG.debug("GET INDEX " + myIndex + " " + myConnecting + ", " + !myConnected);
         if (myConnecting || !myConnected) {
             return null;
         }

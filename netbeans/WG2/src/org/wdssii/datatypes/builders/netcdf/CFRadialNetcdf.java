@@ -37,7 +37,7 @@ import ucar.nc2.Variable;
 public class CFRadialNetcdf extends DataTypeNetcdf {
 
     /** The log for errors */
-    private static Logger log = LoggerFactory.getLogger(CFRadialNetcdf.class);
+    private final static Logger LOG = LoggerFactory.getLogger(CFRadialNetcdf.class);
 
     /** Try to create a RadialSet by reflection.  This is called from NetcdfBuilder by reflection	
      * @param ncfile	the Netcdf file to read from
@@ -94,7 +94,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
             }
             loc = new Location(lat, lon, height / 1000);
         } catch (Exception e) {
-            log.warn("Couldn't read in location from netcdf file", e);
+            LOG.warn("Couldn't read in location from netcdf file", e);
         }
 
         return loc;
@@ -137,7 +137,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
             try {
                 type = pt.readScalarString();
             } catch (IOException ex) {
-                log.warn("Couldn't read platform_type as scalar..??");
+                LOG.warn("Couldn't read platform_type as scalar..??");
                 type = "fixed";
             }
         }
@@ -259,21 +259,21 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
                 } else {
                     Variable m1 = theMoments.get(0);
                     moment = m1.getFullName();
-                    log.debug("FOUND moment data with name " + m1.getFullName());
+                    LOG.debug("FOUND moment data with name " + m1.getFullName());
                     List<Attribute> la = m1.getAttributes();
                     Iterator<Attribute> ia = la.iterator();
                     while(ia.hasNext()){
                       Attribute ab = ia.next();
-                      log.debug("attribute "+ab.getName()+", "+ab.getStringValue());
+                      LOG.debug("attribute "+ab.getName()+", "+ab.getStringValue());
                       if (ab.getName().equals("scale_factor")){
                           float f = ab.getNumericValue().floatValue();
-                          log.debug("SCALE FACTOR "+f);
+                          LOG.debug("SCALE FACTOR "+f);
                           scale = f;
                           useScale = true;
                       }
                       if (ab.getName().equals("add_offset")){
                           float f = ab.getNumericValue().floatValue();
-                          log.debug("ADD OFFSET "+f);
+                          LOG.debug("ADD OFFSET "+f);
                           offset = f;
                           useScale = true;
                       }
@@ -281,7 +281,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
                 }
 
                 // Read platform_type.  Docs say to assume fixed if missing
-                log.debug("platform_type " + getPlatformType(ncfile));
+                LOG.debug("platform_type " + getPlatformType(ncfile));
 
                 // 
                 int sweepCount = ncfile.findDimension("sweep").getLength();
@@ -305,7 +305,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
                     float current = fixed_angle.getFloat(s);
                     int start = sweep_start_ray_index.getInt(s);
                     int end = sweep_end_ray_index.getInt(s);
-                    log.debug("SWEEP start ray: " + s + "  " + start + ", end ray: " + end + ",  angle " + current);
+                    LOG.debug("SWEEP start ray: " + s + "  " + start + ", end ray: " + end + ",  angle " + current);
                     if (s == 0) {  // Gonna try to display first sweep of volume
                         r.fixedAngleDegs = current;
                         startRay = start;
@@ -332,10 +332,10 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
                 } catch (Exception e) {
                     // If we can't get the values for any reason, 
                     // just make a zero size radial set (nice recovery)
-                    log.warn("Couldn't create radials of radial set, leaving as empty");
+                    LOG.warn("Couldn't create radials of radial set, leaving as empty");
                 }
 
-                log.debug("Total " + total_num_rays + " rays " + total_num_gates + " gates");
+                LOG.debug("Total " + total_num_rays + " rays " + total_num_gates + " gates");
 
                 Variable rangeVar = ncfile.findVariable("range");
                 Array ranges = rangeVar.read();
@@ -347,10 +347,10 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
                     if (p != 0){
                         float delta = rangeMeters-prevMeters;
                         totalDelta += delta;
-                       // log.debug("Range is "+rangeMeters+" with delta "+delta);
+                       // LOG.debug("Range is "+rangeMeters+" with delta "+delta);
                         prevMeters = rangeMeters;
                     }else{
-                       // log.debug("First range is "+rangeMeters);
+                       // LOG.debug("First range is "+rangeMeters);
                     }
                 }
                 
@@ -392,7 +392,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
                 }
 
             } catch (Exception e) { // FIXME: what to do if anything?
-                log.warn("Exception CFRadial is " + e.toString());
+                LOG.warn("Exception CFRadial is " + e.toString());
             }
         }
     }

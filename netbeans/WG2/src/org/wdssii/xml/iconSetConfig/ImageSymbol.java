@@ -14,6 +14,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ImageSymbol extends PointSymbol {
 
     @Override
+    public Symbol copy() {
+        ImageSymbol p = new ImageSymbol();
+        p.copyFrom(this);
+        return p;
+    }
+       
+    @Override
     public void copyFrom(Symbol s) {
         super.copyFrom(s);
     }

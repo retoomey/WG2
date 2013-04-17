@@ -32,7 +32,7 @@ import org.wdssii.index.IndexRecord;
  */
 public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
 
-    private static Logger log = LoggerFactory.getLogger(IndexSourceGUI.class);
+    private final static Logger LOG = LoggerFactory.getLogger(IndexSourceGUI.class);
     // ------------------------------------------------------------------------
     // Begin Products (three table models, for Products, choices, results)
     //
@@ -53,15 +53,15 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         // system default)
     }
 
-    private class ProductListTableModel extends RowEntryTableModel<ProductListTableData> {
+    private static class ProductListTableModel extends RowEntryTableModel<ProductListTableData> {
 
         public static final int PRODUCT_NAME = 0;
         private boolean isRebuilding = false;
 
         public ProductListTableModel() {
             super(ProductListTableData.class, new String[]{
-                        "Products"
-                    });
+                "Products"
+            });
         }
 
         @Override
@@ -127,15 +127,15 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         public String choiceName; // Name shown in list
     }
 
-    private class ChoiceListTableModel extends RowEntryTableModel<ChoiceListTableData> {
+    private static class ChoiceListTableModel extends RowEntryTableModel<ChoiceListTableData> {
 
         public static final int CHOICE_NAME = 0;
         private boolean isRebuilding = false;
 
         public ChoiceListTableModel() {
             super(ChoiceListTableData.class, new String[]{
-                        "Choices"
-                    });
+                "Choices"
+            });
         }
 
         @Override
@@ -211,15 +211,15 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
         String source;
     }
 
-    private class ResultListTableModel extends RowEntryTableModel<ResultListTableData> {
+    private static class ResultListTableModel extends RowEntryTableModel<ResultListTableData> {
 
         public static final int RESULT_NAME = 0;
         private boolean isRebuilding = false;
 
         public ResultListTableModel() {
             super(ResultListTableData.class, new String[]{
-                        "Results"
-                    });
+                "Results"
+            });
         }
 
         @Override
@@ -404,13 +404,13 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
                     int row = target.getSelectedRow();
                     if (myProductListTableModel != null) {
                         ProductListTableData d = myProductListTableModel.getDataForRow(row);
-                        log.error("BLEH: " + d.datatype);
-                        HistoricalIndex anIndex = mySource.getIndex();
+                        LOG.error("BLEH: " + d.datatype);
+                       // HistoricalIndex anIndex = mySource.getIndex();
 
-                        if (anIndex != null) {
-                            IndexRecord r = anIndex.getLastRecordByTime(d.datatype);
+                       // if (anIndex != null) {
+                       //     IndexRecord r = anIndex.getLastRecordByTime(d.datatype);
 
-                        }
+                       // }
 
                     } //
                 }
@@ -589,13 +589,11 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
     public void fillRecordList(String selectedSubtype) {
         HistoricalIndex anIndex = mySource.getIndex();
         if (anIndex != null) {
-            if (anIndex != null) {
-                String[] list = new String[2];
-                list[0] = mySelection[0];
-                list[1] = selectedSubtype;
-                mySelection[1] = selectedSubtype;
-                setRecordList(list);
-            }
+            String[] list = new String[2];
+            list[0] = mySelection[0];
+            list[1] = selectedSubtype;
+            mySelection[1] = selectedSubtype;
+            setRecordList(list);
         }
     }
 

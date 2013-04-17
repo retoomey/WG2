@@ -2,6 +2,7 @@ package org.wdssii.gui.renderers;
 
 import com.jidesoft.swing.JideButton;
 import java.awt.Color;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
@@ -52,7 +53,7 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
     /**
      * Provides the properties for a StarSymbol
      */
-    private static class PolygonSymbolMementor extends PointSymbolMementor {
+    private class PolygonSymbolMementor extends PointSymbolMementor {
 
         private PolygonSymbol mySymbol;
 
@@ -123,7 +124,7 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
         public Memento getMemento() {
             // Get the current settings...patch from StarSymbol...
             PolygonSymbolMemento m = new PolygonSymbolMemento();
-            setMemento(m);      
+            setMemento(m);
             return m;
         }
     }
@@ -135,11 +136,12 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
         myMementor = new PolygonSymbolMementor(owner);
         setupComponents();
     }
-    
+
     @Override
-    public Symbol getSymbol(){
+    public Symbol getSymbol() {
         return myMementor.mySymbol;
     }
+
     /**
      * General update call
      */
@@ -148,13 +150,31 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
         updateToMemento(myMementor.getNewMemento());
     }
 
+    public PolygonSymbol toolbarSymbol() {
+        PolygonSymbol p = new PolygonSymbol();
+        p.color = Color.WHITE;
+        p.ocolor = Color.RED;
+        p.osize = 1;
+        p.useOutline = false;
+        return p;
+    }
+
     public final void addPolygonSymbolComponents(Mementor m) {
         add(new IntegerGUI(myMementor, PolygonSymbolMemento.NUMPOINTS, "Sides", this,
                 3, 20, 1, "points"));
 
+        JPanel h = new JPanel();
+        h.setLayout(new MigLayout(new LC().fill().insetsAll("2"), null, null));
+        h.setBackground(Color.BLACK);
+
         // Quick selects
         JideButton b;
-        b = new JideButton("Square");
+        PolygonSymbolRenderer icon = new PolygonSymbolRenderer();
+        PolygonSymbol p = toolbarSymbol();
+        p.toSquare();
+        icon.setSymbol(p);
+        b = new JideButton(icon);
+        b.setToolTipText("Square");
         b.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -162,8 +182,14 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
                 updateGUI();
             }
         });
-        add(b, new CC());
-        b = new JideButton("Circle");
+        h.add(b, new CC());
+        
+        icon = new PolygonSymbolRenderer();
+        p = toolbarSymbol();
+        p.toCircle();
+        icon.setSymbol(p);
+        b = new JideButton(icon);
+        b.setToolTipText("Circle");
         b.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -171,8 +197,15 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
                 updateGUI();
             }
         });
-        add(b, new CC());
-        b = new JideButton("Diamond");
+        h.add(b, new CC());
+        
+        icon = new PolygonSymbolRenderer();
+        p = toolbarSymbol();
+        p.toDiamond();
+        icon.setSymbol(p);
+        //b = new JideButton("Diamond", icon);
+        b = new JideButton(icon);
+        b.setToolTipText("Diamond");
         b.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -180,8 +213,14 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
                 updateGUI();
             }
         });
-        add(b, new CC());
-        b = new JideButton("Triangle");
+        h.add(b, new CC());
+        
+        icon = new PolygonSymbolRenderer();
+        p = toolbarSymbol();
+        p.toTriangle();
+        icon.setSymbol(p);
+        b = new JideButton(icon);
+        b.setToolTipText("Triangle");
         b.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -189,15 +228,15 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
                 updateGUI();
             }
         });
-        add(b, new CC().wrap());
+        h.add(b, new CC());
 
-        // add(new IntegerGUI(myMementor, PolygonSymbolMemento.LINESIZE, "Linewidth", this,
-        //         1, 10, 1, "points"));
+        add(h, new CC().span(3).wrap());
+
         add(new ColorGUI(myMementor, PolygonSymbolMemento.COLOR, "Base Color", this));
         add(new BooleanGUI(myMementor, PolygonSymbolMemento.USEOUTLINE, "Use outline", this));
         add(new ColorGUI(myMementor, PolygonSymbolMemento.OCOLOR, "Outline Color", this));
 
-         // Get the stock Symbol controls
+        // Get the stock Symbol controls
         super.addPointSymbolComponents(myMementor);
     }
 

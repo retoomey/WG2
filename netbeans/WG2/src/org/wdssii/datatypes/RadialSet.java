@@ -13,7 +13,7 @@ import org.wdssii.geom.Location;
  */
 public class RadialSet extends DataType {
 
-    private static Logger log = LoggerFactory.getLogger(RadialSet.class);
+    private final static Logger LOG = LoggerFactory.getLogger(RadialSet.class);
     /**
      * Fixed angle in degrees of this radial set. This is the unchanging angle
      * of the RadialSet, it will be elevation for PPI and azimuth for RHI

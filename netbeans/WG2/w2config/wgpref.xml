@@ -2,7 +2,7 @@
 <w2pref>
     <sources>
         <source history="120" url="http://nmqwd21.protect.nssl:8080/?protocol=webindex&amp;source=multi" name="2DCONUS"/>
-        <source history="120" url="http://tensor.protect.nssl/data/KTLX-large/radar_data.xml" name="KTLX-ARCHIVE"/>
+        <source history="0" url="http://tensor.protect.nssl/data/KTLX-large/radar_data.xml" name="KTLX-ARCHIVE"/>
         <source history="120" url="file:/D:/RADAR/MPing/data/fam/" name="Source1"/>
     </sources>
 </w2pref>

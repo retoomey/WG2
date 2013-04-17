@@ -89,7 +89,7 @@ public class StringUtil {
         Matcher m = p.matcher(path);
         if (m.find()) {
             String host = m.group(1);
-            if (host.indexOf(".") == -1) {
+            if (host.indexOf('.') == -1) {
                 host = host + "." + domain;
                 //outPath = "webindex:http://" + host;
                 outPath = "http://" + host;

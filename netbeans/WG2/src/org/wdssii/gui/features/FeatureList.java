@@ -17,7 +17,7 @@ import org.wdssii.gui.views.WorldWindView;
  */
 public class FeatureList {
 
-    private static Logger log = LoggerFactory.getLogger(FeatureList.class);
+    private final static Logger LOG = LoggerFactory.getLogger(FeatureList.class);
     /**
      * Every FeatureList can have a world wind earthball view. This might become
      * more general later and become a list.
@@ -169,7 +169,7 @@ public class FeatureList {
                     if (newSelection == null) {
                         mySelections.remove(group);
                         synchronized (featureSync) {
-                            if (myFeatures.size() > 0) {
+                            if (!myFeatures.isEmpty()) {
                                 newSelection = myFeatures.get(0);
                             }
                         }
@@ -179,7 +179,7 @@ public class FeatureList {
                     setSelected(newSelection);
                 }
             } else {
-                log.error("Tried to delete a feature that is not deletable");
+                LOG.error("Tried to delete a feature that is not deletable");
             }
         }
     }

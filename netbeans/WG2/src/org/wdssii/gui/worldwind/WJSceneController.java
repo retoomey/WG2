@@ -23,7 +23,7 @@ import org.wdssii.gui.products.ProductFeature;
  */
 public class WJSceneController extends BasicSceneController {
 
-    private static Logger log = LoggerFactory.getLogger(WJSceneController.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WJSceneController.class);
     private LLHAreaLayer myLLHAreaLayer;
 
     public void setLLHAreaLayer(LLHAreaLayer layer) {
@@ -33,9 +33,9 @@ public class WJSceneController extends BasicSceneController {
     @Override
     public PickedObjectList getPickedObjectList() {
         PickedObjectList l = super.getPickedObjectList();
-        if (l != null) {
-            PickedObject o = l.getTopPickedObject();
-        }
+        //if (l != null) {
+        //    PickedObject o = l.getTopPickedObject();
+        //}
         return l;
     }
 

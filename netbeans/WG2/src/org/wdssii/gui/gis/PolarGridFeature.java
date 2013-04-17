@@ -43,7 +43,7 @@ public class PolarGridFeature extends Feature {
             initProperty(RING_RANGE, 10000);
         }
     }
-    private static Logger log = LoggerFactory.getLogger(PolarGridFeature.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PolarGridFeature.class);
     public static final String PolarGridGroup = "POLARGRIDS";
     private static int counter = 1;
 

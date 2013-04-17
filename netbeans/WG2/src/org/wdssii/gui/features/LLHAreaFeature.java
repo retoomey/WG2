@@ -15,7 +15,7 @@ import org.wdssii.gui.volumes.*;
  */
 public class LLHAreaFeature extends Feature {
 
-    private static Logger log = LoggerFactory.getLogger(LLHAreaFeature.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LLHAreaFeature.class);
     public static final String LLHAreaGroup = "3D";
     // Factories shared by all LLHAreaFeatures anywhere
     // Probably should make this more configurable...

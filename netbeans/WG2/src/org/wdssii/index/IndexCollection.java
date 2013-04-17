@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public abstract class IndexCollection {
 
     /** Log for this class */
-    private static Logger log = LoggerFactory.getLogger(IndexCollection.class);
+    private final static Logger LOG = LoggerFactory.getLogger(IndexCollection.class);
 
     /** Do something when a new record comes in.  You need to implement this for
      * autoupdates
@@ -92,7 +92,7 @@ public abstract class IndexCollection {
             current = new IndexWatcher(this, keyName, filterPath, realtime);
             myIndexSet.put(keyName, current);
             myIndexShortNames.put(keyName, shortName); // Notice, duplicate short names allowed
-            log.warn("ADDED " + keyName + " " + shortName + " " + filterPath);
+            LOG.warn("ADDED " + keyName + " " + shortName + " " + filterPath);
             success = keyName;
 
         } else {
@@ -141,7 +141,7 @@ public abstract class IndexCollection {
         Matcher m = p.matcher(path);
         if (m.find()) {
             String host = m.group(1);
-            if (host.indexOf(".") == -1) {
+            if (host.indexOf('.') == -1) {
                 host = host + domain;
                 //outPath = "webindex:http://" + host;
                 outPath = "http://" + host;
@@ -174,7 +174,7 @@ public abstract class IndexCollection {
             }
             outPath += m.group(3);
             } catch (UnknownHostException e2) {
-            log.warn("Can't find machine URL named " + m.group(1));
+            LOG.warn("Can't find machine URL named " + m.group(1));
             }
             }*/
 
@@ -347,7 +347,7 @@ public abstract class IndexCollection {
                     }
                     outPath += m.group(3);
                 } catch (UnknownHostException e2) {
-                    log.warn("Can't find machine URL named " + m.group(1));
+                    LOG.warn("Can't find machine URL named " + m.group(1));
                 }
             }
 

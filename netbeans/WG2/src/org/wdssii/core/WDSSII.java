@@ -21,7 +21,7 @@ import ucar.nc2.util.DiskCache;
  */
 public class WDSSII {
 
-    private static Logger log = LoggerFactory.getLogger(WDSSII.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WDSSII.class);
     private static WDSSII singleton = new WDSSII();
 
     public static WDSSII getInstance() {
@@ -31,12 +31,12 @@ public class WDSSII {
     private File temporaryDir = null;
 
     private WDSSII() {
-        //log.info("WDSS-II (c) University of Oklahoma and NOAA National Severe Storms Laboratory");
+        //LOG.info("WDSS-II (c) University of Oklahoma and NOAA National Severe Storms Laboratory");
         // any other inits go here
         this.initialTimeZone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        if (log.isInfoEnabled()) {
-            log.info("Set default timezone to: " + TimeZone.getDefault());
+        if (LOG.isInfoEnabled()) {
+            LOG.info("Set default timezone to: " + TimeZone.getDefault());
         }
         makeTemporaryDirectory();
     }
@@ -45,11 +45,11 @@ public class WDSSII {
         // make sure to use a temporary directory for netcdf temporary files
         try {
             temporaryDir = DataManager.getInstance().getTempDir("netcdf");
-            log.info("Using " + temporaryDir + " to store temporary netcdf files");
+            LOG.info("Using " + temporaryDir + " to store temporary netcdf files");
             DiskCache.setRootDirectory(temporaryDir.getAbsolutePath());
             DiskCache.setCachePolicy(true); // always in cache
         } catch (Exception e) {
-            log.error("Unable to create temporary directory for netcdf files; using default DiskCache strategy");
+            LOG.error("Unable to create temporary directory for netcdf files; using default DiskCache strategy");
             temporaryDir = null;
         }
     }

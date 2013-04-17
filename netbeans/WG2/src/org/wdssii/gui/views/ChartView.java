@@ -32,7 +32,7 @@ import org.wdssii.xml.wdssiiConfig.Tag_setup;
  */
 public class ChartView extends JThreadPanel implements MDockView, CommandListener, ProductFilterFollowerView, ProductFollowerView, VolumeTypeFollowerView {
 
-    private static Logger log = LoggerFactory.getLogger(ChartView.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ChartView.class);
     // ----------------------------------------------------------------
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
@@ -76,9 +76,9 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
     
     public static void addSubView(ChartView v){
         theSubViews.add(v);
-        log.debug("ADD subview list is :");
+        LOG.debug("ADD subview list is :");
         for(ChartView c: theSubViews){
-            log.debug("Chart is "+c.getTitle());
+            LOG.debug("Chart is "+c.getTitle());
         }
     }
     
@@ -299,11 +299,11 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
                                 aClass = Class.forName("org.wdssii.gui.charts." + c.name + "Chart");
                                 Method createMethod = aClass.getMethod("create" + c.name + "Chart", new Class[]{});
                                 chart = (ChartViewChart) createMethod.invoke(null, new Object[]{});
-                                log.debug("Generated chart by factory lookup " + c.gName + " to " + c.name);
+                                LOG.debug("Generated chart by factory lookup " + c.gName + " to " + c.name);
                                 //setChart(chart);
                                 myCurrentChoice = c.gName;
                             } catch (Exception e) {
-                                log.error("Couldn't create WdssiiChart by name '"
+                                LOG.error("Couldn't create WdssiiChart by name '"
                                         + c.name + "' because " + e.toString());
                                 myCurrentChoice = "";
                                 //  setChart(null);
@@ -320,11 +320,11 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
                             aClass = Class.forName("org.wdssii.gui.charts." + factoryChoice + "Chart");
                             Method createMethod = aClass.getMethod("create" + factoryChoice + "Chart", new Class[]{});
                             chart = (ChartViewChart) createMethod.invoke(null, new Object[]{});
-                            log.debug("Generated chart by reflection " + factoryChoice);
+                            LOG.debug("Generated chart by reflection " + factoryChoice);
                             //setChart(chart);
                             myCurrentChoice = factoryChoice;
                         } catch (Exception e) {
-                            log.error("Couldn't create WdssiiChart by name '"
+                            LOG.error("Couldn't create WdssiiChart by name '"
                                     + factoryChoice + "' because " + e.toString());
                             setChart(null);
                         }
@@ -365,9 +365,6 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
 
     private void setChart(ChartViewChart chart) {
         if (chart != null) {
-            if (chart instanceof VSliceChart) {
-                VSliceChart v = (VSliceChart) (chart);
-            }
             chart.setUseProductFilters(myUseProductFilters);
             chart.setUseVirtualVolume(myUseVirtualVolume);
             chart.setUseProductKey(myCurrentProductFollow);

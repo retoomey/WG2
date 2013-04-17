@@ -22,7 +22,7 @@ import org.wdssii.gui.swing.SwingIconFactory;
  */
 public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
 
-    private static Logger log = LoggerFactory.getLogger(WdssiiMDockedViewFactory.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WdssiiMDockedViewFactory.class);
 
     /**
      * Interface for creating parts of a multi dock view
@@ -114,7 +114,7 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
      * Add view already created
      */
     protected void addNewSubView(View v) {
-        Icon i = getWindowIcon();
+        //Icon i = getWindowIcon();
         DockingWindow base = rootW.getWindow();
 
         // Depending on how user has moved stuff around, should be one of three
@@ -133,7 +133,7 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
                 TabWindow theTab = new TabWindow(new DockingWindow[]{v, base});
                 rootW.setWindow(theTab);
             } else {
-                log.error("Unknown window type...We should handle this type (FIXME)");
+                LOG.error("Unknown window type...We should handle this type (FIXME)");
             }
         }
     }

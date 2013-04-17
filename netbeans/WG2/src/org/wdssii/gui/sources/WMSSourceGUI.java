@@ -24,7 +24,7 @@ import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
  */
 public class WMSSourceGUI extends javax.swing.JPanel implements SourceGUI {
 
-    private static Logger log = LoggerFactory.getLogger(WMSSourceGUI.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WMSSourceGUI.class);
     private WMSListTableModel myWMSListTableModel;
     private RowEntryTable myWMSTable;
 
@@ -35,7 +35,7 @@ public class WMSSourceGUI extends javax.swing.JPanel implements SourceGUI {
         public String aabstract;
     }
 
-    private class WMSListTableModel extends RowEntryTableModel<WMSListTableData> {
+    private static class WMSListTableModel extends RowEntryTableModel<WMSListTableData> {
 
         public static final int WMS_TITLE = 0;
         public static final int WMS_NAME = 1;
@@ -204,7 +204,7 @@ public class WMSSourceGUI extends javax.swing.JPanel implements SourceGUI {
                 CommandManager.getInstance().executeCommand(new FeatureCommand(), true);
             } catch (Exception ex) {
                 // recover by just doing nothing...
-                log.error("Error adding layer " + ex.toString());
+                LOG.error("Error adding layer " + ex.toString());
             }
         }
     }

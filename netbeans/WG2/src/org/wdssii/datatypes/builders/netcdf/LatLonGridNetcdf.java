@@ -19,7 +19,7 @@ import ucar.nc2.NetcdfFile;
 public class LatLonGridNetcdf extends DataTypeNetcdf {
 
     /** The log for errors */
-    private static Logger log = LoggerFactory.getLogger(PPIRadialSetNetcdf.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PPIRadialSetNetcdf.class);
 
     /** Try to create a LatLonGrid by reflection.  This is called from NetcdfBuilder by reflection	
      * @param ncfile	the Netcdf file to read from
@@ -60,11 +60,11 @@ public class LatLonGridNetcdf extends DataTypeNetcdf {
                     grid = sparse ? NetcdfBuilder.readSparseArray2Dfloat(ncfile, r.typeName, r.datametric)
                             : NetcdfBuilder.readArray2Dfloat(ncfile, r.typeName, r.datametric);
                 } catch (OutOfMemoryError mem) {
-                    log.warn("Running out of ram trying to read in LatLonGrid data (FIXME)");
+                    LOG.warn("Running out of ram trying to read in LatLonGrid data (FIXME)");
                 }
             } catch (Exception e) {
                 // FIXME: recover or throw instead, not 100% sure yet
-                log.warn("LatLonGrid failing " + e.toString());
+                LOG.warn("LatLonGrid failing " + e.toString());
             }
             r.deltaLat = latres;
             r.deltaLon = lonres;

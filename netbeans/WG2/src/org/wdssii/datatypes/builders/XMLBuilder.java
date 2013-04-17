@@ -31,7 +31,7 @@ import org.wdssii.xml.Tag_datatype;
  */
 public class XMLBuilder extends Builder {
 
-    private static Logger log = LoggerFactory.getLogger(XMLBuilder.class);
+    private final static Logger LOG = LoggerFactory.getLogger(XMLBuilder.class);
 
     public static class XMLFileInfo extends BuilderFileInfo {
     }

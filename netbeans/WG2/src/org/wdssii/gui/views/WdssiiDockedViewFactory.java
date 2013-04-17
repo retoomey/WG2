@@ -128,10 +128,6 @@ public abstract class WdssiiDockedViewFactory {
 		String title = getWindowTitle();
 		Component p = getNewComponent();
 		View v = new View(title, i, p);
-		if (v instanceof DockView) {
-			DockView d = (DockView) (v);
-			d.addGlobalCustomTitleBarComponents(getCustomTitleBarComponents(v));
-		}
 		return v;
 	}
 

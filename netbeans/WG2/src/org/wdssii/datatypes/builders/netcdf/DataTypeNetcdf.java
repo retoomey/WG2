@@ -21,7 +21,7 @@ import ucar.nc2.Attribute;
  */
 public abstract class DataTypeNetcdf {
 
-    private static Logger log = LoggerFactory.getLogger(DataTypeNetcdf.class);
+    private final static Logger LOG = LoggerFactory.getLogger(DataTypeNetcdf.class);
 
     /** Try to create a DataType by reflection.  This is called from NetcdfBuilder by reflection
      * All netcdf builder classes have to implement this or what's the point?
@@ -64,7 +64,7 @@ public abstract class DataTypeNetcdf {
             tm = ncfile.findGlobalAttribute("Time").getNumericValue().longValue();
         } catch (Exception e2) {
             // No time attribute or wrong format, use current time
-            log.warn("Missing Time attribute in netcdf file, using current time");
+            LOG.warn("Missing Time attribute in netcdf file, using current time");
             dt = new Date();
             return dt;
         }
@@ -89,7 +89,7 @@ public abstract class DataTypeNetcdf {
             double ht = ncfile.findGlobalAttribute("Height").getNumericValue().doubleValue();
             loc = new Location(lat, lon, ht / 1000);
         } catch (Exception e) {
-            log.warn("Couldn't read in location from netcdf file", e);
+            LOG.warn("Couldn't read in location from netcdf file", e);
         }
 
         return loc;
@@ -111,7 +111,7 @@ public abstract class DataTypeNetcdf {
                         String val = v.getStringValue();
                         attr.put(name, val);
                     }else{
-                        log.warn ("Wdssii netcdf file had attribute "+name+" that was missing value");
+                        LOG.warn ("Wdssii netcdf file had attribute "+name+" that was missing value");
                     }
                 }
             }

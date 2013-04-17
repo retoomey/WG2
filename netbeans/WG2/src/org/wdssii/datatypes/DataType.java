@@ -18,23 +18,34 @@ import org.wdssii.geom.Location;
 
 /**
  * Base class of all the data types that can be displayed.
- * 
+ *
  * @author Lakshman
  */
 public class DataType {
 
-    private static Logger log = LoggerFactory.getLogger(DataType.class);
-    /** The origin location of the DataType, such as the radar center for RadialSets */
+    private final static Logger LOG = LoggerFactory.getLogger(DataType.class);
+    /**
+     * The origin location of the DataType, such as the radar center for
+     * RadialSets
+     */
     protected Location originLocation;
-    /** The start time of the data set */
+    /**
+     * The start time of the data set
+     */
     protected Date startTime;
-    /** A more specific type name for this DataType...such as 'Mesonet' for a DataTable */
+    /**
+     * A more specific type name for this DataType...such as 'Mesonet' for a
+     * DataTable
+     */
     protected String typeName;
-    /** Name to value for attributes of a DataType:
+    /**
+     * Name to value for attributes of a DataType:
      */
     protected Map<String, String> attributes = new HashMap<String, String>();
-    /** XML stores the units for each attribute, while netcdf does not seem to.  If we have an attribute
-     * in here then we have the units, otherwise it's dimensionless
+    /**
+     * XML stores the units for each attribute, while netcdf does not seem to.
+     * If we have an attribute in here then we have the units, otherwise it's
+     * dimensionless
      */
     protected Map<String, String> attrUnits = new HashMap<String, String>();
     // Note: Modify isRealDataValue() if adding any values to the set below
@@ -43,30 +54,45 @@ public class DataType {
     public static final float DataUnavailable = -99903;
     protected DataTypeMetric myDataTypeMetric;
 
-    /** Passed in by builder objects to use to initialize ourselves.
-     * This allows us to have final field access from builders.
+    /**
+     * Passed in by builder objects to use to initialize ourselves. This allows
+     * us to have final field access from builders.
      */
     public static class DataTypeMemento {
 
-        /** Origin location of the data. */
+        /**
+         * Origin location of the data.
+         */
         public Location originLocation;
-        /** Start time that this data is valid */
+        /**
+         * Start time that this data is valid
+         */
         public Date startTime;
-        /** A type name for this data.  FIXME: should we use this? */
+        /**
+         * A type name for this data. FIXME: should we use this?
+         */
         public String typeName;
-        /** A list of attribute fields for data type */
+        /**
+         * A list of attribute fields for data type
+         */
         public Map<String, String> attriNameToValue;
-        /** A list of names to units */
+        /**
+         * A list of names to units
+         */
         public Map<String, String> attriNameToUnits;
-        /** The metric holder for this data type */
+        /**
+         * The metric holder for this data type
+         */
         public DataTypeMetric datametric;
     }
 
-    /** The base type for a query.  Rather than just getting a 'double' value back from data,
-     * this allows us to request/receive more detailed information.
-     * There are input and output fields. You typically pre-create a query object outside of
-     * a loop and reuse it in order to keep the speed (avoiding newing inside a loop)
-     * For example, working through a radial set volume at a given location:
+    /**
+     * The base type for a query. Rather than just getting a 'double' value back
+     * from data, this allows us to request/receive more detailed information.
+     * There are input and output fields. You typically pre-create a query
+     * object outside of a loop and reuse it in order to keep the speed
+     * (avoiding newing inside a loop) For example, working through a radial set
+     * volume at a given location:
      * <code>
      * RadialSetQuery output = new RadialSetQuery();
      * output.inLocation = someLocation;
@@ -75,48 +101,66 @@ public class DataType {
      *    // do something with output
      * }
      * </code>
+     *
      * @author Robert Toomey
      *
      */
     public static class DataTypeQuery {
 
-        /** Do we take into consideration height when querying? */
+        /**
+         * Do we take into consideration height when querying?
+         */
         public boolean inUseHeight = true;
-        /** Query by location (most if all DataTypes query this way) */
+        /**
+         * Query by location (most if all DataTypes query this way)
+         */
         public Location inLocation;
-        /** Used by filters.  This is the original data value.  Each filter modifies the
-         * outDataValue with its function, but the original data value is left alone.  However,
-         * filters might need access to the original data value
+        /**
+         * Used by filters. This is the original data value. Each filter
+         * modifies the outDataValue with its function, but the original data
+         * value is left alone. However, filters might need access to the
+         * original data value
          */
         public float inDataValue;
-        /** Get weight for interpolation.  The weight is a 'distance' from
-         * the closest data point.
+        /**
+         * Get weight for interpolation. The weight is a 'distance' from the
+         * closest data point.
          */
         public boolean inNeedInterpolationWeight = false;
-        /** The distance from the 'true' value of the beam, to the location asked
-         * for.  This will give us part of the weight for any linear interpolation
+        /**
+         * The distance from the 'true' value of the beam, to the location asked
+         * for. This will give us part of the weight for any linear
+         * interpolation
          */
         public float outDistanceHeight = 0.0f;
-        /** The simple data value (most if all DataTypes have this).  Note a DataType such as WindField could have
-         * multiple out values */
+        /**
+         * The simple data value (most if all DataTypes have this). Note a
+         * DataType such as WindField could have multiple out values
+         */
         public float outDataValue = DataType.DataUnavailable;
 
-        /** Get the final filtered data value */
+        /**
+         * Get the final filtered data value
+         */
         public float getFinalValue() {
             return outDataValue;
         }
 
-        /** Get the original data value without any filters */
+        /**
+         * Get the original data value without any filters
+         */
         public float getOrgValue() {
             return inDataValue;
         }
     };
 
-    /** Metrics gathered on data during read. Metrics are things like average value, min value, etc...
-     * For example, the GUI uses the min/max values to generate color maps.
-     * Subclasses could add to this in order to gather more data during reading.  The advantage of this
-     * class is that it is called during the original loading of data, avoid the need to iterate later
-     * over the entire dataset
+    /**
+     * Metrics gathered on data during read. Metrics are things like average
+     * value, min value, etc... For example, the GUI uses the min/max values to
+     * generate color maps. Subclasses could add to this in order to gather more
+     * data during reading. The advantage of this class is that it is called
+     * during the original loading of data, avoid the need to iterate later over
+     * the entire dataset
      */
     public static class DataTypeMetric {
 
@@ -131,19 +175,25 @@ public class DataType {
             return maxValue;
         }
 
-        /** Do any init needed */
+        /**
+         * Do any init needed
+         */
         public void beginArray2D() {
             minValue = 100000;
             maxValue = -90000;
         }
 
-        /** Do any init needed */
+        /**
+         * Do any init needed
+         */
         public void beginArray3D() {
             minValue = 100000;
             maxValue = -90000;
         }
 
-        /** Update for a data value */
+        /**
+         * Update for a data value
+         */
         public void updateArray2D(int x, int y, float value) {
             if (DataType.isRealDataValue(value)) {
                 if (value > maxValue) {
@@ -155,7 +205,9 @@ public class DataType {
             }
         }
 
-        /** Update for a data value */
+        /**
+         * Update for a data value
+         */
         public void updateArray3D(int x, int y, int z, float value) {
             if (DataType.isRealDataValue(value)) {
                 if (value > maxValue) {
@@ -172,17 +224,19 @@ public class DataType {
         // Empty datatype
     }
 
-    /** Return a new query object.  Use when the datatype is unknown */
-    public DataTypeQuery getNewQueryObject()
-    {
+    /**
+     * Return a new query object. Use when the datatype is unknown
+     */
+    public DataTypeQuery getNewQueryObject() {
         return new DataTypeQuery();
     }
-    
+
     public void queryData(DataTypeQuery q) {
-          
     }
-    
-    /** Most DataTypes can be optionally created from XML data.*/
+
+    /**
+     * Most DataTypes can be optionally created from XML data.
+     */
     @SuppressWarnings("unused")
     public boolean fromXML(XMLStreamReader p) throws XMLStreamException {
         return true;
@@ -192,7 +246,9 @@ public class DataType {
         originLocation = l;
     }
 
-    /** Create a DataType given a DataTyupeMemento object */
+    /**
+     * Create a DataType given a DataTyupeMemento object
+     */
     public DataType(DataTypeMemento m) {
         // We move all fields.  Some of our fields may be final due to
         // synchronization needs.  This is why we don't have a 'memento' object
@@ -200,20 +256,24 @@ public class DataType {
         this.originLocation = m.originLocation;
         this.startTime = m.startTime;
         this.typeName = m.typeName;
-       if (m.attriNameToValue != null){
+        if (m.attriNameToValue != null) {
             this.attributes = m.attriNameToValue;
-       }
+        }
         this.myDataTypeMetric = m.datametric;
     }
 
-    /** Create the data metric for this class */
+    /**
+     * Create the data metric for this class
+     */
     public static DataTypeMetric createDataMetric() {
         return new DataTypeMetric();
     }
 
-    /** Convenience test for if a data value is 'real' or one of the special
-     * values such as MissingData.  Modify this function if you add any additional
-     * special types
+    /**
+     * Convenience test for if a data value is 'real' or one of the special
+     * values such as MissingData. Modify this function if you add any
+     * additional special types
+     *
      * @param value value to check
      * @return true is data value is real
      */
@@ -221,8 +281,10 @@ public class DataType {
         return (value > MissingData);
     }
 
-    /** Return a double used to sort a volume of this DataType.  For example,
-     * for RadialSets this would be the elevation value.
+    /**
+     * Return a double used to sort a volume of this DataType. For example, for
+     * RadialSets this would be the elevation value.
+     *
      * @return value in volume
      */
     public double sortInVolume() {
@@ -239,18 +301,18 @@ public class DataType {
      * copies all the attributes, etc. from the master. The master can change
      * without affecting this object
      */
-   /* public DataType(DataType master) {
-        this.originLocation = master.originLocation;
-        this.startTime = master.startTime;
-        this.typeName = master.typeName;
-        Iterator<Entry<String, String>> entries = master.attributes.entrySet().iterator();
-        while (entries.hasNext()) {
-            Entry<String, String> entry = entries.next();
-            this.setAttribute(entry.getKey(), entry.getValue());
-        }
-    }
+    /* public DataType(DataType master) {
+     this.originLocation = master.originLocation;
+     this.startTime = master.startTime;
+     this.typeName = master.typeName;
+     Iterator<Entry<String, String>> entries = master.attributes.entrySet().iterator();
+     while (entries.hasNext()) {
+     Entry<String, String> entry = entries.next();
+     this.setAttribute(entry.getKey(), entry.getValue());
+     }
+     }
 
-    /** copies all the attributes over */
+     /** copies all the attributes over */
     public void addAttributes(DataType example) {
         Iterator<Entry<String, String>> entries = example.attributes.entrySet().iterator();
         while (entries.hasNext()) {
@@ -275,22 +337,31 @@ public class DataType {
         return attributes.get(name);
     }
 
-    /** Get the start time of the data */
+    /**
+     * Get the start time of the data
+     */
     public Date getTime() {
         return startTime;
     }
 
-    /** Set the start time of the data */
+    /**
+     * Set the start time of the data
+     */
     public void setTime(Date d) {
         this.startTime = d;
     }
 
-    /**Get the origin of the data type. */
+    /**
+     * Get the origin of the data type.
+     */
     public Location getLocation() {
         return originLocation;
     }
 
-    /** Get the location in the GUI to 'jump' to the data.  Default is the origin location */
+    /**
+     * Get the location in the GUI to 'jump' to the data. Default is the origin
+     * location
+     */
     public Location getJumpToLocation() {
         Location loc = null;
         if (originLocation != null) {
@@ -300,7 +371,9 @@ public class DataType {
         return loc;
     }
 
-    /** Set the origin of the data type */
+    /**
+     * Set the origin of the data type
+     */
     public void setLocation(Location l) {
         this.originLocation = l;
     }
@@ -326,13 +399,13 @@ public class DataType {
         return "dimensionless";
     }
 
-   public String getUnit() {
+    public String getUnit() {
         String unit = attributes.get("Unit");
         if (unit == null) {
             return "dimensionless";
         }
         return unit;
-   }
+    }
 
     public String getUTC() {
         java.text.DateFormat df = java.text.DateFormat.getDateTimeInstance();
@@ -343,10 +416,16 @@ public class DataType {
     public String toStringDB() {
         String s = "datatype: at " + getUTC() + " for " + originLocation + " ";
         Iterator<Map.Entry<String, String>> entries = getAttributes().entrySet().iterator();
+        StringBuilder buf = new StringBuilder();
         while (entries.hasNext()) {
             Map.Entry<String, String> entry = entries.next();
-            s += entry.getKey() + "=" + entry.getValue() + " ";
+            buf.append(entry.getKey());
+            buf.append('=');
+            buf.append(entry.getValue());
+            buf.append(' ');
+            // s += entry.getKey() + "=" + entry.getValue() + " ";
         }
+        s += buf.toString();
         return s;
     }
 
@@ -370,8 +449,7 @@ public class DataType {
     public DataTypeMetric getDataTypeMetric() {
         return myDataTypeMetric;
     }
-    
-    public void exportToESRI(URL aURL, WdssiiJobMonitor m){
-        
+
+    public void exportToESRI(URL aURL, WdssiiJobMonitor m) {
     }
 }

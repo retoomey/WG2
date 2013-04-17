@@ -29,7 +29,7 @@ import ucar.nc2.Variable;
 public class PPIRadialSetNetcdf extends DataTypeNetcdf {
 
     /** The log for errors */
-    private static Logger log = LoggerFactory.getLogger(PPIRadialSetNetcdf.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PPIRadialSetNetcdf.class);
 
     /** Try to create a RadialSet by reflection.  This is called from NetcdfBuilder by reflection	
      * @param ncfile	the Netcdf file to read from
@@ -112,7 +112,7 @@ public class PPIRadialSetNetcdf extends DataTypeNetcdf {
                 } catch (Exception e) {
                     // If we can't get the values for any reason, 
                     // just make a zero size radial set (nice recovery)
-                    log.warn("Couldn't create radials of radial set, leaving as empty");
+                    LOG.warn("Couldn't create radials of radial set, leaving as empty");
                 }
 
                 r.radials = new Radial[num_radials];
@@ -133,7 +133,7 @@ public class PPIRadialSetNetcdf extends DataTypeNetcdf {
                     r.radials[i] = new Radial(az, bw, as, gw, ny, col, i);
                 }
             } catch (Exception e) { // FIXME: what to do if anything?
-                log.warn("Couldn't create radial set from netcdf file");
+                LOG.warn("Couldn't create radial set from netcdf file");
             }
         }
     }

@@ -23,7 +23,7 @@ import org.wdssii.gui.products.Product;
 public class TileRenderer extends ProductRenderer {
 
     @SuppressWarnings("unused")
-    private static Logger log = LoggerFactory.getLogger(TileRenderer.class);
+    private final static Logger LOG = LoggerFactory.getLogger(TileRenderer.class);
 
     public TileRenderer(boolean asBackgroundJob) {
         super(asBackgroundJob);

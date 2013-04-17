@@ -28,7 +28,7 @@ import org.wdssii.gui.worldwind.WorldwindUtil;
  */
 public class LLHAreaSet extends LLHArea {
 
-    private static Logger log = LoggerFactory.getLogger(LLHAreaSet.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LLHAreaSet.class);
     public int currentHeightMeters = (int) LLHArea.DEFAULT_HEIGHT_METERS;
     public int currentBottomMeters = 0;
     public int myNumRows = 50;
@@ -181,7 +181,7 @@ public class LLHAreaSet extends LLHArea {
             }
         }
         // if not found and there's a list, use the first one....
-        if (list.size() > 0){
+        if (!list.isEmpty()){
             ChartView fallBack = list.get(0);
             myChartKey = fallBack.getKey();
             return fallBack;            
@@ -215,7 +215,7 @@ public class LLHAreaSet extends LLHArea {
 
         if (drawStyle.equals("fill")) {
 
-            if (list.size() > 0) {
+            if (!list.isEmpty()) {
                 // This is the default draw
                 Globe globe = dc.getGlobe();
                 double vert = dc.getVerticalExaggeration();
@@ -305,20 +305,21 @@ public class LLHAreaSet extends LLHArea {
      * Get a key that represents the GIS location of this slice
      */
     public String getGISKey() {
-        String newKey = "";
-
+        
         // Add location and altitude...
         List<LatLon> locations = getLocationList();
+        StringBuilder buf = new StringBuilder();
         for (int i = 0; i < locations.size(); i++) {
             LatLon l = locations.get(i);
-            newKey = newKey + l.getLatitude() + ":";
-            newKey = newKey + l.getLongitude() + ":";
+            buf.append(l.getLatitude()+":");
+            buf.append(l.getLongitude()+":");
         }
         //newKey = newKey + myCurrentGrid.bottomHeight;
         //newKey = newKey + myCurrentGrid.topHeight;
         double[] altitudes = this.getAltitudes();
-        newKey = newKey + altitudes[0];
-        newKey = newKey + altitudes[1];
+        buf.append(altitudes[0]);
+        buf.append(altitudes[1]);
+        String newKey = buf.toString();
         return newKey;
     }
 

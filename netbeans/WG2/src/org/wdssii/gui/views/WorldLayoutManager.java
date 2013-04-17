@@ -70,7 +70,7 @@ public class WorldLayoutManager implements LayoutManager {
     @Override
     public Dimension preferredLayoutSize(Container parent) {
         Dimension dim = new Dimension(0, 0);
-        int nComps = parent.getComponentCount();
+       // int nComps = parent.getComponentCount();
 
         setSizes(parent);
 
@@ -90,7 +90,7 @@ public class WorldLayoutManager implements LayoutManager {
     @Override
     public Dimension minimumLayoutSize(Container parent) {
         Dimension dim = new Dimension(0, 0);
-        int nComps = parent.getComponentCount();
+        //int nComps = parent.getComponentCount();
 
         //Always add the container's insets!
         Insets insets = parent.getInsets();

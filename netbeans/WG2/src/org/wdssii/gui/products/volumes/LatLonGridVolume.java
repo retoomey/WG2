@@ -22,7 +22,7 @@ import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
  */
 public class LatLonGridVolume extends IndexRecordVolume {
 
-    private static Logger log = LoggerFactory.getLogger(LatLonGridVolume.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LatLonGridVolume.class);
     // Synchronize access to these...
     private final Object myProductLock = new Object();
     /**
@@ -66,7 +66,7 @@ public class LatLonGridVolume extends IndexRecordVolume {
             //System.out.println("Init volume called... we have "+myRadials.size()+" products ready ");
             //myRecords = newRecords;
         }
-        // log.debug("VOLUME COUNT IS "+p.size());
+        // LOG.debug("VOLUME COUNT IS "+p.size());
     }
 
     /**
@@ -89,7 +89,7 @@ public class LatLonGridVolume extends IndexRecordVolume {
             }
         }
     }
-    public static boolean myExperiment = false;
+    public final static boolean myExperiment = false;
 
     /**
      * Get filtered value of from a volume location, store into ColorMapOutput.

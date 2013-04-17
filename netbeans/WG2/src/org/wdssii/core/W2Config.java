@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
  */
 public class W2Config {
 
-    private static final Logger log = LoggerFactory.getLogger(W2Config.class);
+    private final static Logger LOG = LoggerFactory.getLogger(W2Config.class);
     /**
      * List of configuration strings. These get converted to URLS after macro
      * substitution of characters.
@@ -53,7 +53,7 @@ public class W2Config {
          * $HOME/WDSS2/w2/w2config, $HOME/WDSS2/w2config, etc. /etc/w2config
          */
         configPatterns = new ArrayList<String>();
-        log.debug("Looking for your w2config locations.");
+        LOG.debug("Looking for your w2config locations.");
         if (useLocal) {
             String s = System.getenv("W2_CONFIG_LOCATION");
             if (s != null) {
@@ -135,14 +135,14 @@ public class W2Config {
                     // This shouldn't happen if the file exists....
                 }
             }
-            log.info("Ignoring " + dir + " -- not there");
+            LOG.info("Ignoring " + dir + " -- not there");
         }
         return false;
     }
 
     private static void addPattern(String pattern) {
         configPatterns.add(pattern);
-        log.debug("Added w2config pattern: " + pattern);
+        LOG.debug("Added w2config pattern: " + pattern);
     }
 
     /**
@@ -226,7 +226,7 @@ public class W2Config {
         } catch (MalformedURLException ex) {
             aURL = null;
         }
-       // log.debug("Tried URL " + s + " and got " + aURL);
+       // LOG.debug("Tried URL " + s + " and got " + aURL);
         return aURL;
     }
 

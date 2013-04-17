@@ -28,7 +28,7 @@ import org.wdssii.storage.GrowList;
  */
 public class LatLonHeightGridRenderer extends ProductRenderer {
 
-    private static Logger log = LoggerFactory.getLogger(LatLonHeightGridRenderer.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LatLonHeightGridRenderer.class);
     protected int updateCounter = 0;
     
     protected QuadStripRenderer myQuadRenderer = new QuadStripRenderer();
@@ -260,7 +260,7 @@ public class LatLonHeightGridRenderer extends ProductRenderer {
             }
 
         } catch (Exception e) {
-            log.error("3D gen error" + e.toString());
+            LOG.error("3D gen error" + e.toString());
             return WdssiiJob.WdssiiJobStatus.CANCEL_STATUS; // We should make this a 'cleaner' exception/catch FIXME
         }
         //long end = System.currentTimeMillis() - start;

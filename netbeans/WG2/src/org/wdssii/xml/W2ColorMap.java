@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 @XmlRootElement(name = "colormap")
 public class W2ColorMap extends ColorMapDef {
 
-    private static Logger log = LoggerFactory.getLogger(W2ColorMap.class);
+    private final static Logger LOG = LoggerFactory.getLogger(W2ColorMap.class);
     @XmlElement(name = "colorbin")
     public List<W2ColorBin> colorBins = new ArrayList<W2ColorBin>();
     @XmlElement(name = "unit")

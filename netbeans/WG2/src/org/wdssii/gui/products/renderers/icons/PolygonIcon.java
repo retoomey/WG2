@@ -169,8 +169,6 @@ public class PolygonIcon extends BaseIconAnnotation {
     }
 
     public void updateColors(ColorMap textColorMap, ColorMap polygonColorMap) {
-        // Update the icon text color.
-        Color textColor = Color.BLACK;
         try {
             //int value = Integer.parseInt(text);
             if (myTextColorMap != null) {

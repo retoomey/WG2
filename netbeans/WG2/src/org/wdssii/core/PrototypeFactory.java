@@ -25,7 +25,7 @@ import org.w3c.dom.NodeList;
  */
 public class PrototypeFactory<X extends Object> {
 
-	private Logger log = LoggerFactory.getLogger(PrototypeFactory.class);
+	private static final Logger LOG = LoggerFactory.getLogger(PrototypeFactory.class);
 	private Map<String, X> myMap = new HashMap<String, X>();
 
 	/**
@@ -47,7 +47,7 @@ public class PrototypeFactory<X extends Object> {
 				theClass = tryIt;
 				register(name, theClass);
 			} catch (Exception e) {
-				log.error(e.toString());
+				LOG.error(e.toString());
 			}
 		}
 	}
@@ -70,23 +70,23 @@ public class PrototypeFactory<X extends Object> {
 		try {
 			Element e = W2Config.getElement(configpath);
 			if (e == null) {
-				log.warn("did not find " + configpath + ", using built-in defaults");
+				LOG.warn("did not find " + configpath + ", using built-in defaults");
 			} else {
 				NodeList nodes = e.getElementsByTagName("class");
 				for (int i = 0; i < nodes.getLength(); ++i) {
 					Element c = (Element) nodes.item(i);
 					String name = c.getAttribute("name");
 					String proto = c.getAttribute("proto");
-					log.info("*********************REGISTERED " + name + " " + proto);
+					LOG.info("*********************REGISTERED " + name + " " + proto);
 
 					register(name, (X) Class.forName(proto).newInstance());
-					if (log.isDebugEnabled()) {
-						log.debug("Registered " + proto);
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("Registered " + proto);
 					}
 				}
 			}
 		} catch (Exception e) {
-			log.error(e.toString());
+			LOG.error(e.toString());
 		}
 	}
 }

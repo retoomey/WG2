@@ -23,13 +23,11 @@ import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.datatypes.LatLonGrid.LatLonGridQuery;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.AnimateManager;
-import org.wdssii.core.CommandManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.renderers.TileRenderer.Tile;
 import org.wdssii.storage.Array1DOpenGL;
-import org.wdssii.storage.DataNode;
 import org.wdssii.storage.GrowList;
 
 /**
@@ -41,7 +39,7 @@ import org.wdssii.storage.GrowList;
  */
 public class LatLonGridTile extends TileRenderer.Tile {
 
-    private static Logger log = LoggerFactory.getLogger(LatLonGridTile.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LatLonGridTile.class);
     protected int counter = 0;
     protected int mySize = 0;
     protected static boolean toggle = false;
@@ -320,7 +318,7 @@ public class LatLonGridTile extends TileRenderer.Tile {
         myRow = row;
         myCol = col;
         myLevelNumber = levelNumber;
-        log.info("---created level " + myLevelNumber + ", " + myRow + ", " + myCol);
+        LOG.info("---created level " + myLevelNumber + ", " + myRow + ", " + myCol);
     }
 
     public String tileKey(Object data) {
@@ -380,7 +378,7 @@ public class LatLonGridTile extends TileRenderer.Tile {
         if (!isTileCreated()) {
             // createTile will get called over and over again while worker thread is running...
             // Reason for lock is that worker thread could finish and set tileCreated = true right here, thus we need sync
-            log.info("CREATING TILE>>SHOULD PAUSE");
+            LOG.info("CREATING TILE>>SHOULD PAUSE");
             createTile(dc, latlon);
         }
     }
@@ -418,7 +416,7 @@ public class LatLonGridTile extends TileRenderer.Tile {
 
             if (subTiles == null) {
                 // Fall back to parent tile.
-                log.debug("add back parent " + this);
+                LOG.debug("add back parent " + this);
                 list.add(this);
             } else {
 
@@ -502,9 +500,9 @@ public class LatLonGridTile extends TileRenderer.Tile {
 
             contains = s2.contains(p);
             // if (contains) {
-            //     log.debug("Sector " + s);
-            //     log.debug("Point " + p);
-            //     log.debug("Inside " + s.contains(p));
+            //     LOG.debug("Sector " + s);
+            //     LOG.debug("Point " + p);
+            //     LOG.debug("Inside " + s.contains(p));
             // }
         }
         return contains;
@@ -515,8 +513,8 @@ public class LatLonGridTile extends TileRenderer.Tile {
      */
     @Override
     public boolean isTileVisible(DrawContext dc) {
-        Extent anExtent = getExtent(dc);
-        // log.debug("Extent: " + anExtent);
+       // Extent anExtent = getExtent(dc);
+        // LOG.debug("Extent: " + anExtent);
         return getExtent(dc).intersects(
                 dc.getView().getFrustumInModelCoordinates())
                 && (dc.getVisibleSector() == null || dc.getVisibleSector().intersects(getSector()));

@@ -22,7 +22,7 @@ import org.wdssii.core.PrototypeFactory;
  */
 public class IndexFactory {
 
-    private static Logger log = LoggerFactory.getLogger(IndexFactory.class);
+    private final static Logger LOG = LoggerFactory.getLogger(IndexFactory.class);
     private static final PrototypeFactory<Index> myFactory;
 
     /**
@@ -102,9 +102,9 @@ public class IndexFactory {
                 }
             }
             if (anIndex == null) {
-                log.error("Don't know how to read data from this URL " + aURL);
+                LOG.error("Don't know how to read data from this URL " + aURL);
             } else {
-                log.info("Index " + name + " will handle " + aURL);
+                LOG.info("Index " + name + " will handle " + aURL);
             }
 
             // Create a new index from the prototype. (Basically the index in our
@@ -115,7 +115,7 @@ public class IndexFactory {
 
         } catch (Exception e) {
             // any exception warn and return gracefully
-            log.error("Error finding index type for URL:" + e.toString());
+            LOG.error("Error finding index type for URL:" + e.toString());
         }
         return anIndex;
     }
@@ -140,7 +140,7 @@ public class IndexFactory {
         try {
             aURL = new URL(url);
         } catch (MalformedURLException e) {
-            log.error("URL Malformed, can't create an index: " + e);
+            LOG.error("URL Malformed, can't create an index: " + e);
             return null;
         }
         // Create a new index

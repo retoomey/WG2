@@ -22,7 +22,7 @@ import org.wdssii.storage.DataManager;
  */
 public class Application {
 
-    private static Logger log = LoggerFactory.getLogger(Application.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Application.class);
 
     public void start() {
         
@@ -62,17 +62,17 @@ public class Application {
         final String bits = System.getProperty("sun.arch.data.model");
         final String userdir = System.getProperty("user.dir");
 
-        log.info("WDSSII GUI VERSION 2.0 [{}, {}, ({} bit)]", new Object[]{name, arch, bits});
+        LOG.info("WDSSII GUI VERSION 2.0 [{}, {}, ({} bit)]", new Object[]{name, arch, bits});
 
         if (bits.equals("32")) {
-            log.error("Sorry, currently no 64 bit support.\n  You really want to run this on a 64 bit OS");
-            log.error("You may have 64 and 32 bit Java and be running the 32 version in your path");
+            LOG.error("Sorry, currently no 64 bit support.\n  You really want to run this on a 64 bit OS");
+            LOG.error("You may have 64 and 32 bit Java and be running the 32 version in your path");
             System.exit(0);
         }
-        log.info("JAVA VERSION {}", System.getProperty("java.specification.version"));
-        log.info("USER DIRECTORY {}", userdir);
+        LOG.info("JAVA VERSION {}", System.getProperty("java.specification.version"));
+        LOG.info("USER DIRECTORY {}", userdir);
         if (logmessage != null) {
-            log.info(logmessage);
+            LOG.info(logmessage);
         }
 
         // initialize geotools to whatever sf4j bound too.  Bleh a commons
@@ -82,7 +82,7 @@ public class Application {
             org.geotools.util.logging.Logging.GEOTOOLS.setLoggerFactory(
                     "org.geotools.util.logging.Slf4jLoggerFactory");
         } catch (Exception e) {
-            log.error("Couldn't bind GEOTOOLS logger system to ours " + e.toString());
+            LOG.error("Couldn't bind GEOTOOLS logger system to ours " + e.toString());
         }
 
         // Use the user directory (where we are running) to dynamically
@@ -161,11 +161,11 @@ public class Application {
         }
 
         rootdir += "/release/modules/lib/" + arch;
-        log.info("Native library directory is: " + rootdir);
+        LOG.info("Native library directory is: " + rootdir);
         try {
             addLibraryPath(rootdir);
         } catch (Exception ex) {
-            log.error("Couldn't add native library path dynamically");
+            LOG.error("Couldn't add native library path dynamically");
             System.exit(0);
         }
     }

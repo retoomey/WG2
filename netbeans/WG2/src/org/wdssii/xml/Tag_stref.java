@@ -131,8 +131,8 @@ public class Tag_stref extends Tag {
             }
 
             // Put location together
-            // FIXME: is comparing NaN here too slow or wrong?
-            if ((lat != Float.NaN) && (lon != Float.NaN) && (ht != Float.NaN)) {
+            // FIXME: is comparing NaN here too slow?
+            if (!Float.isNaN(lat) && !Float.isNaN(lon) && !Float.isNaN(ht)){
                 //loc = new Location(lat, lon, ht/1000.0); // can throw if lon/lat/ht out of range
                 buffer.init(lat, lon, ht / 1000.0);
                 success = true;

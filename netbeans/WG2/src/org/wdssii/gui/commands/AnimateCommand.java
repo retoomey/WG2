@@ -9,7 +9,7 @@ import org.wdssii.core.ProductButtonStatus;
 /** The root class of the animation commands.  This command turns on the animation/loop state of the GUI
  */
 public class AnimateCommand extends WdssiiCommand {
-    private static Logger log = LoggerFactory.getLogger(AnimateCommand.class);
+    private final static Logger LOG = LoggerFactory.getLogger(AnimateCommand.class);
     boolean myHaveFlag = false;
     boolean myOn = false;
 

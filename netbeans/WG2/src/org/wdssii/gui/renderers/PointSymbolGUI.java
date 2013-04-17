@@ -13,7 +13,7 @@ import org.wdssii.xml.iconSetConfig.Symbol;
  */
 public abstract class PointSymbolGUI extends SymbolGUI {
 
-    public static class PointSymbolMemento extends Memento {
+    public static class PointSymbolMemento extends SymbolMemento {
 
         // Properties
         public static final String SIZE = "pointsize";
@@ -37,7 +37,7 @@ public abstract class PointSymbolGUI extends SymbolGUI {
     @Override
     public abstract Symbol getSymbol();
 
-    public static class PointSymbolMementor implements Mementor {
+    public class PointSymbolMementor extends SymbolMementor {
 
         private Symbol mySymbol;
 
@@ -66,7 +66,7 @@ public abstract class PointSymbolGUI extends SymbolGUI {
             if (v != null) {
                 mySymbol.yoffset = v.intValue();
             }
-            AnimateManager.updateDuringRender();  // Bleh
+            super.propertySetByGUI(name, m);
         }
 
         @Override

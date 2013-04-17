@@ -25,7 +25,7 @@ import org.wdssii.index.IndexRecord;
  */
 public class TimeLooper extends Animator {
 
-	private static Logger log = LoggerFactory.getLogger(TimeLooper.class);
+	private final static Logger LOG = LoggerFactory.getLogger(TimeLooper.class);
 	// Initial animator settings.  Animators are kept alive in the VisualCollection
 	private int myDwellMS = 100; // Frame dwell
 	private int myLastDwellMS = myDwellMS; // Last frame of loop dwel
@@ -82,7 +82,7 @@ public class TimeLooper extends Animator {
 
 		} catch (Exception e) {
 			// Bleh...don't update then...might warn
-			log.warn("Couldn't update loop settings " + e.toString());
+			LOG.warn("Couldn't update loop settings " + e.toString());
 		}
 	}
 
@@ -145,23 +145,23 @@ public class TimeLooper extends Animator {
 					}
 					break;
 				case ROCK_LOOP:
-					//log.debug("Rock frame from " + myCurrentFrame);
+					//LOG.debug("Rock frame from " + myCurrentFrame);
 					myCurrentFrame += myFrameDelta;
-					//log.debug(" to "+myCurrentFrame+ " ("+(availableFrames-1)+")");
+					//LOG.debug(" to "+myCurrentFrame+ " ("+(availableFrames-1)+")");
 					if (myCurrentFrame > availableFrames - 1) {  // Switch direction
 						myCurrentFrame = availableFrames - 2; // Gotta move right one...
 						if (availableFrames < 2) {
 							myCurrentFrame = 0;
 						}
 						myFrameDelta = -1;
-						//log.debug("Go negative");
+						//LOG.debug("Go negative");
 					} else if (myCurrentFrame < 0) {  // Switch direction
 						myCurrentFrame = 1; // Gotta move left one...
 						if (availableFrames < 2) {
 							myCurrentFrame = 0;
 						}
 						myFrameDelta = +1;
-						//log.debug("Go positive");
+						//LOG.debug("Go positive");
 					}
 					break;
 				default:
@@ -171,7 +171,7 @@ public class TimeLooper extends Animator {
 
 			// -------------------------------------------------------------
 
-			//log.debug("Looping on " + name + " (" + (myCurrentFrame + 1) + "/" + availableFrames + ")");
+			//LOG.debug("Looping on " + name + " (" + (myCurrentFrame + 1) + "/" + availableFrames + ")");
 			IndexRecord rec = recs.list.get(myCurrentFrame);
 			if (rec != null) {
 
@@ -194,9 +194,9 @@ public class TimeLooper extends Animator {
 
 		} else {
 			//monitor.subTask("Select a product as a loop frame base...");
-			//log.debug("Select a product as a loop frame base...");
+			//LOG.debug("Select a product as a loop frame base...");
 		}
-		//log.debug("Frame " + myCurrentFrame + ", dwell " + currentDwell);
+		//LOG.debug("Frame " + myCurrentFrame + ", dwell " + currentDwell);
 		return currentDwell;
 	}
 

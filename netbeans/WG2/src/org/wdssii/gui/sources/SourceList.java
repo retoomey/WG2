@@ -17,7 +17,7 @@ import org.wdssii.xml.config.Sources;
  */
 public class SourceList {
 
-    private static Logger log = LoggerFactory.getLogger(SourceList.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SourceList.class);
 
     /**
      * A simple filter to return boolean for mass actions such as deletion

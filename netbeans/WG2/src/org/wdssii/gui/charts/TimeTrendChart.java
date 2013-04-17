@@ -43,9 +43,19 @@ public class TimeTrendChart extends ChartViewJFreeChart {
         public float[] myColors = null;
         private static final long serialVersionUID = -1814981271936657507L;
 
+        @Override
+        public boolean equals(Object obj) {
+            return super.equals(obj);
+        }
+
+        @Override
+        public int hashCode() {
+            return super.hashCode();
+        }
         //public void setColorMap(ColorMap map){
         //	myColorMap = map;
         //}
+
         @Override
         public void drawItem(Graphics2D g2, XYItemRendererState state,
                 Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
@@ -120,17 +130,18 @@ public class TimeTrendChart extends ChartViewJFreeChart {
         }
     }
 
-    /** We implement the XYZDataset so that our vslice data can go into any table
+    /**
+     * We implement the XYZDataset so that our vslice data can go into any table
      * type that is made by the JFreeChart library (That uses an XYZDataset)
+     *
      * @author Robert Toomey
      *
      */
     public static class VSliceDataset implements XYZDataset {
 
-        //LLHAreaSlice myVSlice;
-        int numOfCols = 0;
-        int numOfRows = 0;
-        float[] myColors = null;
+        private int numOfCols = 0;
+        private int numOfRows = 0;
+        private float[] myColors = null;
 
         @Override
         public int getSeriesCount() {
@@ -177,8 +188,10 @@ public class TimeTrendChart extends ChartViewJFreeChart {
             //}
         }
 
-        /** THe VSliceChartRenderer uses this to get the color.  This is for speed, since
-         * usually the VSlice in the 3d window will be same as the chart (for now)
+        /**
+         * THe VSliceChartRenderer uses this to get the color. This is for
+         * speed, since usually the VSlice in the 3d window will be same as the
+         * chart (for now)
          */
         public Color getColor(int series, int item) {
             //if (myVSlice != null){
@@ -241,7 +254,6 @@ public class TimeTrendChart extends ChartViewJFreeChart {
         public void setGroup(DatasetGroup group) {
             // ignore
         }
-
         //public void setVSlice(LLHAreaSlice slice) {
         //    myVSlice = slice;
         //}
@@ -251,12 +263,16 @@ public class TimeTrendChart extends ChartViewJFreeChart {
     // VSlices keep a counter of each time they recreate the vslice 'grid' of colors.
     private int myIterationCount = -1;
     private VSliceChartRenderer myRenderer = null;
-    /** The XAxis for the vslice showing range */
+    /**
+     * The XAxis for the vslice showing range
+     */
     //private NumberAxis myXAxis = null;
-    /** The YAxis of the vslice showing height */
+    /**
+     * The YAxis of the vslice showing height
+     */
     //private NumberAxis myYAxis = null;
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 385221424727576754L;
 
@@ -269,25 +285,28 @@ public class TimeTrendChart extends ChartViewJFreeChart {
         //this.addSubtitle(new TextTitle("Testing"));
     }
 
-    /** Return the LLHAreaSlice that we are currently drawing a plot for */
-   /* public LLHAreaSlice getVSliceToPlot() {
-        // -------------------------------------------------------------------------
-        // Hack snag the current slice and product...
-        // Hack for now....we grab first 3d object in our FeatureList
-        LLHAreaSlice slice = null;
-        LLHAreaFeature f = (LLHAreaFeature) FeatureList.theFeatures.getFirstFeature(LLHAreaFeature.class);
+    /**
+     * Return the LLHAreaSlice that we are currently drawing a plot for
+     */
+    /* public LLHAreaSlice getVSliceToPlot() {
+     // -------------------------------------------------------------------------
+     // Hack snag the current slice and product...
+     // Hack for now....we grab first 3d object in our FeatureList
+     LLHAreaSlice slice = null;
+     LLHAreaFeature f = (LLHAreaFeature) FeatureList.theFeatures.getFirstFeature(LLHAreaFeature.class);
         
-        if (f != null){
-            LLHArea area = f.getLLHArea(); 
-            if (area instanceof LLHAreaSlice){
-                slice = (LLHAreaSlice) (area);
-            }
-        }
-        return slice;
-    }
-*/
-    /** Called during dragging of vslice to explicitly update the chart.  The chart checks for
-     * changes and only draws when the vslice if different
+     if (f != null){
+     LLHArea area = f.getLLHArea(); 
+     if (area instanceof LLHAreaSlice){
+     slice = (LLHAreaSlice) (area);
+     }
+     }
+     return slice;
+     }
+     */
+    /**
+     * Called during dragging of vslice to explicitly update the chart. The
+     * chart checks for changes and only draws when the vslice if different
      */
     @Override
     public void updateChart(boolean force) {
@@ -295,114 +314,116 @@ public class TimeTrendChart extends ChartViewJFreeChart {
 
         // On update, pull top product (for now)
         // FIXME: This should be a util
-        
-        Product p = ProductManager.getInstance().getTopProduct();      
+
+       // Product p = ProductManager.getInstance().getTopProduct();
 
         // If we found a product, we can do the slice range.....
         // We snag 10 products in time...
         // We'll probably need a thread for this to lazy update the table,
         // some products are HUGE...
 
-       // LLHAreaSlice slice = getVSliceToPlot();
+        // LLHAreaSlice slice = getVSliceToPlot();
        /* if (slice != null) {
-            int numberHeight = 50; // fairly cheap
-            int numberOfTimes = 10;// the pig volumes
-            LatLon l = slice.getLeftLocation();
-            //LatLon r = slice.getRightLocation();
+         int numberHeight = 50; // fairly cheap
+         int numberOfTimes = 10;// the pig volumes
+         LatLon l = slice.getLeftLocation();
+         //LatLon r = slice.getRightLocation();
 
-            // FIXME: duplicate code with LLHAreaSlice marching
-            // Maybe we create an iterator class....
-            double startLat = l.getLatitude().getDegrees();
-            double startLon = l.getLongitude().getDegrees();
-            //double endLat = r.getLatitude().getDegrees();
-            //double endLon = r.getLongitude().getDegrees();
-            //double deltaLat = (endLat-startLat)/numberOfTimes;
-            //double deltaLon = (endLon-startLon)/numberOfTimes;
+         // FIXME: duplicate code with LLHAreaSlice marching
+         // Maybe we create an iterator class....
+         double startLat = l.getLatitude().getDegrees();
+         double startLon = l.getLongitude().getDegrees();
+         //double endLat = r.getLatitude().getDegrees();
+         //double endLon = r.getLongitude().getDegrees();
+         //double deltaLat = (endLat-startLat)/numberOfTimes;
+         //double deltaLon = (endLon-startLon)/numberOfTimes;
 
-            double bottom = slice.getBottomHeightKms();
-            double top = slice.getTopHeightKms();
-            double deltaHeight = (top - bottom) / numberHeight;
+         double bottom = slice.getBottomHeightKms();
+         double top = slice.getTopHeightKms();
+         double deltaHeight = (top - bottom) / numberHeight;
 
-            //int iteration = slice.getIterationCount();
-            //if (iteration == myIterationCount){
-            // Nothing has changed in the vslice, so do nothing...
-            // FIXME: this won't work for multiple vslices...
-            //	return;
-            //}
-            //	myIterationCount = iteration;
-            //	myRenderer.setColors(slice.getColors());
-            //myRangeAxis.setRange(new Range(0, slice.getRangeKms()/1000.0));
-            myHeightAxis.setRange(new Range(slice.getBottomHeightKms() / 1000.0, slice.getTopHeightKms() / 1000.0));
+         //int iteration = slice.getIterationCount();
+         //if (iteration == myIterationCount){
+         // Nothing has changed in the vslice, so do nothing...
+         // FIXME: this won't work for multiple vslices...
+         //	return;
+         //}
+         //	myIterationCount = iteration;
+         //	myRenderer.setColors(slice.getColors());
+         //myRangeAxis.setRange(new Range(0, slice.getRangeKms()/1000.0));
+         myHeightAxis.setRange(new Range(slice.getBottomHeightKms() / 1000.0, slice.getTopHeightKms() / 1000.0));
 
-            //float[][] data = new float[numberOfTimes][numberHeight]; // fixme need this
-            int colorCounter = 0;
-            float[] colors = new float[3 * numberOfTimes * numberHeight];
-            ColorMapOutput output = new ColorMapOutput();
+         //float[][] data = new float[numberOfTimes][numberHeight]; // fixme need this
+         int colorCounter = 0;
+         float[] colors = new float[3 * numberOfTimes * numberHeight];
+         ColorMapOutput output = new ColorMapOutput();
 
-            Product c = p;
-            ProductVolume v = null;
-            // Do we trend backwards from the selected?  Forward?? How to do it?
-            // Let's go backwards from the selected value...
-            double curHeight = bottom;
-            Location buffer = new Location(0,0,0);
-            for (int i = 0; i < numberOfTimes; i++) {
+         Product c = p;
+         ProductVolume v = null;
+         // Do we trend backwards from the selected?  Forward?? How to do it?
+         // Let's go backwards from the selected value...
+         double curHeight = bottom;
+         Location buffer = new Location(0,0,0);
+         for (int i = 0; i < numberOfTimes; i++) {
 
-                // Check for product and then volume existance...
-                boolean haveData = false;
-                if (c != null) {
-                    v = c.getProductVolume(false);
-                    if (v != null) {
-                        haveData = true;
-                    }
-                }
-                // Draw order is row order, however with volumes we go left to right to save memory,
-                // so we calculate the correct color location
+         // Check for product and then volume existance...
+         boolean haveData = false;
+         if (c != null) {
+         v = c.getProductVolume(false);
+         if (v != null) {
+         haveData = true;
+         }
+         }
+         // Draw order is row order, however with volumes we go left to right to save memory,
+         // so we calculate the correct color location
 
-                if (haveData) {//&& (i %2 !=0)){		
-                    System.out.println("Have data " + v.toString());
-                    // Sample in the volume the entire height range...
-                    curHeight = bottom;
-                    for (int j = 0; j < numberHeight; j++) {
+         if (haveData) {//&& (i %2 !=0)){		
+         System.out.println("Have data " + v.toString());
+         // Sample in the volume the entire height range...
+         curHeight = bottom;
+         for (int j = 0; j < numberHeight; j++) {
 
-                        buffer.init(startLat, startLon, curHeight/1000.0f);
-                        //v.getValueAt(startLat, startLon, curHeight, output, null, null, false);
-                        v.getValueAt(buffer, output, null, null, false, null);
-                        colorCounter = (3 * numberOfTimes * (numberHeight - j - 1)) + (3 * i);
-                        colors[colorCounter++] = output.redF();
-                        colors[colorCounter++] = output.greenF();
-                        colors[colorCounter++] = output.blueF();
-                        curHeight += deltaHeight;
-                    }
-                    //Date time = c.getTime(); // time for axis...
-                    c = c.getProduct(Navigation.PreviousTime);
-                } else {
-                    // Fill with missing value???
-                    for (int j = 0; j < numberHeight; j++) {
-                        colorCounter = (3 * numberOfTimes * (numberHeight - j - 1)) + (3 * i);
-                        colors[colorCounter++] = 1;
-                        colors[colorCounter++] = 0;
-                        colors[colorCounter++] = 0;
-                        curHeight += deltaHeight;
-                    }
+         buffer.init(startLat, startLon, curHeight/1000.0f);
+         //v.getValueAt(startLat, startLon, curHeight, output, null, null, false);
+         v.getValueAt(buffer, output, null, null, false, null);
+         colorCounter = (3 * numberOfTimes * (numberHeight - j - 1)) + (3 * i);
+         colors[colorCounter++] = output.redF();
+         colors[colorCounter++] = output.greenF();
+         colors[colorCounter++] = output.blueF();
+         curHeight += deltaHeight;
+         }
+         //Date time = c.getTime(); // time for axis...
+         c = c.getProduct(Navigation.PreviousTime);
+         } else {
+         // Fill with missing value???
+         for (int j = 0; j < numberHeight; j++) {
+         colorCounter = (3 * numberOfTimes * (numberHeight - j - 1)) + (3 * i);
+         colors[colorCounter++] = 1;
+         colors[colorCounter++] = 0;
+         colors[colorCounter++] = 0;
+         curHeight += deltaHeight;
+         }
 
-                }
-            }
-            myRenderer.setColors(colors);  //????
-            myDataset.setNumRows(numberHeight);
-            myDataset.setNumCols(numberOfTimes);
-            System.out.println("rows cols are " + numberHeight + ", " + numberOfTimes);
-            XYPlot plot = (XYPlot) (myJFreeChart.getPlot());
-            plot.getDomainAxis().setRange(new Range(0, numberOfTimes - 1));
-            plot.getRangeAxis().setRange(new Range(0, numberHeight - 1));
-        }
+         }
+         }
+         myRenderer.setColors(colors);  //????
+         myDataset.setNumRows(numberHeight);
+         myDataset.setNumCols(numberOfTimes);
+         System.out.println("rows cols are " + numberHeight + ", " + numberOfTimes);
+         XYPlot plot = (XYPlot) (myJFreeChart.getPlot());
+         plot.getDomainAxis().setRange(new Range(0, numberOfTimes - 1));
+         plot.getRangeAxis().setRange(new Range(0, numberHeight - 1));
+         }
 
-        // Gotta read each product over time...hummmm
-        // FIXME: Need some sort of threaded interface for reading in data values...
-        myJFreeChart.setTitle("Showing (Refresh" + counter++ + ")");
-        */
+         // Gotta read each product over time...hummmm
+         // FIXME: Need some sort of threaded interface for reading in data values...
+         myJFreeChart.setTitle("Showing (Refresh" + counter++ + ")");
+         */
     }
 
-    /** Static method to create a vslice chart */
+    /**
+     * Static method to create a vslice chart
+     */
     public static TimeTrendChart createTimeTrendChart() {
 
         VSliceDataset dataset = new VSliceDataset();
@@ -440,12 +461,12 @@ public class TimeTrendChart extends ChartViewJFreeChart {
 
         // The range in KM for the VSlice
 	/*	NumberAxis xAxis2 = new NumberAxis("Range KM");
-        xAxis2.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        xAxis2.setLowerMargin(0.0);
-        xAxis2.setUpperMargin(0.0);
-        plot.setDomainAxis(1, xAxis2);
-        plot.setDomainAxisLocation(1, AxisLocation.BOTTOM_OR_RIGHT);
-        chart.myRangeAxis = xAxis2;
+         xAxis2.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+         xAxis2.setLowerMargin(0.0);
+         xAxis2.setUpperMargin(0.0);
+         plot.setDomainAxis(1, xAxis2);
+         plot.setDomainAxisLocation(1, AxisLocation.BOTTOM_OR_RIGHT);
+         chart.myRangeAxis = xAxis2;
          */
         // The height in KM for the VSlice
         NumberAxis yAxis2 = new NumberAxis("Height KM");
@@ -459,15 +480,15 @@ public class TimeTrendChart extends ChartViewJFreeChart {
         // Just a test, we're probably going to have to make our own
         // scale subclass that uses our color map
 		/*	NumberAxis colorScale = new NumberAxis("Color");
-        colorScale.setAutoRange(true);
-        PaintScaleLegend p = new PaintScaleLegend(scale, colorScale);
-        p.setSubdivisionCount(20);
-        p.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-        p.setAxisOffset(5D);
-        //	p.setMargin(new RectangleInsets(5D, 5D, 5D, 5D));
-        p.setFrame(new BlockBorder(Color.red));
-        //	p.setPadding(new RectangleInsets(10D, 10D, 10D, 10D));
-        chart.addSubtitle(p);
+         colorScale.setAutoRange(true);
+         PaintScaleLegend p = new PaintScaleLegend(scale, colorScale);
+         p.setSubdivisionCount(20);
+         p.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+         p.setAxisOffset(5D);
+         //	p.setMargin(new RectangleInsets(5D, 5D, 5D, 5D));
+         p.setFrame(new BlockBorder(Color.red));
+         //	p.setPadding(new RectangleInsets(10D, 10D, 10D, 10D));
+         chart.addSubtitle(p);
          */
         //NumberAxis xAxis3 = new NumberAxis("Number2");
         //	xAxis3.setStandardTickUnits(NumberAxis.createIntegerTickUnits());

@@ -31,7 +31,7 @@ import ucar.nc2.Variable;
 public class RHIRadialSetNetcdf extends DataTypeNetcdf {
 
     /** The log for errors */
-    private static Logger log = LoggerFactory.getLogger(RHIRadialSetNetcdf.class);
+    private final static Logger LOG = LoggerFactory.getLogger(RHIRadialSetNetcdf.class);
 
     /** Try to create a RadialSet by reflection.  This is called from NetcdfBuilder by reflection	
      * @param ncfile	the Netcdf file to read from
@@ -151,7 +151,7 @@ public class RHIRadialSetNetcdf extends DataTypeNetcdf {
                 } catch (Exception e) {
                     // If we can't get the values for any reason, 
                     // just make a zero size radial set (nice recovery)
-                    log.warn("Couldn't create radials of radial set, leaving as empty");
+                    LOG.warn("Couldn't create radials of radial set, leaving as empty");
                 }
 
 		num_radials=18; // 90/5
@@ -180,7 +180,7 @@ public class RHIRadialSetNetcdf extends DataTypeNetcdf {
 		    elev += deltaelev;
                 }
             } catch (Exception e) { // FIXME: what to do if anything?
-                log.warn("Couldn't create radial set from netcdf file");
+                LOG.warn("Couldn't create radial set from netcdf file");
             }
         }
     }

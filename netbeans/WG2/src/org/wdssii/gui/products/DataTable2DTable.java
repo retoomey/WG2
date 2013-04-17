@@ -32,7 +32,7 @@ public class DataTable2DTable extends Product2DTable {
     private JTable jDataTableSwingTable;
 
     /** Model that wraps around a DataTable */
-    private class DataTableModel extends AbstractTableModel {
+    private static class DataTableModel extends AbstractTableModel {
 
         /** The column headers */
         private DataTable myDataTable;

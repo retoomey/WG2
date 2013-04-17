@@ -143,9 +143,14 @@ public class Radial {
     public String toStringDB() {
         String s = "Radial " + degrees + " to " + getEndDegrees() + " deg"
                 + " " + gateWidthKms + "km " + " first 10 values: \n";
+        StringBuilder buf = new StringBuilder(s);
         for (int i = 0; i < 10; ++i) {
             s += getValue(i) + " ";
+            buf.append(getValue(i));
+            buf.append(' ');
         }
-        return (s + "\n");
+        buf.append('\n');
+        s = buf.toString();
+        return (s);
     }
 }

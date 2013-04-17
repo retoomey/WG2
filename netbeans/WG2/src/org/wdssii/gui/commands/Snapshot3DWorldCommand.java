@@ -9,7 +9,7 @@ import org.wdssii.gui.views.WorldWindView;
 public class Snapshot3DWorldCommand extends WdssiiCommand {
 
     @SuppressWarnings("unused")
-    private static Logger log = LoggerFactory.getLogger(Snapshot3DWorldCommand.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Snapshot3DWorldCommand.class);
 
     @Override
     public boolean execute() {

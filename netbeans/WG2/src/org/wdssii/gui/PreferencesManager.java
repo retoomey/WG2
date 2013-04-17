@@ -22,7 +22,7 @@ import org.wdssii.xml.config.W2Pref;
  */
 public class PreferencesManager implements Singleton {
 
-    private static Logger log = LoggerFactory.getLogger(PreferencesManager.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PreferencesManager.class);
     /**
      * Direct xml JAXB tag for storing a old style w2pref file
      */
@@ -71,7 +71,7 @@ public class PreferencesManager implements Singleton {
      * @author Robert Toomey
      *
      */
-    public class PrefConstants {
+    public static class PrefConstants {
 
         public static final String PREF_BASE = "org.wdssii.gui.";
         public static final String PREF_showAddCommandDialog = PREF_BASE + "showAddCommandDialog";
@@ -91,7 +91,7 @@ public class PreferencesManager implements Singleton {
 
     public static PreferencesManager getInstance() {
         if (instance == null) {
-            log.debug("Preference Manager must be created by SingletonManager");
+            LOG.debug("Preference Manager must be created by SingletonManager");
         }
         return instance;
     }
@@ -114,7 +114,7 @@ public class PreferencesManager implements Singleton {
 
     public static void introduce(PreferenceHandler p) {
         if (instance == null) {
-            log.debug("Preference Manager must be created by SingletonManager");
+            LOG.debug("Preference Manager must be created by SingletonManager");
         } else {
             instance.setupPrefs(p);
         }
@@ -147,12 +147,12 @@ public class PreferencesManager implements Singleton {
             W2Pref prefs = Util.load(name, W2Pref.class);
             theW2Prefs = prefs;
             if (prefs != null) {
-                log.info("Preferences loaded from " + name);
+                LOG.info("Preferences loaded from " + name);
             } else {
-                log.info("Couldn't find preference file " + name);
+                LOG.info("Couldn't find preference file " + name);
             }
         } catch (Exception c) {
-            log.error("Error loading preferences at " + name);
+            LOG.error("Error loading preferences at " + name);
         }
 
         // Ok, try to load each initial source....
@@ -164,7 +164,7 @@ public class PreferencesManager implements Singleton {
                 try {
                     CommandManager c = CommandManager.getInstance();
                     boolean connect = true;
-                    log.info("Adding start source " + s.sourcename + " " + s.url);
+                    LOG.info("Adding start source " + s.sourcename + " " + s.url);
                     // Old school...everything is an index in old w2config files.
                     // Eventually we need different source types, such as the nasa wms source, which is not an IndexSource
                     // This at least will read old files...
@@ -191,9 +191,9 @@ public class PreferencesManager implements Singleton {
              File f = new File(file);
              URL u = f.toURI().toURL();
              Symbol readback = Util.loadURL(u, Symbol.class);
-             log.debug("Class back is "+readback.getClass().getSimpleName());
+             LOG.debug("Class back is "+readback.getClass().getSimpleName());
              } catch (Exception c) {
-             log.error("Error load back"+file+", "+c.toString());
+             LOG.error("Error load back"+file+", "+c.toString());
              }*/
         }
     }

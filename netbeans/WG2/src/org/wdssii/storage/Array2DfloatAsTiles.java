@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Array2DfloatAsTiles extends DataStorage implements Array2D<Float> {
 
-    private static Logger log = LoggerFactory.getLogger(Array2DfloatAsTiles.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Array2DfloatAsTiles.class);
     /** The full number of possible x values in floats */
     private final int myX;
     /** The full number of possible y values in floats */
@@ -254,12 +254,12 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2D<Float> {
 
             // Debug..compare key to actual tile...
             //if (!(tile.getCacheKey().equals(key))) {
-            //    log.error("KEY FAILURE: " + key + "!= " + tile.getCacheKey());
+            //    LOG.error("KEY FAILURE: " + key + "!= " + tile.getCacheKey());
             //}
             int localX = x - (mySide * tileX);
             int localY = y - (mySide * tileY);
             int at = (localY * mySide) + localX;  // 'x' order
-            //  log.debug("SET " + key + " " + at + " == " + value + " " + myX + ", " + myY);
+            //  LOG.debug("SET " + key + " " + at + " == " + value + " " + myX + ", " + myY);
             tile.set(at, value);
         } else {
 
@@ -272,7 +272,7 @@ public class Array2DfloatAsTiles extends DataStorage implements Array2D<Float> {
             int localX = x - (mySide * tileX);
             int localY = y - (mySide * tileY);
             int at = (localY * mySide) + localX;  // 'x' order
-            //log.debug("SET " + key + " " + at + " == " + value + " " + myX + ", " + myY);
+            //LOG.debug("SET " + key + " " + at + " == " + value + " " + myX + ", " + myY);
             tile.set(at, value);
         }
     }

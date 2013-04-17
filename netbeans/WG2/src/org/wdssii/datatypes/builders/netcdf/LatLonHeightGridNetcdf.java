@@ -23,7 +23,7 @@ import ucar.nc2.Variable;
 public class LatLonHeightGridNetcdf extends DataTypeNetcdf {
 
     /** The log for errors */
-    private static Logger log = LoggerFactory.getLogger(PPIRadialSetNetcdf.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PPIRadialSetNetcdf.class);
 
     /** Try to create a LatLonHeightGrid by reflection.  This is called from NetcdfBuilder by reflection	
      * @param ncfile	the Netcdf file to read from
@@ -137,11 +137,11 @@ public class LatLonHeightGridNetcdf extends DataTypeNetcdf {
                     }
 
                 } catch (OutOfMemoryError mem) {
-                    log.warn("Running out of ram trying to read in LatLonHeightGrid data (FIXME)");
+                    LOG.warn("Running out of ram trying to read in LatLonHeightGrid data (FIXME)");
                 }
 
             } catch (Exception e) { // FIXME: what to do if anything?
-                log.warn("Couldn't create radial set from netcdf file");
+                LOG.warn("Couldn't create radial set from netcdf file");
             }
 
             // Fill in memento for LatLonHeightGrid constructor

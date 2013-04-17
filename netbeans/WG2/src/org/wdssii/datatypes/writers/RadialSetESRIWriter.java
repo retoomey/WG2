@@ -49,7 +49,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
 
     private final int NUM_STATES = 4;
     // Create radials, add features, transaction commit
-    private static Logger log = LoggerFactory.getLogger(PPIRadialSet.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PPIRadialSet.class);
 
     @Override
     protected WdssiiJobStatus export(DataType data, URL aURL, WdssiiJobMonitor monitor) {
@@ -169,7 +169,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
                         c3 = new Coordinate(gate3.getLatitude(),
                                 gate3.getLongitude());
 
-                        // log.debug("OUTPUT " + c0 + c1 + c2 + c3);
+                        // LOG.debug("OUTPUT " + c0 + c1 + c2 + c3);
                         // Write a polygon for data.  Bleh we have to make unique objects
                         Coordinate[] a = new Coordinate[5];
                         a[0] = new Coordinate(c0);
@@ -195,7 +195,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
             monitor.subTask("Writing output file (wait)");
             writeFeatureToFile(aURL, TYPE, collection, monitor);
         } catch (Exception e) {
-            log.error("Error during RadialSet to shp generation " + e.toString());
+            LOG.error("Error during RadialSet to shp generation " + e.toString());
             return WdssiiJobStatus.CANCEL_STATUS;
         }
         monitor.done();
@@ -257,7 +257,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
 
             } catch (Exception problem) {
                 // problem.printStackTrace();
-                log.debug("Exception writing file: " + problem.toString());
+                LOG.debug("Exception writing file: " + problem.toString());
                 transaction.rollback();
 
             } finally {
@@ -265,7 +265,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
             }
 
         } else {
-            log.debug(typeName + " does not support read/write access");
+            LOG.debug(typeName + " does not support read/write access");
         }
     }
 
@@ -305,7 +305,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
              );*/
             output = LOCATION;
         } catch (Exception ex) {
-            log.error("Can't create output type " + ex.toString());
+            LOG.error("Can't create output type " + ex.toString());
         }
         return output;
 

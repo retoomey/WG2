@@ -2,6 +2,7 @@ package org.wdssii.gui.renderers;
 
 import com.jidesoft.swing.JideButton;
 import java.awt.Color;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
@@ -58,7 +59,7 @@ public class StarSymbolGUI extends PointSymbolGUI {
     /**
      * Provides the properties for a StarSymbol
      */
-    public static class StarSymbolMementor extends PointSymbolMementor {
+    public class StarSymbolMementor extends PointSymbolMementor {
 
         private StarSymbol myStarSymbol;
 
@@ -151,12 +152,31 @@ public class StarSymbolGUI extends PointSymbolGUI {
         updateToMemento(myMementor.getNewMemento());
     }
 
+    public StarSymbol toolbarSymbol() {
+        StarSymbol p = new StarSymbol();
+        p.color = Color.WHITE;
+        p.ocolor = Color.RED;
+        p.osize = 1;
+        p.useOutline = false;
+        return p;
+    }
+
     public final void addStarSymbolComponents(Mementor m) {
         add(new IntegerGUI(myMementor, StarSymbolMemento.NUMPOINTS, "Count", this,
                 2, 16, 2, "points"));
+
+        JPanel h = new JPanel();
+        h.setLayout(new MigLayout(new LC().fill().insetsAll("2"), null, null));
+        h.setBackground(Color.BLACK);
+
         // Quick selects
         JideButton b;
-        b = new JideButton("Asterisk");
+        StarSymbolRenderer icon = new StarSymbolRenderer();
+        StarSymbol p = toolbarSymbol();
+        p.toAsterisk();
+        icon.setSymbol(p);
+        b = new JideButton(icon);
+        b.setToolTipText("Asterisk");
         b.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -164,8 +184,14 @@ public class StarSymbolGUI extends PointSymbolGUI {
                 updateGUI();
             }
         });
-        add(b, new CC());
-        b = new JideButton("Big X");
+        h.add(b, new CC());
+
+        icon = new StarSymbolRenderer();
+        p = toolbarSymbol();
+        p.toX();
+        icon.setSymbol(p);
+        b = new JideButton(icon);
+        b.setToolTipText("Big X");
         b.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -173,7 +199,9 @@ public class StarSymbolGUI extends PointSymbolGUI {
                 updateGUI();
             }
         });
-        add(b, new CC().wrap());
+        h.add(b, new CC());
+
+        add(h, new CC().span(3).wrap());
 
         add(new IntegerGUI(myMementor, StarSymbolMemento.LINESIZE, "Linewidth", this,
                 1, 10, 1, "points"));

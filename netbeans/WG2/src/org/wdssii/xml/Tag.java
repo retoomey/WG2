@@ -35,7 +35,7 @@ import sun.net.www.protocol.file.FileURLConnection;
  */
 public abstract class Tag {
 
-	private static Logger log = LoggerFactory.getLogger(Tag.class);
+	private final static Logger LOG = LoggerFactory.getLogger(Tag.class);
 	private String cacheTagName;
 	private boolean haveTag = false;
 	public static final String prefix = "";
@@ -277,7 +277,7 @@ public abstract class Tag {
 			processedTag = true;
 			validateTag();
 			if (lastCounter > 0) {
-			//	log.debug("Tag " + this.tag() + " array " + lastArrayName + " had " + lastCounter + " hits************");
+			//	LOG.debug("Tag " + this.tag() + " array " + lastArrayName + " had " + lastCounter + " hits************");
 			}
 			cleanUp();
 		}
@@ -383,7 +383,7 @@ public abstract class Tag {
 
 
 			} catch (Exception ex) {
-                            log.debug("Exception reading "+ex.toString());
+                            LOG.debug("Exception reading "+ex.toString());
 			}
 		}
 		return success;
@@ -697,7 +697,7 @@ public abstract class Tag {
 				// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4191800
 				//URLConnection urlConnection = aURL.openConnection();
                                 URLConnection urlConnection = W2Config.open(aURL);
-				log.info("URL IS " + aURL.toString());
+				LOG.info("URL IS " + aURL.toString());
 				OutputStream is;
 				if (urlConnection instanceof FileURLConnection) {
 					File f;
@@ -726,7 +726,7 @@ public abstract class Tag {
 
 
 			} catch (Exception ex) {
-				log.error("URL EXCEPTION ON WRITE " + ex.toString());
+				LOG.error("URL EXCEPTION ON WRITE " + ex.toString());
 			}
 		}
 		return success;
@@ -746,7 +746,7 @@ public abstract class Tag {
 			p.writeEndDocument();
 			p.flush();
 		} catch (XMLStreamException ex) {
-			log.debug("FAILED TO WRITE " + ex.toString());
+			LOG.debug("FAILED TO WRITE " + ex.toString());
 		}
 
 		return true;
@@ -787,7 +787,7 @@ public abstract class Tag {
 					p.writeAttribute(name, out);
 					handled = true;
 				} catch (Exception ex) {
-					log.error("write boolean tag field " + ex.toString());
+					LOG.error("write boolean tag field " + ex.toString());
 				}
 				// ---------------------------------------------------------------
 				// Handle 'int' field type
@@ -801,7 +801,7 @@ public abstract class Tag {
 					p.writeAttribute(name, out);
 					handled = true;
 				} catch (Exception ex) {
-					log.error("write integer tag field " + ex.toString());
+					LOG.error("write integer tag field " + ex.toString());
 				}
 
 				// ---------------------------------------------------------------
@@ -823,7 +823,7 @@ public abstract class Tag {
 					p.writeAttribute(name, out);
 					handled = true;
 				} catch (Exception ex) {
-					log.error("write float tag field " + ex.toString());
+					LOG.error("write float tag field " + ex.toString());
 				}
 
 				// ---------------------------------------------------------------
@@ -844,7 +844,7 @@ public abstract class Tag {
 					p.writeAttribute(name, out);
 					handled = true;
 				} catch (Exception ex) {
-					log.error("write double tag field " + ex.toString());
+					LOG.error("write double tag field " + ex.toString());
 				}
 
 				// ---------------------------------------------------------------
@@ -860,7 +860,7 @@ public abstract class Tag {
 					p.writeAttribute(name, out);
 					handled = true;
 				} catch (Exception ex) {
-					log.error("write string tag field " + ex.toString());
+					LOG.error("write string tag field " + ex.toString());
 				}
 			} else if (theType.equals("java.util.ArrayList")) {
 
@@ -905,7 +905,7 @@ public abstract class Tag {
 			t.writeTag(p);
 		}
 		p.writeEndElement();
-		log.debug("There were a total of " + counter + " fields within tag ");
+		LOG.debug("There were a total of " + counter + " fields within tag ");
 		return true;
 	}
 }

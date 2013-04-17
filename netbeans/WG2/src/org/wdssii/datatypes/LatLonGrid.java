@@ -19,7 +19,7 @@ import org.wdssii.storage.Array2D;
  */
 public class LatLonGrid extends DataType implements Table2DView {
 
-	private static Logger log = LoggerFactory.getLogger(LatLonGrid.class);
+	private final static Logger LOG = LoggerFactory.getLogger(LatLonGrid.class);
 	/**
 	 * The change in lat distance per grid square
 	 */
@@ -158,7 +158,7 @@ public class LatLonGrid extends DataType implements Table2DView {
 	public boolean getLocation(LocationType type, int row, int col,
 		Location output) {
 		if ((col >= getNumCols()) || (row >= getNumRows())) {
-			log.warn("********* Out of bound : (" + col + "," + row + ") bounds [" + getNumCols() + "," + getNumRows());
+			LOG.warn("********* Out of bound : (" + col + "," + row + ") bounds [" + getNumCols() + "," + getNumRows());
 			return false;
 		}
 		boolean success = false;

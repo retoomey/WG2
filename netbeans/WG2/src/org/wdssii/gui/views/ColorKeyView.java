@@ -182,7 +182,7 @@ public class ColorKeyView extends JThreadPanel implements CommandListener {
     /** Filter to looks for local data files.  We can make this more 
      * advanced
      */
-    private class ImageDataFilter extends FileFilter {
+    private static class ImageDataFilter extends FileFilter {
 
         @Override
         public boolean accept(File f) {
@@ -237,7 +237,7 @@ public class ColorKeyView extends JThreadPanel implements CommandListener {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             pickedFile = chooser.getSelectedFile().getAbsolutePath();
 
-            int dot = pickedFile.lastIndexOf(".");
+            int dot = pickedFile.lastIndexOf('.');
             String type = pickedFile.substring(dot + 1);
             if ((type.equals(pickedFile)) || (type.isEmpty())) {
                 pickedFile += ".png";

@@ -59,8 +59,8 @@ public class BaseIconAnnotation extends GlobeAnnotation {
 
         // This object sorts the icons and draws in order...
         BasicAnnotationRenderer b;
-        AnnotationRenderer r = dc.getAnnotationRenderer();
-        Layer l = dc.getCurrentLayer(); // product layer
+        dc.getAnnotationRenderer();
+        dc.getCurrentLayer(); // product layer
         //   r.render(dc, this, null, l);
 
        // DataTableRenderer.myRenderer.render(dc, this, null, l);

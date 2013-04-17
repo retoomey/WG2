@@ -29,7 +29,7 @@ public class JobSwingFactory implements WdssiiJob.WdssiiJobFactory {
          *
          */
         // public static JobsView myView = null;
-        public static JobsView.JobsViewHandler myHandler = new JobsView.JobsViewHandler();
+        public final static JobsView.JobsViewHandler myHandler = new JobsView.JobsViewHandler();
         /**
          * Sync object for changing WdssiiJob
          */
@@ -202,10 +202,11 @@ public class JobSwingFactory implements WdssiiJob.WdssiiJobFactory {
              * Send to our executor pool
              */
             ExecutorService s = WdssiiJob.getService();
-            Thread t = new Thread(r, "WdssiiBackgroundTask");
+            //Thread t = new Thread(r, "WdssiiBackgroundTask");
             // t.start();
             if (!s.isShutdown()) {
-                s.submit(t);
+               // s.submit(t);
+                s.submit(r);
             }
 
 

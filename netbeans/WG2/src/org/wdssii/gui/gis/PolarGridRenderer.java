@@ -47,7 +47,7 @@ import org.wdssii.datatypes.RadialUtil;
  */
 public class PolarGridRenderer implements Feature3DRenderer {
 
-	private static Logger log = LoggerFactory.getLogger(PolarGridRenderer.class);
+	private final static Logger LOG = LoggerFactory.getLogger(PolarGridRenderer.class);
 	/**
 	 * Lock for changing offsets/polygonData
 	 */
@@ -136,7 +136,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			int ringApart = range / 1000;
 			//		int numCircles;
 			int numCircles = (Integer) p.getPropertyValue(PolarGridMemento.RING_COUNT);
-			log.debug("CREATING with number of rings..." + numCircles);
+			LOG.debug("CREATING with number of rings..." + numCircles);
 			if (numCircles < 1) {
 				numCircles = 1;
 			} // HAVE to have at least one
@@ -144,7 +144,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			LatLon center = p.getPropertyValue(PolarGridMemento.CENTER);
 			Location ourCenter = new Location(center.getLatitude().degrees,
 				center.getLongitude().degrees, 0);
-			log.debug("Center is at " + ourCenter);
+			LOG.debug("Center is at " + ourCenter);
 
 //			if (ringApart > myMaxR) {
 //				numCircles = 1;
@@ -423,7 +423,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 				if (aText == null) {
 					aText = new TextRenderer(font, true, true);
 				}
-				Globe myGlobe = dc.getGlobe();
+				//Globe myGlobe = dc.getGlobe();
 				Rectangle2DIntersector i = new Rectangle2DIntersector();
 				// Get the iterator for the object updated LAST
 				Iterator<Vec4> points = myLabelPoints.iterator();

@@ -23,7 +23,7 @@ public class LLHAreaSetFactory extends LLHAreaFactory {
         boolean success = true;
 
         // Create the visible object in world window
-        String name = "Set" + String.valueOf(counter++);
+        String name = "Set" + (counter++);
         
         data.visibleName = name;
         data.keyName = name;

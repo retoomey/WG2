@@ -40,6 +40,12 @@ public class Symbol {
     @XmlAttribute(name = "angle", required=false)
     public int phaseangle = 0;
     
+    public Symbol copy(){
+        Symbol s = new Symbol();
+        s.copyFrom(this);
+        return s;
+    }
+    
     public void copyFrom(Symbol s){
         pointsize = s.pointsize;
         xoffset = s.xoffset;

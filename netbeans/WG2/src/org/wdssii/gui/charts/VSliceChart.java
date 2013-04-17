@@ -53,7 +53,7 @@ import org.wdssii.gui.volumes.VSliceRenderer;
  */
 public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView, VolumeTypeFollowerView {
 
-    private static Logger log = LoggerFactory.getLogger(VSliceChart.class);
+    private final static Logger LOG = LoggerFactory.getLogger(VSliceChart.class);
     private ProductVolume myVolume = null;
     private JToggleButton jVirtualToggleButton;
     //hack for first attempt..will need a list of charts
@@ -328,6 +328,16 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
             myTerrain = dataset;
         }
 
+        @Override
+        public boolean equals(Object obj) {
+            return super.equals(obj);
+        }
+        
+        @Override
+        public int hashCode() {
+            return super.hashCode();
+        }
+        
         public void setCurrentVolumeValueName(String name) {
             myCurrentVolumeValueName = name;
         }
@@ -434,7 +444,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
                         }
                     } catch (Exception e) {
                         // An exception during drawing hangs the GUI thread...
-                        log.debug("Exception during vslice renderering " + e.toString());
+                        LOG.debug("Exception during vslice renderering " + e.toString());
                     }
 
                     // Restore anti for text/etc done in overlay
@@ -679,17 +689,20 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
      * Get a key that represents the GIS location of this slice
      */
     public String getGISKey(java.util.List<LatLon> locations) {
-        String newKey = "";
-
         // Add location and altitude...
         //java.util.List<LatLon> locations = getLocationList();
+        StringBuilder buf = new StringBuilder();
         for (int i = 0; i < locations.size(); i++) {
             LatLon l = locations.get(i);
-            newKey = newKey + l.getLatitude() + ":";
-            newKey = newKey + l.getLongitude() + ":";
+            buf.append(l.getLatitude());
+            buf.append(':');
+            buf.append(l.getLongitude());
+            buf.append(':');
+
         }
-        newKey = newKey + myCurrentGrid.bottomHeight;
-        newKey = newKey + myCurrentGrid.topHeight;
+        buf.append(myCurrentGrid.bottomHeight);
+        buf.append(myCurrentGrid.topHeight);
+        String newKey = buf.toString();
         return newKey;
     }
 

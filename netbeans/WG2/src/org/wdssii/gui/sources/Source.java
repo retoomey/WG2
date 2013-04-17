@@ -100,7 +100,7 @@ public class Source {
         myURL = u;
     }
 
-    public class defaultGUI implements SourceGUI {
+    public static class defaultGUI implements SourceGUI {
 
         @Override
         public void updateGUI() {

@@ -290,7 +290,6 @@ public class SourcesURLLoadDialog extends JDialog implements ActionListener {
 
         @Override
         public boolean accept(File f) {
-            String t = f.getName().toLowerCase();
             // FIXME: need to get these from the Sources, some sort of
             // Factory
             boolean canBeHandled = SourceFactory.canAnyHandleFileType(f);
@@ -303,12 +302,14 @@ public class SourcesURLLoadDialog extends JDialog implements ActionListener {
         @Override
         public String getDescription() {
             Set<String> types = SourceFactory.getAllHandledFileDescriptions();
-            String d = "";
+            StringBuilder buf = new StringBuilder();
+            //String d = "";
             for (String s : types) {
-                d += s;
-                d += " ";
+                buf.append(s);
+                buf.append(' ');
             }
-            d += "Files";
+            buf.append("Files");
+            String d = buf.toString();
             return d;
         }
     }

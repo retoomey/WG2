@@ -1,6 +1,9 @@
 package org.wdssii.gui.renderers;
 
+import java.awt.Component;
+import java.awt.Graphics;
 import javax.media.opengl.GL;
+import javax.swing.Icon;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
@@ -8,11 +11,20 @@ import org.wdssii.xml.iconSetConfig.Symbol;
  *
  * @author Robert Toomey
  */
-public class SymbolRenderer {
+public abstract class SymbolRenderer implements Icon {
 
-    public void setSymbol(Symbol symbol) {
-    }
+    // OpenGL methods...
+    public abstract void setSymbol(Symbol symbol);
 
-    public void render(GL gl) {
-    }
+    public abstract void render(GL gl);
+
+    // Java Icon methods...
+    @Override
+    public abstract void paintIcon(Component c, Graphics g, int x, int y);
+
+    @Override
+    public  int getIconWidth(){ return 16; }
+
+    @Override
+    public  int getIconHeight() { return 16; }
 }

@@ -33,9 +33,9 @@ import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 
 /**
- * NavView shows the time/volume navigation controls for the current
- * top ProductFeature
- * 
+ * NavView shows the time/volume navigation controls for the current top
+ * ProductFeature
+ *
  * @author Robert Toomey
  */
 public final class NavView extends JThreadPanel implements CommandListener {
@@ -101,7 +101,7 @@ public final class NavView extends JThreadPanel implements CommandListener {
 
         @Override
         public Component getNewComponent() {
-	    NavView justOne = new NavView();
+            NavView justOne = new NavView();
             CommandManager.getInstance().addListener("Navigation", justOne);
             return justOne;
         }
@@ -122,7 +122,7 @@ public final class NavView extends JThreadPanel implements CommandListener {
         public String message;
     }
 
-    private class ProductsListTableModel extends RowEntryTableModel<ProductsTableData> {
+    private static class ProductsListTableModel extends RowEntryTableModel<ProductsTableData> {
 
         // FIXME: should be an enum class probably...
         public static final int NAV_VISIBLE = 0;
@@ -135,7 +135,7 @@ public final class NavView extends JThreadPanel implements CommandListener {
 
         public ProductsListTableModel() {
             super(ProductsTableData.class, new String[]{
-                        "Visible", "Only", "Time", "Type", "Subtype", "Name", "Message"});
+                "Visible", "Only", "Time", "Type", "Subtype", "Name", "Message"});
         }
     }
 
@@ -214,7 +214,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
             super(title);
             myGridIndex = index;
             this.addActionListener(new ActionListener() {
-
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     handleActionPerformed(e);
@@ -272,8 +271,8 @@ public final class NavView extends JThreadPanel implements CommandListener {
     public NavView() {
 
         setLayout(new MigLayout("insets 0",
-		"[grow]",               // 1 column 
-		"[][pref!][][grow]"));  // 4 rows, last scroll so grow
+                "[grow]", // 1 column 
+                "[][pref!][][grow]"));  // 4 rows, last scroll so grow
 
         jProductInfoLabel = new javax.swing.JLabel(" ");
         jNavPanel = new javax.swing.JPanel();
@@ -298,7 +297,7 @@ public final class NavView extends JThreadPanel implements CommandListener {
 
     private void initButtonGrid() {
         jNavPanel.setLayout(new MigLayout(new LC().fill().wrapAfter(4), null, null));
-                                        
+
         // We want a fixed size for buttons so they don't jitter as 
         NavButton sizer = new NavButton("00:00:00  ", 0);
         Dimension pref = sizer.getPreferredSize();
@@ -362,7 +361,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
         }
 
         jProductsListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 jProductsListTableValueChanged(e);
@@ -401,7 +399,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
          * true); } break; default: break; } } } } } });
          */
         jProductsListTable.addMouseListener(new RowEntryTableMouseAdapter(jProductsListTable, myModel) {
-
             class Item extends JMenuItem {
 
                 private final ProductsTableData d;
@@ -420,7 +417,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
             public JPopupMenu getDynamicPopupMenu(Object line, int row, int column) {
 
                 ActionListener al = new ActionListener() {
-
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         Item i = (Item) (e.getSource());
@@ -452,7 +448,7 @@ public final class NavView extends JThreadPanel implements CommandListener {
                             Feature f = ProductManager.getInstance().getNamedFeature(entry.keyName);
                             if (f != null) {
                                 FeatureMemento m = f.getNewMemento();
-				m.setProperty(FeatureMemento.VISIBLE, !entry.checked);
+                                m.setProperty(FeatureMemento.VISIBLE, !entry.checked);
                                 FeatureChangeCommand c = new FeatureChangeCommand(entry.keyName, m);
                                 CommandManager.getInstance().executeCommand(c, true);
                             }
@@ -462,7 +458,7 @@ public final class NavView extends JThreadPanel implements CommandListener {
                             Feature f = ProductManager.getInstance().getNamedFeature(entry.keyName);
                             if (f != null) {
                                 FeatureMemento m = f.getNewMemento();
-				m.setProperty(FeatureMemento.ONLY, !entry.onlyMode);
+                                m.setProperty(FeatureMemento.ONLY, !entry.onlyMode);
                                 FeatureChangeCommand c = new FeatureChangeCommand(entry.keyName, m);
                                 CommandManager.getInstance().executeCommand(c, true);
                             }
@@ -495,7 +491,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
             switch (i) {
                 case ProductsListTableModel.NAV_VISIBLE: {
                     c = new Comparator<ProductsTableData>() {
-
                         @Override
                         public int compare(ProductsTableData o1, ProductsTableData o2) {
                             return Boolean.valueOf(o1.checked).compareTo(Boolean.valueOf(o2.checked));
@@ -505,7 +500,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
                 break;
                 case ProductsListTableModel.NAV_ONLY: {
                     c = new Comparator<ProductsTableData>() {
-
                         @Override
                         public int compare(ProductsTableData o1, ProductsTableData o2) {
                             return Boolean.valueOf(o1.onlyMode).compareTo(Boolean.valueOf(o2.onlyMode));
@@ -515,7 +509,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
                 break;
                 case ProductsListTableModel.NAV_TIME: {
                     c = new Comparator<ProductsTableData>() {
-
                         @Override
                         public int compare(ProductsTableData o1, ProductsTableData o2) {
                             // FIXME: use Date object?
@@ -526,7 +519,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
                 break;
                 case ProductsListTableModel.NAV_NAME: {
                     c = new Comparator<ProductsTableData>() {
-
                         @Override
                         public int compare(ProductsTableData o1, ProductsTableData o2) {
                             // FIXME: use Date object?
@@ -537,7 +529,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
                 break;
                 case ProductsListTableModel.NAV_TYPE: {
                     c = new Comparator<ProductsTableData>() {
-
                         @Override
                         public int compare(ProductsTableData o1, ProductsTableData o2) {
                             return (o1.type).compareTo(o2.type);
@@ -547,7 +538,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
                 break;
                 case ProductsListTableModel.NAV_SUBTYPE: {
                     c = new Comparator<ProductsTableData>() {
-
                         @Override
                         public int compare(ProductsTableData o1, ProductsTableData o2) {
                             return (o1.subType).compareTo(o2.subType);
@@ -557,7 +547,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
                 break;
                 case ProductsListTableModel.NAV_MESSAGE: {
                     c = new Comparator<ProductsTableData>() {
-
                         @Override
                         public int compare(ProductsTableData o1, ProductsTableData o2) {
                             return (o1.message).compareTo(o2.message);
@@ -567,7 +556,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
                 break;
                 default: {
                     c = new Comparator<ProductsTableData>() {
-
                         @Override
                         public int compare(ProductsTableData o1, ProductsTableData o2) {
                             return (o1.visibleName).compareTo(o2.visibleName);
@@ -588,18 +576,17 @@ public final class NavView extends JThreadPanel implements CommandListener {
      */
     private ArrayList<ProductFeature> getProductFeatures() {
 
-        List<ProductFeature> forg = ProductManager.getInstance().getProductFeatures();   
+        List<ProductFeature> forg = ProductManager.getInstance().getProductFeatures();
         ArrayList<ProductFeature> f = new ArrayList<ProductFeature>(forg);
         // Sort a copy of this list....might be better to keep a sorted list within
         // the FeatureList...we'll see how much this gets 'hit'
         Collections.sort(f,
                 new Comparator<ProductFeature>() {
-
-                    @Override
-                    public int compare(ProductFeature o1, ProductFeature o2) {
-                        return (o1.getKey().compareTo(o2.getKey()));
-                    }
-                });
+            @Override
+            public int compare(ProductFeature o1, ProductFeature o2) {
+                return (o1.getKey().compareTo(o2.getKey()));
+            }
+        });
         return f;
     }
 
@@ -714,12 +701,10 @@ public final class NavView extends JThreadPanel implements CommandListener {
         int row = jProductsListTable.getSelectedRow();
         if (row > -1) {
             int dataRow = jProductsListTable.convertRowIndexToModel(row);
-            if (myProductsListTableModel != null) {
-                ProductsTableData d = myProductsListTableModel.getDataForRow(dataRow);
-                if (d != null) {
-                    FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
-                    CommandManager.getInstance().executeCommand(c, true);
-                }
+            ProductsTableData d = myProductsListTableModel.getDataForRow(dataRow);
+            if (d != null) {
+                FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
+                CommandManager.getInstance().executeCommand(c, true);
             }
         }
     }

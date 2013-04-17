@@ -114,6 +114,16 @@ public class DataRangeValueChart extends LLHAreaChart {
             myRenderer = renderer;
         }
 
+        @Override
+        public boolean equals(Object obj) {
+            return super.equals(obj);
+        }
+
+        @Override
+        public int hashCode() {
+            return super.hashCode();
+        }
+
         /**
          * Our pre draw function, should be called before rendering chart.
          * Currently called during drawBackground
@@ -157,9 +167,9 @@ public class DataRangeValueChart extends LLHAreaChart {
             //updateAndDrawVSliceGrid(subGrid, g2, dataArea);
         }
 
-         @Override
-         public void draw(Graphics2D g, Rectangle2D area, Point2D p, PlotState state, PlotRenderingInfo info) {
-                     if (myProduct != null) {
+        @Override
+        public void draw(Graphics2D g, Rectangle2D area, Point2D p, PlotState state, PlotRenderingInfo info) {
+            if (myProduct != null) {
                 ColorMap cm = myProduct.getColorMap();
                 ColorMapOutput output = new ColorMapOutput();
                 cm.fillColor(output, DataType.MissingData);
@@ -167,8 +177,9 @@ public class DataRangeValueChart extends LLHAreaChart {
             } else {
                 setBackgroundPaint(Color.WHITE);
             }
-             super.draw(g, area, p, state, info);
-         }
+            super.draw(g, area, p, state, info);
+        }
+
         @Override
         public void drawBackground(Graphics2D g2, Rectangle2D dataArea) {
             predraw(g2, dataArea);
@@ -194,6 +205,16 @@ public class DataRangeValueChart extends LLHAreaChart {
 
         static int skipper = 0;
         private ColorMap myColorMap;
+
+        @Override
+        public boolean equals(Object obj) {
+            return super.equals(obj);
+        }
+
+        @Override
+        public int hashCode() {
+            return super.hashCode();
+        }
 
         @Override
         public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {

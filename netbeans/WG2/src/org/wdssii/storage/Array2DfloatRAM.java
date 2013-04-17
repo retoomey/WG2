@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Array2DfloatRAM implements Array2D<Float> {
 
-    private static Logger log = LoggerFactory.getLogger(Array2DfloatRAM.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Array2DfloatRAM.class);
     private int myX;
     private int myY;
     private float myBackground;
@@ -153,7 +153,7 @@ public class Array2DfloatRAM implements Array2D<Float> {
             myArray = new float[x][y];
             myValid = true;
         } catch (OutOfMemoryError mem) {
-            log.warn("Array2D storage not enough heap space for float[" + x + "][" + y + "] array");
+            LOG.warn("Array2D storage not enough heap space for float[" + x + "][" + y + "] array");
         }
     }
 

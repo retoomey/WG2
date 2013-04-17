@@ -28,7 +28,7 @@ import org.wdssii.gui.worldwind.LLHAreaLayer;
  */
 public class LLHAreaController implements KeyListener, MouseListener, MouseMotionListener {
 
-    private static Logger log = LoggerFactory.getLogger(LLHAreaController.class);
+    private final static Logger LOG = LoggerFactory.getLogger(LLHAreaController.class);
     private ActionMode activeAction = ActionMode.NO_ACTION;
     /**
      * The WorldWindow we have a layer in
@@ -101,7 +101,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         this.wwd = w;
         this.volumeLayer = volume;
         //this.setupActionCursorMap();
-        InputHandler h = this.wwd.getInputHandler();
+       // InputHandler h = this.wwd.getInputHandler();
         setupListeners();
     }
 
@@ -257,7 +257,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 
     @Override
     public void keyPressed(KeyEvent e) {
-        //log.debug("LLH key pressed");
+        //LOG.debug("LLH key pressed");
         if (e == null) {
             return;
         }
@@ -273,7 +273,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 
     @Override
     public void keyReleased(KeyEvent e) {
-        //log.debug("LLH key released");
+        //LOG.debug("LLH key released");
         if (e == null) {
             return;
         }
@@ -304,7 +304,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        //log.debug("Mouse clicked LLH");
+        //LOG.debug("Mouse clicked LLH");
         if (consumeMouseClick) {
             e.consume();
             consumeMouseClick = false;
@@ -314,7 +314,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 
     @Override
     public void mousePressed(MouseEvent e) {
-        //log.debug("Mouse pressed LLH");
+        //LOG.debug("Mouse pressed LLH");
         if (e == null) {
             return;
         }
@@ -347,7 +347,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        //log.debug("Mouse released LLH");
+        //LOG.debug("Mouse released LLH");
         if (e == null) {
             return;
         }
@@ -367,8 +367,8 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         }
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
-        }
+//        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
+//        }
     }
 
     @Override
@@ -378,8 +378,8 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         }
 
         // Include this test to ensure any derived implementation performs it.
-        if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
-        }
+ //       if (this.getLLHAreaLayer() == null || !this.getLLHAreaLayer().isArmed()) {
+ //       }
     }
 
     //**************************************************************//
@@ -387,7 +387,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
     //**************************************************************//
     @Override
     public void mouseDragged(MouseEvent e) {
-        //log.debug("LLH AREA Mouse DRAGGED ");
+        //LOG.debug("LLH AREA Mouse DRAGGED ");
         if (e == null) {
             return;
         }
@@ -402,14 +402,14 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         processDFA(e.getPoint(), DFAAction.DRAGGING);
         // Anything but NO_ACTION state on drag is consumed...
         if (myDFAState != DFAMode.NO_ACTION) {
-            log.debug("Mouse drag consume.. " + myDFAState);
+            LOG.debug("Mouse drag consume.. " + myDFAState);
             e.consume();
         }
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-       // log.debug("LLH AREA Mouse moved " + myDFAState);
+       // LOG.debug("LLH AREA Mouse moved " + myDFAState);
         if (e == null) {
             return;
         }
@@ -454,7 +454,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         LLHAreaFeature area = i.pickedArea;
         LLHAreaControlPoint topControlPoint = i.pickedPoint;
 
-        //log.debug("TOP POINT AND AREA " + topControlPoint + ", " + area);
+        //LOG.debug("TOP POINT AND AREA " + topControlPoint + ", " + area);
         switch (myMode) {
             case INACTIVE:
             default:
@@ -550,7 +550,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
      * From DFA state, create a new control point and make it active
      */
     protected void createNewPoint(DFAState d) {
-        //log.debug("Create point called");
+        //LOG.debug("Create point called");
         // Don't add on top of an existing point...
         if (d.pickedPoint == null) {
             d.pickedPoint = d.l.addControlPoint(d.w, d.l.getAirspace(), d.at);
@@ -573,7 +573,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 
         switch (myDFAState) {
             case NO_ACTION:
-                //log.debug("STATE NO_ACTION");
+                //LOG.debug("STATE NO_ACTION");
                 if (d.m == DFAAction.CREATE_CONTROL_POINT) {
                     LLHAreaControlPoint selected;
                     if (d.pickedPoint == null) {
@@ -608,15 +608,15 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
                 break;
             case DRAGGING_NOTHING:
                 if (d.m == DFAAction.STOP_DRAGGING) {
-                    //log.debug("Drag nothing to no action");
+                    //LOG.debug("Drag nothing to no action");
                     myDFAState = DFAMode.NO_ACTION;
                     setOrigin(null, null); // free memory
-                    //log.debug("CONSUME SET TO TRUE");
+                    //LOG.debug("CONSUME SET TO TRUE");
                     consumeMouseClick = true;  // After a drag, ignore the mouseclicked
                 }
                 break;
             case DRAGGING_CONTROL_POINT:
-                //log.debug("STATE DRAGGIN_CONTROL_POINT");
+                //LOG.debug("STATE DRAGGIN_CONTROL_POINT");
 
                 if (d.m == DFAAction.STOP_DRAGGING) {
                     myDFAState = DFAMode.NO_ACTION;
@@ -625,7 +625,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
                 }
                 break;
             case DRAGGING_ENTIRE_SET:
-                //log.debug("STATE DRAGGING ENTIRE_SET");
+                //LOG.debug("STATE DRAGGING ENTIRE_SET");
 
                 if (d.m == DFAAction.STOP_DRAGGING) {
                     myDFAState = DFAMode.NO_ACTION;

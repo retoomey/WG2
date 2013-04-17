@@ -63,8 +63,15 @@ public class PolygonSymbol extends PointSymbol {
      *
      */
     public void toTriangle() {
-        phaseangle = 0;
+        phaseangle = 90;
         numpoints = 3;
+    }
+
+    @Override
+    public Symbol copy() {
+        PolygonSymbol p = new PolygonSymbol();
+        p.copyFrom(this);
+        return p;
     }
 
     @Override

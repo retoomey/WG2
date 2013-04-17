@@ -30,7 +30,7 @@ import org.wdssii.gui.swing.ProgressDialog;
  */
 public class ProductFeatureGUI extends FeatureGUI {
 
-    private static Logger log = LoggerFactory.getLogger(ProductFeatureGUI.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ProductFeatureGUI.class);
     private ProductFeature myProduct;
     private JComponent myParent = null;
 
@@ -82,10 +82,10 @@ public class ProductFeatureGUI extends FeatureGUI {
     public void jSymbologyAction(ActionEvent e) {
         Component something = (Component) SwingUtilities.getRoot(this);
         if (something instanceof JDialog) {
-            SymbologyDialog myDialog = new SymbologyDialog(myProduct.getProduct(), (JDialog) something, this, true, "Symbology");
+            new SymbologyDialog(myProduct.getProduct(), (JDialog) something, this, true, "Symbology");
         } else {
             // Assume JFrame....
-            SymbologyDialog myDialog = new SymbologyDialog(myProduct.getProduct(), (JFrame) something, this, true, "Symbology");
+            new SymbologyDialog(myProduct.getProduct(), (JFrame) something, this, true, "Symbology");
         }
     }
 
@@ -219,11 +219,11 @@ public class ProductFeatureGUI extends FeatureGUI {
             try {
                 // Bim's format....
                 URL aURL = file.toURI().toURL();
-                //  log.debug("Would try to write to " + aURL.toString());
+                //  LOG.debug("Would try to write to " + aURL.toString());
                 if (myProduct != null) {
                     DataType d = myProduct.getLoadedDatatype();
                     if (d != null) {
-                        log.debug("Create progress monitor ");
+                        LOG.debug("Create progress monitor ");
                         // ProgressMonitor m = new ProgressMonitor(this, "Test", "GOOP", 0, 1000);
                         // m.setProgress(500);
                         // m.setMillisToPopup(100);

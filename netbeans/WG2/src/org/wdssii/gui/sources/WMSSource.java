@@ -31,7 +31,7 @@ import org.wdssii.index.IndexFactory;
  */
 public class WMSSource extends Source {
 
-    private static Logger log = LoggerFactory.getLogger(WMSSource.class);
+    private final static Logger LOG = LoggerFactory.getLogger(WMSSource.class);
     protected volatile boolean myConnecting = false;
     protected volatile boolean myConnected = false;
 
@@ -144,14 +144,14 @@ public class WMSSource extends Source {
             caps = WMSCapabilities.retrieve(u);
             caps.parse();
         } catch (Exception e) {
-            log.error("Exception connecting to URL " + getURL() + e.toString());
+            LOG.error("Exception connecting to URL " + getURL() + e.toString());
             return false;
         }
 
         // Gather up all the named layers and make a world wind layer for each.
         final List<WMSLayerCapabilities> namedLayerCaps = caps.getNamedLayers();
         if (namedLayerCaps == null) {
-            log.error("No layers on WMS server");
+            LOG.error("No layers on WMS server");
             // actually we don't care
             return true;
         }
@@ -174,7 +174,7 @@ public class WMSSource extends Source {
                 }
             }
         } catch (Exception e) {
-            log.error("Error reading WMS layers " + e.toString());
+            LOG.error("Error reading WMS layers " + e.toString());
             return false;
         }
 

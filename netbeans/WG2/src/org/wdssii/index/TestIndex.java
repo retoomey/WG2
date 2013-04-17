@@ -21,7 +21,7 @@ import org.wdssii.datatypes.builders.TestBuilder;
  */
 public class TestIndex extends Index {
 
-    private static Logger log = LoggerFactory.getLogger(TestIndex.class);
+    private final static Logger LOG = LoggerFactory.getLogger(TestIndex.class);
 
     @Override
     public Index newInstance(URL path, URL full, TreeMap<String, String> params, Set<IndexRecordListener> listeners)

@@ -20,7 +20,7 @@ import org.wdssii.gui.DockWindow;
  */
 public abstract class WdssiiSDockedViewFactory extends WdssiiDockedViewFactory {
 
-	private static Logger log = LoggerFactory.getLogger(WdssiiSDockedViewFactory.class);
+	private final static Logger LOG = LoggerFactory.getLogger(WdssiiSDockedViewFactory.class);
 
 	/**
 	 * Interface for creating parts of a sub dock view

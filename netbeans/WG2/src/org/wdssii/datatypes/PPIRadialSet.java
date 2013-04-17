@@ -24,7 +24,7 @@ import org.wdssii.storage.Array1D;
  */
 public class PPIRadialSet extends RadialSet implements Table2DView {
 
-    private static Logger log = LoggerFactory.getLogger(PPIRadialSet.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PPIRadialSet.class);
     // This is a radial set lookup that finds an exact match for a radial given an azimuth.  
     // Need this for the vslice/isosurface in the GUI.
     /**
@@ -432,7 +432,7 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
     @Override
     public String getColHeader(int col) {
         float azDegs = getColAzimuth(col);
-        if (azDegs == Float.NaN) { // slow??
+        if (Float.isNaN(azDegs)) { // slow??
             return "";
         } else {
             return (String.format("%6.2f", azDegs));
@@ -468,7 +468,7 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
     public boolean getLocation(LocationType type, int row, int col,
             Location output) {
         if ((col >= getNumCols()) || (row >= getNumRows())) {
-            log.error("Table out of bounds : (" + col + "," + row + ") bounds [" + getNumCols() + "," + getNumRows());
+            LOG.error("Table out of bounds : (" + col + "," + row + ") bounds [" + getNumCols() + "," + getNumRows());
             return false;
         }
         boolean success = false;
@@ -640,14 +640,14 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
 
             // ----------------------------------------------------
         } catch (IOException ex) {
-            log.error("Couldn't write file " + aURL.getFile() + " because " + ex.toString());
+            LOG.error("Couldn't write file " + aURL.getFile() + " because " + ex.toString());
             try {
                 fstream.close();
             } catch (IOException x) {
             }
         }
         if (success) {
-            log.info("Output file was written as " + aURL.getFile());
+            LOG.info("Output file was written as " + aURL.getFile());
         }
 
     }
@@ -675,8 +675,8 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
     }
 
     /**
-     * Export to ESRI shapefile...experimental.
-     * Eventually create by reflection to disconnect.
+     * Export to ESRI shapefile...experimental. Eventually create by reflection
+     * to disconnect.
      */
     @Override
     public void exportToESRI(URL aURL, WdssiiJobMonitor m) {

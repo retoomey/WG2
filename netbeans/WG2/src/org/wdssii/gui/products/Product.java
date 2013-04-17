@@ -57,7 +57,7 @@ import org.wdssii.xml.iconSetConfig.Symbology;
  */
 public class Product extends DelegateHelper {
 
-    private static Logger log = LoggerFactory.getLogger(Product.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Product.class);
     // Helper class paths.  These are created by name from the DataType, thus
     // a RadialSetNavigator will be created (if there) for a RadialSet, etc.
     private final static String RENDERER_CLASSPATH = "org.wdssii.gui.products.renderers";
@@ -159,7 +159,7 @@ public class Product extends DelegateHelper {
                         DataRequest dr = BuilderFactory.createDataRequest(myRecord);
                         myDataRequest = dr;
                     } catch (Exception e) {
-                        log.error("Exception starting to load data..." + e.toString());
+                        LOG.error("Exception starting to load data..." + e.toString());
                     }
                 }
             }
@@ -245,7 +245,7 @@ public class Product extends DelegateHelper {
                     foundUs = true;
                 } else {
                     if (mySource == null) {
-                        log.error("source is null on product..????");
+                        LOG.error("source is null on product..????");
                     }
                     ProductRenderer pr = p.getRenderer();
                     boolean canOverlay = false;

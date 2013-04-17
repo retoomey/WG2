@@ -9,7 +9,7 @@ import org.wdssii.gui.sources.Source;
 
 public class SourceConnectCommand extends SourceCommand {
 
-    private static Logger log = LoggerFactory.getLogger(SourceConnectCommand.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SourceConnectCommand.class);
     /** Number of times to try a connection before giving up */
     // @todo this could be a preference
     public final static int NUMBER_OF_TRIES = 5;
@@ -28,7 +28,7 @@ public class SourceConnectCommand extends SourceCommand {
             final Source s = myList.getSource(key);
             final String nice = s.getVisibleName();
             //final String nice = SourceManager.getInstance().getNiceShortName(key);
-            log.info("Connection attempt being made to source '" + nice + "' (" + key + ")");
+            LOG.info("Connection attempt being made to source '" + nice + "' (" + key + ")");
 
             // This will make it so that our GUI will show 'connecting' icons, etc.
            // aboutToConnect(key, true);
@@ -59,7 +59,7 @@ public class SourceConnectCommand extends SourceCommand {
                             }
 
                         } catch (Exception e) {
-                            log.warn("Exception trying to connect to source " + e.toString());
+                            LOG.warn("Exception trying to connect to source " + e.toString());
                         }
 
                         // ------------------------------------------

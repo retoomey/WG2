@@ -30,7 +30,7 @@ import org.wdssii.storage.DataManager;
  */
 public abstract class Builder {
 
-    private static Logger log = LoggerFactory.getLogger(Builder.class);
+    private final static Logger LOG = LoggerFactory.getLogger(Builder.class);
 
     /** Info snagged from file/URL without reading ALL of it.
      * Used by GUI to pre-fetch Product, Choice and Time (selections) 
@@ -83,7 +83,7 @@ public abstract class Builder {
             DataType dt = createDataType(myIndexRecord, monitor);
 	    if (dt == null){
 		   String b =  Builder.this.getClass().getSimpleName();
-		   log.error("Builder "+b+" failed to load this data"); 
+		   LOG.error("Builder "+b+" failed to load this data"); 
 	    }
             myDataRequest.setReady(dt);
             return WdssiiJobStatus.OK_STATUS;

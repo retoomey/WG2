@@ -63,6 +63,15 @@ public class Feature implements Mementor {
      */
     private FeatureGUI myControls;
 
+    /** The 'rank' of feature.  For example, point data has
+     * a higher rank value than raster data, making it always stay
+     * higher on the render stack (so it isn't covered by by the raster)
+     */
+    private int myRank = 0;
+    public final static int RASTER = 0;
+    public final static int POINT = 1;
+    public final static int MAX_RANK = 1;
+    
     /**
      * Create a feature with a default memento
      */
@@ -103,6 +112,14 @@ public class Feature implements Mementor {
         }
     }
 
+    public int getRank(){
+        return myRank;
+    }
+    
+    public void setRank(int r){
+        myRank = r;
+    }
+    
     /**
      * Called when property of our memento is changed
      */

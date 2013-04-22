@@ -8,6 +8,7 @@ import gov.nasa.worldwind.render.OrderedRenderable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LegendFeature;
 import org.wdssii.gui.features.WorldwindStockFeature;
@@ -62,7 +63,7 @@ public class WJSceneController extends BasicSceneController {
 
             // Products
             f.renderFeatureGroup(dc, ProductFeature.ProductGroup);
-
+            
             // 3d layer
             if (myLLHAreaLayer != null) {
                 dc.setCurrentLayer(myLLHAreaLayer);

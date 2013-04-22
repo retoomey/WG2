@@ -164,6 +164,16 @@ public class DataType {
      */
     public static class DataTypeMetric {
 
+        public DataTypeMetric(){
+           minValue = -100;
+           maxValue = 100;
+        }
+        
+        public DataTypeMetric(float min, float max){
+            minValue = min;
+            maxValue = max;
+        }
+        
         public float minValue;
 
         public float getMinValue() {

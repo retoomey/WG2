@@ -27,6 +27,7 @@ import org.wdssii.gui.products.renderers.icons.BaseIconAnnotation;
 import org.wdssii.gui.renderers.SymbolFactory;
 import org.wdssii.gui.renderers.SymbolRenderer;
 import org.wdssii.gui.GLUtil;
+import org.wdssii.gui.features.Feature;
 import org.wdssii.xml.iconSetConfig.ImageSymbol;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
 import org.wdssii.xml.iconSetConfig.StarSymbol;
@@ -56,7 +57,8 @@ public class DataTableRenderer extends ProductRenderer {
      * Store world points for a DataTable
      */
     private ArrayList<Vec4> myWorldPoints = null;
-    private PointRenderer myPointRenderer = new PointRenderer();;
+    private PointRenderer myPointRenderer = new PointRenderer();
+    ;
     private static boolean refreshRenderers = true;
     //private static Symbol hackme = new StarSymbol();
 
@@ -67,12 +69,10 @@ public class DataTableRenderer extends ProductRenderer {
     //public static Symbol getHackMe() {
     //    return hackme;
     //}
-
     //public static void setHackMe(Symbol s) {
     //    refreshRenderers = true;
     //    hackme = s;
-   // }
-
+    // }
     @Override
     public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
 
@@ -164,5 +164,10 @@ public class DataTableRenderer extends ProductRenderer {
     @Override
     public boolean canOverlayOtherData() {
         return true;
+    }
+
+    @Override
+    public int getFeatureRank() {
+        return Feature.POINT;  // Draw over others
     }
 }

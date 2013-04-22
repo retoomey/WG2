@@ -339,10 +339,16 @@ public class FeatureList {
     public void renderFeatureGroup(DrawContext dc, String g) {
 
         List<Feature> list = getActiveFeatureGroup(g);
-        Iterator<Feature> iter = list.iterator();
-        while (iter.hasNext()) {
-            Feature f = iter.next();
-            f.render(dc);
+        
+        // For each rank...draw over lower ranks...
+        for (int i = 0; i <= Feature.MAX_RANK; i++) {
+            Iterator<Feature> iter = list.iterator();
+            while (iter.hasNext()) {
+                Feature f = iter.next();
+                if (f.getRank() == i) {
+                    f.render(dc);
+                }
+            }
         }
     }
 

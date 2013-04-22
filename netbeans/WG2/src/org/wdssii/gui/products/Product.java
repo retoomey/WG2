@@ -178,6 +178,8 @@ public class Product extends DelegateHelper {
                 myRawDataType = myDataRequest.getDataType();
                 if (myRawDataType != null) {
                     myDataUnits = myRawDataType.getUnit();
+                    // Update the data metric...we have it now...this will cause regen of ColorMap
+                    ProductManager.getInstance().setDataTypeMetric(this, myRawDataType.getDataTypeMetric());
                 } else {
                     myDataUnits = "?";
                 }
@@ -216,6 +218,17 @@ public class Product extends DelegateHelper {
         return true;
     }
 
+    public boolean getCurrentCanOverlay() {
+        // Get the overlay of that product.
+        ProductRenderer pr = getRenderer();
+        boolean canOverlay = false;
+        if (pr != null) {
+            canOverlay = pr.canOverlayOtherData();
+        }
+
+        return canOverlay;
+    }
+
     /**
      * Thie function requires render order to be changed depending on selection,
      * the selected object must be drawn after the others.. bleh... FIXME?
@@ -231,8 +244,9 @@ public class Product extends DelegateHelper {
         // or it will conflict...(Remember last in list draws on top)
         List<ProductFeature> list = f.getFeatureGroup(ProductFeature.class);
         Iterator<ProductFeature> iter = list.iterator();
-        boolean foundUs = false;
-        boolean spaceIsAllOurs = true;
+        boolean productAfterUs = false;
+        boolean canFit = true;
+        boolean weCanOverlay = false;
         String mySource = getIndexKey();
         // String outString = "";
         while (iter.hasNext()) {
@@ -242,37 +256,22 @@ public class Product extends DelegateHelper {
                 if (p == this) {
                     // Now if we find a radial set further on that's
                     // not hidden, it will be drawing, so we don't.
-                    foundUs = true;
+                    weCanOverlay = p.getCurrentCanOverlay();
+                    productAfterUs = true;
                 } else {
-                    if (mySource == null) {
-                        LOG.error("source is null on product..????");
-                    }
-                    ProductRenderer pr = p.getRenderer();
-                    boolean canOverlay = false;
-                    if (pr != null) {
-                        canOverlay = pr.canOverlayOtherData();
-                    }
-                    if (foundUs
-                            && // We're in the list (so this draws after us)
-                            // FIXME: or do we want the ACTUAL would be showing function instead?
-                            // For instance if h is out of time window, do we want to draw?
+                    boolean canOverlay = p.getCurrentCanOverlay();
+
+                    if (productAfterUs && // products after us render first
                             (h.getVisible()) && // This product is not hidden by user
-                            (!canOverlay)
-                            && (p.getIndexKey().compareTo(mySource) == 0)) // Source
-                    // name
-                    // same
+                            (!canOverlay && !weCanOverlay) // Two non-overlay can't share space..
+                            && (p.getIndexKey().compareTo(mySource) == 0)) // and same source
                     {
-                        spaceIsAllOurs = false; // We can't draw :(
-                        // outString = p.getProductInfoString();
+                        canFit = false; // We can't draw :(
                     }
                 }
             }
         }
-        // if (!spaceIsAllOurs){
-        // System.out.println("Can't draw "+this.getProductInfoString() +
-        // "(space conflict) with "+outString);
-        // }
-        return spaceIsAllOurs;
+        return canFit;
     }
 
     public void setCacheKey(String cacheKey) {
@@ -495,10 +494,11 @@ public class Product extends DelegateHelper {
         cman.setColorKey(this, f);
     }
 
-     public void setSymbology(Symbology s) {
+    public void setSymbology(Symbology s) {
         ProductManager cman = ProductManager.getInstance();
         cman.setSymbology(this, s);
     }
+
     public Symbology getSymbology() {
         ProductManager cman = ProductManager.getInstance();
         return cman.getSymbology(this);
@@ -508,6 +508,21 @@ public class Product extends DelegateHelper {
     public ColorMap getColorMap() {
         ProductManager cman = ProductManager.getInstance();
         return cman.getColorMap(this);
+    }
+
+    public int getFeatureRank() {
+        // The Feature Rank..a larger number draws over all those with lower
+        // numbers...default is 0
+        int rank = 0;
+        if (updateDataTypeIfLoaded()) {
+            if (myRawDataType != null) {
+                ProductRenderer pr = getRenderer();
+                if (pr != null) {
+                    rank = pr.getFeatureRank();
+                }
+            }
+        }
+        return rank;
     }
 
     /**
@@ -816,8 +831,6 @@ public class Product extends DelegateHelper {
      */
     public void draw(DrawContext dc) {
 
-        // wouldDraw has already been called by here
-        getRenderer();
         ProductRenderer pr = getRenderer();
         if (pr != null) {
             if (myDirtyRenderer) {
@@ -833,8 +846,7 @@ public class Product extends DelegateHelper {
     }
 
     public void doPick(DrawContext dc, java.awt.Point pickPoint) {
-        // wouldDraw has already been called by here
-        getRenderer();
+
         ProductRenderer pr = getRenderer();
         if (pr != null) {
             if (myDirtyRenderer) {

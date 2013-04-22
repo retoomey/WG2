@@ -17,6 +17,7 @@ import org.wdssii.core.ConfigurationException;
 import org.wdssii.core.LRUCache;
 import org.wdssii.core.LRUCache.LRUTrimComparator;
 import org.wdssii.core.W2Config;
+import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
@@ -387,6 +388,13 @@ public class ProductManager implements Singleton {
          */
         private ColorMap myColorMap = null;
         /**
+         * A current data type metric for this product
+         */
+        private DataTypeMetric myDataTypeMetric = null;
+        private DataTypeMetric myOldDataTypeMetric = null;
+        private boolean myIsDynamic = false;
+        
+        /**
          * The symbology for this product
          */
         private Symbology mySymbology = null;
@@ -409,10 +417,6 @@ public class ProductManager implements Singleton {
         private IconSetConfig myIconSetConfig = null;
         private URL colorMapURL;
         private URL iconSetConfigURL;
-        /**
-         * Debug flag for forcing generated maps always
-         */
-        private static boolean forceGenerated = false;
 
         public URL getCurrentColorMapURL() {
             return colorMapURL;
@@ -465,82 +469,93 @@ public class ProductManager implements Singleton {
             if (force) {
                 myLoadedXML = false;
             }
+
+            // Try loading all XML documents
             if (myLoadedXML == false) {
-                loadSymbologyFromXML();
                 loadIconSetConfigFromXML();
-                if (!forceGenerated) {
-                    loadColorMapFromXML();
-                }
                 myLoadedXML = true;
             }
         }
 
-        /**
-         * Force load a color map from xml and make a new color map from it
-         */
-        private void loadColorMapFromXML() {
+        private void validateColorMap() {
 
-            // Look for a file matching product name....
-            W2ColorMap map = Util.load("colormaps/" + getColorKey(), W2ColorMap.class);
-            if (map != null) {
-                ColorMap aColorMap = new ColorMap();
-                aColorMap.initToW2ColorMap(map, ProductTextFormatter.DEFAULT_FORMATTER);
-                myColorMap = aColorMap;
-            } else {
+            boolean createDynamic = false;
+
+            // if metric changed, we need to make a new dynamic map
+            if (myIsDynamic && (myOldDataTypeMetric != myDataTypeMetric)) {
+                // Recreate dynamic color map...
+                createDynamic = true;
+                myOldDataTypeMetric = myDataTypeMetric;
+            }
+            
+            ColorMap c = null;
+            if (myColorMap == null) {
+                c = loadColorMapFromXML();
+                if (c == null) {
+                    createDynamic = true;
+                } else {
+                    myColorMap = c;
+                }
+            }
+
+            if (createDynamic) {
+                myIsDynamic = true;
                 // Try to look up in point database....
                 // Not found...so try to generate...
                 float minValue = -100;
                 float maxValue = 100;
                 // Gotta be SET somewhere...
-                // DataTypeMetric m = p.getDataTypeMetric();
-                // if (m != null) {
-                //     minValue = m.getMinValue();
-                //     maxValue = m.getMaxValue();
-                //}
-                ColorMap aColorMap = new ColorMap();
+                DataTypeMetric m = getDataTypeMetric();
+                if (m != null) {
+                    minValue = m.getMinValue();
+                    maxValue = m.getMaxValue();
+                }
+                c = new ColorMap();
                 //PointColorMap pMap = PointColorMap.theIDLList.getByName("Blue_Waves");
                 PointColorMap pMap = PointColorMap.theIDLList.getByName("Blue_Red");
 
-                aColorMap.initToTag(pMap, minValue, maxValue, "Dimensionless", ProductTextFormatter.DEFAULT_FORMATTER);
-                myColorMap = aColorMap;
+                c.initToTag(pMap, minValue, maxValue, "Dimensionless", ProductTextFormatter.DEFAULT_FORMATTER);
+                myColorMap = c;
             }
 
-            /*
-             URL u = W2Config.getURL("colormaps/" + myName);
-             colorMapURL = u;
-             Tag_colorMap tag = new Tag_colorMap();
-             if (tag.processAsRoot(u)) {
-             myColorMapTag = tag;
-             ColorMap aColorMap = new ColorMap();
-             aColorMap.initFromTag(tag, ProductTextFormatter.DEFAULT_FORMATTER);
-             myColorMap = aColorMap;
-             }*/
         }
 
         /**
-         * The new symbology file. This will include all the old stuff from
-         * color maps, etc. ColorMaps are really a value --> color lookup which
-         * could occur differently for datatable, etc. We need to refactor this
-         * get away from the old display way.
+         * Force load a color map from xml and make a new color map from it
          */
-        private void loadSymbologyFromXML() {
-            // If we don't have a symbology...
-            if (mySymbology == null) {
-                Symbology s = Util.load("symbology/" + getName() + ".xml", Symbology.class);
-                if (s == null) {
-                    s = new Symbology();  // New empty symbology...
-                    
-                    // How do we know what to init to?
-                    // Need to know the type of what symbology is for..
-                    s.toDefaultForPointData();
+        private ColorMap loadColorMapFromXML() {
+            // Look for a file matching product name....
+            ColorMap c = null;
+            W2ColorMap map = Util.load("colormaps/" + getColorKey(), W2ColorMap.class);
+            if (map != null) {
+                ColorMap aColorMap = new ColorMap();
+                aColorMap.initToW2ColorMap(map, ProductTextFormatter.DEFAULT_FORMATTER);
+                c = aColorMap;
+            }
+            return c;
+        }
 
-                } else {
-                    LOG.debug("Loaded Symbology for " + getName());
-                }
-                synchronized (mySymLock) {
-                    mySymbology = s;
+        private void validateSymbology() {
+            synchronized (mySymLock) {
+                if (mySymbology == null) {
+                    Symbology s = loadSymbologyFromXML();
+                    if (s == null) {
+                        s = new Symbology();
+                        s.toDefaultForPointData();
+                        mySymbology = s;
+                    } else {
+                        mySymbology = s;
+                    }
                 }
             }
+        }
+
+        private Symbology loadSymbologyFromXML() {
+            Symbology s = Util.load("symbology/" + getName() + ".xml", Symbology.class);
+            if (s != null) {
+                LOG.debug("Loaded Symbology for " + getName());
+            }
+            return s;
         }
 
         /**
@@ -631,7 +646,8 @@ public class ProductManager implements Singleton {
          * @return the ColorMap, or null
          */
         public ColorMap getColorMap() {
-            loadProductXMLFiles(false);
+            //loadProductXMLFiles(false);
+            validateColorMap();
             return myColorMap;
         }
 
@@ -640,7 +656,7 @@ public class ProductManager implements Singleton {
         }
 
         public Symbology getSymbology() {
-            loadSymbologyFromXML();
+            validateSymbology();
             return mySymbology;
         }
 
@@ -648,6 +664,17 @@ public class ProductManager implements Singleton {
             synchronized (mySymLock) {
                 mySymbology = s;
             }
+        }
+
+        /**
+         * Return the current data type metric for this product
+         */
+        public DataTypeMetric getDataTypeMetric() {
+            return myDataTypeMetric;
+        }
+
+        public void setDataTypeMetric(DataTypeMetric d) {
+            myDataTypeMetric = d;
         }
 
         public IconSetConfig getIconSetConfig() {
@@ -792,6 +819,17 @@ public class ProductManager implements Singleton {
         ColorMap c = d.getColorMap();
 
         return c;
+    }
+
+    public void setDataTypeMetric(Product p, DataTypeMetric m) {
+
+        // Allow setting ONCE with 'real data' for now....
+        // Maybe we should always return a new ranged colormap here....
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        DataTypeMetric old = d.getDataTypeMetric();
+        if (old == null) {
+            d.setDataTypeMetric(m);
+        }
     }
 
     public Symbology getSymbology(Product p) {

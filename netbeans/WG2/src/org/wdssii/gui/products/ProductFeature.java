@@ -56,6 +56,7 @@ public class ProductFeature extends Feature {
      */
     protected String myCurrentSubType;
     public static final String ProductGroup = "PRODUCTS";
+    
     /**
      * Current fully loaded datatype
      */
@@ -223,8 +224,18 @@ public class ProductFeature extends Feature {
     }
 
     @Override
+    public int getRank(){
+        // Update using the current information from product (can change)
+       setRank(myProduct.getFeatureRank());
+       return super.getRank();
+    }
+     
+    @Override
     public void render(DrawContext dc) {
         if (wouldRender()) {
+            // If it would render needs to load or be loading...
+            myProduct.startLoading();
+            
             // This is bad actually..we should pass it down the tree in
             // case of multiple objects sharing product....
             myProduct.myCurrentFList = this.getFList();  // bleh

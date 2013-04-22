@@ -15,6 +15,7 @@ import org.wdssii.datatypes.Table2DView;
 import org.wdssii.datatypes.Table2DView.LocationType;
 import org.wdssii.geom.Location;
 import org.wdssii.core.GridVisibleArea;
+import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.readouts.ProductReadout;
 
@@ -42,6 +43,10 @@ public abstract class ProductRenderer {
     public synchronized boolean isCreated(){ return myCreated; }
     
     public synchronized void setIsCreated(){ myCreated = true; }
+
+    public int getFeatureRank() {
+        return Feature.RASTER; // Default of raster data..
+    }
     
     /** Job for creating in the background any rendering */
     public class backgroundRender extends WdssiiJob {

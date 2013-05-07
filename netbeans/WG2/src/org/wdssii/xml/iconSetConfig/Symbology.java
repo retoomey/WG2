@@ -1,5 +1,6 @@
 package org.wdssii.xml.iconSetConfig;
 
+import java.awt.Color;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -73,10 +74,122 @@ public class Symbology {
         this.use = SINGLE;
         //this.type = POINT;
         PolygonSymbol single = new PolygonSymbol();
-        single.toCircle();
+        single.toSquare();
+        single.color = Color.RED;
         single.pointsize = 20;
         this.single = new Single();
         this.single.setSymbol(single);
+
+        this.categories = new Categories();
+
+        // Make a 'dummy' category set so I can work on GUI reading it...
+        // One step at a time..bleh.. MPing category icons...
+        final int SIZE = 20;
+
+        PolygonSymbol newOne = new PolygonSymbol();
+        newOne.color = Color.GREEN;
+        newOne.ocolor = Color.BLACK;
+        newOne.toCircle();
+        newOne.pointsize = SIZE - 2;
+        this.categories.addCategory(new Category("dz", newOne));
+
+        newOne = new PolygonSymbol();
+        newOne.toTriangle();
+        newOne.color = Color.GREEN;
+        newOne.ocolor = Color.BLACK;
+        newOne.osize = 1;
+        newOne.pointsize = SIZE + 4;
+        this.categories.addCategory(new Category("ra", newOne));
+
+        newOne = new PolygonSymbol();
+        newOne.color = new Color(255, 153, 153); // Pinkish
+        newOne.ocolor = Color.BLACK;
+        newOne.toCircle();
+        newOne.pointsize = SIZE - 2;
+        this.categories.addCategory(new Category("fd", newOne));
+
+        newOne = new PolygonSymbol();
+        newOne.toTriangle();
+        newOne.color = new Color(255, 153, 153); // Pinkish
+        newOne.ocolor = Color.BLACK;
+        newOne.osize = 1;
+        newOne.pointsize = SIZE + 4;
+        this.categories.addCategory(new Category("fr", newOne));
+
+        StarSymbol ss = new StarSymbol();
+        ss.toAsterisk();
+        ss.color = Color.GREEN;
+        ss.ocolor = Color.BLACK;
+        ss.osize = 1;
+        ss.pointsize = SIZE;
+        this.categories.addCategory(new Category("r/s", ss));
+
+        newOne = new PolygonSymbol();
+        newOne.color = new Color(153, 102, 255); // purple
+        newOne.ocolor = Color.BLACK;
+        newOne.toCircle();
+        newOne.pointsize = SIZE - 2;
+        this.categories.addCategory(new Category("ip", newOne));
+
+        newOne = new PolygonSymbol();
+        newOne.toSquare();
+        newOne.color = new Color(153, 102, 255); // purple
+        newOne.ocolor = Color.BLACK;
+        newOne.osize = 1;
+        newOne.pointsize = SIZE;
+        this.categories.addCategory(new Category("gr", newOne));
+
+        newOne = new PolygonSymbol();
+        newOne.toTriangle();
+        newOne.color = new Color(153, 102, 255); // purple
+        newOne.ocolor = Color.BLACK;
+        newOne.osize = 1;
+        newOne.pointsize = SIZE + 4;
+        this.categories.addCategory(new Category("r/ip", newOne));
+
+        ss = new StarSymbol();
+        ss.toAsterisk();
+        ss.color = Color.WHITE;
+        ss.ocolor = Color.BLACK;
+        ss.osize = 1;
+        ss.pointsize = SIZE;
+        this.categories.addCategory(new Category("ds", ss));
+
+        ss = new StarSymbol();
+        ss.toAsterisk();
+        ss.color = Color.BLUE;
+        //newOne.useOutline = false;
+        ss.ocolor = Color.BLACK;
+        ss.osize = 1;
+        ss.pointsize = SIZE;
+        this.categories.addCategory(new Category("ws", ss));
+
+        ss = new StarSymbol();
+        ss.toAsterisk();
+        ss.color = new Color(255, 153, 153); // Pinkish
+        ss.ocolor = Color.BLACK;
+        ss.osize = 1;
+        ss.pointsize = SIZE;
+        this.categories.addCategory(new Category("ip/s", ss));
+
+        newOne = new PolygonSymbol();
+        newOne.toSquare();
+        newOne.color = Color.WHITE;
+        newOne.ocolor = Color.BLACK;
+        newOne.osize = 1;
+        newOne.pointsize = SIZE;
+        this.categories.addCategory(new Category("sl", newOne));
+
+        /* Default fallback?  Maybe just use the 'single' 
+         PolygonSymbol newOne = new PolygonSymbol();
+         newOne.toCircle();
+         newOne.color = Color.YELLOW;
+         newOne.ocolor = Color.BLACK;
+         newOne.osize = 1;
+         newOne.pointsize = 6;
+         rr = SymbolFactory.getSymbolRenderer(newOne);
+         rr.setSymbol(newOne);
+         */
     }
     /**
      * The Datatype this symbology is for
@@ -121,6 +234,14 @@ public class Symbology {
             categories = new Categories();
         }
         return categories;
+    }
+
+    public Category findCategory(String key) {
+        Category c = null;
+        if (categories != null) {
+            c = categories.getCategory(key);
+        }
+        return c;
     }
 
     public Single getSingle() {

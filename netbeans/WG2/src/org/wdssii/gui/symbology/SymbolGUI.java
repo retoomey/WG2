@@ -1,4 +1,4 @@
-package org.wdssii.gui.renderers;
+package org.wdssii.gui.symbology;
 
 import org.wdssii.gui.SwingGUIPlugInPanel;
 import org.wdssii.properties.Memento;

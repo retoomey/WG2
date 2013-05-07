@@ -1,4 +1,4 @@
-package org.wdssii.gui.renderers;
+package org.wdssii.gui.symbology;
 
 import com.jidesoft.swing.JideButton;
 import java.awt.Color;
@@ -10,8 +10,9 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.properties.BooleanGUI;
 import org.wdssii.gui.properties.ColorGUI;
 import org.wdssii.gui.properties.IntegerGUI;
-import org.wdssii.gui.renderers.PointSymbolGUI.PointSymbolMemento;
-import org.wdssii.gui.renderers.PointSymbolGUI.PointSymbolMementor;
+import org.wdssii.gui.symbology.PointSymbolGUI.PointSymbolMemento;
+import org.wdssii.gui.symbology.PointSymbolGUI.PointSymbolMementor;
+import org.wdssii.gui.renderers.StarSymbolRenderer;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 import org.wdssii.xml.iconSetConfig.StarSymbol;

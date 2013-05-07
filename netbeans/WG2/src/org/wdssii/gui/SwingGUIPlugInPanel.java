@@ -4,6 +4,9 @@ import java.awt.Component;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.properties.PropertyGUI;
 import org.wdssii.properties.Memento;
 
@@ -64,8 +67,10 @@ public class SwingGUIPlugInPanel extends JPanel implements GUIPlugInPanel {
     @Override
     public void activateGUI(JComponent parent) {
         if (myRoot != null) {
-            parent.setLayout(new java.awt.BorderLayout());
-            parent.add(myRoot, java.awt.BorderLayout.CENTER);
+           // parent.setLayout(new java.awt.BorderLayout());
+           // parent.add(myRoot, java.awt.BorderLayout.CENTER);
+            parent.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+            parent.add(myRoot, new CC().growX().growY());
             doLayout();
         }
     }

@@ -1,5 +1,8 @@
-package org.wdssii.gui.renderers;
+package org.wdssii.gui.symbology;
 
+import org.wdssii.gui.symbology.CategoryUniqueValues;
+import org.wdssii.gui.symbology.SingleSymbol;
+import org.wdssii.gui.symbology.SymbologyGUI;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;

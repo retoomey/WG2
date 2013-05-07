@@ -16,7 +16,6 @@ import org.wdssii.datatypes.RadialATHeightGateCache;
 import org.wdssii.datatypes.RadialUtil;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.AnimateManager;
-import org.wdssii.core.CommandManager;
 import org.wdssii.gui.products.*;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DOpenGL;

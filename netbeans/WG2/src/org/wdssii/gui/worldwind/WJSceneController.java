@@ -99,6 +99,7 @@ public class WJSceneController extends BasicSceneController {
             dc.setOrderedRenderingMode(false);
 
         } catch (Throwable e) {
+            LOG.error("Exception during render "+e.toString());
         }
     }
 

@@ -114,7 +114,7 @@ public class StarSymbolRenderer extends SymbolRenderer {
             ArrayList<Integer> list = new ArrayList<Integer>();
             star(g, list, polyRadius, s.phaseangle, s.numpoints);
             g2d.translate(x + polyRadius, y + polyRadius);
-            
+
             /* Draw outline of symbol (first for lines, make outline the
              * 'background')
              */

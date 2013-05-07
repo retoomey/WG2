@@ -1,8 +1,10 @@
 package org.wdssii.gui.products.renderers;
 
+import org.wdssii.gui.renderers.QuadStripRenderer;
 import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.awt.Rectangle;
+import javax.media.opengl.GL;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialSet;
@@ -69,7 +71,8 @@ public abstract class RadialSetRenderer extends ProductRenderer {
      */
     public void drawData(DrawContext dc, boolean readoutMode) {
         if (isCreated()) {
-            myQuadRenderer.drawData(dc, readoutMode);
+            GL gl = dc.getGL();
+            myQuadRenderer.drawData(gl, readoutMode);
         }
     }
 
@@ -90,7 +93,8 @@ public abstract class RadialSetRenderer extends ProductRenderer {
     public float getReadoutValue(Point p, Rectangle view, DrawContext dc) {
         float value = DataType.MissingData;
         if (p != null) {
-            value = myQuadRenderer.getReadout(p, view, dc, DataType.MissingData);
+            GL gl = dc.getGL();
+            value = myQuadRenderer.getReadout(p, view, gl, DataType.MissingData);
         }
         return value;
     }

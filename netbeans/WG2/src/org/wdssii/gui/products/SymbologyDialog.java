@@ -21,10 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.SwingGUIPlugInPanel;
-import org.wdssii.gui.renderers.SymbolGUI;
-import org.wdssii.gui.renderers.SymbologyFactory;
-import org.wdssii.gui.renderers.SymbologyGUI;
-import org.wdssii.gui.renderers.SymbologyGUI.SymbologyGUIListener;
+import org.wdssii.gui.symbology.SymbolGUI;
+import org.wdssii.gui.symbology.SymbologyFactory;
+import org.wdssii.gui.symbology.SymbologyGUI;
+import org.wdssii.gui.symbology.SymbologyGUI.SymbologyGUIListener;
 import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**

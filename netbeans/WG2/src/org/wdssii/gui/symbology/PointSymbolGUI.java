@@ -1,6 +1,5 @@
-package org.wdssii.gui.renderers;
+package org.wdssii.gui.symbology;
 
-import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.properties.IntegerGUI;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;

@@ -41,8 +41,15 @@ public class Category {
 
     public Category() {
     }
+    
+    /** Convenience */
+    public Category(String v, Symbol symbol){
+        value = v;
+        addSymbol(symbol);
+    }
 
     public Category(Category c) {
+        value = c.value;
         if (c.symbols != null) {
             this.symbols = new ArrayList<Symbol>();
             for (Symbol sym : c.symbols) {

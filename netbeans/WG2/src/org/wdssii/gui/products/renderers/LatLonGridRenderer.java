@@ -19,9 +19,7 @@ import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
 import org.wdssii.geom.Location;
-import org.wdssii.gui.products.readouts.LatLonGridReadout;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.readouts.ProductReadout;
 
 /**
  * The lat lon grid renderer creates tiles on demand for rendering large scale

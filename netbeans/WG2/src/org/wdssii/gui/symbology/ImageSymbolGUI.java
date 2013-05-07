@@ -1,4 +1,4 @@
-package org.wdssii.gui.renderers;
+package org.wdssii.gui.symbology;
 
 import javax.swing.JScrollPane;
 import net.miginfocom.layout.LC;

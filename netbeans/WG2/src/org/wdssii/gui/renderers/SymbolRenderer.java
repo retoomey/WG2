@@ -23,8 +23,12 @@ public abstract class SymbolRenderer implements Icon {
     public abstract void paintIcon(Component c, Graphics g, int x, int y);
 
     @Override
-    public  int getIconWidth(){ return 16; }
+    public int getIconWidth() {
+        return 16;
+    }
 
     @Override
-    public  int getIconHeight() { return 16; }
+    public int getIconHeight() {
+        return 16;
+    }
 }

@@ -8,9 +8,9 @@ import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.renderers.SymbolFactory;
-import org.wdssii.gui.renderers.SymbolGUI;
-import org.wdssii.gui.renderers.SymbolGUI.SymbolGUIListener;
+import org.wdssii.gui.symbology.SymbolFactory;
+import org.wdssii.gui.symbology.SymbolGUI;
+import org.wdssii.gui.symbology.SymbolGUI.SymbolGUIListener;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**

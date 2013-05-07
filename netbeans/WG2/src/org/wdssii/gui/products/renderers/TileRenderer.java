@@ -6,7 +6,6 @@ import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.render.DrawContext;
 import java.util.ArrayList;
-import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;

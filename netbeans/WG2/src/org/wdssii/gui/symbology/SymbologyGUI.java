@@ -1,8 +1,6 @@
-package org.wdssii.gui.renderers;
+package org.wdssii.gui.symbology;
 
-import javax.swing.JButton;
 import javax.swing.JScrollPane;
-import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.SwingGUIPlugInPanel;

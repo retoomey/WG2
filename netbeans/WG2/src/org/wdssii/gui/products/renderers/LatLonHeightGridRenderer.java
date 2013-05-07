@@ -1,5 +1,6 @@
 package org.wdssii.gui.products.renderers;
 
+import org.wdssii.gui.renderers.QuadStripRenderer;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
@@ -12,7 +13,6 @@ import org.wdssii.datatypes.LatLonHeightGrid;
 import org.wdssii.datatypes.LatLonHeightGrid.LatLonHeightGridQuery;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.AnimateManager;
-import org.wdssii.core.CommandManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;

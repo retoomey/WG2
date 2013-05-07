@@ -10,8 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataTable.Column;
 import org.wdssii.gui.GLUtil;
-import org.wdssii.gui.renderers.SymbolFactory;
+import org.wdssii.gui.symbology.SymbolFactory;
 import org.wdssii.gui.renderers.SymbolRenderer;
+import org.wdssii.xml.iconSetConfig.Category;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
 import org.wdssii.xml.iconSetConfig.StarSymbol;
 import org.wdssii.xml.iconSetConfig.Symbol;
@@ -26,9 +27,11 @@ import org.wdssii.xml.iconSetConfig.Symbology;
  * @author Robert Toomey
  */
 public class PointRenderer {
+
     private final static Logger LOG = LoggerFactory.getLogger(PointRenderer.class);
     private List<SymbolRenderer> myRenderers = null;
-    private SymbolRenderer myDefault = null;
+    private SymbolRenderer myFailSafe = null;
+    private SymbolRenderer mySingle = null;
     private Column myColumn = null; // Column if category, null if single
     private final Object myRefreshLock = new Object();
     private boolean myRefresh = false;
@@ -54,49 +57,34 @@ public class PointRenderer {
         // This is set with a copy from GUI on change, so sync shouldn't be an issue...
         boolean changed = (s != mySymbology);
 
-        // How do we draw without symbology or do we put in something?
-        if (s == null) {
-            return;
+        // Create a fall back default if symbology fails...
+        if (myFailSafe == null) {
+            Symbol p;
+            PolygonSymbol ps = new PolygonSymbol();
+            ps.pointsize = 12;
+            ps.toSquare();
+            p = ps;
+            SymbolRenderer renderer = SymbolFactory.getSymbolRenderer(p);
+            renderer.setSymbol(p);
+            myFailSafe = renderer;
+            mySingle = myFailSafe;
         }
 
         if (changed) {
 
             mySymbology = s;
-            // Check symbology type...
-            if (s.use == Symbology.SINGLE) {
-                tryCategories = false;
-            } else if (s.use == Symbology.CATEGORY_UNIQUE_VALUES) {
-                tryCategories = true;
-            } else {
-                return;  // Can't handle other categories.. :(
-                // FIXME: all this should really be checked already
-            }
 
-            // Create a new symbol and default symbol renderer if
-            // there isn't one in the symbology....
-            List<Symbol> aList = mySymbology.getSingle().symbols;
-            if ((aList != null) && (!aList.isEmpty())) {
-                Symbol sym = aList.get(0);
-                SymbolRenderer renderer = SymbolFactory.getSymbolRenderer(sym);
-                renderer.setSymbol(sym); // FIXME shouldn't be here probably
-                myDefault = renderer;
-            } else {
-                // Stick in something...
-                Symbol p;
-                if (tryCategories) {
-                    PolygonSymbol ps = new PolygonSymbol();
-                    ps.pointsize = 12;
-                    ps.toCircle();
-                    p = ps;
-                } else {
-                    StarSymbol ss = new StarSymbol();
-                    ss.toX();
-                    ss.pointsize = 35;
-                    p = ss;
+            if (s != null) {
+                // Read single from Symbology
+                List<Symbol> aList = mySymbology.getSingle().symbols;
+                if ((aList != null) && (!aList.isEmpty())) {
+                    Symbol sym = aList.get(0);
+                    SymbolRenderer renderer = SymbolFactory.getSymbolRenderer(sym);
+                    renderer.setSymbol(sym);
+                    mySingle = renderer;
                 }
-                SymbolRenderer renderer = SymbolFactory.getSymbolRenderer(p);
-                renderer.setSymbol(p); // FIXME shouldn't be here probably
-                myDefault = renderer;
+            } else {
+                mySingle = myFailSafe;
             }
         }
 
@@ -114,7 +102,7 @@ public class PointRenderer {
 
             // LOG.debug("translate "+at2D.x, ", "+at2D.y);
             gl.glTranslated(at2D.x, at2D.y, 0);
-            SymbolRenderer item = getRenderer(row);
+            SymbolRenderer item = getRenderer(row, s);
             item.render(gl);
             gl.glTranslated(-at2D.x, -at2D.y, 0);
             row++;
@@ -123,142 +111,161 @@ public class PointRenderer {
         GLUtil.popOrtho2D(dc);
     }
 
-    public SymbolRenderer getRenderer(int row) {
+    public SymbolRenderer getRenderer(int row, Symbology s) {
         SymbolRenderer rr = null;
 
-        // Categories Unique Values
-        if (tryCategories) {
-            // Creating every single time....bleh....
-            if (myColumn != null) {
-                String text = myColumn.getValue(row);
-                final int SIZE = 20;
-                if (text.equalsIgnoreCase("dz")) {   // "drizzle"
-                    PolygonSymbol newOne = new PolygonSymbol();
-                    newOne.color = Color.GREEN;
-                    newOne.ocolor = Color.BLACK;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                    newOne.toCircle();
-                    newOne.pointsize = SIZE - 2;
-                } else if (text.equalsIgnoreCase("ra")) { // "rain"
-                    PolygonSymbol newOne = new PolygonSymbol();
-                    newOne.toTriangle();
-                    newOne.color = Color.GREEN;
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    newOne.pointsize = SIZE + 4;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                } else if (text.equalsIgnoreCase("fd")) {   // "Freezing drizzle
-                    PolygonSymbol newOne = new PolygonSymbol();
-                    newOne.color = new Color(255, 153, 153); // Pinkish
-                    newOne.ocolor = Color.BLACK;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                    newOne.toCircle();
-                    newOne.pointsize = SIZE - 2;
-                } else if (text.equalsIgnoreCase("fr")) { // Freezing rain
-                    PolygonSymbol newOne = new PolygonSymbol();
-                    newOne.toTriangle();
-                    newOne.color = new Color(255, 153, 153); // Pinkish
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    newOne.pointsize = SIZE + 4;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                } else if (text.equalsIgnoreCase("r/s")) { // Rain/Snow
-                    StarSymbol newOne = new StarSymbol();
-                    newOne.toAsterisk();
-                    newOne.color = Color.GREEN;
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    newOne.pointsize = SIZE;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                } else if (text.equalsIgnoreCase("ip")) { // Ice pellets **************
-                    PolygonSymbol newOne = new PolygonSymbol();
-                    newOne.color = new Color(153, 102, 255); // purple
-                    newOne.ocolor = Color.BLACK;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                    newOne.toCircle();
-                    newOne.pointsize = SIZE - 2;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                } else if (text.equalsIgnoreCase("gr")) { // Graupel
-                    PolygonSymbol newOne = new PolygonSymbol();
-                    newOne.toSquare();
-                    newOne.color = new Color(153, 102, 255); // purple
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    newOne.pointsize = SIZE;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                } else if (text.equalsIgnoreCase("r/ip")) { // Rain and ice pellets
-                    PolygonSymbol newOne = new PolygonSymbol();
-                    newOne.toTriangle();
-                    newOne.color = new Color(153, 102, 255); // purple
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    newOne.pointsize = SIZE + 4;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                } else if (text.equalsIgnoreCase("ds")) {   // "snow"
-                    StarSymbol newOne = new StarSymbol();
-                    newOne.toAsterisk();
-                    newOne.color = Color.WHITE;
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    newOne.pointsize = SIZE;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                } else if (text.equalsIgnoreCase("ws")) {  // "wetsnow"
-                    StarSymbol newOne = new StarSymbol();
-                    newOne.toAsterisk();
-                    newOne.color = Color.BLUE;
-                    //newOne.useOutline = false;
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                    newOne.pointsize = SIZE;
-                } else if (text.equalsIgnoreCase("ip/s")) { //Mixed ice pellets/snow
-                    StarSymbol newOne = new StarSymbol();
-                    newOne.toAsterisk();
-                    newOne.color = new Color(255, 153, 153); // Pinkish
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    newOne.pointsize = SIZE;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                } else if (text.equalsIgnoreCase("sl")) { // sleet
-                    PolygonSymbol newOne = new PolygonSymbol();
-                    newOne.toSquare();
-                    newOne.color = Color.WHITE;
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    newOne.pointsize = SIZE;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-                } else {
-                    PolygonSymbol newOne = new PolygonSymbol();
-                    newOne.toCircle();
-                    newOne.color = Color.YELLOW;
-                    newOne.ocolor = Color.BLACK;
-                    newOne.osize = 1;
-                    newOne.pointsize = 6;
-                    rr = SymbolFactory.getSymbolRenderer(newOne);
-                    rr.setSymbol(newOne);
-LOG.debug("************Found unknown category "+text);
-                }
+        if (s != null) {
+            
+            // Simple single mode...
+            if (s.use == Symbology.SINGLE) {
+                rr = mySingle;
+                
+            // Category 
+            } else if (s.use == Symbology.CATEGORY_UNIQUE_VALUES) {
 
+                // Creating every single time....bleh....
+                if (myColumn != null) {
+                    String text = myColumn.getValue(row);
+                    Category c = s.findCategory(text.toLowerCase());
+                    if (c != null) {
+                        Symbol aSymbol = c.symbols.get(0);  // bleh
+                        if (aSymbol != null) {
+                            rr = SymbolFactory.getSymbolRenderer(aSymbol);
+                            rr.setSymbol(aSymbol);
+                        }
+                    }
+                    if (rr == null){ // no category found...
+                        rr = mySingle; // then try the single one...
+                    }
+                }
             }
-        } else {
         }
-        if (rr
-                == null) {
-            rr = myDefault; // Fall back renderer
+        if (rr == null) {
+            rr = myFailSafe; // Fall back renderer
         }
         return rr;
     }
 }
+
+                    /*
+                     final int SIZE = 20;
+                     if (text.equalsIgnoreCase("dz")) {   // "drizzle"
+                     PolygonSymbol newOne = new PolygonSymbol();
+                     newOne.color = Color.GREEN;
+                     newOne.ocolor = Color.BLACK;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     newOne.toCircle();
+                     newOne.pointsize = SIZE - 2;
+                     } else if (text.equalsIgnoreCase("ra")) { // "rain"
+                     PolygonSymbol newOne = new PolygonSymbol();
+                     newOne.toTriangle();
+                     newOne.color = Color.GREEN;
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     newOne.pointsize = SIZE + 4;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     } else if (text.equalsIgnoreCase("fd")) {   // "Freezing drizzle
+                     PolygonSymbol newOne = new PolygonSymbol();
+                     newOne.color = new Color(255, 153, 153); // Pinkish
+                     newOne.ocolor = Color.BLACK;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     newOne.toCircle();
+                     newOne.pointsize = SIZE - 2;
+                     } else if (text.equalsIgnoreCase("fr")) { // Freezing rain
+                     PolygonSymbol newOne = new PolygonSymbol();
+                     newOne.toTriangle();
+                     newOne.color = new Color(255, 153, 153); // Pinkish
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     newOne.pointsize = SIZE + 4;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     } else if (text.equalsIgnoreCase("r/s")) { // Rain/Snow
+                     StarSymbol newOne = new StarSymbol();
+                     newOne.toAsterisk();
+                     newOne.color = Color.GREEN;
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     newOne.pointsize = SIZE;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     } else if (text.equalsIgnoreCase("ip")) { // Ice pellets **************
+                     PolygonSymbol newOne = new PolygonSymbol();
+                     newOne.color = new Color(153, 102, 255); // purple
+                     newOne.ocolor = Color.BLACK;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     newOne.toCircle();
+                     newOne.pointsize = SIZE - 2;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     } else if (text.equalsIgnoreCase("gr")) { // Graupel
+                     PolygonSymbol newOne = new PolygonSymbol();
+                     newOne.toSquare();
+                     newOne.color = new Color(153, 102, 255); // purple
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     newOne.pointsize = SIZE;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     } else if (text.equalsIgnoreCase("r/ip")) { // Rain and ice pellets
+                     PolygonSymbol newOne = new PolygonSymbol();
+                     newOne.toTriangle();
+                     newOne.color = new Color(153, 102, 255); // purple
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     newOne.pointsize = SIZE + 4;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     } else if (text.equalsIgnoreCase("ds")) {   // "snow"
+                     StarSymbol newOne = new StarSymbol();
+                     newOne.toAsterisk();
+                     newOne.color = Color.WHITE;
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     newOne.pointsize = SIZE;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     } else if (text.equalsIgnoreCase("ws")) {  // "wetsnow"
+                     StarSymbol newOne = new StarSymbol();
+                     newOne.toAsterisk();
+                     newOne.color = Color.BLUE;
+                     //newOne.useOutline = false;
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     newOne.pointsize = SIZE;
+                     } else if (text.equalsIgnoreCase("ip/s")) { //Mixed ice pellets/snow
+                     StarSymbol newOne = new StarSymbol();
+                     newOne.toAsterisk();
+                     newOne.color = new Color(255, 153, 153); // Pinkish
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     newOne.pointsize = SIZE;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     } else if (text.equalsIgnoreCase("sl")) { // sleet
+                     PolygonSymbol newOne = new PolygonSymbol();
+                     newOne.toSquare();
+                     newOne.color = Color.WHITE;
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     newOne.pointsize = SIZE;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     } else {
+                     PolygonSymbol newOne = new PolygonSymbol();
+                     newOne.toCircle();
+                     newOne.color = Color.YELLOW;
+                     newOne.ocolor = Color.BLACK;
+                     newOne.osize = 1;
+                     newOne.pointsize = 6;
+                     rr = SymbolFactory.getSymbolRenderer(newOne);
+                     rr.setSymbol(newOne);
+                     LOG.debug("************Found unknown category " + text);
+                     }
+                     */

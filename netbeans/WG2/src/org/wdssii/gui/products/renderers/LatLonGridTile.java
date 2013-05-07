@@ -1,5 +1,6 @@
 package org.wdssii.gui.products.renderers;
 
+import org.wdssii.gui.renderers.QuadStripRenderer;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Extent;
 import gov.nasa.worldwind.geom.Position;
@@ -344,11 +345,11 @@ public class LatLonGridTile extends TileRenderer.Tile {
     }
 
     public static void beginReadout(Point p, Rectangle view, DrawContext dc) {
-        QuadStripRenderer.beginReadout(p, view, dc);
+        QuadStripRenderer.beginReadout(p, view, dc.getGL());
     }
 
     public static float endReadout(Point p, Rectangle view, DrawContext dc) {
-        ByteBuffer data = QuadStripRenderer.endReadout(p, view, dc);
+        ByteBuffer data = QuadStripRenderer.endReadout(p, view, dc.getGL());
         float f = QuadStripRenderer.byteBufferToFloat(data);
         return f;
     }
@@ -390,7 +391,7 @@ public class LatLonGridTile extends TileRenderer.Tile {
     public void drawTile(DrawContext dc, Product latlon, boolean readoutMode) {
 
         if (isTileCreated()) {
-            myQuadRenderer.drawData(dc, readoutMode);
+            myQuadRenderer.drawData(dc.getGL(), readoutMode);
         }
     }
 

@@ -1,15 +1,11 @@
 package org.wdssii.gui.products.renderers;
 
-import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.DrawContext;
-import java.awt.Color;
 import java.util.ArrayList;
-import java.util.TreeMap;
-import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
@@ -19,19 +15,10 @@ import org.wdssii.datatypes.DataTable.Column;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.renderers.icons.BaseIconAnnotation;
-import org.wdssii.gui.renderers.SymbolFactory;
-import org.wdssii.gui.renderers.SymbolRenderer;
-import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.features.Feature;
-import org.wdssii.xml.iconSetConfig.ImageSymbol;
-import org.wdssii.xml.iconSetConfig.PolygonSymbol;
-import org.wdssii.xml.iconSetConfig.StarSymbol;
-import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
  * Renders a DataTable in a worldwind window

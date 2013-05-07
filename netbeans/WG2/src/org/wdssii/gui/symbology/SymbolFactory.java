@@ -1,6 +1,14 @@
-package org.wdssii.gui.renderers;
+package org.wdssii.gui.symbology;
 
+import org.wdssii.gui.symbology.SymbolGUI;
+import org.wdssii.gui.symbology.PolygonSymbolGUI;
+import org.wdssii.gui.symbology.StarSymbolGUI;
+import org.wdssii.gui.symbology.ImageSymbolGUI;
 import java.util.ArrayList;
+import org.wdssii.gui.renderers.ImageSymbolRenderer;
+import org.wdssii.gui.renderers.PolygonSymbolRenderer;
+import org.wdssii.gui.renderers.StarSymbolRenderer;
+import org.wdssii.gui.renderers.SymbolRenderer;
 import org.wdssii.xml.iconSetConfig.ImageSymbol;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
 import org.wdssii.xml.iconSetConfig.StarSymbol;

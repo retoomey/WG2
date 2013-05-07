@@ -7,8 +7,7 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import javax.media.opengl.GL;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.gui.swing.SwingIconFactory;  // Temp
 import org.wdssii.xml.iconSetConfig.ImageSymbol;
 import org.wdssii.xml.iconSetConfig.Symbol;
 

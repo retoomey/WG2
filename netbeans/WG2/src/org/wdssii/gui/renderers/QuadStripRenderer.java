@@ -1,7 +1,6 @@
-package org.wdssii.gui.products.renderers;
+package org.wdssii.gui.renderers;
 
 import com.sun.opengl.util.BufferUtil;
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
@@ -10,7 +9,6 @@ import java.util.Iterator;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
 
@@ -62,8 +60,8 @@ public class QuadStripRenderer {
      *
      * @param dc Draw context in opengl for drawing our radial set
      */
-    public void draw(DrawContext dc) {
-        drawData(dc, false);
+    public void draw(GL gl) {
+        drawData(gl, false);
     }
 
     public void setBatched(boolean flag) {
@@ -84,7 +82,7 @@ public class QuadStripRenderer {
     /**
      * Begin the readout scissor...static method to wrap drawing lots of stuff
      */
-    public static void beginReadout(Point p, Rectangle view, DrawContext dc) {
+    public static void beginReadout(Point p, Rectangle view, GL gl) {
         // The GLDrawable height isn't always the height of the VISIBLE
         // opengl window.  When using a lightweight widget it's usually
         // bigger.  Heavyweight you could just use the dc.getDrawableHeight
@@ -100,7 +98,6 @@ public class QuadStripRenderer {
         if (ybox < 0) {
             ybox = 0;
         }
-        GL gl = dc.getGL();
         gl.glScissor(xbox, ybox, boxWidth, boxWidth);
         gl.glEnable(GL.GL_SCISSOR_TEST);
         gl.glClearColor(0, 0, 0, 0);  // FIXME pop?
@@ -110,8 +107,7 @@ public class QuadStripRenderer {
     /**
      * End scissor and get the ByteBuffer. Done after a batch of drawing
      */
-    public static ByteBuffer endReadout(Point p, Rectangle view, DrawContext dc) {
-        GL gl = dc.getGL();
+    public static ByteBuffer endReadout(Point p, Rectangle view, GL gl) {
         int fullH = (int) (view.getHeight());
         int y = fullH - p.y - 1;  // Invert Y for openGL...
         ByteBuffer data = BufferUtil.newByteBuffer(4);
@@ -129,11 +125,11 @@ public class QuadStripRenderer {
      * This works when readout is just one quadstriprenderer...otherwise need to
      * use begin and endreadout..
      */
-    public ByteBuffer getReadoutBytes(Point p, Rectangle view, DrawContext dc) {
+    public ByteBuffer getReadoutBytes(Point p, Rectangle view, GL gl) {
 
-        beginReadout(p, view, dc);
-        drawData(dc, true);
-        return endReadout(p, view, dc);
+        beginReadout(p, view, gl);
+        drawData(gl, true);
+        return endReadout(p, view, gl);
     }
 
     public static float byteBufferToFloat(ByteBuffer data) {
@@ -168,10 +164,10 @@ public class QuadStripRenderer {
     /**
      * Get readout as a float value back from colors.
      */
-    public float getReadout(Point p, Rectangle view, DrawContext dc, float missingValue) {
+    public float getReadout(Point p, Rectangle view, GL gl, float missingValue) {
         float readoutValue = missingValue;
         if (canDraw()) {
-            ByteBuffer data = getReadoutBytes(p, view, dc);
+            ByteBuffer data = getReadoutBytes(p, view, gl);
 
             byte d0 = data.get(0);
             byte d1 = data.get(1);
@@ -192,9 +188,8 @@ public class QuadStripRenderer {
      *
      * @param dc Draw context in opengl for drawing our radial set
      */
-    public void drawData(DrawContext dc, boolean readoutMode) {
+    public void drawData(GL gl, boolean readoutMode) {
         if (canDraw()) {
-            GL gl = dc.getGL();
             final boolean b = isBatched;
             try {
                 Object lock1 = verts.getBufferLock();
@@ -312,7 +307,7 @@ public class QuadStripRenderer {
      * Called before beginning modification. Used by cache to optimize data
      * loading
      */
-    void begin() {
+    public void begin() {
         verts.begin();
         colors.begin();
         readout.begin();
@@ -321,7 +316,7 @@ public class QuadStripRenderer {
     /**
      * Called after modification. Used by cache to optimize data loading
      */
-    void end() {
+    public void end() {
         verts.end();
         colors.end();
         readout.end();

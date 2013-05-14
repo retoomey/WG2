@@ -32,6 +32,11 @@ public class ImageSymbolRenderer extends SymbolRenderer {
     private ByteBuffer myBuffer = null;
 
     @Override
+    public int getPointSize() {
+        return s.pointsize;
+    }
+
+    @Override
     public void setSymbol(Symbol symbol) {
         if (symbol instanceof ImageSymbol) {
             s = (ImageSymbol) symbol;
@@ -152,7 +157,7 @@ public class ImageSymbolRenderer extends SymbolRenderer {
             // Remember opengl 'backwards'.. this centers icon, then rotates around that center..
             // then moves to the xoffset, yoffset point
             gl.glTranslatef(s.xoffset, s.yoffset, 0f);
-            
+
             gl.glRotatef(s.phaseangle, 0, 0, 1);
 
             gl.glTranslatef(-w2, -h2, 0f); // Center icon 
@@ -174,14 +179,13 @@ public class ImageSymbolRenderer extends SymbolRenderer {
             gl.glDisable(TEXTURE_TARGET);
             gl.glTranslatef(w2, h2, 0f);
             gl.glRotatef(-s.phaseangle, 0, 0, 1);
+
+            super.render(gl);
             gl.glTranslatef(-s.xoffset, -s.yoffset, 0f);
-
-
         }
     }
 
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
-       
     }
 }

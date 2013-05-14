@@ -3,6 +3,7 @@ package org.wdssii.gui.symbology;
 import javax.swing.JScrollPane;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+import org.wdssii.datatypes.AttributeTable;
 import org.wdssii.gui.SwingGUIPlugInPanel;
 import org.wdssii.xml.iconSetConfig.Symbology;
 
@@ -19,7 +20,12 @@ public abstract class SymbologyGUI extends SwingGUIPlugInPanel {
         public void symbologyChanged();
     }
     
+    /** Symbology object */
     protected Symbology mySymbology = null;
+    
+    /** Symbology has access to attribute table, will this be enough
+     or will it need to be more general such as DataType?*/
+    protected AttributeTable myAttributeTable = null;
     
     public SymbologyGUI() {
         //setupComponents();
@@ -56,8 +62,9 @@ public abstract class SymbologyGUI extends SwingGUIPlugInPanel {
         setLayout(new MigLayout(new LC(), null, null));
     }
 
-    public void useSymbology(Symbology symbology) {
+    public void useSymbology(Symbology symbology, AttributeTable current) {
        mySymbology = symbology;
+       myAttributeTable = current;
     }
 
 }

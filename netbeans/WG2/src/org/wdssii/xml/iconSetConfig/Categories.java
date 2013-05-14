@@ -60,6 +60,10 @@ public class Categories {
         return c;
     }
 
+    public List<Category> getCategoryList(){
+        return list;
+    }
+    
     public Categories() {
     }
 

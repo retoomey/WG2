@@ -12,7 +12,7 @@ import org.wdssii.core.GridVisibleArea;
  * @author lakshman
  *
  */
-public class DataTable extends DataType implements Table2DView {
+public class DataTable extends DataType implements Table2DView, AttributeTable {
    
     /** List of locations gathers from the rows of data */
     private ArrayList<Location> myLocations;
@@ -71,6 +71,15 @@ public class DataTable extends DataType implements Table2DView {
         return false;
     }
 
+    @Override
+    public List<String> getAttributeColumns() {
+        ArrayList<String> list = new ArrayList<String>();
+        for(Column c: myColumns){
+            list.add(c.name);  
+        }
+        return list;
+    }
+
     /** Passed in by builder objects to use to initialize ourselves.
      * This allows us to have final field access from builders.
      */
@@ -80,7 +89,7 @@ public class DataTable extends DataType implements Table2DView {
     };
 
     /** A single column of strings in the DataTable.  Each column has a name and a units */
-    public static class Column {
+    public static class Column implements AttributeColumn {
 
         private final String name;
         private final String unit;
@@ -102,28 +111,34 @@ public class DataTable extends DataType implements Table2DView {
             values.add(value);
         }
 
+        @Override
         public String getName() {
             return name;
         }
 
+        @Override
         public String getUnit() {
             return unit;
         }
 
+        @Override
         public List<String> getValues() {
             return values;
         }
         
+        @Override
         public Iterator getIterator(){
             return values.iterator();
         }
         
         /** Get column value as a string */
+        @Override
         public String getValue(int row){
             return values.get(row);
         }
         
         /** Get column value as a float */
+        @Override
         public float getFloat(int row){
             float v = DataType.MissingData;
             String s = values.get(row);
@@ -135,6 +150,7 @@ public class DataTable extends DataType implements Table2DView {
             return v;
         }
 
+        @Override
         public int getNumRows() {
             return values.size();
         }

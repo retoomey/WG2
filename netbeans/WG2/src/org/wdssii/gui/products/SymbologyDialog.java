@@ -19,6 +19,8 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.datatypes.AttributeTable;
+import org.wdssii.datatypes.DataType;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.SwingGUIPlugInPanel;
 import org.wdssii.gui.symbology.SymbolGUI;
@@ -177,8 +179,17 @@ public class SymbologyDialog extends JDialog implements SymbologyGUIListener {
     }
 
     public void changeOutSymbologyGUI(SymbologyGUI gui){
+        AttributeTable current = null;
+        if (myProduct != null){
+            DataType d = myProduct.getRawDataType();
+            if (d != null){
+                if (d instanceof AttributeTable){
+                    current = (AttributeTable)(d);
+                }
+            }
+        }
         gui.addListener(this);
-        gui.useSymbology(mySymbology);
+        gui.useSymbology(mySymbology, current);
         gui.setupComponents();
         SwingGUIPlugInPanel.install(myGUIHolder, gui);
     }

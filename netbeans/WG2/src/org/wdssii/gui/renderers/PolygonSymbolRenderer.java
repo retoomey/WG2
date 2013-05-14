@@ -16,8 +16,13 @@ import org.wdssii.xml.iconSetConfig.Symbol;
  * @author Robert Toomey
  */
 public class PolygonSymbolRenderer extends SymbolRenderer {
-    
+
     private PolygonSymbol s = null;
+
+    @Override
+    public int getPointSize() {
+        return s.pointsize;
+    }
 
     /**
      * Square -- polygon(gl, polyRadius, 45,4); Diamond -- polygon(gl,
@@ -33,7 +38,7 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
             angle += m;
         }
     }
-    
+
     public static void polygon(Graphics g, Polygon p, double radius, double phase, int points) {
         final double m = 2.0 * Math.PI / points;
         final double pr = Math.toRadians(phase);
@@ -44,7 +49,7 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
             angle += m;
         }
     }
-    
+
     @Override
     public void setSymbol(Symbol symbol) {
         if (symbol instanceof PolygonSymbol) {
@@ -58,7 +63,7 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
      */
     @Override
     public void render(GL gl) {
-        
+
         final double polyRadius = s.pointsize / 2.0;
 
         // Translate icon.   (this could be done outside for speed)
@@ -86,14 +91,15 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
         }
 
         // Translate back.  Wasteful if all icons translate the same
+        super.render(gl);
         gl.glTranslatef((float) -s.xoffset, (float) -s.yoffset, 0);
-        
+
     }
-    
+
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
         if (s != null) {
-            
+
             int size = getIconHeight();
             final double polyRadius = size / 2.0;
             /**
@@ -113,7 +119,7 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
                 g2d.setColor(s.ocolor);
                 g2d.drawPolygon(p);
             }
-            
+
         } else {
             // Humm blank?
         }

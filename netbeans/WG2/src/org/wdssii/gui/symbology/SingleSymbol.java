@@ -3,6 +3,7 @@ package org.wdssii.gui.symbology;
 import javax.swing.JPanel;
 import net.miginfocom.layout.CC;
 import net.miginfocom.swing.MigLayout;
+import org.wdssii.datatypes.AttributeTable;
 import org.wdssii.gui.products.SymbolPanel;
 import org.wdssii.gui.products.SymbolPanel.SymbolPanelListener;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
@@ -67,8 +68,8 @@ public class SingleSymbol extends SymbologyGUI implements SymbolPanelListener {
     }
 
     @Override
-    public void useSymbology(Symbology symbology) {
-        super.useSymbology(symbology);
+    public void useSymbology(Symbology symbology, AttributeTable a) {
+        super.useSymbology(symbology, a);
 
         // If we're using it, make sure it's set to our mode....
         if (mySymbology.use != Symbology.SINGLE) {

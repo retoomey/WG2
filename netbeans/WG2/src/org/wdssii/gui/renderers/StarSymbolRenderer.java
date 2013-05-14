@@ -21,6 +21,11 @@ public class StarSymbolRenderer extends SymbolRenderer {
     private StarSymbol s;
 
     @Override
+    public int getPointSize() {
+        return s.pointsize;
+    }
+
+    @Override
     public void setSymbol(Symbol symbol) {
         if (symbol instanceof StarSymbol) {
             s = (StarSymbol) symbol;
@@ -99,6 +104,7 @@ public class StarSymbolRenderer extends SymbolRenderer {
         gl.glEnd();
 
         // Translate back.  Wasteful if all icons translate the same
+        super.render(gl);
         gl.glTranslatef((float) -s.xoffset, (float) -s.yoffset, 0);
 
     }

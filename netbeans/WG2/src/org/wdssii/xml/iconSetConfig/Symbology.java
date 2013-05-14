@@ -86,12 +86,15 @@ public class Symbology {
         // One step at a time..bleh.. MPing category icons...
         final int SIZE = 20;
 
+        // Use this column for lookup...
+        this.categories.column = "Type_id";
+
         PolygonSymbol newOne = new PolygonSymbol();
         newOne.color = Color.GREEN;
         newOne.ocolor = Color.BLACK;
         newOne.toCircle();
         newOne.pointsize = SIZE - 2;
-        this.categories.addCategory(new Category("dz", newOne));
+        this.categories.addCategory(new Category("DZ", newOne));
 
         newOne = new PolygonSymbol();
         newOne.toTriangle();
@@ -99,14 +102,14 @@ public class Symbology {
         newOne.ocolor = Color.BLACK;
         newOne.osize = 1;
         newOne.pointsize = SIZE + 4;
-        this.categories.addCategory(new Category("ra", newOne));
+        this.categories.addCategory(new Category("RA", newOne));
 
         newOne = new PolygonSymbol();
         newOne.color = new Color(255, 153, 153); // Pinkish
         newOne.ocolor = Color.BLACK;
         newOne.toCircle();
         newOne.pointsize = SIZE - 2;
-        this.categories.addCategory(new Category("fd", newOne));
+        this.categories.addCategory(new Category("FD", newOne));
 
         newOne = new PolygonSymbol();
         newOne.toTriangle();
@@ -114,7 +117,7 @@ public class Symbology {
         newOne.ocolor = Color.BLACK;
         newOne.osize = 1;
         newOne.pointsize = SIZE + 4;
-        this.categories.addCategory(new Category("fr", newOne));
+        this.categories.addCategory(new Category("FR", newOne));
 
         StarSymbol ss = new StarSymbol();
         ss.toAsterisk();
@@ -122,14 +125,14 @@ public class Symbology {
         ss.ocolor = Color.BLACK;
         ss.osize = 1;
         ss.pointsize = SIZE;
-        this.categories.addCategory(new Category("r/s", ss));
+        this.categories.addCategory(new Category("R/S", ss));
 
         newOne = new PolygonSymbol();
         newOne.color = new Color(153, 102, 255); // purple
         newOne.ocolor = Color.BLACK;
         newOne.toCircle();
         newOne.pointsize = SIZE - 2;
-        this.categories.addCategory(new Category("ip", newOne));
+        this.categories.addCategory(new Category("IP", newOne));
 
         newOne = new PolygonSymbol();
         newOne.toSquare();
@@ -137,7 +140,7 @@ public class Symbology {
         newOne.ocolor = Color.BLACK;
         newOne.osize = 1;
         newOne.pointsize = SIZE;
-        this.categories.addCategory(new Category("gr", newOne));
+        this.categories.addCategory(new Category("GR", newOne));
 
         newOne = new PolygonSymbol();
         newOne.toTriangle();
@@ -145,7 +148,7 @@ public class Symbology {
         newOne.ocolor = Color.BLACK;
         newOne.osize = 1;
         newOne.pointsize = SIZE + 4;
-        this.categories.addCategory(new Category("r/ip", newOne));
+        this.categories.addCategory(new Category("R/IP", newOne));
 
         ss = new StarSymbol();
         ss.toAsterisk();
@@ -153,7 +156,7 @@ public class Symbology {
         ss.ocolor = Color.BLACK;
         ss.osize = 1;
         ss.pointsize = SIZE;
-        this.categories.addCategory(new Category("ds", ss));
+        this.categories.addCategory(new Category("DS", ss));
 
         ss = new StarSymbol();
         ss.toAsterisk();
@@ -162,7 +165,7 @@ public class Symbology {
         ss.ocolor = Color.BLACK;
         ss.osize = 1;
         ss.pointsize = SIZE;
-        this.categories.addCategory(new Category("ws", ss));
+        this.categories.addCategory(new Category("WS", ss));
 
         ss = new StarSymbol();
         ss.toAsterisk();
@@ -170,7 +173,7 @@ public class Symbology {
         ss.ocolor = Color.BLACK;
         ss.osize = 1;
         ss.pointsize = SIZE;
-        this.categories.addCategory(new Category("ip/s", ss));
+        this.categories.addCategory(new Category("IP/S", ss));
 
         newOne = new PolygonSymbol();
         newOne.toSquare();
@@ -178,7 +181,7 @@ public class Symbology {
         newOne.ocolor = Color.BLACK;
         newOne.osize = 1;
         newOne.pointsize = SIZE;
-        this.categories.addCategory(new Category("sl", newOne));
+        this.categories.addCategory(new Category("SL", newOne));
 
         /* Default fallback?  Maybe just use the 'single' 
          PolygonSymbol newOne = new PolygonSymbol();

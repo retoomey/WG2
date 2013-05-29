@@ -1,6 +1,7 @@
 package org.wdssii.gui.renderers;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -22,6 +23,17 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
     @Override
     public int getPointSize() {
         return s.pointsize;
+    }
+
+    /**
+     * Return the color for our merging count algorithm. Default is white
+     */
+    @Override
+    public Color getMergedBorderColor() {
+        if (s != null) {
+            return s.color;
+        }
+        return Color.WHITE;
     }
 
     /**

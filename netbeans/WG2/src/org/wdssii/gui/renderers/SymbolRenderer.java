@@ -1,5 +1,6 @@
 package org.wdssii.gui.renderers;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import javax.media.opengl.GL;
@@ -32,9 +33,17 @@ public abstract class SymbolRenderer implements Icon {
 
     public abstract void setSymbol(Symbol symbol);
 
+    /** Return the color for our merging count algorithm.  Default is white */
+    public Color getMergedBorderColor(){
+        return Color.WHITE;
+    }
+    
+    /** Rectangle used for our merging count algorithm */
     public void renderSymbolRectangle(GL gl, SymbolRectangle r){
-         gl.glLineWidth(1);
-         gl.glColor4f(1, 1, 1, .80f);
+         Color c = getMergedBorderColor();
+         
+         gl.glLineWidth(3);
+         gl.glColor4f(c.getRed()/255.0f, c.getGreen()/255.0f, c.getBlue()/255.0f, .80f);
          gl.glEnable(GL.GL_LINE_STIPPLE);
          gl.glLineStipple(1, (short) 0xAAAA);
          gl.glBegin(GL.GL_LINE_LOOP);
@@ -44,6 +53,7 @@ public abstract class SymbolRenderer implements Icon {
          gl.glVertex2d(r.x2, r.y);
          gl.glEnd();
          gl.glDisable(GL.GL_LINE_STIPPLE);
+         gl.glLineWidth(1);
     }
     
     public void render(GL gl) {

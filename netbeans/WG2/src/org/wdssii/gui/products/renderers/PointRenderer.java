@@ -30,6 +30,8 @@ import org.wdssii.xml.iconSetConfig.Symbology;
  * For now this will do: SingleSymbol Category:UniqueValues Might break up more
  * later
  *
+ * FIXME: Need to clean this up...all experimental code right now so it's a mess
+ *
  * @author Robert Toomey
  */
 public class PointRenderer {
@@ -43,6 +45,7 @@ public class PointRenderer {
     private boolean myRefresh = false;
     private Symbology mySymbology = null;
     private TreeMap<String, SymbolRenderer> myCategoryLookup;
+    private TreeMap<String, List<CatLookup>> myGroups;
     /**
      * Toggle from single for all to categories...
      */
@@ -54,6 +57,12 @@ public class PointRenderer {
         }
     }
 
+    public static class CatLookup {
+        int row;
+        Vec4 the3D;
+        Vec4 the2D;
+    }
+    
     public static class Node {
 
         // FIXME: Use a row 'list' for all merged objects..
@@ -140,6 +149,27 @@ public class PointRenderer {
             }
         }
 
+        // Create render groups...we will group by common symbol renderer
+        int row = 0;
+        myGroups = new TreeMap<String, List<CatLookup>>();
+        for (Vec4 at3D : points) {
+            String catKey = "";
+            catKey = getCategory(row, mySymbology);
+
+            // Add this cat key to the collection...
+            List<CatLookup> list = myGroups.get(catKey);
+            if (list == null) {
+                list = new ArrayList<CatLookup>();
+                myGroups.put(catKey, list);
+            }
+            CatLookup c = new CatLookup();
+            c.the3D = at3D;
+            c.row = row;
+            list.add(c);
+            
+            row++;
+        }
+
 // Pre non-opengl first...
         TextRenderer aText = null;
         Font font = new Font("Arial", Font.PLAIN, 14);
@@ -155,7 +185,7 @@ public class PointRenderer {
 
         // Render the normal uncompressed squares ---------------------------
         // Render pass....
-        int row = 0;
+        row = 0;
         if (false) {
             SymbolRenderer.COLOR1 = false;
             for (Vec4 at3D : points) {
@@ -189,125 +219,130 @@ public class PointRenderer {
 
         // Merge tree algorithm.
 
-        // This monster is for a 2 dimension interval tree..
-        IntervalTree<IntervalTree<Node>> theMergeTree = new IntervalTree<IntervalTree<Node>>();
-        row = 0;
-        for (Vec4 at3D : points) {
 
-            // Project into GL to get the rectangle of the actual drawn symbol
-            Vec4 at2D = v.project(at3D);
-            SymbolRenderer item = getRenderer(row, s);
-            SymbolRectangle r = item.getSymbolRectangle((int) at2D.x, (int) at2D.y);
+        for (String category : myGroups.keySet()) {
+            List<CatLookup> theLookup = myGroups.get(category);
+            // This monster is for a 2 dimension interval tree..
+            IntervalTree<IntervalTree<Node>> theMergeTree = new IntervalTree<IntervalTree<Node>>();
+           // row = 0;
+            for(CatLookup cat : theLookup){
+            //for (Vec4 at3D : thePoints) {
 
-            // Initial node information
-            Interval xRange = new Interval(r.x, r.x2);
-            Interval yRange = new Interval(r.y, r.y2);
-            Node new1 = new Node(at2D, row, 1);
-            new1.myCoverage = r;
+                // Project into GL to get the rectangle of the actual drawn symbol
+                Vec4 at2D = v.project(cat.the3D);
+                SymbolRenderer item = getRenderer(cat.row, s);
+                SymbolRectangle r = item.getSymbolRectangle((int) at2D.x, (int) at2D.y);
 
-            boolean hittingRectangles = true;
-            while (hittingRectangles) {  // Gobbling up rectangles
-                hittingRectangles = false;
+                // Initial node information
+                Interval xRange = new Interval(r.x, r.x2);
+                Interval yRange = new Interval(r.y, r.y2);
+                Node new1 = new Node(at2D, cat.row, 1);
+                new1.myCoverage = r;
 
-                List<Interval> xOverlapSet = theMergeTree.getOverlappingIntervals(xRange);
-                if (xOverlapSet.size() > 0) {
-                    // Eat the old ranges into the new rectangle...
-                    for (Interval x : xOverlapSet) {
+                boolean hittingRectangles = true;
+                while (hittingRectangles) {  // Gobbling up rectangles
+                    hittingRectangles = false;
 
-                        IntervalTree<Node> ySet = theMergeTree.get(x);
-                        List<Interval> yOverlapSet = ySet.getOverlappingIntervals(yRange);
+                    List<Interval> xOverlapSet = theMergeTree.getOverlappingIntervals(xRange);
+                    if (xOverlapSet.size() > 0) {
+                        // Eat the old ranges into the new rectangle...
+                        for (Interval x : xOverlapSet) {
 
-                        // Hit x range AND y range
-                        if (yOverlapSet.size() > 0) {
-                            hittingRectangles = true;
+                            IntervalTree<Node> ySet = theMergeTree.get(x);
+                            List<Interval> yOverlapSet = ySet.getOverlappingIntervals(yRange);
 
-                            // Expand rectangle to cover this x range plus ourselves...
-                            r.x = Math.min(r.x, x.getStart());
-                            r.x2 = Math.max(r.x2, x.getEnd());
+                            // Hit x range AND y range
+                            if (yOverlapSet.size() > 0) {
+                                hittingRectangles = true;
 
-                            // For each hit rectangle, increase the hit count...
-                            // Mark the old rectangle for removal.
-                            List<Interval> toDelete = new ArrayList<Interval>();
-                            for (Interval y : yOverlapSet) {
-                                Node data = ySet.get(y);
-                                // New rectangle represents all the data that came before...
-                                new1.myCount += data.myCount;
-                                r.y = Math.min(r.y, y.getStart());
-                                r.y2 = Math.max(r.y2, y.getEnd());
-                                toDelete.add(y);
-                            }
-                            // and then remove old rectangles...
-                            for (Interval i : toDelete) {
-                                ySet.delete(i);
+                                // Expand rectangle to cover this x range plus ourselves...
+                                r.x = Math.min(r.x, x.getStart());
+                                r.x2 = Math.max(r.x2, x.getEnd());
+
+                                // For each hit rectangle, increase the hit count...
+                                // Mark the old rectangle for removal.
+                                List<Interval> toDelete = new ArrayList<Interval>();
+                                for (Interval y : yOverlapSet) {
+                                    Node data = ySet.get(y);
+                                    // New rectangle represents all the data that came before...
+                                    new1.myCount += data.myCount;
+                                    r.y = Math.min(r.y, y.getStart());
+                                    r.y2 = Math.max(r.y2, y.getEnd());
+                                    toDelete.add(y);
+                                }
+                                // and then remove old rectangles...
+                                for (Interval i : toDelete) {
+                                    ySet.delete(i);
+                                }
                             }
                         }
                     }
+
+                    if (hittingRectangles) {
+                        xRange = new Interval(r.x, r.x2);
+                        yRange = new Interval(r.y, r.y2);
+                        at2D = new Vec4((r.x2 + r.x) / 2, (r.y2 + r.y) / 2);
+
+                        new1.thePoint = at2D;
+                        new1.theRow = cat.row;
+                        r.centerx = (int) at2D.x;
+                        r.centery = (int) at2D.y;
+                    }
                 }
 
-                if (hittingRectangles) {
-                    xRange = new Interval(r.x, r.x2);
-                    yRange = new Interval(r.y, r.y2);
-                    at2D = new Vec4((r.x2 + r.x) / 2, (r.y2 + r.y) / 2);
 
-                    new1.thePoint = at2D;
-                    new1.theRow = row;
-                    r.centerx = (int) at2D.x;
-                    r.centery = (int) at2D.y;
+                // Insert the final rectangle....
+                IntervalTree<Node> existing = theMergeTree.get(xRange);
+                if (existing == null) {
+                    existing = new IntervalTree<Node>();
+                    theMergeTree.insert(xRange, existing);
+                }
+                existing.insert(yRange, new1);
+                //  LOG.debug("while done");
+               // row++;
+               // if (row > MAX) {
+                //    break;
+               // }
+            }
+
+
+            // Render pass with interval tree...
+            Iterable<IntervalTree<Node>> XSets = theMergeTree.getValues();
+            int xcount = 0;
+            int ycount = 0;
+            for (IntervalTree<Node> x : XSets) {
+                Iterable<Node> YSet = x.getValues();
+                for (Node y : YSet) {
+                    ycount++;
+                    gl.glTranslated(y.thePoint.x, y.thePoint.y, 0);
+                    SymbolRenderer sr = getRenderer(y.theRow, s);
+                    sr.render(gl);
+
+                    gl.glTranslated(-y.thePoint.x, -y.thePoint.y, 0);
+                    if (y.myCount > 1) {
+                        sr.renderSymbolRectangle(gl, y.myCoverage);
+                    }
+                }
+                xcount++;
+            }
+
+            // Separate label pass if wanted....
+            aText.begin3DRendering();
+            for (IntervalTree<Node> x : XSets) {
+                Iterable<Node> YSet = x.getValues();
+                for (Node y : YSet) {
+                    if (y.myCount > 1) {
+                        int tx = y.myCoverage.x2;
+                        int ty = y.myCoverage.y;
+                        GLUtil.cheezyOutline(aText, Integer.toString(y.myCount), Color.WHITE, Color.BLACK, tx, ty);
+
+                    }
                 }
             }
 
+            aText.end3DRendering();
 
-            // Insert the final rectangle....
-            IntervalTree<Node> existing = theMergeTree.get(xRange);
-            if (existing == null) {
-                existing = new IntervalTree<Node>();
-                theMergeTree.insert(xRange, existing);
-            }
-            existing.insert(yRange, new1);
-            //  LOG.debug("while done");
-            row++;
-            if (row > MAX) {
-                break;
-            }
         }
-
-
-        // Render pass with interval tree...
-        Iterable<IntervalTree<Node>> XSets = theMergeTree.getValues();
-        int xcount = 0;
-        int ycount = 0;
-        for (IntervalTree<Node> x : XSets) {
-            Iterable<Node> YSet = x.getValues();
-            for (Node y : YSet) {
-                ycount++;
-                gl.glTranslated(y.thePoint.x, y.thePoint.y, 0);
-                SymbolRenderer sr = getRenderer(y.theRow, s);
-                sr.render(gl);
-
-                gl.glTranslated(-y.thePoint.x, -y.thePoint.y, 0);
-                if (y.myCount > 1) {
-                    sr.renderSymbolRectangle(gl, y.myCoverage);
-                }
-            }
-            xcount++;
-        }
-
-        // Separate label pass if wanted....
-        aText.begin3DRendering();
-        for (IntervalTree<Node> x : XSets) {
-            Iterable<Node> YSet = x.getValues();
-            for (Node y : YSet) {
-                if (y.myCount > 1) {
-                    int tx = y.myCoverage.x2;
-                    int ty = y.myCoverage.y;
-                    GLUtil.cheezyOutline(aText, Integer.toString(y.myCount), Color.WHITE, Color.BLACK, tx, ty);
-
-                }
-            }
-        }
-
-        aText.end3DRendering();
-
         GLUtil.popOrtho2D(dc);
     }
 // FIXME: should check rectangle with screen and clip out non-visibles...
@@ -345,6 +380,31 @@ public class PointRenderer {
      row++;
 
      }*/
+
+    public String getCategory(int row, Symbology s) {
+        String category = "";
+
+        if (s != null) {
+
+            // Simple single mode...
+            if (s.use == Symbology.SINGLE) {
+                category = "";
+
+                // Category 
+            } else if (s.use == Symbology.CATEGORY_UNIQUE_VALUES) {
+
+                if (myColumn != null) {
+                    category = myColumn.getValue(row);
+                    SymbolRenderer rr = myCategoryLookup.get(category);  // Could be null, it's ok
+                    if (rr == null) {
+                        category = "";
+                    }
+                }
+            }
+        }
+        return category;
+
+    }
 
     public SymbolRenderer getRenderer(int row, Symbology s) {
         SymbolRenderer rr = null;

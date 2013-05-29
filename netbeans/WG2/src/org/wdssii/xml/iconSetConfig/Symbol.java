@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 // This allows List<Symbol> to contain different subclasses
 @XmlRootElement(name = "symbol")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso({PolygonSymbol.class, StarSymbol.class, ImageSymbol.class})
+@XmlSeeAlso({PolygonSymbol.class, StarSymbol.class, ImageSymbol.class, ArrowSymbol.class})
 public class Symbol {
 
     /**

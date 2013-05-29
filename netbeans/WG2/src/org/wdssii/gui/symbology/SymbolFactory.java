@@ -1,25 +1,22 @@
 package org.wdssii.gui.symbology;
 
-import org.wdssii.gui.symbology.SymbolGUI;
-import org.wdssii.gui.symbology.PolygonSymbolGUI;
-import org.wdssii.gui.symbology.StarSymbolGUI;
-import org.wdssii.gui.symbology.ImageSymbolGUI;
 import java.util.ArrayList;
+import org.wdssii.gui.renderers.ArrowSymbolRenderer;
 import org.wdssii.gui.renderers.ImageSymbolRenderer;
 import org.wdssii.gui.renderers.PolygonSymbolRenderer;
 import org.wdssii.gui.renderers.StarSymbolRenderer;
 import org.wdssii.gui.renderers.SymbolRenderer;
+import org.wdssii.xml.iconSetConfig.ArrowSymbol;
 import org.wdssii.xml.iconSetConfig.ImageSymbol;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
 import org.wdssii.xml.iconSetConfig.StarSymbol;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
- * Create a symbol renderer from symbol xml...
- *  Right now just patch directly...should become more general to avoid
- *  adding each time we make a new symbol type.  Then again, probably not
- *  gonna add that many symbol types...
- * 
+ * Create a symbol renderer from symbol xml... Right now just patch
+ * directly...should become more general to avoid adding each time we make a new
+ * symbol type. Then again, probably not gonna add that many symbol types...
+ *
  * @author Robert Toomey
  */
 public class SymbolFactory {
@@ -38,6 +35,9 @@ public class SymbolFactory {
         if (name.equals("ImageSymbol")) {
             r = new ImageSymbolGUI((ImageSymbol) s);
         }
+        if (name.equals("ArrowSymbol")) {
+            r = new ArrowSymbolGUI((ArrowSymbol) s);
+        }
         return r;
     }
 
@@ -55,21 +55,28 @@ public class SymbolFactory {
         if (name.equals("ImageSymbol")) {
             r = new ImageSymbolRenderer();
         }
+        if (name.equals("ArrowSymbol")) {
+            r = new ArrowSymbolRenderer();
+        }
         return r;
     }
-    
-    public static Symbol getSymbolByName(String name, Symbol oldSymbol){
+
+    public static Symbol getSymbolByName(String name, Symbol oldSymbol) {
         Symbol s = null;
-         if (name.equals("Star")) {
+        if (name.equals("Star")) {
             s = new StarSymbol();
         }
         if (name.equals("Polygon")) {
-           s = new PolygonSymbol();
+            s = new PolygonSymbol();
         }
         if (name.equals("Image")) {
             s = new ImageSymbol();
         }
-        if ((s != null) && (oldSymbol != null)){
+        if (name.equals("Arrow")) {
+            s = new ArrowSymbol();
+        }
+        
+        if ((s != null) && (oldSymbol != null)) {
             s.copyFrom(oldSymbol);
         }
         return s;
@@ -83,6 +90,7 @@ public class SymbolFactory {
         list.add("Star");
         list.add("Polygon");
         list.add("Image");
+        list.add("Arrow");
         return list;
     }
 

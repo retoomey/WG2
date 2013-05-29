@@ -8,7 +8,7 @@ package org.wdssii.properties;
 public interface Mementor {
 
 	/** A GUI control has set a property within a memento */
-	public void propertySetByGUI(String name, Memento m);
+	public void propertySetByGUI(Object name, Memento m);
 
 	/**
 	 * Get a new memento copy of our settings. 

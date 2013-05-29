@@ -2,6 +2,8 @@ package org.wdssii.gui.symbology;
 
 import org.wdssii.gui.SwingGUIPlugInPanel;
 import org.wdssii.properties.Memento;
+import org.wdssii.properties.MementoInteger;
+import org.wdssii.properties.MementoString;
 import org.wdssii.properties.Mementor;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
@@ -33,8 +35,10 @@ public abstract class SymbolGUI extends SwingGUIPlugInPanel {
     /**
      * Holds all the flags of StarSymbol
      */
-    public static class SymbolMemento extends Memento {
+    public static class SymbolMemento extends MementoInteger {
 
+        public static final int LAST = 0;
+        
         public SymbolMemento(SymbolMemento m) {
             super(m);
         }
@@ -46,7 +50,7 @@ public abstract class SymbolGUI extends SwingGUIPlugInPanel {
     public abstract class SymbolMementor implements Mementor {
 
         @Override
-        public void propertySetByGUI(String name, Memento m) {
+        public void propertySetByGUI(Object name, Memento m) {
             SymbolGUI.this.symbolChanged();
         }
         //  @Override

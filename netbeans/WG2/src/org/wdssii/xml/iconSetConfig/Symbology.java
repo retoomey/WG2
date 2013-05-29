@@ -96,14 +96,21 @@ public class Symbology {
         newOne.pointsize = SIZE - 2;
         this.categories.addCategory(new Category("DZ", newOne));
 
-        newOne = new PolygonSymbol();
+        ArrowSymbol as = new ArrowSymbol();
+        as.phaseangle = 0;
+        as.color = Color.GREEN;
+        as.ocolor = Color.BLACK;
+        as.pointsize = SIZE+4;
+        this.categories.addCategory(new Category("RA", as));
+        
+        /*newOne = new PolygonSymbol();
         newOne.toTriangle();
         newOne.color = Color.GREEN;
         newOne.ocolor = Color.BLACK;
         newOne.osize = 1;
         newOne.pointsize = SIZE + 4;
         this.categories.addCategory(new Category("RA", newOne));
-
+*/
         newOne = new PolygonSymbol();
         newOne.color = new Color(255, 153, 153); // Pinkish
         newOne.ocolor = Color.BLACK;

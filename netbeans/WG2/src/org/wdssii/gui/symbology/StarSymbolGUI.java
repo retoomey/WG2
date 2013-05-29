@@ -37,12 +37,13 @@ public class StarSymbolGUI extends PointSymbolGUI {
     public static class StarSymbolMemento extends PointSymbolMemento {
 
         // Properties
-        public static final String NUMPOINTS = "numpoints";
-        public static final String LINESIZE = "linesize";
-        public static final String COLOR = "color";
-        public static final String USEOUTLINE = "useoutline";
-        public static final String OCOLOR = "ocolor";
-
+        public static final int NUMPOINTS = PointSymbolMemento.LAST;
+        public static final int LINESIZE = NUMPOINTS+1;
+        public static final int COLOR = LINESIZE+1;
+        public static final int USEOUTLINE = COLOR+1;
+        public static final int OCOLOR = USEOUTLINE+1;
+        public static final int LAST = OCOLOR+1;
+        
         public StarSymbolMemento(StarSymbolMemento m) {
             super(m);
         }
@@ -78,7 +79,7 @@ public class StarSymbolGUI extends PointSymbolGUI {
         }
 
         @Override
-        public void propertySetByGUI(String name, Memento m) {
+        public void propertySetByGUI(Object name, Memento m) {
 
             // Directly modify the StarSymbol object
             Integer v = ((Integer) m.getPropertyValue(StarSymbolMemento.NUMPOINTS));

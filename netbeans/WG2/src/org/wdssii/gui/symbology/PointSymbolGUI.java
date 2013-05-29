@@ -15,10 +15,11 @@ public abstract class PointSymbolGUI extends SymbolGUI {
     public static class PointSymbolMemento extends SymbolMemento {
 
         // Properties
-        public static final String SIZE = "pointsize";
-        public static final String PHASE = "phaseangle";
-        public static final String XOFFSET = "xoffset";
-        public static final String YOFFSET = "yoffset";
+        public static final int SIZE = SymbolMemento.LAST;
+        public static final int PHASE = SIZE + 1;
+        public static final int XOFFSET = PHASE + 1;
+        public static final int YOFFSET = XOFFSET + 1;
+        public static final int LAST = YOFFSET + 1;
 
         public PointSymbolMemento(PointSymbolMemento m) {
             super(m);
@@ -48,7 +49,7 @@ public abstract class PointSymbolGUI extends SymbolGUI {
         }
 
         @Override
-        public void propertySetByGUI(String name, Memento m) {
+        public void propertySetByGUI(Object name, Memento m) {
             Integer v = ((Integer) m.getPropertyValue(PointSymbolMemento.SIZE));
             if (v != null) {
                 mySymbol.pointsize = v.intValue();

@@ -1,13 +1,14 @@
 package org.wdssii.gui.features;
 
 import org.wdssii.properties.Memento;
+import org.wdssii.properties.MementoString;
 
 /**
  * Used by commands/GUI to send changes to a Feature
  * 
  * @author Robert Toomey
  */
-public class FeatureMemento extends Memento {
+public class FeatureMemento extends MementoString {
 	// Properties
 	public final static String VISIBLE = "v";
 	public final static String ONLY = "o";

@@ -18,7 +18,7 @@ import org.wdssii.properties.Mementor;
 public class ColorGUI extends PropertyGUI {
 
     private JButton myBackground;
-    public ColorGUI(Mementor f, String property, String plabel, JComponent dialogRoot) {
+    public ColorGUI(Mementor f, Object property, String plabel, JComponent dialogRoot) {
         super(f, property);
         // Create colored button...
         JButton b = new JButton("     ");
@@ -29,7 +29,7 @@ public class ColorGUI extends PropertyGUI {
         final JComponent myRoot = dialogRoot;
         final String myTitle = "Choose " + plabel;
         final Mementor myF = f;
-        final String myP = property;
+        final Object myP = property;
 
         // Dialog 
         b.addActionListener(new ActionListener() {
@@ -51,7 +51,7 @@ public class ColorGUI extends PropertyGUI {
      * Handle a color button change by changing its property value to the new
      * color
      */
-    private static void jColorButtonChanged(JButton b, JComponent root, String title, Mementor f, String property, ActionEvent evt) {
+    private static void jColorButtonChanged(JButton b, JComponent root, String title, Mementor f, Object property, ActionEvent evt) {
 
         JComponent j = (JComponent) evt.getSource();
         // Bring up color dialog with current color setting....

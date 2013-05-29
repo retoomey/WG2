@@ -33,10 +33,11 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
     public static class PolygonSymbolMemento extends PointSymbolMemento {
 
         // Properties
-        public static final String NUMPOINTS = "numpoints";
-        public static final String COLOR = "color";
-        public static final String USEOUTLINE = "useoutline";
-        public static final String OCOLOR = "ocolor";
+        public static final int NUMPOINTS = PointSymbolMemento.LAST;
+        public static final int COLOR = NUMPOINTS+1;
+        public static final int USEOUTLINE = COLOR+1;
+        public static final int OCOLOR = USEOUTLINE+1;
+        public static final int LAST = OCOLOR+1;
 
         public PolygonSymbolMemento(PolygonSymbolMemento m) {
             super(m);
@@ -80,7 +81,7 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
         }
 
         @Override
-        public void propertySetByGUI(String name, Memento m) {
+        public void propertySetByGUI(Object name, Memento m) {
 
             // Directly modify the StarSymbol object
             Integer v = ((Integer) m.getPropertyValue(PolygonSymbolMemento.NUMPOINTS));
@@ -184,7 +185,7 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
             }
         });
         h.add(b, new CC());
-        
+
         icon = new PolygonSymbolRenderer();
         p = toolbarSymbol();
         p.toCircle();
@@ -199,7 +200,7 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
             }
         });
         h.add(b, new CC());
-        
+
         icon = new PolygonSymbolRenderer();
         p = toolbarSymbol();
         p.toDiamond();
@@ -215,7 +216,7 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
             }
         });
         h.add(b, new CC());
-        
+
         icon = new PolygonSymbolRenderer();
         p = toolbarSymbol();
         p.toTriangle();

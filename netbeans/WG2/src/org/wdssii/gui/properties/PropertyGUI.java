@@ -12,7 +12,7 @@ import org.wdssii.properties.Mementor;
  */
 public class PropertyGUI {
 
-    public PropertyGUI(Mementor f, String p) {
+    public PropertyGUI(Mementor f, Object p) {
         feature = f;
         property = p;
     }
@@ -25,7 +25,7 @@ public class PropertyGUI {
     public JComponent label;
     public JComponent value;
     public JComponent unit;
-    public String property;
+    public Object property;
     public Mementor feature;
 
     /**

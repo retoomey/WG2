@@ -124,7 +124,7 @@ public class Feature implements Mementor {
      * Called when property of our memento is changed
      */
     @Override
-    public void propertySetByGUI(String name, Memento m) {
+    public void propertySetByGUI(Object name, Memento m) {
         FeatureMemento fm = (FeatureMemento) (m); // Check it
         FeatureChangeCommand c = new FeatureChangeCommand(this, fm);
         CommandManager.getInstance().executeCommand(c, true);

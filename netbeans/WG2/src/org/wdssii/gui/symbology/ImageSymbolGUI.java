@@ -44,7 +44,7 @@ public class ImageSymbolGUI extends PointSymbolGUI {
         }
 
         @Override
-        public void propertySetByGUI(String name, Memento m) {
+        public void propertySetByGUI(Object name, Memento m) {
 
             super.propertySetByGUI(name, m);
 

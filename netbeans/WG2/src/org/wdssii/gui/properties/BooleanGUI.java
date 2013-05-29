@@ -15,7 +15,7 @@ import org.wdssii.properties.Mementor;
  */
 public class BooleanGUI extends PropertyGUI {
 
-    public BooleanGUI(Mementor f, String property, String plabel, JComponent dialogRoot) {
+    public BooleanGUI(Mementor f, Object property, String plabel, JComponent dialogRoot) {
         super(f, property);
         // Create checked button...
         JCheckBox b = new JCheckBox();
@@ -24,7 +24,7 @@ public class BooleanGUI extends PropertyGUI {
         // Humm is this ok?
         final JComponent myRoot = dialogRoot;
         final Mementor myF = f;
-        final String myP = property;
+        final Object myP = property;
 
         // Dialog 
         b.addActionListener(new ActionListener() {
@@ -47,7 +47,7 @@ public class BooleanGUI extends PropertyGUI {
      * Handle a color button change by changing its property value to the new
      * color
      */
-    private static void jBooleanButtonChanged(JComponent root, Mementor f, String property, ActionEvent evt) {
+    private static void jBooleanButtonChanged(JComponent root, Mementor f, Object property, ActionEvent evt) {
 
         JComponent j = (JComponent) evt.getSource();
         if (j instanceof JCheckBox) {

@@ -404,7 +404,7 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
                     int row = target.getSelectedRow();
                     if (myProductListTableModel != null) {
                         ProductListTableData d = myProductListTableModel.getDataForRow(row);
-                        LOG.error("BLEH: " + d.datatype);
+                        //LOG.error("BLEH: " + d.datatype);
                        // HistoricalIndex anIndex = mySource.getIndex();
 
                        // if (anIndex != null) {

@@ -1,9 +1,10 @@
 package org.wdssii.gui.symbology;
 
+import java.awt.Color;
 import javax.swing.JPanel;
 import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.datatypes.AttributeTable;
 import org.wdssii.gui.products.SymbolPanel;
 import org.wdssii.gui.products.SymbolPanel.SymbolPanelListener;
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
@@ -31,18 +32,12 @@ public class SingleSymbol extends SymbologyGUI implements SymbolPanelListener {
      */
     @Override
     public void setupComponents() {
-
+        //setBackground(Color.GREEN);
          // Fill the space we have....
-        setLayout(new MigLayout("",
-                 "[grow, fill]",
+        setLayout(new MigLayout("insets 0",
+                "[grow, fill]",
                  "[pref!][grow, fill]"));
-        
-         // Why does this break growing? I can't ever get Mig to work as
-         // expected through functions instead of strings.  Grrrrrr
-        // setLayout(new MigLayout(new LC(),
-        //        new AC().grow(0).fill(0),
-        //        new AC().size("pref!", 0).grow(1).fill(1)));
-
+      
         // Create type panel...
         JPanel typeHolder = new JPanel();
         add(typeHolder, new CC().growX().wrap());
@@ -68,8 +63,8 @@ public class SingleSymbol extends SymbologyGUI implements SymbolPanelListener {
     }
 
     @Override
-    public void useSymbology(Symbology symbology, AttributeTable a) {
-        super.useSymbology(symbology, a);
+    public void useSymbology(Symbology symbology) {
+        super.useSymbology(symbology);
 
         // If we're using it, make sure it's set to our mode....
         if (mySymbology.use != Symbology.SINGLE) {

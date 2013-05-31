@@ -1,30 +1,14 @@
 package org.wdssii.gui.products;
 
 import java.awt.Component;
-import java.awt.Container;
-import java.util.ArrayList;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.JTree;
-import javax.swing.table.DefaultTableModel;
 import net.miginfocom.layout.CC;
-import net.miginfocom.layout.LC;
-import net.miginfocom.swing.MigLayout;
-import org.wdssii.gui.AnimateManager;
-import org.wdssii.gui.products.renderers.DataTableRenderer;
-import org.wdssii.gui.symbology.SymbolFactory;
 import org.wdssii.gui.symbology.SymbolGUI;
+import org.wdssii.gui.symbology.SymbologyGUI.SymbologyGUIListener;
 import org.wdssii.xml.iconSetConfig.StarSymbol;
-import org.wdssii.xml.iconSetConfig.Symbol;
-import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**
  * Dialog for editing a single symbol
@@ -39,22 +23,22 @@ public class SymbolDialog extends JDialog {
     private JButton myOKButton;
     private JPanel myGUIHolder;
     private SymbolGUI myCurrentGUI = null;
-    private SymbologyDialog myCallback = null;
+    private SymbologyGUIListener myCallback = null;
     
     // Because Java is brain-dead with JDialog/JFrame silliness
-    public SymbolDialog(SymbologyDialog callback, Product prod, JFrame owner, Component location, boolean modal, String myMessage) {
+    public SymbolDialog(SymbologyGUIListener callback, Product prod, JFrame owner, Component location, boolean modal, String myMessage) {
 
         super(owner, modal);
         init(callback, prod, location, myMessage);
     }
 
-    public SymbolDialog(SymbologyDialog callback, Product prod, JDialog owner, Component location, boolean modal, String myMessage) {
+    public SymbolDialog(SymbologyGUIListener callback, Product prod, JDialog owner, Component location, boolean modal, String myMessage) {
 
         super(owner, modal);
         init(callback, prod, location, myMessage);
     }
 
-    private void init(SymbologyDialog callback, Product prod, Component location, String myMessage) {
+    private void init(SymbologyGUIListener callback, Product prod, Component location, String myMessage) {
 
         myCallback = callback;
         setTitle("Edit Symbol");

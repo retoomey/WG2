@@ -11,6 +11,8 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
@@ -57,8 +59,11 @@ public class ProductFeatureGUI extends FeatureGUI {
 
     private void setupComponents() {
 
-        setLayout(new MigLayout(new LC(), null, null));
-        JButton export = new JButton("Export...");
+        setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+
+        JPanel exportPanel = new JPanel();
+        //exportPanel.setLayout(new MigLayout(new LC().fill().insetsAll("10"), null, null));
+        JButton export = new JButton("Export ESRI Shp...");
         export.setToolTipText("Export data as ESRI file");
         add(export, new CC());
         export.addActionListener(new ActionListener() {
@@ -67,15 +72,14 @@ public class ProductFeatureGUI extends FeatureGUI {
                 jExportActionPerformed(e);
             }
         });
+        exportPanel.add(export, new CC());
 
-        JButton Test = new JButton("Symbology...");
-        add(Test, new CC());
-        Test.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                jSymbologyAction(e);
-            }
-        });
+        // FIXME: probably should create a tabbed pane that only creates the
+        // swing interface of the selected tab only. (Save memory)
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("Symbology", null, new SymbologyJPanel(myProduct.getProduct(), this, "Symbology"), "Edit symbology");
+        tabs.addTab("Export", null, exportPanel, "Export data functions");
+        add(tabs, new CC().growX().growY());
 
     }
 

@@ -58,11 +58,12 @@ public class PointRenderer {
     }
 
     public static class CatLookup {
+
         int row;
         Vec4 the3D;
         Vec4 the2D;
     }
-    
+
     public static class Node {
 
         // FIXME: Use a row 'list' for all merged objects..
@@ -86,16 +87,10 @@ public class PointRenderer {
         public SymbolRectangle myCoverage;
     }
 
-    /**
-     * Given DrawContext and collection of points and symbology, draw these
-     * points
-     */
-    public void draw(DrawContext dc, Symbology s, List<Vec4> points, AttributeColumn theColumn) {
+    public void checkSymbology(Symbology s) {
 
-        myColumn = theColumn;
         // This is set with a copy from GUI on change, so sync shouldn't be an issue...
         boolean changed = (s != mySymbology);
-
         // Create a fall back default if symbology fails...
         if (myFailSafe == null) {
             Symbol p;
@@ -109,6 +104,7 @@ public class PointRenderer {
             mySingle = myFailSafe;
         }
 
+        // Check if change and update
         if (changed) {
 
             mySymbology = s;
@@ -128,9 +124,9 @@ public class PointRenderer {
 
             // Create a lookup table from key to renderer
             if (s.use == Symbology.CATEGORY_UNIQUE_VALUES) {
-                if (myCategoryLookup == null) {
-                    myCategoryLookup = new TreeMap<String, SymbolRenderer>();
-                }
+                // Create a new lookup when symbology changes...
+                myCategoryLookup = new TreeMap<String, SymbolRenderer>();
+                
                 // Creating every single time....bleh....
                 // Should create a map lookup String -> renderer when
                 // symbology changes.....
@@ -146,11 +142,79 @@ public class PointRenderer {
                     }
                     myCategoryLookup.put(key, r);
                 }
+
             }
         }
+    }
+
+    /**
+     * Given DrawContext and collection of points and symbology, draw these
+     * points
+     */
+    public void draw(DrawContext dc, Symbology s, List<Vec4> points, AttributeColumn theColumn) {
+
+        myColumn = theColumn;
+        checkSymbology(s);
+
+// Pre non-opengl first...
+        TextRenderer aText = null;
+        Font font = new Font("Arial", Font.PLAIN, 14);
+        if (aText == null) {
+            aText = new TextRenderer(font, true, true);
+        }
+        // Draw using the symbols...
+        GL gl = dc.getGL();
+        View v = dc.getView();
+
+        GLUtil.pushOrtho2D(dc);
+        gl.glDisable(GL.GL_DEPTH_TEST);
+        if (mySymbology.merge == Symbology.MERGE_CATEGORIES) {
+            renderMergedCategories(v, gl, aText, points, s);
+        } else {
+            renderNormal(v, gl, aText, points, s);
+        }
+
+        GLUtil.popOrtho2D(dc);
+    }
+
+    /**
+     * Standard render of all points, looking up renderer for each
+     */
+    public void renderNormal(View v, GL gl, TextRenderer text, List<Vec4> points, Symbology s) {
+
+        int row = 0;
+        for (Vec4 at3D : points) {
+            Vec4 at2D = v.project(at3D);
+            SymbolRenderer item = getRenderer(row, s);  // Kinda wasteful for Single mode since renderer same for all...
+
+            gl.glTranslated(at2D.x, at2D.y, 0);
+            item.render(gl);
+            gl.glTranslated(-at2D.x, -at2D.y, 0);
+
+            //text.begin3DRendering();
+            //GLUtil.cheezyOutline(text, Integer.toString(row), Color.WHITE, Color.BLACK, (int) at2D.x + 20, (int) at2D.y - 20);
+            //text.end3DRendering();
+            row++;
+        }
+    }
+
+    /**
+     * Render point data using my merging level of detail algorithm
+     *
+     * @author Robert Toomey
+     * @param v
+     * @param gl
+     * @param text
+     * @param points
+     * @param s
+     */
+    public void renderMergedCategories(View v, GL gl, TextRenderer text, List<Vec4> points, Symbology s) {
+
+        // Merge tree algorithm.
+        int row = 0;
 
         // Create render groups...we will group by common symbol renderer
-        int row = 0;
+        // FIXME: This should be done before render pass probably....
         myGroups = new TreeMap<String, List<CatLookup>>();
         for (Vec4 at3D : points) {
             String catKey = "";
@@ -166,67 +230,17 @@ public class PointRenderer {
             c.the3D = at3D;
             c.row = row;
             list.add(c);
-            
+
             row++;
         }
-
-// Pre non-opengl first...
-        TextRenderer aText = null;
-        Font font = new Font("Arial", Font.PLAIN, 14);
-        if (aText == null) {
-            aText = new TextRenderer(font, true, true);
-        }
-        // Draw using the symbols...
-        GL gl = dc.getGL();
-        View v = dc.getView();
-        GLUtil.pushOrtho2D(dc);
-        gl.glDisable(GL.GL_DEPTH_TEST);
-        int MAX = 1000;
-
-        // Render the normal uncompressed squares ---------------------------
-        // Render pass....
-        row = 0;
-        if (false) {
-            SymbolRenderer.COLOR1 = false;
-            for (Vec4 at3D : points) {
-                // Project 3D world coordinates to 2D view (whenever eye changes)
-                // Could maybe cache these...check for view changing somehow...
-                // FIXME: Possible speed up here
-                Vec4 at2D = v.project(at3D);
-
-                // LOG.debug("translate "+at2D.x, ", "+at2D.y);
-
-                gl.glTranslated(at2D.x, at2D.y, 0);
-                SymbolRenderer item = getRenderer(row, s);
-                SymbolRectangle r = item.getSymbolRectangle((int) at2D.x, (int) at2D.y);
-                LOG.debug("Rectangle " + row + " " + r.x + ", " + r.x2 + ", " + r.y + ", " + r.y2);
-                item.render(gl);
-
-
-                gl.glTranslated(-at2D.x, -at2D.y, 0);
-
-                aText.begin3DRendering();
-                GLUtil.cheezyOutline(aText, Integer.toString(row), Color.WHITE, Color.BLACK, (int) at2D.x + 20, (int) at2D.y - 20);
-                aText.end3DRendering();
-
-                row++;
-                if (row > MAX) {
-                    break;
-                }
-            }
-        }
-        SymbolRenderer.COLOR1 = true;
-
-        // Merge tree algorithm.
-
 
         for (String category : myGroups.keySet()) {
             List<CatLookup> theLookup = myGroups.get(category);
             // This monster is for a 2 dimension interval tree..
             IntervalTree<IntervalTree<Node>> theMergeTree = new IntervalTree<IntervalTree<Node>>();
-           // row = 0;
-            for(CatLookup cat : theLookup){
-            //for (Vec4 at3D : thePoints) {
+            // row = 0;
+            for (CatLookup cat : theLookup) {
+                //for (Vec4 at3D : thePoints) {
 
                 // Project into GL to get the rectangle of the actual drawn symbol
                 Vec4 at2D = v.project(cat.the3D);
@@ -299,12 +313,11 @@ public class PointRenderer {
                 }
                 existing.insert(yRange, new1);
                 //  LOG.debug("while done");
-               // row++;
-               // if (row > MAX) {
+                // row++;
+                // if (row > MAX) {
                 //    break;
-               // }
+                // }
             }
-
 
             // Render pass with interval tree...
             Iterable<IntervalTree<Node>> XSets = theMergeTree.getValues();
@@ -327,59 +340,22 @@ public class PointRenderer {
             }
 
             // Separate label pass if wanted....
-            aText.begin3DRendering();
+            text.begin3DRendering();
             for (IntervalTree<Node> x : XSets) {
                 Iterable<Node> YSet = x.getValues();
                 for (Node y : YSet) {
                     if (y.myCount > 1) {
                         int tx = y.myCoverage.x2;
                         int ty = y.myCoverage.y;
-                        GLUtil.cheezyOutline(aText, Integer.toString(y.myCount), Color.WHITE, Color.BLACK, tx, ty);
+                        GLUtil.cheezyOutline(text, Integer.toString(y.myCount), Color.WHITE, Color.BLACK, tx, ty);
 
                     }
                 }
             }
-
-            aText.end3DRendering();
+            text.end3DRendering();
 
         }
-        GLUtil.popOrtho2D(dc);
     }
-// FIXME: should check rectangle with screen and clip out non-visibles...
-// Get the X range rectangles matching this one...
-          /*  First attempt raw addition of rectangles....
-     * IntervalTree<Node> allSameX = theMergeTree.get(new Interval(r.x, r.x2));
-     if (allSameX == null) {
-     // If we're first, add us....
-     IntervalTree<Node> newYSet = new IntervalTree<Node>();
-     newYSet.insert(new Interval(r.y, r.y2), new Node(at2D, row));
-     theMergeTree.insert(new Interval(r.x, r.x2), newYSet);
-     } else {
-
-     // otherwise add this Y interval to set....
-     Node existing = allSameX.get(new Interval(r.y, r.y2));
-     if (existing != null){
-     exist++;
-     }
-     // FIXME: currently lose the old one here with overlapping rect
-     allSameX.insert(new Interval(r.y, r.y2), new Node(at2D, row));
-     }*/
-// Render pass....
-//int row = 0;
-       /* for (Vec4 at3D : points) {
-     // Project 3D world coordinates to 2D view (whenever eye changes)
-     // Could maybe cache these...check for view changing somehow...
-     // FIXME: Possible speed up here
-     Vec4 at2D = v.project(at3D);
-
-     // LOG.debug("translate "+at2D.x, ", "+at2D.y);
-     gl.glTranslated(at2D.x, at2D.y, 0);
-     SymbolRenderer item = getRenderer(row, s);
-     item.render(gl);
-     gl.glTranslated(-at2D.x, -at2D.y, 0);
-     row++;
-
-     }*/
 
     public String getCategory(int row, Symbology s) {
         String category = "";

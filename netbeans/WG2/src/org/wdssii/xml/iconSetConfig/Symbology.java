@@ -20,6 +20,10 @@ public class Symbology {
      * Single symbol for all
      */
     public static final int SINGLE = 0;
+    
+    public static final int MERGE_NONE = 0;
+    public static final int MERGE_CATEGORIES = 1;
+    
     /**
      * Categories unique values
      */
@@ -59,6 +63,7 @@ public class Symbology {
     public Symbology(Symbology s) {
         this.name = s.name;
         this.use = s.use;
+        this.merge = s.merge;
         if (s.single != null) {
             this.single = new Single(s.single);
         }
@@ -212,6 +217,10 @@ public class Symbology {
      */
     @XmlAttribute(name = "use")
     public int use = SINGLE;
+    
+    @XmlAttribute(name = "merge")
+    public int merge = MERGE_CATEGORIES;
+    
     /**
      * Single based symbology
      */

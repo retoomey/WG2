@@ -61,7 +61,10 @@ public class SymbolPanel implements SymbolGUIListener {
         JComboBox typeList = new JComboBox(list.toArray());
         if (myTypeArea != null) {
             // Use provided space for our type list....
-            myTypeArea.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+           // myTypeArea.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+            myTypeArea.setLayout(new MigLayout("insets 0",
+                "[pref!][grow, fill]",
+                "[pref!]"));
             myTypeArea.add(new JLabel("Symbol Type:"), new CC());
             myTypeArea.add(typeList, new CC().growX().wrap());
         }

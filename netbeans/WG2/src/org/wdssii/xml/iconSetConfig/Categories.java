@@ -39,6 +39,16 @@ public class Categories {
     private boolean validLookup = false;
     private TreeMap<String, Category> myLookup = null;
 
+    private void validateLookup() {
+        if (validLookup == false) {
+            myLookup = new TreeMap<String, Category>();
+            for (Category d : list) {
+                myLookup.put(d.value, d);
+            }
+            validLookup = true;
+        }
+    }
+
     public void addCategory(Category c) {
         if (list == null) {
             list = new ArrayList<Category>();
@@ -49,21 +59,95 @@ public class Categories {
 
     public Category getCategory(String key) {
         Category c = null;
-        if (validLookup == false) {
-            myLookup = new TreeMap<String, Category>();
-            for (Category d : list) {
-                myLookup.put(d.value, d);
-            }
-            validLookup = true;
-        }
+        validateLookup();
         c = myLookup.get(key);
         return c;
     }
 
-    public List<Category> getCategoryList(){
+    public void removeCategories() {
+        validLookup = false;
+        // possible sync?
+        myLookup = null;
+        list = new ArrayList<Category>();
+    }
+
+    /** Swap the contents of two categories */
+    public void swap(Category c, Category d) {
+        List<Symbol> tempS = c.symbols;
+        String tempV = c.value;
+        c.symbols = d.symbols;
+        c.value = d.value;
+        d.symbols = tempS;
+        d.value = tempV;
+    }
+
+    /**
+     * Move a category up...
+     */
+    public boolean moveUpCategory(String key) {
+
+        boolean hit = false;
+        int pos = 0;
+        Category prev = null;
+        for (Category c : list) {
+            if (c.value.equals(key)) {
+                if (pos > 0) {
+                    swap(prev, c);
+                }
+                hit = true;
+                break;
+            }
+            pos++;
+            prev = c;
+        }
+        return hit;
+    }
+
+    /**
+     * Move a category down...
+     */
+    public boolean moveDownCategory(String key) {
+
+        boolean hit = false;
+        int pos = 0;
+        Category prev = null;
+        for (Category c : list) {
+            if (prev != null) {
+                // last loop hit...swap them...
+                swap(prev, c);
+                break;
+            }
+            if (c.value.equals(key)) {
+                prev = c;// We'll replace next pass in loop, if there is one 
+                hit = true;
+            }
+            pos++;
+        }
+        return hit;
+    }
+
+    public boolean removeCategory(String key) {
+        validateLookup();
+        myLookup.remove(key);  // Ok if not there
+        int item = 0;
+
+        for (Category c : list) {
+            if (c.value == key) {
+                list.remove(item);
+                return true;
+            }
+            item++;
+        }
+        return false;
+    }
+
+    public List<Category> getCategoryList() {
+        if (list == null) {
+            list = new ArrayList<Category>();
+        }
         return list;
     }
-    
+
     public Categories() {
     }
 

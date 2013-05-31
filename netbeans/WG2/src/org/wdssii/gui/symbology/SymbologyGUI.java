@@ -23,6 +23,9 @@ public abstract class SymbologyGUI extends SwingGUIPlugInPanel {
     /** Symbology object */
     protected Symbology mySymbology = null;
     
+    /** Symbology backup object (Original before changes are made)*/
+    protected Symbology myBackupSymbology = null;
+    
     /** Symbology has access to attribute table, will this be enough
      or will it need to be more general such as DataType?*/
     protected AttributeTable myAttributeTable = null;
@@ -35,6 +38,7 @@ public abstract class SymbologyGUI extends SwingGUIPlugInPanel {
         myListener = l;  // Just one for now
     }
     
+    /** Use to notify owner panel of change in symbology. */
     public void notifyChanged(){
         if (myListener !=null){
             myListener.symbologyChanged();
@@ -62,9 +66,21 @@ public abstract class SymbologyGUI extends SwingGUIPlugInPanel {
         setLayout(new MigLayout(new LC(), null, null));
     }
 
-    public void useSymbology(Symbology symbology, AttributeTable current) {
+    public void useSymbology(Symbology symbology) {
        mySymbology = symbology;
-       myAttributeTable = current;
+       if (myBackupSymbology == null){  // Backup to first assignment...
+           myBackupSymbology = mySymbology;
+       }
+    }
+    
+    public void useAttributeTable(AttributeTable current){
+        myAttributeTable = current;
+    }
+    
+    public void restoreSymbology(){
+        if (myBackupSymbology != null){
+            mySymbology = myBackupSymbology;
+        }
     }
 
 }

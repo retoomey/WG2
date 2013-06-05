@@ -49,12 +49,17 @@ public class Categories {
         }
     }
 
-    public void addCategory(Category c) {
+    public boolean addCategory(Category c) {
+        boolean wasAdded = false;
         if (list == null) {
             list = new ArrayList<Category>();
         }
-        list.add(c);
-        validLookup = false;
+        if (getCategory(c.value) == null) {
+            list.add(c);
+            myLookup.put(c.value, c);
+            wasAdded = true;
+        }
+        return wasAdded;
     }
 
     public Category getCategory(String key) {
@@ -71,7 +76,9 @@ public class Categories {
         list = new ArrayList<Category>();
     }
 
-    /** Swap the contents of two categories */
+    /**
+     * Swap the contents of two categories
+     */
     public void swap(Category c, Category d) {
         List<Symbol> tempS = c.symbols;
         String tempV = c.value;
@@ -86,21 +93,21 @@ public class Categories {
      */
     public boolean moveUpCategory(String key) {
 
-        boolean hit = false;
+        boolean moved = false;
         int pos = 0;
         Category prev = null;
         for (Category c : list) {
             if (c.value.equals(key)) {
                 if (pos > 0) {
                     swap(prev, c);
+                    moved = true;
                 }
-                hit = true;
                 break;
             }
             pos++;
             prev = c;
         }
-        return hit;
+        return moved;
     }
 
     /**
@@ -108,22 +115,22 @@ public class Categories {
      */
     public boolean moveDownCategory(String key) {
 
-        boolean hit = false;
+        boolean moved = false;
         int pos = 0;
         Category prev = null;
         for (Category c : list) {
             if (prev != null) {
                 // last loop hit...swap them...
                 swap(prev, c);
+                moved = true;
                 break;
             }
             if (c.value.equals(key)) {
                 prev = c;// We'll replace next pass in loop, if there is one 
-                hit = true;
             }
             pos++;
         }
-        return hit;
+        return moved;
     }
 
     public boolean removeCategory(String key) {

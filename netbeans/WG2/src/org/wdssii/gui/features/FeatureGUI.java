@@ -9,4 +9,7 @@ import org.wdssii.gui.SwingGUIPlugInPanel;
  */
 public class FeatureGUI extends SwingGUIPlugInPanel {
     // Just marks top of the tree...
+    
+    /** Message sent by feature to GUI */
+    public void sendMessage(String message){};
 }

@@ -19,6 +19,7 @@ import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.renderers.icons.BaseIconAnnotation;
 import org.wdssii.gui.features.Feature;
+import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**
  * Renders a DataTable in a worldwind window
@@ -89,8 +90,9 @@ public class DataTableRenderer extends ProductRenderer {
 
         ArrayList<Location> locations = aDataTable.getLocations();
 
-        // hack to try category off of mping...
-        Column symbolColumn = aDataTable.getColumnByName("Type_id");
+        Symbology s = p.getSymbology();
+        String column = s.getCategories().column;        
+        Column symbolColumn = aDataTable.getColumnByName(column);
         //  TreeMap<String, SymbolRenderer> myCategoryRenderer = new TreeMap<String, SymbolRenderer>();
         // We'd set up from xml, creating a symbol renderer per class
         // "hail" --> StarSymbolRenderer...
@@ -117,7 +119,7 @@ public class DataTableRenderer extends ProductRenderer {
             refreshRenderers = false;
         }
 
-        myPointRenderer.draw(dc, p.getSymbology(), myWorldPoints, symbolColumn);
+        myPointRenderer.draw(dc, s, myWorldPoints, symbolColumn);
     }
 
     /**

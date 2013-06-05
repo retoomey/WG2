@@ -4,6 +4,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.wdssii.geom.Location;
 import org.wdssii.core.GridVisibleArea;
@@ -80,6 +82,16 @@ public class DataTable extends DataType implements Table2DView, AttributeTable {
         return list;
     }
 
+    @Override
+    public AttributeColumn getAttributeColumn(String key){
+        for(Column c:myColumns){
+            if (c.name.equals(key)){
+                return c;
+            }
+        }
+        return null;
+    }
+    
     /** Passed in by builder objects to use to initialize ourselves.
      * This allows us to have final field access from builders.
      */
@@ -153,6 +165,20 @@ public class DataTable extends DataType implements Table2DView, AttributeTable {
         @Override
         public int getNumRows() {
             return values.size();
+        }
+        
+        // Iterate through our values...keeping statistics...
+        public Map<String, Integer> summerize(){
+            TreeMap<String, Integer> myLookup = new TreeMap<String, Integer>();
+            for(String v:values){
+                Integer data = myLookup.get(v);
+                if (data != null){
+                    myLookup.put(v, data+1);
+                }else{
+                    myLookup.put(v, 1);
+                }
+            }
+            return myLookup;
         }
     }
 

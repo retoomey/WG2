@@ -348,4 +348,10 @@ public class Feature implements Mementor {
         }
         return myControls;
     }
+    
+    public void sendMessage(String message){
+        if (myControls != null){
+            myControls.sendMessage(message);
+        }
+    }
 }

@@ -18,12 +18,6 @@ import org.wdssii.xml.Util;
 @XmlRootElement(name = "polygonsymbol")
 public class PolygonSymbol extends PointSymbol {
 
-    /**
-     * Base color of the symbol
-     */
-    @XmlJavaTypeAdapter(Util.ColorAdapter.class) // Use ColorAdapter
-    @XmlAttribute(name = "color")
-    public Color color = Color.BLUE;
     public boolean useOutline = true;
     /**
      * Outline color of the symbol
@@ -79,7 +73,6 @@ public class PolygonSymbol extends PointSymbol {
         super.copyFrom(s);
         if (s instanceof PolygonSymbol) {
             PolygonSymbol o = (PolygonSymbol) s;
-            color = o.color;
             useOutline = o.useOutline;
             ocolor = o.ocolor;
             numpoints = o.numpoints;

@@ -36,6 +36,7 @@ import org.wdssii.xml.iconSetConfig.Symbology;
  */
 public class PointRenderer {
 
+    public final static String NO_CATEGORY = "no_category";
     private final static Logger LOG = LoggerFactory.getLogger(PointRenderer.class);
     private List<SymbolRenderer> myRenderers = null;
     private SymbolRenderer myFailSafe = null;
@@ -45,6 +46,7 @@ public class PointRenderer {
     private boolean myRefresh = false;
     private Symbology mySymbology = null;
     private TreeMap<String, SymbolRenderer> myCategoryLookup;
+    private List<String> myCategoryKeys;
     private TreeMap<String, List<CatLookup>> myGroups;
     /**
      * Toggle from single for all to categories...
@@ -59,9 +61,12 @@ public class PointRenderer {
 
     public static class CatLookup {
 
-        int row;
-        Vec4 the3D;
-        Vec4 the2D;
+        public CatLookup(int r, Vec4 a3d) {
+            row = r;
+            the3D = a3d;
+        }
+        final int row;
+        final Vec4 the3D;
     }
 
     public static class Node {
@@ -91,6 +96,7 @@ public class PointRenderer {
 
         // This is set with a copy from GUI on change, so sync shouldn't be an issue...
         boolean changed = (s != mySymbology);
+        LOG.debug("SYMBOLOGY CHANGED "+changed);
         // Create a fall back default if symbology fails...
         if (myFailSafe == null) {
             Symbol p;
@@ -110,6 +116,8 @@ public class PointRenderer {
             mySymbology = s;
 
             if (s != null) {
+                myCategoryKeys = new ArrayList<String>();
+                myCategoryKeys.add(NO_CATEGORY);
                 // Read single from Symbology
                 List<Symbol> aList = mySymbology.getSingle().symbols;
                 if ((aList != null) && (!aList.isEmpty())) {
@@ -124,9 +132,11 @@ public class PointRenderer {
 
             // Create a lookup table from key to renderer
             if (s.use == Symbology.CATEGORY_UNIQUE_VALUES) {
+                       LOG.debug("SYMBOLOGY UNIQUE "+changed);
                 // Create a new lookup when symbology changes...
                 myCategoryLookup = new TreeMap<String, SymbolRenderer>();
-                
+                myCategoryKeys = new ArrayList<String>();
+                myCategoryKeys.add(NO_CATEGORY);
                 // Creating every single time....bleh....
                 // Should create a map lookup String -> renderer when
                 // symbology changes.....
@@ -134,6 +144,7 @@ public class PointRenderer {
                 String key;
                 for (Category c : cats) {
                     key = c.value;
+                    myCategoryKeys.add(key);
                     SymbolRenderer r = null;
                     Symbol aSymbol = c.symbols.get(0);  // bleh
                     if (aSymbol != null) {
@@ -217,7 +228,7 @@ public class PointRenderer {
         // FIXME: This should be done before render pass probably....
         myGroups = new TreeMap<String, List<CatLookup>>();
         for (Vec4 at3D : points) {
-            String catKey = "";
+            String catKey = NO_CATEGORY;
             catKey = getCategory(row, mySymbology);
 
             // Add this cat key to the collection...
@@ -226,145 +237,150 @@ public class PointRenderer {
                 list = new ArrayList<CatLookup>();
                 myGroups.put(catKey, list);
             }
-            CatLookup c = new CatLookup();
-            c.the3D = at3D;
-            c.row = row;
+            CatLookup c = new CatLookup(row, at3D);
             list.add(c);
 
             row++;
         }
 
-        for (String category : myGroups.keySet()) {
-            List<CatLookup> theLookup = myGroups.get(category);
-            // This monster is for a 2 dimension interval tree..
-            IntervalTree<IntervalTree<Node>> theMergeTree = new IntervalTree<IntervalTree<Node>>();
-            // row = 0;
-            for (CatLookup cat : theLookup) {
-                //for (Vec4 at3D : thePoints) {
+        //for (String category : myGroups.keySet()) {
+        try {
+            for (String category : myCategoryKeys) {
+                List<CatLookup> theLookup = myGroups.get(category);
+                // There could be no symbols in this category...
+                if (theLookup != null) {
+                    // This monster is for a 2 dimension interval tree..
+                    IntervalTree<IntervalTree<Node>> theMergeTree = new IntervalTree<IntervalTree<Node>>();
+                    // row = 0;
+                    for (CatLookup cat : theLookup) {
+                        //for (Vec4 at3D : thePoints) {
 
-                // Project into GL to get the rectangle of the actual drawn symbol
-                Vec4 at2D = v.project(cat.the3D);
-                SymbolRenderer item = getRenderer(cat.row, s);
-                SymbolRectangle r = item.getSymbolRectangle((int) at2D.x, (int) at2D.y);
+                        // Project into GL to get the rectangle of the actual drawn symbol
+                        Vec4 at2D = v.project(cat.the3D);
+                        SymbolRenderer item = getRenderer(cat.row, s);
+                        SymbolRectangle r = item.getSymbolRectangle((int) at2D.x, (int) at2D.y);
 
-                // Initial node information
-                Interval xRange = new Interval(r.x, r.x2);
-                Interval yRange = new Interval(r.y, r.y2);
-                Node new1 = new Node(at2D, cat.row, 1);
-                new1.myCoverage = r;
+                        // Initial node information
+                        Interval xRange = new Interval(r.x, r.x2);
+                        Interval yRange = new Interval(r.y, r.y2);
+                        Node new1 = new Node(at2D, cat.row, 1);
+                        new1.myCoverage = r;
 
-                boolean hittingRectangles = true;
-                while (hittingRectangles) {  // Gobbling up rectangles
-                    hittingRectangles = false;
+                        boolean hittingRectangles = true;
+                        while (hittingRectangles) {  // Gobbling up rectangles
+                            hittingRectangles = false;
 
-                    List<Interval> xOverlapSet = theMergeTree.getOverlappingIntervals(xRange);
-                    if (xOverlapSet.size() > 0) {
-                        // Eat the old ranges into the new rectangle...
-                        for (Interval x : xOverlapSet) {
+                            List<Interval> xOverlapSet = theMergeTree.getOverlappingIntervals(xRange);
+                            if (xOverlapSet.size() > 0) {
+                                // Eat the old ranges into the new rectangle...
+                                for (Interval x : xOverlapSet) {
 
-                            IntervalTree<Node> ySet = theMergeTree.get(x);
-                            List<Interval> yOverlapSet = ySet.getOverlappingIntervals(yRange);
+                                    IntervalTree<Node> ySet = theMergeTree.get(x);
+                                    List<Interval> yOverlapSet = ySet.getOverlappingIntervals(yRange);
 
-                            // Hit x range AND y range
-                            if (yOverlapSet.size() > 0) {
-                                hittingRectangles = true;
+                                    // Hit x range AND y range
+                                    if (yOverlapSet.size() > 0) {
+                                        hittingRectangles = true;
 
-                                // Expand rectangle to cover this x range plus ourselves...
-                                r.x = Math.min(r.x, x.getStart());
-                                r.x2 = Math.max(r.x2, x.getEnd());
+                                        // Expand rectangle to cover this x range plus ourselves...
+                                        r.x = Math.min(r.x, x.getStart());
+                                        r.x2 = Math.max(r.x2, x.getEnd());
 
-                                // For each hit rectangle, increase the hit count...
-                                // Mark the old rectangle for removal.
-                                List<Interval> toDelete = new ArrayList<Interval>();
-                                for (Interval y : yOverlapSet) {
-                                    Node data = ySet.get(y);
-                                    // New rectangle represents all the data that came before...
-                                    new1.myCount += data.myCount;
-                                    r.y = Math.min(r.y, y.getStart());
-                                    r.y2 = Math.max(r.y2, y.getEnd());
-                                    toDelete.add(y);
+                                        // For each hit rectangle, increase the hit count...
+                                        // Mark the old rectangle for removal.
+                                        List<Interval> toDelete = new ArrayList<Interval>();
+                                        for (Interval y : yOverlapSet) {
+                                            Node data = ySet.get(y);
+                                            // New rectangle represents all the data that came before...
+                                            new1.myCount += data.myCount;
+                                            r.y = Math.min(r.y, y.getStart());
+                                            r.y2 = Math.max(r.y2, y.getEnd());
+                                            toDelete.add(y);
+                                        }
+                                        // and then remove old rectangles...
+                                        for (Interval i : toDelete) {
+                                            ySet.delete(i);
+                                        }
+                                    }
                                 }
-                                // and then remove old rectangles...
-                                for (Interval i : toDelete) {
-                                    ySet.delete(i);
-                                }
+                            }
+
+                            if (hittingRectangles) {
+                                xRange = new Interval(r.x, r.x2);
+                                yRange = new Interval(r.y, r.y2);
+                                at2D = new Vec4((r.x2 + r.x) / 2, (r.y2 + r.y) / 2);
+
+                                new1.thePoint = at2D;
+                                new1.theRow = cat.row;
+                                r.centerx = (int) at2D.x;
+                                r.centery = (int) at2D.y;
+                            }
+                        }
+
+
+                        // Insert the final rectangle....
+                        IntervalTree<Node> existing = theMergeTree.get(xRange);
+                        if (existing == null) {
+                            existing = new IntervalTree<Node>();
+                            theMergeTree.insert(xRange, existing);
+                        }
+                        existing.insert(yRange, new1);
+                        //  LOG.debug("while done");
+                        // row++;
+                        // if (row > MAX) {
+                        //    break;
+                        // }
+                    }
+
+                    // Render pass with interval tree...
+                    Iterable<IntervalTree<Node>> XSets = theMergeTree.getValues();
+                    int xcount = 0;
+                    int ycount = 0;
+                    for (IntervalTree<Node> x : XSets) {
+                        Iterable<Node> YSet = x.getValues();
+                        for (Node y : YSet) {
+                            ycount++;
+                            gl.glTranslated(y.thePoint.x, y.thePoint.y, 0);
+                            SymbolRenderer sr = getRenderer(y.theRow, s);
+                            sr.render(gl);
+
+                            gl.glTranslated(-y.thePoint.x, -y.thePoint.y, 0);
+                            if (y.myCount > 1) {
+                                sr.renderSymbolRectangle(gl, y.myCoverage);
+                            }
+                        }
+                        xcount++;
+                    }
+
+                    // Separate label pass if wanted....
+                    text.begin3DRendering();
+                    for (IntervalTree<Node> x : XSets) {
+                        Iterable<Node> YSet = x.getValues();
+                        for (Node y : YSet) {
+                            if (y.myCount > 1) {
+                                int tx = y.myCoverage.x2;
+                                int ty = y.myCoverage.y;
+                                GLUtil.cheezyOutline(text, Integer.toString(y.myCount), Color.WHITE, Color.BLACK, tx, ty);
+
                             }
                         }
                     }
-
-                    if (hittingRectangles) {
-                        xRange = new Interval(r.x, r.x2);
-                        yRange = new Interval(r.y, r.y2);
-                        at2D = new Vec4((r.x2 + r.x) / 2, (r.y2 + r.y) / 2);
-
-                        new1.thePoint = at2D;
-                        new1.theRow = cat.row;
-                        r.centerx = (int) at2D.x;
-                        r.centery = (int) at2D.y;
-                    }
-                }
-
-
-                // Insert the final rectangle....
-                IntervalTree<Node> existing = theMergeTree.get(xRange);
-                if (existing == null) {
-                    existing = new IntervalTree<Node>();
-                    theMergeTree.insert(xRange, existing);
-                }
-                existing.insert(yRange, new1);
-                //  LOG.debug("while done");
-                // row++;
-                // if (row > MAX) {
-                //    break;
-                // }
-            }
-
-            // Render pass with interval tree...
-            Iterable<IntervalTree<Node>> XSets = theMergeTree.getValues();
-            int xcount = 0;
-            int ycount = 0;
-            for (IntervalTree<Node> x : XSets) {
-                Iterable<Node> YSet = x.getValues();
-                for (Node y : YSet) {
-                    ycount++;
-                    gl.glTranslated(y.thePoint.x, y.thePoint.y, 0);
-                    SymbolRenderer sr = getRenderer(y.theRow, s);
-                    sr.render(gl);
-
-                    gl.glTranslated(-y.thePoint.x, -y.thePoint.y, 0);
-                    if (y.myCount > 1) {
-                        sr.renderSymbolRectangle(gl, y.myCoverage);
-                    }
-                }
-                xcount++;
-            }
-
-            // Separate label pass if wanted....
-            text.begin3DRendering();
-            for (IntervalTree<Node> x : XSets) {
-                Iterable<Node> YSet = x.getValues();
-                for (Node y : YSet) {
-                    if (y.myCount > 1) {
-                        int tx = y.myCoverage.x2;
-                        int ty = y.myCoverage.y;
-                        GLUtil.cheezyOutline(text, Integer.toString(y.myCount), Color.WHITE, Color.BLACK, tx, ty);
-
-                    }
+                    text.end3DRendering();
                 }
             }
-            text.end3DRendering();
-
+        } catch (Exception e) {
+            LOG.debug("Render error during interval tree point merger..." + e.toString());
         }
     }
 
     public String getCategory(int row, Symbology s) {
-        String category = "";
+        String category = NO_CATEGORY;
 
         if (s != null) {
 
             // Simple single mode...
             if (s.use == Symbology.SINGLE) {
-                category = "";
+                category = NO_CATEGORY;
 
                 // Category 
             } else if (s.use == Symbology.CATEGORY_UNIQUE_VALUES) {
@@ -373,7 +389,7 @@ public class PointRenderer {
                     category = myColumn.getValue(row);
                     SymbolRenderer rr = myCategoryLookup.get(category);  // Could be null, it's ok
                     if (rr == null) {
-                        category = "";
+                        category = NO_CATEGORY;
                     }
                 }
             }

@@ -33,20 +33,20 @@ public class SymbologyJPanel extends JPanel implements SymbologyGUIListener {
     private final static Logger LOG = LoggerFactory.getLogger(SymbologyJPanel.class);
     private JPanel myPanel = null;
     private JPanel myGUIHolder;
-    private SymbolGUI myCurrentGUI = null;
-    private Product myProduct = null;
+    private SymbologyGUI myCurrentGUI = null;
+    private ProductFeature myProductFeature = null;
     private Symbology mySymbology = null;
     private JCheckBox myMergeButton;
     private JComboBox myList;
 
-    public SymbologyJPanel(Product prod, Component location, String myMessage) {
+    public SymbologyJPanel(ProductFeature prod, Component location, String myMessage) {
         init(prod, location, myMessage);
     }
 
-    private void init(Product prod, Component location, String myMessage) {
+    private void init(ProductFeature prod, Component location, String myMessage) {
         //setBackground(Color.BLUE);
-        myProduct = prod;
-        Symbology orgSymbology = prod.getSymbology();
+        myProductFeature = prod;
+        Symbology orgSymbology = prod.getProduct().getSymbology();
         // Deep copy it to avoid having to synchronize
         mySymbology = new Symbology(orgSymbology);
 
@@ -90,7 +90,7 @@ public class SymbologyJPanel extends JPanel implements SymbologyGUIListener {
         // Create the south button panel
         //JPanel buttonPanel = new JPanel();
         //buttonPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-      //  JCheckBox button = new JCheckBox("Live");  // This will be global I think...
+        //  JCheckBox button = new JCheckBox("Live");  // This will be global I think...
         //buttonPanel.add(button, new CC().flowX());
         myMergeButton = new JCheckBox("Merge Points");
         myMergeButton.setToolTipText("Level of detail merge common points on screen into one.");
@@ -116,9 +116,11 @@ public class SymbologyJPanel extends JPanel implements SymbologyGUIListener {
     }
 
     public void changeOutSymbologyGUI(SymbologyGUI gui) {
+
+        // Get the data table for this product, if any...
         AttributeTable current = null;
-        if (myProduct != null) {
-            DataType d = myProduct.getRawDataType();
+        if (myProductFeature != null) {
+            DataType d = myProductFeature.getProduct().getRawDataType();
             if (d != null) {
                 if (d instanceof AttributeTable) {
                     current = (AttributeTable) (d);
@@ -134,20 +136,43 @@ public class SymbologyJPanel extends JPanel implements SymbologyGUIListener {
         if (myList != null) {
             // Select the string matching the symbology display name...
             String name = gui.getDisplayName();
-            myList.setSelectedItem(name);          
+            myList.setSelectedItem(name);
         }
         gui.setupComponents();
 
         SwingGUIPlugInPanel.install(myGUIHolder, gui);
+        myCurrentGUI = gui;
     }
 
     @Override
     public void symbologyChanged() {
         final Symbology symbology = new Symbology(mySymbology);  //Copy it AGAIN
-        myProduct.setSymbology(symbology);
+        myProductFeature.getProduct().setSymbology(symbology);
         if (myMergeButton != null) {
             myMergeButton.setSelected(mySymbology.merge == Symbology.MERGE_CATEGORIES);
         }
         AnimateManager.updateDuringRender(); // bleh
+    }
+
+    /**
+     * Check for actual product in feature to have changed and update
+     * accordingly.
+     */
+    public void updateProduct() {
+
+        // Update the attribute table of the GUI subpanel...
+        if (myCurrentGUI != null) {
+            // Get the data table for this product, if any...
+            AttributeTable current = null;
+            if (myProductFeature != null) {
+                DataType d = myProductFeature.getProduct().getRawDataType();
+                if (d != null) {
+                    if (d instanceof AttributeTable) {
+                        current = (AttributeTable) (d);
+                    }
+                }
+            }
+            myCurrentGUI.useAttributeTable(current);
+        }
     }
 }

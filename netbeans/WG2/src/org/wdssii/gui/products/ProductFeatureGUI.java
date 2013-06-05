@@ -33,11 +33,13 @@ import org.wdssii.gui.swing.ProgressDialog;
 public class ProductFeatureGUI extends FeatureGUI {
 
     private final static Logger LOG = LoggerFactory.getLogger(ProductFeatureGUI.class);
-    private ProductFeature myProduct;
+    private ProductFeature myProductFeature;
+    private SymbologyJPanel mySymbologyPanel;
+    
     private JComponent myParent = null;
 
     public ProductFeatureGUI(ProductFeature p) {
-        myProduct = p;
+        myProductFeature = p;
         setupComponents();
     }
 
@@ -45,6 +47,15 @@ public class ProductFeatureGUI extends FeatureGUI {
     public void updateGUI() {
     }
 
+    @Override
+    public void sendMessage(String message){
+        if (message.equals("product")){
+            if (mySymbologyPanel != null){
+                mySymbologyPanel.updateProduct();
+            }
+        }
+    }
+     
     @Override
     public void activateGUI(JComponent parent) {
         parent.setLayout(new java.awt.BorderLayout());
@@ -77,20 +88,11 @@ public class ProductFeatureGUI extends FeatureGUI {
         // FIXME: probably should create a tabbed pane that only creates the
         // swing interface of the selected tab only. (Save memory)
         JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("Symbology", null, new SymbologyJPanel(myProduct.getProduct(), this, "Symbology"), "Edit symbology");
+        mySymbologyPanel = new SymbologyJPanel(myProductFeature, this, "Symbology");
+        tabs.addTab("Symbology", null, mySymbologyPanel, "Edit symbology");
         tabs.addTab("Export", null, exportPanel, "Export data functions");
         add(tabs, new CC().growX().growY());
 
-    }
-
-    public void jSymbologyAction(ActionEvent e) {
-        Component something = (Component) SwingUtilities.getRoot(this);
-        if (something instanceof JDialog) {
-            new SymbologyDialog(myProduct.getProduct(), (JDialog) something, this, true, "Symbology");
-        } else {
-            // Assume JFrame....
-            new SymbologyDialog(myProduct.getProduct(), (JFrame) something, this, true, "Symbology");
-        }
     }
 
     public static class ProgressDialogJobMonitor implements WdssiiJob.WdssiiJobMonitor {
@@ -224,8 +226,8 @@ public class ProductFeatureGUI extends FeatureGUI {
                 // Bim's format....
                 URL aURL = file.toURI().toURL();
                 //  LOG.debug("Would try to write to " + aURL.toString());
-                if (myProduct != null) {
-                    DataType d = myProduct.getLoadedDatatype();
+                if (myProductFeature != null) {
+                    DataType d = myProductFeature.getLoadedDatatype();
                     if (d != null) {
                         LOG.debug("Create progress monitor ");
                         // ProgressMonitor m = new ProgressMonitor(this, "Test", "GOOP", 0, 1000);

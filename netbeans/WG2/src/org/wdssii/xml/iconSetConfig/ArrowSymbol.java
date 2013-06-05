@@ -18,12 +18,6 @@ import org.wdssii.xml.Util;
 @XmlRootElement(name = "arrowsymbol")
 public class ArrowSymbol extends PointSymbol {
 
-    /**
-     * Base color of the symbol
-     */
-    @XmlJavaTypeAdapter(Util.ColorAdapter.class) // Use ColorAdapter
-    @XmlAttribute(name = "color")
-    public Color color = Color.BLUE;
     public boolean useOutline = true;
     /**
      * Outline color of the symbol

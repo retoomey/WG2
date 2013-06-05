@@ -19,15 +19,6 @@ import org.wdssii.xml.Util;
 public class StarSymbol extends PointSymbol {
 
     /**
-     * Base color of the symbol
-     */
-    @XmlJavaTypeAdapter(Util.ColorAdapter.class) // Use ColorAdapter
-    @XmlAttribute(name = "color")
-    /**
-     * Fill color of the star
-     */
-    public Color color = Color.BLUE;
-    /**
      * Line size for drawing star
      */
     public int lsize = 1;

@@ -23,19 +23,19 @@ public class SymbologyDialog extends JDialog {
     private JButton myOKButton;
 
     // Because Java is brain-dead with JDialog/JFrame silliness
-    public SymbologyDialog(Product prod, JFrame owner, Component location, boolean modal, String myMessage) {
+    public SymbologyDialog(ProductFeature prod, JFrame owner, Component location, boolean modal, String myMessage) {
 
         super(owner, modal);
         init(prod, location, myMessage);
     }
 
-    public SymbologyDialog(Product prod, JDialog owner, Component location, boolean modal, String myMessage) {
+    public SymbologyDialog(ProductFeature prod, JDialog owner, Component location, boolean modal, String myMessage) {
 
         super(owner, modal);
         init(prod, location, myMessage);
     }
 
-    private void init(Product prod, Component location, String myMessage) {
+    private void init(ProductFeature prod, Component location, String myMessage) {
 
         setTitle("Symbology");
         Container content = getContentPane();

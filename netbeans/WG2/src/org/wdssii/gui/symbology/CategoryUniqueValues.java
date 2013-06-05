@@ -12,6 +12,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -27,10 +29,12 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.datatypes.AttributeTable;
 import org.wdssii.gui.renderers.SymbolCellRenderer;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.xml.iconSetConfig.Categories;
 import org.wdssii.xml.iconSetConfig.Category;
+import org.wdssii.xml.iconSetConfig.Single;
 import org.wdssii.xml.iconSetConfig.Symbol;
 import org.wdssii.xml.iconSetConfig.Symbology;
 
@@ -51,6 +55,7 @@ public class CategoryUniqueValues extends SymbologyGUI {
     private EventList<CategoryListTableData> myList;
     private AdvancedListSelectionModel<CategoryListTableData> mySelectedModel;
     private JButton myUp, myDown, myRemove, myRemoveAll;
+    private Map<String, Integer> mySummerize;
 
     @Override
     public int getType() {
@@ -104,7 +109,12 @@ public class CategoryUniqueValues extends SymbologyGUI {
                 "[pref!]"));
         top.add(new JLabel("Value Field:"), new CC());
         top.add(myColumnChoices, new CC().growX().wrap());
-
+        myColumnChoices.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectColumn();
+            }
+        });
         // Fill the 'bottom' part of panel, the table
         categoryHolder.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         myScrollPane = new JScrollPane();
@@ -115,8 +125,15 @@ public class CategoryUniqueValues extends SymbologyGUI {
 
         JButton addAll = new JButton("Add All Values");  // Add all from current datatable
         buttonBox.add(addAll, new CC().flowX());
-        JButton add1 = new JButton("Add Value...");  // Remove selected
-        buttonBox.add(add1, new CC().flowX());
+        addAll.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addAllValues();
+            }
+        });
+
+        //JButton add1 = new JButton("Add Value...");  // Remove selected
+        // buttonBox.add(add1, new CC().flowX());
 
         JButton rAll = new JButton("Remove All");  // Remove all...
         rAll.setEnabled(false);
@@ -175,6 +192,7 @@ public class CategoryUniqueValues extends SymbologyGUI {
 
         public Symbol symbol;  // Symbol shown in list?
         public String value;   // Key for the source lookup...
+        public int count;      // Count if known
     }
 
     private void initTable() {
@@ -215,16 +233,19 @@ public class CategoryUniqueValues extends SymbologyGUI {
 
         public static final int CAT_SYMBOL = 0;
         public static final int CAT_FIELD_VALUE = 1;
+        public static final int CAT_COUNT = 2;
 
         public int getColumnCount() {
-            return 2;
+            return 3;
         }
 
         public String getColumnName(int column) {
             if (column == 0) {
                 return "Symbol";
-            } else {
+            } else if (column == 1) {
                 return "Value";
+            } else {
+                return "Count";
             }
         }
 
@@ -236,6 +257,8 @@ public class CategoryUniqueValues extends SymbologyGUI {
                 }
             } else if (i == 1) {
                 return e.value;
+            } else if (i == 2) {
+                return e.count;
             }
             return null;
         }
@@ -256,6 +279,65 @@ public class CategoryUniqueValues extends SymbologyGUI {
     }
 
     /**
+     * Select attribute column.  If column is different then erase the
+     * categories.
+     */
+    private void selectColumn() {
+        String key = (String) myColumnChoices.getSelectedItem();
+        String current = mySymbology.getCategories().column;
+        if (!key.equals(current)) {
+            mySymbology.categories.column = key;
+            removeAllCategories();
+        }
+    }
+
+    /**
+     * All all values from current column selection....
+     */
+    private void addAllValues() {
+        if (mySymbology != null) {
+            Categories cats = mySymbology.getCategories();
+            //String key = (String) myColumnChoices.getSelectedItem();
+            String key = cats.column;
+            String item = cats.column;
+            if (myAttributeTable != null) {
+                AttributeTable.AttributeColumn c = myAttributeTable.getAttributeColumn(key);
+                if (c != null) {
+                    Map<String, Integer> sum = c.summerize();
+                    mySummerize = sum;
+                    Set<Map.Entry<String, Integer>> e = sum.entrySet();
+                    // Single should always exist....
+                    Single single = mySymbology.getSingle();
+                    Symbol sym = single.getSymbol().copy();
+
+                    // For now, cheap color hack...eventually I'll need color bars
+                    // in symbology.  Also doesn't work for black of course...
+                    Color max = sym.color;
+                    int colorCount = e.size();
+                    int stepR = max.getRed()/colorCount;
+                    int stepG = max.getGreen()/colorCount;
+                    int stepB = max.getBlue()/colorCount;
+                    int alpha = 255;
+                    int r = 0, g = 0, b = 0;
+                   
+                    for (Map.Entry<String, Integer> s : e) {
+                        LOG.debug("SUM: " + s.getKey() + " == " + s.getValue());
+                        sym.color = new Color(r, g, b, alpha);
+                        r += stepR;
+                        g += stepG;
+                        b += stepB;
+                        Category cat = new Category(s.getKey(), sym.copy());
+                        cats.addCategory(cat);
+                    }
+                }
+            }
+        }
+        updateTable();
+        notifyChanged();
+        myTable.repaint();
+    }
+
+    /**
      * Completely clear all categories from list and the table
      */
     private void removeAllCategories() {
@@ -273,15 +355,26 @@ public class CategoryUniqueValues extends SymbologyGUI {
             List<Category> list = mySymbology.getCategories().getCategoryList();
             // Not sure I need lock here...
             myList.getReadWriteLock().readLock().lock();
+            int[] rows = myTable.getSelectedRows();
             EventList<CategoryListTableData> select = mySelectedModel.getSelected();
             Categories cats = mySymbology.getCategories();
+            int count = 0;
             for (CategoryListTableData a : select) {
-                cats.moveUpCategory(a.value);
+                if (cats.moveUpCategory(a.value)) {
+                    rows[count] -= 1;
+                } else {
+                    // if first couldn't move up then none should move up
+                    break;
+                }
+                count++;
             }
             myList.getReadWriteLock().readLock().unlock();
             updateTable();
             notifyChanged();
             myTable.repaint();
+            for (int r : rows) {
+                myTable.addRowSelectionInterval(r, r);
+            }
         }
     }
 
@@ -290,18 +383,29 @@ public class CategoryUniqueValues extends SymbologyGUI {
             List<Category> list = mySymbology.getCategories().getCategoryList();
             // Not sure I need lock here...
             myList.getReadWriteLock().readLock().lock();
+            int[] rows = myTable.getSelectedRows();
             EventList<CategoryListTableData> select = mySelectedModel.getSelected();
 
             // Have to go backwards for moving groups to work right...
             ListIterator<CategoryListTableData> i = select.listIterator(select.size());
             Categories cats = mySymbology.getCategories();
+            int count = rows.length - 1;
             while (i.hasPrevious()) {
-                cats.moveDownCategory(i.previous().value);
+                if (cats.moveDownCategory(i.previous().value)) {
+                    rows[count] += 1;
+                } else {
+                    // Last could move, so none should move
+                    break;
+                }
+                count--;
             }
             myList.getReadWriteLock().readLock().unlock();
             updateTable();
             notifyChanged();
             myTable.repaint();
+            for (int r : rows) {
+                myTable.addRowSelectionInterval(r, r);
+            }
         }
     }
 
@@ -319,7 +423,7 @@ public class CategoryUniqueValues extends SymbologyGUI {
             myUp.setEnabled(size > 0);
             myDown.setEnabled(size > 0);
             myRemove.setEnabled(size > 0);
-            myRemoveAll.setEnabled(size > 0);
+            myRemoveAll.setEnabled(myTableModel.getRowCount() > 0);
         }
     }
 
@@ -361,11 +465,20 @@ public class CategoryUniqueValues extends SymbologyGUI {
                 CategoryListTableData d2 = new CategoryListTableData();
                 d2.symbol = c.symbols.get(0);
                 d2.value = c.value;
+                if (mySummerize != null) {
+                    Integer s = mySummerize.get(c.value);
+                    if (s != null) {
+                        d2.count = s;
+                    } else {
+                        d2.count = -1;
+                    }
+                }
                 myList.add(d2);
             }
 
             myList.getReadWriteLock().writeLock().unlock();
         }
+        updateSelectionControls();
     }
 
     public void updateGUI() {
@@ -383,7 +496,6 @@ public class CategoryUniqueValues extends SymbologyGUI {
                 myColumnChoices.setSelectedItem(item);
             }
         }
-        updateSelectionControls();
         updateTable();
     }
 

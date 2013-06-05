@@ -469,4 +469,15 @@ public class FeatureList {
     public String getGUIInfoString() {
         return mySimulationTimeStamp;
     }
+    
+    /** Send a string message to all of our features */
+    public void sendMessage(String message){
+        synchronized (featureSync) {
+            Iterator<Feature> i = myFeatures.iterator();
+            while (i.hasNext()) {
+                Feature f = i.next();
+                f.sendMessage(message);
+            }
+        }
+    }
 }

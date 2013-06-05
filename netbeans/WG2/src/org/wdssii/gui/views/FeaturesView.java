@@ -538,6 +538,9 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             myLastSelectedFeature = null;
         }
         jObjects3DListTable.repaint();
+        
+        // Notification for product changed...
+         FeatureList.theFeatures.sendMessage("product");
     }
 
     private void updateLabel() {

@@ -7,9 +7,11 @@ import ca.odell.glazedlists.swing.AdvancedListSelectionModel;
 import ca.odell.glazedlists.swing.AdvancedTableModel;
 import ca.odell.glazedlists.swing.GlazedListsSwing;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -17,11 +19,16 @@ import java.util.Set;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import net.miginfocom.layout.CC;
@@ -30,7 +37,10 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.AttributeTable;
+import org.wdssii.gui.products.SymbolDialog;
+import org.wdssii.gui.products.SymbolPanel.SymbolPanelListener;
 import org.wdssii.gui.renderers.SymbolCellRenderer;
+import org.wdssii.gui.swing.RowMouseAdapter;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.xml.iconSetConfig.Categories;
 import org.wdssii.xml.iconSetConfig.Category;
@@ -45,7 +55,7 @@ import org.wdssii.xml.iconSetConfig.Symbology;
  *
  * @author Robert Toomey
  */
-public class CategoryUniqueValues extends SymbologyGUI {
+public class CategoryUniqueValues extends SymbologyGUI implements SymbolPanelListener {
 
     private final static Logger LOG = LoggerFactory.getLogger(CategoryUniqueValues.class);
     private JTable myTable;
@@ -56,6 +66,8 @@ public class CategoryUniqueValues extends SymbologyGUI {
     private AdvancedListSelectionModel<CategoryListTableData> mySelectedModel;
     private JButton myUp, myDown, myRemove, myRemoveAll;
     private Map<String, Integer> mySummerize;
+    private Category myDialogCategory;
+    private SymbolDialog myDialog;
 
     @Override
     public int getType() {
@@ -185,6 +197,23 @@ public class CategoryUniqueValues extends SymbologyGUI {
         updateGUI();
     }
 
+    @Override
+    public void symbolChanged(Symbol s) {
+        // Symbol Dialog is calling us with symbol change....
+        LOG.debug("Got symbol "+s+" from symbol dialog...");
+
+        // This live updates the symbol as it changes....
+        if (myDialogCategory != null) {
+            if (myDialog != null) {
+                myDialogCategory.symbols.set(0, myDialog.getFinalSymbol());
+                updateTable();
+                notifyChanged();
+                myTable.repaint();
+            }
+        }
+        // Update lists?
+    }
+
     /**
      * Storage for displaying the current feature list
      */
@@ -218,6 +247,54 @@ public class CategoryUniqueValues extends SymbologyGUI {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 updateSelectionControls();
+            }
+        });
+        aTable.addMouseListener(new RowMouseAdapter(aTable, myTableModel) {
+            class Item extends JMenuItem {
+
+                private final CategoryListTableData d;
+
+                public Item(String s, CategoryListTableData line) {
+                    super(s);
+                    d = line;
+                }
+
+                public CategoryListTableData getData() {
+                    return d;
+                }
+            };
+
+            @Override
+            public JPopupMenu getDynamicPopupMenu(int row, int column) {
+
+                // FIXME: Code a bit messy, we're just hacking the text value
+                // for now.  Probably will need a custom JPopupMenu that has
+                // our Objects3DTableData in it.
+                ActionListener al = new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        //  Item i = (Item) (e.getSource());
+                        //  String text = i.getText();
+                        //  if (text.startsWith("Delete")) {
+                        //      LLHAreaDeleteCommand del = new LLHAreaDeleteCommand(i.getData().keyName);
+                        //      CommandManager.getInstance().executeCommand(del, true);
+                        // }
+                    }
+                };
+                JPopupMenu popupmenu = new JPopupMenu();
+                // CategoryListTableData entry = (CategoryListTableData) (line);
+                // String name = "Delete " + entry.visibleName;
+                // Item i = new Item(name, entry);
+                //popupmenu.add(i);
+                // i.addActionListener(al);
+                //Item i = new Item("Test", null);
+                //popupmenu.add(i);
+                return popupmenu;
+            }
+
+            @Override
+            public void handleDoubleClick(int orgRow, int orgColumn) {
+                doHandleDoubleClick(orgRow);
             }
         });
 
@@ -278,8 +355,57 @@ public class CategoryUniqueValues extends SymbologyGUI {
         }
     }
 
+    private void doHandleDoubleClick(int row) {
+        LOG.debug("double click ");
+        if (myTableModel != null) {
+            List<Category> list = mySymbology.getCategories().getCategoryList();
+            // Not sure I need lock here...
+            myList.getReadWriteLock().readLock().lock();
+            int[] rows = myTable.getSelectedRows();
+            EventList<CategoryListTableData> select = mySelectedModel.getSelected();
+            myList.getReadWriteLock().readLock().unlock();
+
+            if (select.size() == 1) {
+                LOG.debug("Double clicked this " + select.get(0));
+                String key = select.get(0).value;
+
+                // Have to go backwards for moving groups to work right...
+                ListIterator<CategoryListTableData> i = select.listIterator(select.size());
+                Categories cats = mySymbology.getCategories();
+                Category c = cats.getCategory(key);
+                myDialogCategory = c;
+                if (c != null) {
+                    Symbol s = c.symbols.get(0);
+                    LOG.debug("Got category " + c + ", " + key + ", " + s);
+
+                    Component something = SwingUtilities.getRoot(this);
+                    if (something instanceof JDialog) {
+                        myDialog = new SymbolDialog(this, s, (JDialog) (something), this, true, "Edit symbol");
+                    } else {
+                        // Assume JFrame....        
+                        myDialog = new SymbolDialog(this, s, (JFrame) (something), this, true, "Edit symbol");
+                    }
+                    myDialog.setVisible(true); // Blocking...at least right now
+
+                    // Hummm not sure we should use modal...nonmodal would be nicer...a bit more effort though,
+                    // keeping only 1 active, etc..
+                    // we will start with modal...
+                    c.symbols.set(0, myDialog.getFinalSymbol());
+                    myDialog = null;
+                }
+
+            }
+            updateTable();
+            notifyChanged();
+            myTable.repaint();
+            for (int r : rows) {
+                myTable.addRowSelectionInterval(r, r);
+            }
+        }
+    }
+
     /**
-     * Select attribute column.  If column is different then erase the
+     * Select attribute column. If column is different then erase the
      * categories.
      */
     private void selectColumn() {
@@ -314,12 +440,12 @@ public class CategoryUniqueValues extends SymbologyGUI {
                     // in symbology.  Also doesn't work for black of course...
                     Color max = sym.color;
                     int colorCount = e.size();
-                    int stepR = max.getRed()/colorCount;
-                    int stepG = max.getGreen()/colorCount;
-                    int stepB = max.getBlue()/colorCount;
+                    int stepR = max.getRed() / colorCount;
+                    int stepG = max.getGreen() / colorCount;
+                    int stepB = max.getBlue() / colorCount;
                     int alpha = 255;
                     int r = 0, g = 0, b = 0;
-                   
+
                     for (Map.Entry<String, Integer> s : e) {
                         LOG.debug("SUM: " + s.getKey() + " == " + s.getValue());
                         sym.color = new Color(r, g, b, alpha);
@@ -487,7 +613,7 @@ public class CategoryUniqueValues extends SymbologyGUI {
             if (myAttributeTable != null) {
                 list = myAttributeTable.getAttributeColumns();
             } else {
-                list = new ArrayList();
+                list = new ArrayList<String>();
             }
             myColumnChoices.setModel(new DefaultComboBoxModel(list.toArray()));
 

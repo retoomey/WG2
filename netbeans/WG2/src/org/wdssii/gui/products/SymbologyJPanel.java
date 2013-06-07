@@ -1,6 +1,5 @@
 package org.wdssii.gui.products;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,7 +16,6 @@ import org.wdssii.datatypes.AttributeTable;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.SwingGUIPlugInPanel;
-import org.wdssii.gui.symbology.SymbolGUI;
 import org.wdssii.gui.symbology.SymbologyFactory;
 import org.wdssii.gui.symbology.SymbologyGUI;
 import org.wdssii.gui.symbology.SymbologyGUI.SymbologyGUIListener;

@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Categories link value in a table column(s) to a symbol
@@ -17,6 +19,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "categories")
 @XmlAccessorType(XmlAccessType.NONE)
 public class Categories {
+    private final static Logger LOG = LoggerFactory.getLogger(Categories.class);
 
     /**
      * The attribute column of the category
@@ -75,17 +78,16 @@ public class Categories {
         myLookup = null;
         list = new ArrayList<Category>();
     }
-
+ 
     /**
-     * Swap the contents of two categories
+     * Swap two categories in list
      */
-    public void swap(Category c, Category d) {
-        List<Symbol> tempS = c.symbols;
-        String tempV = c.value;
-        c.symbols = d.symbols;
-        c.value = d.value;
-        d.symbols = tempS;
-        d.value = tempV;
+    public void swap(int c, int d) {
+        
+        Category c1 = list.get(c);
+        Category d1 = list.get(d);
+        list.set(c, d1);
+        list.set(d, c1);
     }
 
     /**
@@ -99,7 +101,7 @@ public class Categories {
         for (Category c : list) {
             if (c.value.equals(key)) {
                 if (pos > 0) {
-                    swap(prev, c);
+                    swap(pos-1, pos);
                     moved = true;
                 }
                 break;
@@ -121,7 +123,7 @@ public class Categories {
         for (Category c : list) {
             if (prev != null) {
                 // last loop hit...swap them...
-                swap(prev, c);
+                swap(pos-1, pos);
                 moved = true;
                 break;
             }

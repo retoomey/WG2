@@ -96,7 +96,6 @@ public class PointRenderer {
 
         // This is set with a copy from GUI on change, so sync shouldn't be an issue...
         boolean changed = (s != mySymbology);
-        LOG.debug("SYMBOLOGY CHANGED "+changed);
         // Create a fall back default if symbology fails...
         if (myFailSafe == null) {
             Symbol p;
@@ -132,7 +131,6 @@ public class PointRenderer {
 
             // Create a lookup table from key to renderer
             if (s.use == Symbology.CATEGORY_UNIQUE_VALUES) {
-                       LOG.debug("SYMBOLOGY UNIQUE "+changed);
                 // Create a new lookup when symbology changes...
                 myCategoryLookup = new TreeMap<String, SymbolRenderer>();
                 myCategoryKeys = new ArrayList<String>();

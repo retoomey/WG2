@@ -49,24 +49,28 @@ public abstract class PointSymbolGUI extends SymbolGUI {
         }
 
         @Override
-        public void propertySetByGUI(Object name, Memento m) {
-            Integer v = ((Integer) m.getPropertyValue(PointSymbolMemento.SIZE));
-            if (v != null) {
-                mySymbol.pointsize = v.intValue();
+        public void propertySetByGUI(Object name, Memento m2) {
+
+            if (m2 instanceof PointSymbolMemento) {
+                PointSymbolMemento m = (PointSymbolMemento) (m2);
+                Integer v = ((Integer) m.getPropertyValue(PointSymbolMemento.SIZE));
+                if (v != null) {
+                    mySymbol.pointsize = v.intValue();
+                }
+                v = ((Integer) m.getPropertyValue(PointSymbolMemento.PHASE));
+                if (v != null) {
+                    mySymbol.phaseangle = v.intValue();
+                }
+                v = ((Integer) m.getPropertyValue(PointSymbolMemento.XOFFSET));
+                if (v != null) {
+                    mySymbol.xoffset = v.intValue();
+                }
+                v = ((Integer) m.getPropertyValue(PointSymbolMemento.YOFFSET));
+                if (v != null) {
+                    mySymbol.yoffset = v.intValue();
+                }
             }
-            v = ((Integer) m.getPropertyValue(PointSymbolMemento.PHASE));
-            if (v != null) {
-                mySymbol.phaseangle = v.intValue();
-            }
-            v = ((Integer) m.getPropertyValue(PointSymbolMemento.XOFFSET));
-            if (v != null) {
-                mySymbol.xoffset = v.intValue();
-            }
-            v = ((Integer) m.getPropertyValue(PointSymbolMemento.YOFFSET));
-            if (v != null) {
-                mySymbol.yoffset = v.intValue();
-            }
-            super.propertySetByGUI(name, m);
+            super.propertySetByGUI(name, m2);
         }
 
         @Override

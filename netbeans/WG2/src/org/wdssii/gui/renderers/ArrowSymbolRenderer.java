@@ -40,7 +40,9 @@ public class ArrowSymbolRenderer extends SymbolRenderer {
      */
     public static void arrow(GL gl, double length, double width, int taillength, int tailthick) {
 
-        if (tailthick > width){ tailthick = (int)width; }
+        if (tailthick > width) {
+            tailthick = (int) width;
+        }
         final double halfLength = length / 2.0;
         final double halfWidth = width / 2.0;
 
@@ -50,7 +52,7 @@ public class ArrowSymbolRenderer extends SymbolRenderer {
         // Optional tail section....making part of polygon.  Maybe
         // would be better as a generic 'line' option to any symbol..?
         if (taillength > -1) {
-            final double t = tailthick/2.0d;
+            final double t = tailthick / 2.0d;
             gl.glVertex2d(-halfLength, t);
             gl.glVertex2d(-halfLength - taillength, t);
             gl.glVertex2d(-halfLength - taillength, -t);
@@ -60,11 +62,26 @@ public class ArrowSymbolRenderer extends SymbolRenderer {
 
     }
 
-    public static void arrow(Graphics g, Polygon p, double length, double width) {
+    public static void arrow(Polygon p, double length, double width, int taillength, int tailthick) {
+
+        if (tailthick > width) {
+            tailthick = (int) width;
+        }
         final int halfLength = (int) (length / 2.0);
         final int halfWidth = (int) (width / 2.0);
+        
         p.addPoint(halfLength, 0);           // Tip
         p.addPoint(-halfLength, halfWidth);  // Left wing
+
+        // Optional tail section....making part of polygon.  Maybe
+        // would be better as a generic 'line' option to any symbol..?
+        if (taillength > -1) {
+            final int t = (int)(tailthick / 2.0d);
+            p.addPoint(-halfLength, t);
+            p.addPoint(-halfLength - taillength, t);
+            p.addPoint(-halfLength - taillength, -t);
+            p.addPoint(-halfLength, -t);
+        }
         p.addPoint(-halfLength, -halfWidth); // Right wing  
     }
 
@@ -129,7 +146,10 @@ public class ArrowSymbolRenderer extends SymbolRenderer {
             g2d.setColor(s.color);
             Polygon p = new Polygon();
             g2d.translate(x + polyRadius, y + polyRadius);
-            arrow(g, p, s.pointsize, s.pointsize);  // Ignore width for icon
+            g2d.rotate(Math.toRadians(360-s.phaseangle));
+            int width = Math.min(size, s.width);
+            int length = Math.min((int)polyRadius, s.pointsize);
+            arrow(p, length, width, s.taillength, s.tailthick);
             g2d.fillPolygon(p);
             /**
              * Draw outline of symbol
@@ -139,7 +159,9 @@ public class ArrowSymbolRenderer extends SymbolRenderer {
                 g2d.setColor(s.ocolor);
                 g2d.drawPolygon(p);
             }
-
+            
+            g2d.rotate(Math.toRadians(-(360-s.phaseangle)));
+            g2d.translate(-(x + polyRadius), -(y + polyRadius));
         } else {
             // Humm blank?
         }

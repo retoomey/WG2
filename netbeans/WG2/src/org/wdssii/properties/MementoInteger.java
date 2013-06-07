@@ -20,11 +20,11 @@ public class MementoInteger extends Memento<Integer> {
     public ArrayList<Memento.Property> myProperties;
 
     public MementoInteger(int size) {
-        myProperties = new ArrayList(size);
+        myProperties = new ArrayList<Memento.Property>(size);
     }
 
     public MementoInteger() {
-        myProperties = new ArrayList();
+        myProperties = new ArrayList<Memento.Property>();
     }
 
     /**
@@ -68,7 +68,7 @@ public class MementoInteger extends Memento<Integer> {
         if (other instanceof MementoInteger) {
             MementoInteger mi = (MementoInteger) (other);
             int length = mi.myProperties.size();
-            myProperties = new ArrayList(length);
+            myProperties = new ArrayList<Memento.Property>(length);
             for (int i = 0; i < length; i++) {
                 Memento.Property v = mi.getProperty(i);
                 this.initProperty(i, v.value);

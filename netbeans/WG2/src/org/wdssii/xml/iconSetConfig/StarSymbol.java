@@ -60,7 +60,7 @@ public class StarSymbol extends PointSymbol {
         s.copyFrom(this);
         return s;
     }
-
+     
     @Override
     public void copyFrom(Symbol s) {
         super.copyFrom(s);

@@ -3,6 +3,7 @@ package org.wdssii.gui.renderers;
 import com.sun.opengl.util.BufferUtil;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import javax.media.opengl.GL;
@@ -30,6 +31,7 @@ public class ImageSymbolRenderer extends SymbolRenderer {
     private int imageWidth = 0;
     private int imageHeight = 0;
     private ByteBuffer myBuffer = null;
+    private Icon myIcon = null;
 
     @Override
     public int getPointSize() {
@@ -47,15 +49,15 @@ public class ImageSymbolRenderer extends SymbolRenderer {
         // stupid slow, get it to work..
         // Need the icon first...
         if (texture < 0) {
-            Icon icon = SwingIconFactory.getIconByName("brick_add.png");
-            if (icon != null) {
+            checkIcon();
+            if (myIcon != null) {
 
                 // Normally in a game would load directly.  I'm using swing
                 // to get the icon first to avoid having to deal with all the 
                 // different formats (.png, .jpg, etc.) since swing will already
                 // handle all this.
-                int w = icon.getIconWidth();
-                int h = icon.getIconHeight();
+                int w = myIcon.getIconWidth();
+                int h = myIcon.getIconHeight();
                 imageWidth = w;
                 imageHeight = h;
 
@@ -65,7 +67,7 @@ public class ImageSymbolRenderer extends SymbolRenderer {
                         h,
                         BufferedImage.TYPE_INT_ARGB);
                 Graphics g = bi.createGraphics();
-                icon.paintIcon(null, g, 0, 0);
+                myIcon.paintIcon(null, g, 0, 0);
 
                 ByteBuffer buffer = BufferUtil.newByteBuffer(w * h * 4);
                 for (int y = h - 1; y >= 0; y--) {
@@ -185,7 +187,26 @@ public class ImageSymbolRenderer extends SymbolRenderer {
         }
     }
 
+    public void checkIcon() {
+        // FIXME: still need ability to pick URL for icon
+        if (myIcon == null) {
+            myIcon = SwingIconFactory.getIconByName("brick_add.png");
+        }
+    }
+
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
+        checkIcon();
+        if (myIcon != null) {
+            Graphics2D g2d = (Graphics2D) (g);
+            int size = getIconHeight();
+            final int middle = size / 2;
+            // Normal paint will translate the icon to middle, so we have to
+            // be sneaky here...
+            g.translate(x + middle, y + middle);
+            g2d.rotate(Math.toRadians(360 - s.phaseangle));
+            g2d.translate(-(x + middle), -(y + middle));
+            myIcon.paintIcon(c, g, x, y);
+        }
     }
 }

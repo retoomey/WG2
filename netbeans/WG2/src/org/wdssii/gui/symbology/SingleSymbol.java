@@ -1,9 +1,7 @@
 package org.wdssii.gui.symbology;
 
-import java.awt.Color;
 import javax.swing.JPanel;
 import net.miginfocom.layout.CC;
-import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.products.SymbolPanel;
 import org.wdssii.gui.products.SymbolPanel.SymbolPanelListener;

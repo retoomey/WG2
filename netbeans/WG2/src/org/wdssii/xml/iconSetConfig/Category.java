@@ -57,4 +57,16 @@ public class Category {
             }
         }
     }
+    
+    @Override
+    public String toString(){
+        String s = "Category "+this.hashCode()+" "+symbols+ " ";
+        if (symbols != null){
+            s += symbols.size()+" ";
+            if (symbols.size() > 0){
+                s += " symbol1: "+symbols.get(0);
+            }        
+        }
+        return s;
+    }
 }

@@ -34,10 +34,10 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
 
         // Properties
         public static final int NUMPOINTS = PointSymbolMemento.LAST;
-        public static final int COLOR = NUMPOINTS+1;
-        public static final int USEOUTLINE = COLOR+1;
-        public static final int OCOLOR = USEOUTLINE+1;
-        public static final int LAST = OCOLOR+1;
+        public static final int COLOR = NUMPOINTS + 1;
+        public static final int USEOUTLINE = COLOR + 1;
+        public static final int OCOLOR = USEOUTLINE + 1;
+        public static final int LAST = OCOLOR + 1;
 
         public PolygonSymbolMemento(PolygonSymbolMemento m) {
             super(m);
@@ -81,26 +81,29 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
         }
 
         @Override
-        public void propertySetByGUI(Object name, Memento m) {
+        public void propertySetByGUI(Object name, Memento m2) {
 
-            // Directly modify the StarSymbol object
-            Integer v = ((Integer) m.getPropertyValue(PolygonSymbolMemento.NUMPOINTS));
-            if (v != null) {
-                mySymbol.numpoints = v.intValue();
+            if (m2 instanceof PolygonSymbolMemento) {
+                PolygonSymbolMemento m = (PolygonSymbolMemento) (m2);
+                // Directly modify the StarSymbol object
+                Integer v = ((Integer) m.getPropertyValue(PolygonSymbolMemento.NUMPOINTS));
+                if (v != null) {
+                    mySymbol.numpoints = v.intValue();
+                }
+                Color c = (Color) m.getPropertyValue(PolygonSymbolMemento.COLOR);
+                if (c != null) {
+                    mySymbol.color = c;
+                }
+                Boolean f = (Boolean) m.getPropertyValue(PolygonSymbolMemento.USEOUTLINE);
+                if (f != null) {
+                    mySymbol.useOutline = f;
+                }
+                c = (Color) m.getPropertyValue(PolygonSymbolMemento.OCOLOR);
+                if (c != null) {
+                    mySymbol.ocolor = c;
+                }
             }
-            Color c = (Color) m.getPropertyValue(PolygonSymbolMemento.COLOR);
-            if (c != null) {
-                mySymbol.color = c;
-            }
-            Boolean f = (Boolean) m.getPropertyValue(PolygonSymbolMemento.USEOUTLINE);
-            if (f != null) {
-                mySymbol.useOutline = f;
-            }
-            c = (Color) m.getPropertyValue(PolygonSymbolMemento.OCOLOR);
-            if (c != null) {
-                mySymbol.ocolor = c;
-            }
-            super.propertySetByGUI(name, m);
+            super.propertySetByGUI(name, m2);
 
         }
 
@@ -112,9 +115,10 @@ public class PolygonSymbolGUI extends PointSymbolGUI {
         }
 
         @Override
-        public void setMemento(Memento m) {
-            super.setMemento(m);
-            if (m instanceof PolygonSymbolMemento) {
+        public void setMemento(Memento m2) {
+            super.setMemento(m2);
+            if (m2 instanceof PolygonSymbolMemento) {
+                PolygonSymbolMemento m = (PolygonSymbolMemento) (m2);
                 m.setProperty(PolygonSymbolMemento.NUMPOINTS, mySymbol.numpoints);
                 m.setProperty(PolygonSymbolMemento.COLOR, mySymbol.color);
                 m.setProperty(PolygonSymbolMemento.USEOUTLINE, mySymbol.useOutline);

@@ -1,10 +1,7 @@
 package org.wdssii.gui.symbology;
 
-import com.jidesoft.swing.JideButton;
 import java.awt.Color;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.properties.BooleanGUI;
@@ -12,7 +9,6 @@ import org.wdssii.gui.properties.ColorGUI;
 import org.wdssii.gui.properties.IntegerGUI;
 import org.wdssii.gui.symbology.PointSymbolGUI.PointSymbolMemento;
 import org.wdssii.gui.symbology.PointSymbolGUI.PointSymbolMementor;
-import org.wdssii.gui.renderers.ArrowSymbolRenderer;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 import org.wdssii.xml.iconSetConfig.ArrowSymbol;
@@ -34,13 +30,13 @@ public class ArrowSymbolGUI extends PointSymbolGUI {
 
         // Properties
         public static final int WIDTH = PointSymbolMemento.LAST;
-        public static final int TAIL = WIDTH+1;
-        public static final int TAILW = TAIL+1;
-        public static final int COLOR = TAILW+1;
-        public static final int USEOUTLINE = COLOR+1;
-        public static final int OCOLOR = USEOUTLINE+1;
+        public static final int TAIL = WIDTH + 1;
+        public static final int TAILW = TAIL + 1;
+        public static final int COLOR = TAILW + 1;
+        public static final int USEOUTLINE = COLOR + 1;
+        public static final int OCOLOR = USEOUTLINE + 1;
         public static final int LAST = OCOLOR + 1;
-        
+
         public ArrowSymbolMemento(ArrowSymbolMemento m) {
             super(m);
         }
@@ -69,34 +65,38 @@ public class ArrowSymbolGUI extends PointSymbolGUI {
         }
 
         @Override
-        public void propertySetByGUI(Object name, Memento m) {
+        public void propertySetByGUI(Object name, Memento m2) {
 
-            // Directly modify the ArrowSymbol object
-            Integer v = ((Integer) m.getPropertyValue(ArrowSymbolMemento.WIDTH));
-            if (v != null) {
-                mySymbol.width = v.intValue();
+            if (m2 instanceof ArrowSymbolMemento) {
+                ArrowSymbolMemento m = (ArrowSymbolMemento) (m2);
+
+                // Directly modify the ArrowSymbol object
+                Integer v = ((Integer) m.getPropertyValue(ArrowSymbolMemento.WIDTH));
+                if (v != null) {
+                    mySymbol.width = v.intValue();
+                }
+                v = ((Integer) m.getPropertyValue(ArrowSymbolMemento.TAIL));
+                if (v != null) {
+                    mySymbol.taillength = v.intValue();
+                }
+                v = ((Integer) m.getPropertyValue(ArrowSymbolMemento.TAILW));
+                if (v != null) {
+                    mySymbol.tailthick = v.intValue();
+                }
+                Color c = (Color) m.getPropertyValue(ArrowSymbolMemento.COLOR);
+                if (c != null) {
+                    mySymbol.color = c;
+                }
+                Boolean f = (Boolean) m.getPropertyValue(ArrowSymbolMemento.USEOUTLINE);
+                if (f != null) {
+                    mySymbol.useOutline = f;
+                }
+                c = (Color) m.getPropertyValue(ArrowSymbolMemento.OCOLOR);
+                if (c != null) {
+                    mySymbol.ocolor = c;
+                }
             }
-            v = ((Integer) m.getPropertyValue(ArrowSymbolMemento.TAIL));
-            if (v != null) {
-                mySymbol.taillength = v.intValue();
-            }
-            v = ((Integer) m.getPropertyValue(ArrowSymbolMemento.TAILW));
-            if (v != null) {
-                mySymbol.tailthick = v.intValue();
-            }
-            Color c = (Color) m.getPropertyValue(ArrowSymbolMemento.COLOR);
-            if (c != null) {
-                mySymbol.color = c;
-            }
-            Boolean f = (Boolean) m.getPropertyValue(ArrowSymbolMemento.USEOUTLINE);
-            if (f != null) {
-                mySymbol.useOutline = f;
-            }
-            c = (Color) m.getPropertyValue(ArrowSymbolMemento.OCOLOR);
-            if (c != null) {
-                mySymbol.ocolor = c;
-            }
-            super.propertySetByGUI(name, m);
+            super.propertySetByGUI(name, m2);
 
         }
 
@@ -108,9 +108,10 @@ public class ArrowSymbolGUI extends PointSymbolGUI {
         }
 
         @Override
-        public void setMemento(Memento m) {
-            super.setMemento(m);
-            if (m instanceof ArrowSymbolMemento) {
+        public void setMemento(Memento m2) {
+            super.setMemento(m2);
+            if (m2 instanceof ArrowSymbolMemento) {
+                ArrowSymbolMemento m = (ArrowSymbolMemento) (m2);
                 m.setProperty(ArrowSymbolMemento.WIDTH, mySymbol.width);
                 m.setProperty(ArrowSymbolMemento.TAIL, mySymbol.taillength);
                 m.setProperty(ArrowSymbolMemento.TAILW, mySymbol.tailthick);

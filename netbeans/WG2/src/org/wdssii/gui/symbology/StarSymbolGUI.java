@@ -38,12 +38,12 @@ public class StarSymbolGUI extends PointSymbolGUI {
 
         // Properties
         public static final int NUMPOINTS = PointSymbolMemento.LAST;
-        public static final int LINESIZE = NUMPOINTS+1;
-        public static final int COLOR = LINESIZE+1;
-        public static final int USEOUTLINE = COLOR+1;
-        public static final int OCOLOR = USEOUTLINE+1;
-        public static final int LAST = OCOLOR+1;
-        
+        public static final int LINESIZE = NUMPOINTS + 1;
+        public static final int COLOR = LINESIZE + 1;
+        public static final int USEOUTLINE = COLOR + 1;
+        public static final int OCOLOR = USEOUTLINE + 1;
+        public static final int LAST = OCOLOR + 1;
+
         public StarSymbolMemento(StarSymbolMemento m) {
             super(m);
         }
@@ -79,30 +79,33 @@ public class StarSymbolGUI extends PointSymbolGUI {
         }
 
         @Override
-        public void propertySetByGUI(Object name, Memento m) {
+        public void propertySetByGUI(Object name, Memento m2) {
 
-            // Directly modify the StarSymbol object
-            Integer v = ((Integer) m.getPropertyValue(StarSymbolMemento.NUMPOINTS));
-            if (v != null) {
-                myStarSymbol.numpoints = v.intValue();
+            if (m2 instanceof StarSymbolMemento) {
+                StarSymbolMemento m = (StarSymbolMemento) m2;
+                // Directly modify the StarSymbol object
+                Integer v = ((Integer) m.getPropertyValue(StarSymbolMemento.NUMPOINTS));
+                if (v != null) {
+                    myStarSymbol.numpoints = v.intValue();
+                }
+                v = ((Integer) m.getPropertyValue(StarSymbolMemento.LINESIZE));
+                if (v != null) {
+                    myStarSymbol.lsize = v.intValue();
+                }
+                Color c = (Color) m.getPropertyValue(StarSymbolMemento.COLOR);
+                if (c != null) {
+                    myStarSymbol.color = c;
+                }
+                Boolean f = (Boolean) m.getPropertyValue(StarSymbolMemento.USEOUTLINE);
+                if (f != null) {
+                    myStarSymbol.useOutline = f;
+                }
+                c = (Color) m.getPropertyValue(StarSymbolMemento.OCOLOR);
+                if (c != null) {
+                    myStarSymbol.ocolor = c;
+                }
             }
-            v = ((Integer) m.getPropertyValue(StarSymbolMemento.LINESIZE));
-            if (v != null) {
-                myStarSymbol.lsize = v.intValue();
-            }
-            Color c = (Color) m.getPropertyValue(StarSymbolMemento.COLOR);
-            if (c != null) {
-                myStarSymbol.color = c;
-            }
-            Boolean f = (Boolean) m.getPropertyValue(StarSymbolMemento.USEOUTLINE);
-            if (f != null) {
-                myStarSymbol.useOutline = f;
-            }
-            c = (Color) m.getPropertyValue(StarSymbolMemento.OCOLOR);
-            if (c != null) {
-                myStarSymbol.ocolor = c;
-            }
-            super.propertySetByGUI(name, m);
+            super.propertySetByGUI(name, m2);
         }
 
         @Override
@@ -116,11 +119,12 @@ public class StarSymbolGUI extends PointSymbolGUI {
         public void setMemento(Memento m) {
             super.setMemento(m);
             if (m instanceof StarSymbolMemento) {
-                m.setProperty(StarSymbolMemento.NUMPOINTS, myStarSymbol.numpoints);
-                m.setProperty(StarSymbolMemento.LINESIZE, myStarSymbol.lsize);
-                m.setProperty(StarSymbolMemento.COLOR, myStarSymbol.color);
-                m.setProperty(StarSymbolMemento.USEOUTLINE, myStarSymbol.useOutline);
-                m.setProperty(StarSymbolMemento.OCOLOR, myStarSymbol.ocolor);
+                StarSymbolMemento m2 = (StarSymbolMemento) m;
+                m2.setProperty(StarSymbolMemento.NUMPOINTS, myStarSymbol.numpoints);
+                m2.setProperty(StarSymbolMemento.LINESIZE, myStarSymbol.lsize);
+                m2.setProperty(StarSymbolMemento.COLOR, myStarSymbol.color);
+                m2.setProperty(StarSymbolMemento.USEOUTLINE, myStarSymbol.useOutline);
+                m2.setProperty(StarSymbolMemento.OCOLOR, myStarSymbol.ocolor);
             }
         }
 

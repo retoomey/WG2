@@ -1,13 +1,13 @@
 package org.wdssii.gui.products;
 
 import java.util.ArrayList;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
-import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+import org.wdssii.gui.renderers.SymbolRenderer;
 import org.wdssii.gui.symbology.SymbolFactory;
 import org.wdssii.gui.symbology.SymbolGUI;
 import org.wdssii.gui.symbology.SymbolGUI.SymbolGUIListener;
@@ -16,9 +16,9 @@ import org.wdssii.xml.iconSetConfig.Symbol;
 /**
  * A panel provider for editing a single symbol
  *
- * This contains a drop down menu for choosing a SymbolGUI, these are
- * swapped out as type changes.
- * 
+ * This contains a drop down menu for choosing a SymbolGUI, these are swapped
+ * out as type changes.
+ *
  * This isn't a JPanel itself since it contains two areas...
  *
  * @author Robert Toomey
@@ -30,14 +30,28 @@ public class SymbolPanel implements SymbolGUIListener {
     private SymbolPanelListener myListener = null;
     private Symbol mySymbol;
     private JPanel myTypeArea = null;
+    private JButton mySymbolButton = null;
 
     @Override
     public void symbolChanged() {
+        mySymbolButton.repaint();
         if (myListener != null) {
             myListener.symbolChanged(mySymbol);
         }
     }
 
+    public void setSymbol(Symbol s) {
+        mySymbol = s;
+        SymbolRenderer r = SymbolFactory.getSymbolRenderer(mySymbol);
+        r.setSymbol(mySymbol);
+        mySymbolButton.setIcon(r);
+    }
+
+    /** Get the current live edited symbol.  Or should we return a copy */
+    public Symbol getSymbol(){
+        return mySymbol;
+    }
+    
     public static interface SymbolPanelListener {
 
         public void symbolChanged(Symbol s);
@@ -55,20 +69,32 @@ public class SymbolPanel implements SymbolGUIListener {
     }
 
     private void setupComponents() {
-        
+
         // The type chooser bar gets it's own area...
         ArrayList<String> list = SymbolFactory.getSymbolNameList();
         JComboBox typeList = new JComboBox(list.toArray());
         if (myTypeArea != null) {
             // Use provided space for our type list....
-           // myTypeArea.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+            // myTypeArea.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
             myTypeArea.setLayout(new MigLayout("insets 0",
-                "[pref!][grow, fill]",
-                "[pref!]"));
+                    "[pref!][pref!][grow, fill]",
+                    "[pref!]"));
+            mySymbolButton = new JButton();
+            mySymbolButton.setFocusable(false);
+            mySymbolButton.setEnabled(false);
+            setSymbol(mySymbol);
+            myTypeArea.add(mySymbolButton, new CC());
             myTypeArea.add(new JLabel("Symbol Type:"), new CC());
             myTypeArea.add(typeList, new CC().growX().wrap());
+
+            /* myTypeArea.setLayout(new MigLayout("insets 0",
+             "[pref!][grow, fill]",
+             "[pref!]"));
+             myTypeArea.add(new JLabel("Symbol Type:"), new CC());
+             myTypeArea.add(typeList, new CC().growX().wrap());
+             */
         }
-        
+
         // The panel for symbols to use...
         SymbolGUI first = SymbolFactory.getSymbolGUI(mySymbol);
         first.addListener(this);
@@ -107,7 +133,7 @@ public class SymbolPanel implements SymbolGUIListener {
                         myGUIHolder.repaint();
                         myCurrentGUI = gui;
                         myCurrentGUI.addListener(SymbolPanel.this);
-                        mySymbol = newOne;
+                        setSymbol(newOne);
                         if (myListener != null) {
                             myListener.symbolChanged(mySymbol);
                         }

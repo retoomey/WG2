@@ -1,74 +1,79 @@
 package org.wdssii.gui.products;
 
 import java.awt.Component;
+import java.awt.Container;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import net.miginfocom.layout.CC;
-import org.wdssii.gui.symbology.SymbolGUI;
-import org.wdssii.gui.symbology.SymbologyGUI.SymbologyGUIListener;
-import org.wdssii.xml.iconSetConfig.StarSymbol;
+import net.miginfocom.swing.MigLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wdssii.gui.products.SymbolPanel.SymbolPanelListener;
+import org.wdssii.xml.iconSetConfig.Symbol;
 
 /**
- * Dialog for editing a single symbol
- * FIXME: the 'meat' of this should become SymbolPanel, allowing it
- * to be placed in another container....
- * 
+ * Dialog for editing a single symbol FIXME: the 'meat' of this should become
+ * SymbolPanel, allowing it to be placed in another container....
+ *
  * @author Robert Toomey
  */
-public class SymbolDialog extends JDialog {
+public class SymbolDialog extends JDialog implements SymbolPanelListener {
 
-    private JPanel myPanel = null;
+    private final static Logger LOG = LoggerFactory.getLogger(SymbolDialog.class);
     private JButton myOKButton;
-    private JPanel myGUIHolder;
-    private SymbolGUI myCurrentGUI = null;
-    private SymbologyGUIListener myCallback = null;
-    
+    private JButton myCancelButton;
+    private Symbol myOrgSymbol;
+    private Symbol myWorkingSymbol;
+    private SymbolPanel mySymbolPanel;
+    private SymbolPanelListener myListener;
+
     // Because Java is brain-dead with JDialog/JFrame silliness
-    public SymbolDialog(SymbologyGUIListener callback, Product prod, JFrame owner, Component location, boolean modal, String myMessage) {
+    public SymbolDialog(SymbolPanelListener l, Symbol aSymbol, JFrame owner, Component location, boolean modal, String myMessage) {
 
         super(owner, modal);
-        init(callback, prod, location, myMessage);
+        init(l, aSymbol, location, myMessage);
     }
 
-    public SymbolDialog(SymbologyGUIListener callback, Product prod, JDialog owner, Component location, boolean modal, String myMessage) {
+    public SymbolDialog(SymbolPanelListener l, Symbol aSymbol, JDialog owner, Component location, boolean modal, String myMessage) {
 
         super(owner, modal);
-        init(callback, prod, location, myMessage);
+        init(l, aSymbol, location, myMessage);
     }
 
-    private void init(SymbologyGUIListener callback, Product prod, Component location, String myMessage) {
+    private void init(SymbolPanelListener l, Symbol aSymbol, Component location, String myMessage) {
 
-        myCallback = callback;
+        myListener = l;
+        // This is the original direct symbol.  We want to keep this for cancel
+        myOrgSymbol = aSymbol;
+        LOG.debug("Original symbol in is " + myOrgSymbol);
+        // This is a copy to be live changed by symbol panel.  Even that could
+        // change if the 'type' is changed by user
+        myWorkingSymbol = aSymbol.copy();
+
         setTitle("Edit Symbol");
-        //Container content = getContentPane();
+        Container content = getContentPane();
+        content.setLayout(new MigLayout("insets 0",
+                "[grow, fill]",
+                "[pref!][grow, fill]"));
 
-        SymbolPanel p = new SymbolPanel(new StarSymbol(), null, null);
-       // p.addListener(this);
-        
-        JPanel buttonPanel = new JPanel();
+        JPanel typeArea = new JPanel();
+        content.add(typeArea, new CC().growX().wrap());
+
+        JPanel symbolHolder = new JPanel();
+        content.add(symbolHolder, new CC().growX().growY());
+
+        SymbolPanel p = new SymbolPanel(myWorkingSymbol, typeArea, symbolHolder);
+        p.addListener(this);
+        mySymbolPanel = p;
+        // p.addListener(this);
 
         // The OK button...we allow GUIPlugInPanels to hook into this
-        myOKButton = new JButton("OK");
-        buttonPanel.add(myOKButton, new CC());
-
-        // The cancel button
-        //myCancelButton = new JButton("Cancel");
-        //buttonPanel.add(myCancelButton);
-     
-
-       // content.setLayout(new MigLayout(new LC().fill().insetsAll("10"), null, null));
-       // content.add(p, new CC().growX().growY());
-       // content.add(buttonPanel, new CC().dockSouth());
-        pack();
-
-        // myCancelButton.addActionListener(new java.awt.event.ActionListener() {
-        //     @Override
-        //     public void actionPerformed(java.awt.event.ActionEvent evt) {
-        //         dispose();
-        //     }
-        // });
+        
+        JPanel buttonPanel = new JPanel();
+        JButton myOKButton = new JButton("OK");
+        buttonPanel.add(myOKButton, new CC().tag("ok"));
         myOKButton.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -76,7 +81,37 @@ public class SymbolDialog extends JDialog {
             }
         });
 
+        // The cancel button
+        myCancelButton = new JButton("Cancel");
+        buttonPanel.add(myCancelButton, new CC().tag("cancel"));
+        myCancelButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                myWorkingSymbol = myOrgSymbol;
+                dispose();
+            }
+        });
+
+        content.add(buttonPanel, new CC().dockSouth());
+        pack();
+
         setLocationRelativeTo(location);
-        setVisible(true);
+        // Locks thread we want the object before we show it
+        // setVisible(true);
+    }
+
+    /**
+     * Return the working symbol, the one edited
+     */
+    public Symbol getFinalSymbol() {
+        return myWorkingSymbol;
+    }
+
+    @Override
+    public void symbolChanged(Symbol s) {
+        myWorkingSymbol = mySymbolPanel.getSymbol();
+        if (myListener != null) {
+            myListener.symbolChanged(s);
+        }
     }
 }

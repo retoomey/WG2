@@ -494,6 +494,11 @@ public class Product extends DelegateHelper {
         cman.setColorKey(this, f);
     }
 
+    public String saveSymbology(Symbology s){
+        ProductManager cman = ProductManager.getInstance();
+        return cman.saveSymbology(this, s);
+    }
+    
     public void setSymbology(Symbology s) {
         ProductManager cman = ProductManager.getInstance();
         cman.setSymbology(this, s);

@@ -539,6 +539,10 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         }
         jObjects3DListTable.repaint();
         
+        // Hack updates...need a better system for this
+        if (myLastSelectedFeature != null){
+            myLastSelectedFeature.getControls().updateGUI();
+        }
         // Notification for product changed...
          FeatureList.theFeatures.sendMessage("product");
     }

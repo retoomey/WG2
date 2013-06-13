@@ -18,6 +18,7 @@ import org.wdssii.xml.Util;
 @XmlRootElement(name = "arrowsymbol")
 public class ArrowSymbol extends PointSymbol {
 
+    @XmlAttribute(name = "useoutline")
     public boolean useOutline = true;
     /**
      * Outline color of the symbol
@@ -26,12 +27,19 @@ public class ArrowSymbol extends PointSymbol {
     @XmlAttribute(name = "ocolor")
     public Color ocolor = Color.BLACK;
     
+    @XmlAttribute(name = "osize")
     public int osize = 2;
+    
+    @XmlAttribute(name = "numpoints")
     public int numpoints = 4;
 
+    @XmlAttribute(name = "width")
     public int width = 10;
     
+    @XmlAttribute(name = "taillength")
     public int taillength = 10;
+    
+    @XmlAttribute(name = "tailthick")
     public int tailthick = 4;
     
     @Override

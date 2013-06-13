@@ -1,6 +1,7 @@
 package org.wdssii.xml.iconSetConfig;
 
 import java.awt.Color;
+import java.net.URL;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -20,10 +21,8 @@ public class Symbology {
      * Single symbol for all
      */
     public static final int SINGLE = 0;
-    
     public static final int MERGE_NONE = 0;
     public static final int MERGE_CATEGORIES = 1;
-    
     /**
      * Categories unique values
      */
@@ -64,6 +63,8 @@ public class Symbology {
         this.name = s.name;
         this.use = s.use;
         this.merge = s.merge;
+        this.myDataName = s.myDataName;
+        this.myURL = s.myURL;
         if (s.single != null) {
             this.single = new Single(s.single);
         }
@@ -105,17 +106,17 @@ public class Symbology {
         as.phaseangle = 0;
         as.color = Color.GREEN;
         as.ocolor = Color.BLACK;
-        as.pointsize = SIZE+4;
+        as.pointsize = SIZE + 4;
         this.categories.addCategory(new Category("RA", as));
-        
+
         /*newOne = new PolygonSymbol();
-        newOne.toTriangle();
-        newOne.color = Color.GREEN;
-        newOne.ocolor = Color.BLACK;
-        newOne.osize = 1;
-        newOne.pointsize = SIZE + 4;
-        this.categories.addCategory(new Category("RA", newOne));
-*/
+         newOne.toTriangle();
+         newOne.color = Color.GREEN;
+         newOne.ocolor = Color.BLACK;
+         newOne.osize = 1;
+         newOne.pointsize = SIZE + 4;
+         this.categories.addCategory(new Category("RA", newOne));
+         */
         newOne = new PolygonSymbol();
         newOne.color = new Color(255, 153, 153); // Pinkish
         newOne.ocolor = Color.BLACK;
@@ -217,10 +218,8 @@ public class Symbology {
      */
     @XmlAttribute(name = "use")
     public int use = SINGLE;
-    
     @XmlAttribute(name = "merge")
     public int merge = MERGE_CATEGORIES;
-    
     /**
      * Single based symbology
      */
@@ -231,6 +230,30 @@ public class Symbology {
      */
     @XmlElement(name = "categories", required = false)
     public Categories categories = null;
+    /**
+     * We don't save the URL, it's the kept path of successful load
+     */
+    public URL myURL = null;
+    /**
+     * The name of the datatype we were created/loaded for in display
+     */
+    public String myDataName = null;
+
+    public URL getURL() {
+        return myURL;
+    }
+
+    public void setURL(URL u) {
+        myURL = u;
+    }
+
+    public String getDataName() {
+        return myDataName;
+    }
+
+    public void setDataName(String d) {
+        myDataName = d;
+    }
 
     public int getUse() {
         return use;

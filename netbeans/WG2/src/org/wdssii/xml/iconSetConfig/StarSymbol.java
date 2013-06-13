@@ -21,10 +21,12 @@ public class StarSymbol extends PointSymbol {
     /**
      * Line size for drawing star
      */
+    @XmlAttribute(name = "lsize")
     public int lsize = 1;
     /**
      * Set to true if we use the outline
      */
+    @XmlAttribute(name = "useoutline")
     public boolean useOutline = true;
     /**
      * Outline color of the symbol
@@ -38,10 +40,12 @@ public class StarSymbol extends PointSymbol {
     /**
      * Outline line size, if outline is used
      */
+    @XmlAttribute(name = "osize")
     public int osize = 2;
     /**
      * Number of points in the star, multiple of 2
      */
+    @XmlAttribute(name = "numpoints")
     public int numpoints = 4;
 
     public void toX() {

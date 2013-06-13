@@ -141,9 +141,8 @@ public class Util {
     /**
      * Color java object doesn't have a empty attribute constructor, this lets
      * us use a Color object directly We can store a color in the format
-     * #RRGGBBAA -- hex digits "red"
-     * Since I'm making an editor, get away from the multiple attribute and 
-     * just store a hex string of the color
+     * #RRGGBBAA -- hex digits "red" Since I'm making an editor, get away from
+     * the multiple attribute and just store a hex string of the color
      */
     public static class ColorAdapter extends XmlAdapter<String, Color> {
 
@@ -192,32 +191,32 @@ public class Util {
             int alpha = 255;
             if (value.toLowerCase().startsWith("0x")) {
                 if (value.length() > 7) { // at least "0xRRGGBB"
-                    value = value.substring(2, 4);
                     try {
-                        red = Integer.parseInt(value, 16);
+                        final String redS = value.substring(2, 4);
+                        red = Integer.parseInt(redS, 16);
                     } catch (Exception e) {
-                        red = 255;
+                        red = 255; // fall back
                     }
-                     value = value.substring(4, 6);
                     try {
-                        green = Integer.parseInt(value, 16);
+                        final String greenS = value.substring(4, 6);
+                        green = Integer.parseInt(greenS, 16);
                     } catch (Exception e) {
                         green = 255;
                     }
-                    value = value.substring(6, 8);
                     try {
-                        blue = Integer.parseInt(value, 16);
+                        final String blueS = value.substring(6, 8);
+                        blue = Integer.parseInt(blueS, 16);
                     } catch (Exception e) {
                         blue = 255;
                     }
                 }
                 if (value.length() > 9) { // Alpha too
-                    value = value.substring(8, 10);
                     try {
-                        alpha = Integer.parseInt(value, 16);
+                        final String alphaS = value.substring(8, 10);
+                        alpha = Integer.parseInt(alphaS, 16);
                     } catch (Exception e) {
                         alpha = 255;
-                    } 
+                    }
                 }
             }
 
@@ -302,7 +301,22 @@ public class Util {
         return top;
     }
 
-    public static <T> void save(T root, String urlString, Class topClass) {
+    /**
+     * Load from a URL the given class
+     */
+    public static <T> T load(URL aURL, Class topClass) {
+        T top = null;
+        if (aURL != null) {
+            try {
+                top = loadURL(aURL, topClass);
+            } catch (Exception c) {
+                LOG.debug("XML exception " + c.toString());
+            }
+        }
+        return top;
+    }
+
+    public static <T> String save(T root, String urlString, Class topClass) {
         try {
 
             File file = new File(urlString);
@@ -314,10 +328,15 @@ public class Util {
             jaxbMarshaller.setProperty("com.sun.xml.internal.bind.xmlHeaders", "\n<!-- Created by WG2. Recommend not editing by hand -->");
             jaxbMarshaller.marshal(root, file);
             jaxbMarshaller.marshal(root, System.out);
-
+            return "";
         } catch (JAXBException e) {
             LOG.debug("Error writing file " + e.toString());
+            return "Error writing XML " + e.toString();
         }
 
+    }
+
+    public static <T> String save(T root, URL fileURL, Class topClass) {
+        return Util.save(root, fileURL.getFile(), topClass); 
     }
 }

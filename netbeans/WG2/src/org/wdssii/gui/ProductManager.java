@@ -4,6 +4,7 @@ import org.wdssii.core.Singleton;
 import gov.nasa.worldwind.event.PositionEvent;
 import java.awt.Color;
 import java.awt.Point;
+import java.io.File;
 import java.net.URL;
 import java.util.*;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ import org.wdssii.xml.iconSetConfig.Symbology;
 public class ProductManager implements Singleton {
 
     private final static Logger LOG = LoggerFactory.getLogger(ProductManager.class);
+    public final static String SYMBOLOGY = "symbology";
     public static final String DEFAULTS = "defaults";
     private static ProductManager instance = null;
     final public static int MIN_CACHE_SIZE = 50;
@@ -385,7 +387,6 @@ public class ProductManager implements Singleton {
         private DataTypeMetric myDataTypeMetric = null;
         private DataTypeMetric myOldDataTypeMetric = null;
         private boolean myIsDynamic = false;
-        
         /**
          * The symbology for this product
          */
@@ -479,7 +480,7 @@ public class ProductManager implements Singleton {
                 createDynamic = true;
                 myOldDataTypeMetric = myDataTypeMetric;
             }
-            
+
             ColorMap c = null;
             if (myColorMap == null) {
                 c = loadColorMapFromXML();
@@ -533,6 +534,7 @@ public class ProductManager implements Singleton {
                     Symbology s = loadSymbologyFromXML();
                     if (s == null) {
                         s = new Symbology();
+                        s.setDataName(getName());
                         s.toDefaultForPointData();
                         mySymbology = s;
                     } else {
@@ -543,11 +545,41 @@ public class ProductManager implements Singleton {
         }
 
         private Symbology loadSymbologyFromXML() {
-            Symbology s = Util.load("symbology/" + getName() + ".xml", Symbology.class);
+
+            URL aURL = W2Config.getURL(SYMBOLOGY + "/" + getName() + ".xml");
+            Symbology s = Util.load(aURL, Symbology.class);
             if (s != null) {
-                LOG.debug("Loaded Symbology for " + getName());
+                s.setURL(aURL);
+                s.setDataName(getName());
+                LOG.debug("Loaded Symbology for " + getName() + " from " + aURL);
             }
             return s;
+        }
+
+        private String saveSymbologyFromXML(Symbology s) {
+            URL theURL = s.getURL();
+            String error;
+            if (theURL == null) {
+                String dataName = s.getDataName();
+                URL pref = W2Config.getPreferredDir(ProductManager.SYMBOLOGY);
+                String output = pref.getFile() + dataName + ".xml";
+                File f = new File(output);
+                try {
+                    URL u = f.toURI().toURL();
+                    error = Util.save(s, u, Symbology.class);
+                    if (error.isEmpty()) {
+                        s.setURL(u);
+                    }
+                } catch (Exception e) {
+                    error = e.toString();
+                }
+            } else {
+                error = Util.save(s, theURL, s.getClass());
+            }
+            if (error.isEmpty()) {
+                LOG.debug("Saved Symbology for " + getName() + " from " + theURL);
+            }
+            return error;
         }
 
         /**
@@ -558,7 +590,8 @@ public class ProductManager implements Singleton {
             iconSetConfigURL = u;
 
             IconSetConfig tag = Util.load("icons/" + getColorKey(), IconSetConfig.class);
-            if (tag != null) {
+            if (tag
+                    != null) {
                 myIconSetConfig = tag;
 
                 // We are going to use the color map of the polygon for 
@@ -831,6 +864,19 @@ public class ProductManager implements Singleton {
         return s;
     }
 
+    public String saveSymbology(Product p, Symbology s) {
+        ProductDataInfo d = getProductDataInfo(p.getDataType());
+        return d.saveSymbologyFromXML(s);
+    }
+
+    public static Symbology loadSymbology(URL aURL) {
+        Symbology s = Util.load(aURL, Symbology.class);
+        if (s != null) {
+            s.setURL(aURL);
+        }
+        return s;
+    }
+
     public void setColorKey(Product p, String key) {
         ProductDataInfo d = getProductDataInfo(p.getDataType());
         d.setColorKey(key);
@@ -999,6 +1045,10 @@ public class ProductManager implements Singleton {
 
     public void loadColorDatabase() {
         URL aURL = null;
+
+
+
+
         try {
             //aURL = W2Config.getURL("colorDatabase.xml");
             ColorDatabase map = Util.load("colorDatabase.xml", ColorDatabase.class);
@@ -1214,7 +1264,6 @@ public class ProductManager implements Singleton {
                 break;
             }
         }
-
         if (!found) {
             ProductFeature newOne = new ProductFeature(toAdd, aProduct);
             toAdd.addFeature(newOne);
@@ -1224,6 +1273,7 @@ public class ProductManager implements Singleton {
 
         // Move handler to this product
         theHandler.setProduct(aProduct);
+
         aProduct.startLoading();  //Initialize loading if not already...
         return theHandler;
     }

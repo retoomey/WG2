@@ -226,12 +226,12 @@ public class W2Config {
         } catch (MalformedURLException ex) {
             aURL = null;
         }
-       // LOG.debug("Tried URL " + s + " and got " + aURL);
+        // LOG.debug("Tried URL " + s + " and got " + aURL);
         return aURL;
     }
 
-    /** Our version of openConnection with extra settings to try to avoid
-     hanging
+    /**
+     * Our version of openConnection with extra settings to try to avoid hanging
      */
     public static URLConnection open(URL aURL) throws IOException {
         // If it's a web URL, then check for non-404 (missing)
@@ -308,5 +308,18 @@ public class W2Config {
         } catch (Exception e) {
             throw new ConfigurationException(e);
         }
+    }
+
+    /**
+     * Get the preferred directory for save location...
+     * Passing in 'symbology' yields default directory for lookup
+     */
+    public static URL getPreferredDir(String base) {
+        // Get the preferred directory for symbology?
+        URL preferredDir = W2Config.getURL(base + "/");
+       // if (preferredDir != null) {
+       //     LOG.debug("Found preferred symbology directory at " + preferredDir);
+       // }
+        return preferredDir;
     }
 }

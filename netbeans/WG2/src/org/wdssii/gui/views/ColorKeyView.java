@@ -13,7 +13,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableModel;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.ColorMapRenderer;
+import org.wdssii.gui.renderers.ColorMapRenderer;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.ProductManager.ProductDataInfo;

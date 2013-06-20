@@ -298,7 +298,7 @@ public class RHIRadialSet extends RadialSet implements Table2DView {
     }
     
     @Override
-    public void exportToURL(URL aURL, GridVisibleArea g) {
+    public void export(URL aURL, GridVisibleArea g, String type) {
         LOG.debug("exportToURL not implemented for RHI yet");
     }
 }

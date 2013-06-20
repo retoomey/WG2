@@ -1,6 +1,5 @@
 package org.wdssii.gui.products;
 
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.*;
@@ -11,6 +10,7 @@ import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.datatypes.builders.BuilderFactory;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ProductManager;
@@ -406,11 +406,11 @@ public class Product extends DelegateHelper {
         return pr;
     }
 
-    public ProductReadout getProductReadout(Point p, Rectangle aRect, DrawContext dc) {
+    public ProductReadout getProductReadout(Point p, Rectangle aRect, GLWorld w) {
 
         // Just one object cached...humm might cause issues later..
         ProductReadout pr = (ProductReadout) getHelperObject("Readout", true, true, READOUT_CLASSPATH, "");
-        pr.doReadoutAtPoint(this, p, aRect, dc);
+        pr.doReadoutAtPoint(this, p, aRect, w);
         return pr;
     }
 
@@ -834,7 +834,7 @@ public class Product extends DelegateHelper {
      *
      * @param dc worldwind drawing context
      */
-    public void draw(DrawContext dc) {
+    public void draw(GLWorld w) {
 
         ProductRenderer pr = getRenderer();
         if (pr != null) {
@@ -843,14 +843,14 @@ public class Product extends DelegateHelper {
                 // FIXME: Design problem.  Renderer needs the FilterList from handler,
                 // but eventually we'll have multiple handlers..one might have a low pass filter
                 // and one might not...but we only have a SINGLE renderer kept right now...
-                pr.initToProduct(dc, this);
+                pr.initToProduct(w, this);
                 myDirtyRenderer = false;
             }
-            pr.draw(dc);
+            pr.draw(w);
         }
     }
 
-    public void doPick(DrawContext dc, java.awt.Point pickPoint) {
+    public void doPick(GLWorld w, java.awt.Point pickPoint) {
 
         ProductRenderer pr = getRenderer();
         if (pr != null) {
@@ -859,10 +859,10 @@ public class Product extends DelegateHelper {
                 // FIXME: Design problem.  Renderer needs the FilterList from handler,
                 // but eventually we'll have multiple handlers..one might have a low pass filter
                 // and one might not...but we only have a SINGLE renderer kept right now...
-                pr.initToProduct(dc, this);
+                pr.initToProduct(w, this);
                 myDirtyRenderer = false;
             }
-            pr.doPick(dc, pickPoint);
+            pr.doPick(w, pickPoint);
         }
     }
 

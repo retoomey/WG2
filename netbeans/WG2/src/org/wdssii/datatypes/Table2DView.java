@@ -72,6 +72,6 @@ public interface Table2DView {
     public boolean getCell(Location input, CellQuery output);
 
     /** Export selection to a url */
-    public void exportToURL(URL aURL, GridVisibleArea g);
+    public void export(URL aURL, GridVisibleArea g, String type);
 
 }

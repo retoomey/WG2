@@ -4,11 +4,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.ElevationModel;
-import gov.nasa.worldwind.globes.Globe;
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
 import java.awt.Point;
 import java.io.IOException;
@@ -32,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
+import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
@@ -103,11 +100,11 @@ public class MapRenderer implements Feature3DRenderer {
     }
 
     @Override
-    public void pick(DrawContext dc, Point p, FeatureMemento m) {
+    public void pick(GLWorld w, Point p, FeatureMemento m) {
     }
 
     @Override
-    public void preRender(DrawContext dc, FeatureMemento m) {
+    public void preRender(GLWorld w, FeatureMemento m) {
     }
 
     /**
@@ -115,16 +112,16 @@ public class MapRenderer implements Feature3DRenderer {
      */
     public static class BackgroundMapMaker extends WdssiiJob {
 
-        public DrawContext dc;
+        public GLWorld w;
         private MapMemento m;
         private MapRenderer myMapRenderer;
         // Humm.. reload map each time we regenerate?
         // Current maps will load once probably...
         public SimpleFeatureSource source;
 
-        public BackgroundMapMaker(String jobName, DrawContext aDc, SimpleFeatureSource s, MapRenderer r, MapMemento map) {
+        public BackgroundMapMaker(String jobName, GLWorld aW, SimpleFeatureSource s, MapRenderer r, MapMemento map) {
             super(jobName);
-            dc = aDc;
+            w = aW;
             myMapRenderer = r;
             source = s;
             m = map;
@@ -132,13 +129,13 @@ public class MapRenderer implements Feature3DRenderer {
 
         @Override
         public WdssiiJobStatus run(WdssiiJobMonitor monitor) {
-            return create(dc, m, myMapRenderer, source, monitor);
+            return create(w, m, myMapRenderer, source, monitor);
         }
 
-        public WdssiiJobStatus create(DrawContext dc, MapMemento m,
+        public WdssiiJobStatus create(GLWorld w, MapMemento m,
                 MapRenderer r, SimpleFeatureSource source, WdssiiJobMonitor monitor) {
 
-            Globe myGlobe = dc.getGlobe();
+            //Globe myGlobe = dc.getGlobe();
             GrowList<Integer> workOffsets = new GrowList<Integer>();
             workOffsets.add(0);  // Just one for now
             int idx = 0;
@@ -207,7 +204,7 @@ public class MapRenderer implements Feature3DRenderer {
             i = stuff.features();
             int actualCount = 0;
 
-            ElevationModel e = myGlobe.getElevationModel();
+            //ElevationModel e = myGlobe.getElevationModel();
             workPolygons.begin();
             while (i.hasNext()) {
                 SimpleFeature f = i.next();
@@ -247,12 +244,7 @@ public class MapRenderer implements Feature3DRenderer {
 
                                 double lat = C.y;
                                 double lon = C.x;
-                                Vec4 point = myGlobe.computePointFromPosition(
-                                        Angle.fromDegrees(lat),
-                                        Angle.fromDegrees(lon),
-                                        // Will need to update on vert change and use terrain height....eventually
-                                        e.getElevation(Angle.fromDegrees(lat), Angle.fromDegrees(lon)) + 100.0);
-
+                                V3 point = w.projectLLH(lat, lon, w.getElevation(lat, lon) + 100.0);
                                 workPolygons.set(idx++, (float) point.x);
                                 workPolygons.set(idx++, (float) point.y);
                                 workPolygons.set(idx++, (float) point.z);
@@ -295,7 +287,7 @@ public class MapRenderer implements Feature3DRenderer {
      * Draw the product in the current dc
      */
     @Override
-    public void draw(DrawContext dc, FeatureMemento mf) {
+    public void draw(GLWorld w, FeatureMemento mf) {
 
         MapMemento m = (MapMemento) (mf);
         // Regenerate if memento is different...
@@ -309,7 +301,7 @@ public class MapRenderer implements Feature3DRenderer {
                 if (myWorker != null) {
                     myWorker.cancel(); // doesn't matter really
                 }
-                myWorker = new BackgroundMapMaker("Job", dc, mySource, this, aCopy);
+                myWorker = new BackgroundMapMaker("Job", w, mySource, this, aCopy);
                 myWorker.schedule();
             }
 
@@ -318,7 +310,7 @@ public class MapRenderer implements Feature3DRenderer {
         synchronized (drawLock) {
 
             if (isCreated() && (polygonData != null)) {
-                GL gl = dc.getGL();
+                final GL gl = w.gl;
                 Color line = m.getPropertyValue(MapMemento.LINE_COLOR);
                 final float r = line.getRed() / 255.0f;
                 final float g = line.getGreen() / 255.0f;
@@ -352,12 +344,12 @@ public class MapRenderer implements Feature3DRenderer {
                         gl.glColor4f(r, g, b, a);
                         Integer t = m.getPropertyValue(MapMemento.LINE_THICKNESS);
                         gl.glLineWidth(t);
-                        GLUtil.renderArrays(dc, z, myOffsets, GL.GL_LINE_LOOP);
+                        GLUtil.renderArrays(w.gl, z, myOffsets, GL.GL_LINE_LOOP);
 
                         // Try the hidden stipple
-                        GLUtil.pushHiddenStipple(dc);
-                        GLUtil.renderArrays(dc, z, myOffsets, GL.GL_LINE_LOOP);
-                        GLUtil.popHiddenStipple(dc);
+                        GLUtil.pushHiddenStipple(w.gl);
+                        GLUtil.renderArrays(w.gl, z, myOffsets, GL.GL_LINE_LOOP);
+                        GLUtil.popHiddenStipple(w.gl);
 
                     }
                 } finally {
@@ -368,12 +360,6 @@ public class MapRenderer implements Feature3DRenderer {
                 }
             }
         }
-    }
-
-    /**
-     * Pick an object in the current dc at point
-     */
-    public void doPick(DrawContext dc, java.awt.Point pickPoint) {
     }
 
     /**

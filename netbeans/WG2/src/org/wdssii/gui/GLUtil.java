@@ -1,12 +1,11 @@
 package org.wdssii.gui;
 
 import com.sun.opengl.util.j2d.TextRenderer;
-import gov.nasa.worldwind.View;
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
 import java.nio.FloatBuffer;
 import java.util.Iterator;
 import javax.media.opengl.GL;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.storage.GrowList;
 
 /**
@@ -41,13 +40,8 @@ public class GLUtil {
 	}
 
 	/** Push a standard 2d ortho projection */
-	public static void pushOrtho2D(DrawContext dc) {
-		final View myView = dc.getView();
-		final GL gl = dc.getGL();
-		final int aViewWidth = myView.getViewport().width;
-		final int aViewHeight = myView.getViewport().height;
-
-		pushOrtho2D(gl, aViewWidth, aViewHeight);
+	public static void pushOrtho2D(GLWorld w) {
+		pushOrtho2D(w.gl, w.width, w.height);
 	}
 
 	public static void pushOrtho2D(GL gl, int width, int height) {
@@ -72,10 +66,6 @@ public class GLUtil {
 		gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
 	}
 
-	/** Pop a standard 2d ortho project */
-	public static void popOrtho2D(DrawContext dc) {
-		popOrtho2D(dc.getGL());
-	}
 
 	public static void popOrtho2D(GL gl) {
 		gl.glMatrixMode(GL.GL_PROJECTION);
@@ -85,15 +75,13 @@ public class GLUtil {
 		gl.glPopAttrib();
 	}
 
-	public static void pushHiddenStipple(DrawContext dc) {
-		final GL gl = dc.getGL();
+	public static void pushHiddenStipple(GL gl) {
 		gl.glDepthFunc(GL.GL_GREATER);
 		gl.glEnable(GL.GL_LINE_STIPPLE);
 		gl.glLineStipple(1, (short) 0x00ff);
 	}
 
-	public static void popHiddenStipple(DrawContext dc) {
-		final GL gl = dc.getGL();
+	public static void popHiddenStipple(GL gl) {
 		// FIXME: should push/pop attrib flags probably
 		gl.glDisable(GL.GL_LINE_STIPPLE);
 		gl.glDepthFunc(GL.GL_LESS);
@@ -105,10 +93,9 @@ public class GLUtil {
 	   gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 	 * We don't call it since you can call this multiple times within a single client state batch
 	 */
-	public static void renderArrays(DrawContext dc, FloatBuffer z, GrowList<Integer> offsets, int glMode) {
+	public static void renderArrays(GL gl, FloatBuffer z, GrowList<Integer> offsets, int glMode) {
 		// Only render if there is data to render
 		if ((z != null) && (z.capacity() > 0)) {
-			final GL gl = dc.getGL();
 			gl.glVertexPointer(3, GL.GL_FLOAT, 0, z.rewind());
 
 			Iterator<Integer> itr = offsets.iterator();

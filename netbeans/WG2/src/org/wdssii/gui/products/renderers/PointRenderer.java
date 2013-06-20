@@ -1,9 +1,6 @@
 package org.wdssii.gui.products.renderers;
 
 import com.sun.opengl.util.j2d.TextRenderer;
-import gov.nasa.worldwind.View;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
@@ -13,6 +10,9 @@ import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.AttributeTable.AttributeColumn;
+import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.V2;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.symbology.SymbolFactory;
 import org.wdssii.gui.renderers.SymbolRenderer;
@@ -61,29 +61,29 @@ public class PointRenderer {
 
     public static class CatLookup {
 
-        public CatLookup(int r, Vec4 a3d) {
+        public CatLookup(int r, V3 a3d) {
             row = r;
             the3D = a3d;
         }
         final int row;
-        final Vec4 the3D;
+        final V3 the3D;
     }
 
     public static class Node {
 
         // FIXME: Use a row 'list' for all merged objects..
         // ArrayList<Integer> theRows;
-        public Node(Vec4 p, int row, int count) {
+        public Node(V2 p, int row, int count) {
             thePoint = p;
             theRow = row;
             myCount = count;
         }
 
-        public Node(Vec4 p, int row) {
+        public Node(V2 p, int row) {
             thePoint = p;
             theRow = row;
         }
-        public Vec4 thePoint;
+        public V2 thePoint;
         public int theRow;
         /**
          * How many merged nodes make this rectangle?
@@ -160,7 +160,7 @@ public class PointRenderer {
      * Given DrawContext and collection of points and symbology, draw these
      * points
      */
-    public void draw(DrawContext dc, Symbology s, List<Vec4> points, AttributeColumn theColumn) {
+    public void draw(GLWorld w, Symbology s, List<V3> points, AttributeColumn theColumn) {
 
         myColumn = theColumn;
         checkSymbology(s);
@@ -172,33 +172,34 @@ public class PointRenderer {
             aText = new TextRenderer(font, true, true);
         }
         // Draw using the symbols...
-        GL gl = dc.getGL();
-        View v = dc.getView();
+        //GL gl = dc.getGL();
+        //View v = dc.getView();
 
-        GLUtil.pushOrtho2D(dc);
-        gl.glDisable(GL.GL_DEPTH_TEST);
+        GLUtil.pushOrtho2D(w);
+        w.gl.glDisable(GL.GL_DEPTH_TEST);
         if (mySymbology.merge == Symbology.MERGE_CATEGORIES) {
-            renderMergedCategories(v, gl, aText, points, s);
+            renderMergedCategories(w, aText, points, s);
         } else {
-            renderNormal(v, gl, aText, points, s);
+            renderNormal(w, aText, points, s);
         }
 
-        GLUtil.popOrtho2D(dc);
+        GLUtil.popOrtho2D(w.gl);
     }
 
     /**
      * Standard render of all points, looking up renderer for each
      */
-    public void renderNormal(View v, GL gl, TextRenderer text, List<Vec4> points, Symbology s) {
+    public void renderNormal(GLWorld w, TextRenderer text, List<V3> points, Symbology s) {
 
         int row = 0;
-        for (Vec4 at3D : points) {
-            Vec4 at2D = v.project(at3D);
+        for (V3 at3D : points) {
+            //Vec4 at2D = v.project(at3D);
+            V2 at2D = w.project(at3D);
             SymbolRenderer item = getRenderer(row, s);  // Kinda wasteful for Single mode since renderer same for all...
 
-            gl.glTranslated(at2D.x, at2D.y, 0);
-            item.render(gl);
-            gl.glTranslated(-at2D.x, -at2D.y, 0);
+            w.gl.glTranslated(at2D.x, at2D.y, 0);
+            item.render(w.gl);
+            w.gl.glTranslated(-at2D.x, -at2D.y, 0);
 
             //text.begin3DRendering();
             //GLUtil.cheezyOutline(text, Integer.toString(row), Color.WHITE, Color.BLACK, (int) at2D.x + 20, (int) at2D.y - 20);
@@ -217,7 +218,7 @@ public class PointRenderer {
      * @param points
      * @param s
      */
-    public void renderMergedCategories(View v, GL gl, TextRenderer text, List<Vec4> points, Symbology s) {
+    public void renderMergedCategories(GLWorld w, TextRenderer text, List<V3> points, Symbology s) {
 
         // Merge tree algorithm.
         int row = 0;
@@ -225,7 +226,7 @@ public class PointRenderer {
         // Create render groups...we will group by common symbol renderer
         // FIXME: This should be done before render pass probably....
         myGroups = new TreeMap<String, List<CatLookup>>();
-        for (Vec4 at3D : points) {
+        for (V3 at3D : points) {
             String catKey = NO_CATEGORY;
             catKey = getCategory(row, mySymbology);
 
@@ -254,7 +255,8 @@ public class PointRenderer {
                         //for (Vec4 at3D : thePoints) {
 
                         // Project into GL to get the rectangle of the actual drawn symbol
-                        Vec4 at2D = v.project(cat.the3D);
+                        //Vec4 at2D = v.project(cat.the3D);
+                        V2 at2D = w.project(cat.the3D);
                         SymbolRenderer item = getRenderer(cat.row, s);
                         SymbolRectangle r = item.getSymbolRectangle((int) at2D.x, (int) at2D.y);
 
@@ -306,7 +308,7 @@ public class PointRenderer {
                             if (hittingRectangles) {
                                 xRange = new Interval(r.x, r.x2);
                                 yRange = new Interval(r.y, r.y2);
-                                at2D = new Vec4((r.x2 + r.x) / 2, (r.y2 + r.y) / 2);
+                                at2D = new V2((r.x2 + r.x) / 2, (r.y2 + r.y) / 2);
 
                                 new1.thePoint = at2D;
                                 new1.theRow = cat.row;
@@ -338,13 +340,13 @@ public class PointRenderer {
                         Iterable<Node> YSet = x.getValues();
                         for (Node y : YSet) {
                             ycount++;
-                            gl.glTranslated(y.thePoint.x, y.thePoint.y, 0);
+                            w.gl.glTranslated(y.thePoint.x, y.thePoint.y, 0);
                             SymbolRenderer sr = getRenderer(y.theRow, s);
-                            sr.render(gl);
+                            sr.render(w.gl);
 
-                            gl.glTranslated(-y.thePoint.x, -y.thePoint.y, 0);
+                            w.gl.glTranslated(-y.thePoint.x, -y.thePoint.y, 0);
                             if (y.myCount > 1) {
-                                sr.renderSymbolRectangle(gl, y.myCoverage);
+                                sr.renderSymbolRectangle(w.gl, y.myCoverage);
                             }
                         }
                         xcount++;

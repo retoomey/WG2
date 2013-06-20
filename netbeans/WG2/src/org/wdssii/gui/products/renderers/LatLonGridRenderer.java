@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
+import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.worldwind.GLWorldWW;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.products.Product;
 
@@ -34,8 +36,8 @@ public class LatLonGridRenderer extends TileRenderer {
     private final static Logger LOG = LoggerFactory.getLogger(LatLonGridRenderer.class);
 
     @Override
-    public void initToProduct(DrawContext dc, Product aProduct) {
-        super.initToProduct(dc, aProduct);
+    public void initToProduct(GLWorld w, Product aProduct) {
+        super.initToProduct(w, aProduct);
 
         // Set resolution based on product info??  With lazy load not sure how...
     }
@@ -217,7 +219,7 @@ public class LatLonGridRenderer extends TileRenderer {
     }
 
     @Override
-    public void draw(DrawContext dc) {
+    public void draw(GLWorld w) {
 
         if (getProduct() == null) {
             return;
@@ -228,6 +230,12 @@ public class LatLonGridRenderer extends TileRenderer {
             mySetUpLevels = true;
         }
 
+        // Hack back to old....
+        DrawContext dc = null;
+        if (w instanceof GLWorldWW) {
+            GLWorldWW ww = (GLWorldWW) (w);
+            dc = ww.getDC();
+        }
         // assemble tiles.  This gets/creates tile OBJECTS only..that would
         // draw at this time.  
         Product p = getProduct();
@@ -252,12 +260,18 @@ public class LatLonGridRenderer extends TileRenderer {
         }
     }
 
-    public float drawReadout(DrawContext dc, Point aPoint, Rectangle view, float missingData) {
+    public float drawReadout(GLWorld w, Point aPoint, Rectangle view, float missingData) {
 
         // Same as draw, but we really should only draw the tile and/or descendants 
         // under the mouse point....
         // FIXME: smarter draw to speed up...find tile under point and only render it...
 
+        // Hack back to old....
+        DrawContext dc = null;
+        if (w instanceof GLWorldWW) {
+            GLWorldWW ww = (GLWorldWW) (w);
+            dc = ww.getDC();
+        }
         if (getProduct() == null) {
             return missingData;
         }
@@ -372,11 +386,11 @@ public class LatLonGridRenderer extends TileRenderer {
      * Get the readout for this product
      */
     @Override
-    public float getReadoutValue(Point p, Rectangle view, DrawContext dc) {
+    public float getReadoutValue(Point p, Rectangle view, GLWorld w) {
 
         float value = DataType.MissingData;
         if (p != null) {
-            value = drawReadout(dc, p, view, DataType.MissingData);
+            value = drawReadout(w, p, view, DataType.MissingData);
         }
         return value;
     }

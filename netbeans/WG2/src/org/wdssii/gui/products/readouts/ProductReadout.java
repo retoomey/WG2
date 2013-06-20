@@ -1,12 +1,12 @@
 package org.wdssii.gui.products.readouts;
 
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductTextFormatter;
 import org.wdssii.gui.products.renderers.ProductRenderer;
@@ -52,7 +52,7 @@ public class ProductReadout {
     /**
      * Get the readout for this product at given point in view..
      */
-    public void doReadoutAtPoint(Product prod, Point p, Rectangle view, DrawContext dc) {
+    public void doReadoutAtPoint(Product prod, Point p, Rectangle view, GLWorld w) {
 
         // Default for now uses color trick...this works for RadialSets,
         // LatLonGrids
@@ -62,7 +62,7 @@ public class ProductReadout {
         if (prod != null) {
             ProductRenderer pr = prod.getRenderer();
             if (pr != null) {
-                value = pr.getReadoutValue(p, view, dc);
+                value = pr.getReadoutValue(p, view, w);
             }
             // Get the formatter for this product...
             ProductTextFormatter f = prod.getProductFormatter();

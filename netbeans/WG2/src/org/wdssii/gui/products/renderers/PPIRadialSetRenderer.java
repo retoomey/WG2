@@ -1,9 +1,5 @@
 package org.wdssii.gui.products.renderers;
 
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.Globe;
-import gov.nasa.worldwind.render.DrawContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
@@ -14,7 +10,9 @@ import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetQuery;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialATHeightGateCache;
 import org.wdssii.datatypes.RadialUtil;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.geom.Location;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.products.*;
 import org.wdssii.storage.Array1D;
@@ -37,14 +35,14 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
     }
 
     @Override
-    public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
+    public WdssiiJobStatus createForDatatype(GLWorld w, Product aProduct, WdssiiJobMonitor monitor) {
         //long start = System.currentTimeMillis();
 
         try {
             // Make sure and always start monitor
             PPIRadialSet aRadialSet = (PPIRadialSet) aProduct.getRawDataType();
             monitor.beginTask("RadialSetRenderer", aRadialSet.getNumRadials());
-            Globe myGlobe = dc.getGlobe(); // FIXME: says may be null???
+            //Globe myGlobe = dc.getGlobe(); // FIXME: says may be null???
             FilterList aList = aProduct.getFilterList();
             final Location radarLoc = aRadialSet.getRadarLocation();
             final double sinElevAngle = aRadialSet.getFixedAngleSin();
@@ -91,7 +89,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                     aRadialSet, firstRadial, maxGateCount, sinElevAngle, cosElevAngle);
 
             PPIRadialSetQuery rq = new PPIRadialSetQuery();
-            Vec4 point0, point1, point2 = null, point3 = null;
+            V3 point0, point1, point2 = null, point3 = null;
             boolean startQuadStrip;
             int updateIndex = 0;
             float[] point01 = new float[6];
@@ -150,20 +148,23 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                             RadialUtil.getAzRan1(loc0, radarLoc, sinEndAzRAD, cosEndAzRAD,
                                     rangeKms, sinElevAngle, cosElevAngle, c.heights[j],
                                     c.gcdSinCache[j], c.gcdCosCache[j]);
-                            point0 = myGlobe.computePointFromPosition(
-                                    Angle.fromDegrees(loc0.getLatitude()),
-                                    Angle.fromDegrees(loc0.getLongitude()),
-                                    loc0.getHeightKms() * 1000);
+                            //point0 = myGlobe.computePointFromPosition(
+                            //        Angle.fromDegrees(loc0.getLatitude()),
+                            //        Angle.fromDegrees(loc0.getLongitude()),
+                            //        loc0.getHeightKms() * 1000);
+                            point0 = w.projectLLH(loc0.getLatitude(), loc0.getLongitude(), loc0.getHeightKms()*1000);
                             point01[0] = (float) point0.x;
                             point01[1] = (float) point0.y;
                             point01[2] = (float) point0.z;
                             RadialUtil.getAzRan1(loc1, radarLoc, sinStartAzRAD,
                                     cosStartAzRAD, rangeKms, sinElevAngle, cosElevAngle,
                                     c.heights[j], c.gcdSinCache[j], c.gcdCosCache[j]);
-                            point1 = myGlobe.computePointFromPosition(
-                                    Angle.fromDegrees(loc1.getLatitude()),
-                                    Angle.fromDegrees(loc1.getLongitude()),
-                                    loc1.getHeightKms() * 1000);
+                            //point1 = myGlobe.computePointFromPosition(
+                            //        Angle.fromDegrees(loc1.getLatitude()),
+                            //        Angle.fromDegrees(loc1.getLongitude()),
+                            //        loc1.getHeightKms() * 1000);
+                            point1 = w.projectLLH(loc1.getLatitude(), loc1.getLongitude(), loc1.getHeightKms()*1000);
+
                             point01[3] = (float) point1.x;
                             point01[4] = (float) point1.y;
                             point01[5] = (float) point1.z;
@@ -201,17 +202,21 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
 
                         // Always write the 'top' of the strip
                         // Push back last two vertices of quad
-                        point2 = myGlobe.computePointFromPosition(
-                                Angle.fromDegrees(loc2.getLatitude()),
-                                Angle.fromDegrees(loc2.getLongitude()),
-                                loc2.getHeightKms() * 1000);
+                       //point2 = myGlobe.computePointFromPosition(
+                       //         Angle.fromDegrees(loc2.getLatitude()),
+                       //         Angle.fromDegrees(loc2.getLongitude()),
+                        //        loc2.getHeightKms() * 1000);
+                        point2 = w.projectLLH(loc2.getLatitude(), loc2.getLongitude(), loc2.getHeightKms()*1000);
+
                         point23[0] = (float) point2.x;
                         point23[1] = (float) point2.y;
                         point23[2] = (float) point2.z;
-                        point3 = myGlobe.computePointFromPosition(
-                                Angle.fromDegrees(loc3.getLatitude()),
-                                Angle.fromDegrees(loc3.getLongitude()),
-                                loc3.getHeightKms() * 1000);
+                        //point3 = myGlobe.computePointFromPosition(
+                        //        Angle.fromDegrees(loc3.getLatitude()),
+                        //        Angle.fromDegrees(loc3.getLongitude()),
+                        //        loc3.getHeightKms() * 1000);
+                        point3 = w.projectLLH(loc3.getLatitude(), loc3.getLongitude(), loc3.getHeightKms()*1000);
+
                         point23[3] = (float) point3.x;
                         point23[4] = (float) point3.y;
                         point23[5] = (float) point3.z;

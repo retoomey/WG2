@@ -2,26 +2,32 @@ package org.wdssii.core;
 
 import java.awt.Rectangle;
 
-/** Object representing a square section of visible table area.
- * Used to render product outlines for readout in the 3D world, also to render table
- * tracking.  Used to handle rectangle selection.
- * 
- *  @author Robert Toomey
- *  
+/**
+ * Object representing a square section of visible table area. Used to render
+ * product outlines for readout in the 3D world, also to render table tracking.
+ * Used to handle rectangle selection.
+ *
+ * @author Robert Toomey
+ *
  */
 public class GridVisibleArea {
 
-    /** Number of rows hight the grid is */
+    /**
+     * Number of rows hight the grid is
+     */
     public int numRows;
-
-    /** Number of columns wide the grid is */
+    /**
+     * Number of columns wide the grid is
+     */
     public int numCols;
-
-    /** Index of the first visible row on screen */
+    /**
+     * Index of the first visible row on screen
+     */
     public int startRow;
-
-    /** Index of first visible column on screen */
-    public int startCol; 
+    /**
+     * Index of first visible column on screen
+     */
+    public int startCol;
 
     /* Index of last fully (non-clipped row on screen */
     public int lastFullRow;
@@ -34,13 +40,23 @@ public class GridVisibleArea {
 
     /* Index of last clipped column on screen */
     public int lastPartialColumn;
-
-    /** Possible clipping region of the viewport */
+    /**
+     * Primary row, the dragging end row..the cell to edit if any
+     */
+    public int primaryRow;
+    /**
+     * Primary col, the dragging end column..the cell to edit if any
+     */
+    public int primaryCol;
+    /**
+     * Possible clipping region of the viewport
+     */
     public Rectangle clipBounds;
-
-    /** Active flag if selection set */
+    /**
+     * Active flag if selection set
+     */
     public boolean active;
-    
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -60,7 +76,10 @@ public class GridVisibleArea {
         builder.append(lastFullRow);
         builder.append(", ");
         builder.append(lastPartialRow);
-
+        builder.append(", ");
+        builder.append(primaryRow);
+        builder.append(", ");
+        builder.append(primaryCol);
         return builder.toString();
     }
 }

@@ -52,8 +52,11 @@ public class RadialSetESRIWriter extends ESRIWriter {
     private final static Logger LOG = LoggerFactory.getLogger(PPIRadialSet.class);
 
     @Override
-    protected WdssiiJobStatus export(DataType data, URL aURL, WdssiiJobMonitor monitor) {
-
+    public WdssiiJobStatus export(DataTypeWriterOptions o) {
+        
+        final DataType data = o.getData();
+        final WdssiiJobMonitor monitor = o.getMonitor();
+        final URL aURL = o.getURL();
         if (!(data instanceof RadialSet)) {
             return WdssiiJobStatus.CANCEL_STATUS;
         }

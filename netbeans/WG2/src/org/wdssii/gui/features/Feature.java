@@ -1,10 +1,10 @@
 package org.wdssii.gui.features;
 
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import org.wdssii.core.CommandManager;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
@@ -265,11 +265,11 @@ public class Feature implements Mementor {
     /**
      * preRender a feature
      */
-    public void preRender(DrawContext dc) {
+    public void preRender(GLWorld w) {
         if (myRenderers != null) {
             FeatureMemento m = getMemento();
             for (Feature3DRenderer r : myRenderers) {
-                r.preRender(dc, m);
+                r.preRender(w, m);
             }
         }
     }
@@ -277,11 +277,11 @@ public class Feature implements Mementor {
     /**
      * Render a feature
      */
-    public void render(DrawContext dc) {
+    public void render(GLWorld w) {
         if (myRenderers != null) {
             FeatureMemento m = getMemento();
             for (Feature3DRenderer r : myRenderers) {
-                r.draw(dc, m);
+                r.draw(w, m);
             }
         }
     }
@@ -289,11 +289,11 @@ public class Feature implements Mementor {
     /**
      * Pick a feature
      */
-    public void pick(DrawContext dc, Point p) {
+    public void pick(GLWorld w, Point p) {
         if (myRenderers != null) {
             FeatureMemento m = getMemento();
             for (Feature3DRenderer r : myRenderers) {
-                r.pick(dc, p, m);
+                r.pick(w, p, m);
             }
         }
     }

@@ -1,11 +1,11 @@
 package org.wdssii.gui.features;
 
 import gov.nasa.worldwind.layers.LayerList;
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.gis.MapFeature;
 import org.wdssii.gui.views.WorldWindView;
 
@@ -323,20 +323,20 @@ public class FeatureList {
     /**
      * preRender all features that are in the given group
      */
-    public void preRenderFeatureGroup(DrawContext dc, String g) {
+    public void preRenderFeatureGroup(GLWorld w, String g) {
 
         List<Feature> list = getActiveFeatureGroup(g);
         Iterator<Feature> iter = list.iterator();
         while (iter.hasNext()) {
             Feature f = iter.next();
-            f.preRender(dc);
+            f.preRender(w);
         }
     }
 
     /**
      * Render all features that are in the given group
      */
-    public void renderFeatureGroup(DrawContext dc, String g) {
+    public void renderFeatureGroup(GLWorld w, String g) {
 
         List<Feature> list = getActiveFeatureGroup(g);
         
@@ -346,7 +346,7 @@ public class FeatureList {
             while (iter.hasNext()) {
                 Feature f = iter.next();
                 if (f.getRank() == i) {
-                    f.render(dc);
+                    f.render(w);
                 }
             }
         }
@@ -355,13 +355,13 @@ public class FeatureList {
     /**
      * Pick all features that are in the given group
      */
-    public void pickFeatureGroup(DrawContext dc, Point p, String g) {
+    public void pickFeatureGroup(GLWorld w, Point p, String g) {
 
         List<Feature> list = getActiveFeatureGroup(g);
         Iterator<Feature> iter = list.iterator();
         while (iter.hasNext()) {
             Feature f = iter.next();
-            f.pick(dc, p);
+            f.pick(w, p);
         }
     }
 

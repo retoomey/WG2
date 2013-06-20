@@ -11,6 +11,8 @@ import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonHeightGrid;
 import org.wdssii.datatypes.LatLonHeightGrid.LatLonHeightGridQuery;
+import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.worldwind.GLWorldWW;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
@@ -89,9 +91,14 @@ public class LatLonHeightGridRenderer extends ProductRenderer {
     }
 
     @Override
-    public WdssiiJob.WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJob.WdssiiJobMonitor monitor) {
+    public WdssiiJob.WdssiiJobStatus createForDatatype(GLWorld w, Product aProduct, WdssiiJob.WdssiiJobMonitor monitor) {
         //long start = System.currentTimeMillis();
-
+        // Hack back to old....
+        DrawContext dc= null;
+        if (w instanceof GLWorldWW){
+        GLWorldWW ww = (GLWorldWW)(w);
+            dc = ww.getDC();   
+         }
         try {
             // Make sure and always start monitor
             LatLonHeightGrid aLLHG = (LatLonHeightGrid) aProduct.getRawDataType();
@@ -278,7 +285,7 @@ public class LatLonHeightGridRenderer extends ProductRenderer {
     }
 
     @Override
-    public void draw(DrawContext dc) {
+    public void draw(GLWorld w) {
         // throw new UnsupportedOperationException("Not supported yet.");
     }
 

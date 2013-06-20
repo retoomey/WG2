@@ -1,7 +1,6 @@
-package org.wdssii.gui;
+package org.wdssii.gui.renderers;
 
 import com.sun.opengl.util.j2d.TextRenderer;
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
@@ -11,7 +10,11 @@ import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
+import org.wdssii.gui.GLUtil;
+import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LegendFeature.LegendMemento;
@@ -167,11 +170,11 @@ public class ColorMapRenderer implements Feature3DRenderer {
 	}
 
 	@Override
-	public void pick(DrawContext dc, Point p, FeatureMemento m) {
+	public void pick(GLWorld w, Point p, FeatureMemento m) {
 	}
 
 	@Override
-	public void preRender(DrawContext dc, FeatureMemento m) {
+	public void preRender(GLWorld w, FeatureMemento m) {
 	}
 
 	/**
@@ -483,7 +486,7 @@ public class ColorMapRenderer implements Feature3DRenderer {
 	}
 
 	@Override
-	public void draw(DrawContext dc, FeatureMemento m) {
+	public void draw(GLWorld w, FeatureMemento m) {
 
 
 		// Grab the first product map of first rendered
@@ -504,10 +507,9 @@ public class ColorMapRenderer implements Feature3DRenderer {
 		
 		// Pass in viewport to avoid getting width from context, since it
 		// could be wrong for lightweight
-		java.awt.Rectangle viewport = dc.getView().getViewport();
 		Boolean on = m.getPropertyValue(LegendMemento.SHOWLABELS);
 		setLabels(on);
-		paintToOpenGL(dc.getGL(), viewport.width, viewport.height, 1.0f);
+		paintToOpenGL(w.gl, w.width, w.height, 1.0f);
 	}
 
 	private void setLabels(Boolean on) {

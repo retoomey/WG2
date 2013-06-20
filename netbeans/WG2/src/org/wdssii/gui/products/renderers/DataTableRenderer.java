@@ -1,10 +1,6 @@
 package org.wdssii.gui.products.renderers;
 
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.pick.PickSupport;
-import gov.nasa.worldwind.render.DrawContext;
 import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +8,12 @@ import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.geom.Location;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.renderers.icons.BaseIconAnnotation;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.xml.iconSetConfig.Symbology;
 
@@ -32,19 +28,18 @@ import org.wdssii.xml.iconSetConfig.Symbology;
  */
 public class DataTableRenderer extends ProductRenderer {
 
-    private ArrayList<BaseIconAnnotation> myIcons = new ArrayList<BaseIconAnnotation>();
+  //  private ArrayList<BaseIconAnnotation> myIcons = new ArrayList<BaseIconAnnotation>();
     private final static Logger LOG = LoggerFactory.getLogger(DataTableRenderer.class);
     //public static BasicAnnotationRenderer myRenderer = new BasicAnnotationRenderer();
     private ColorMap myTextColorMap = null;
     private ColorMap myPolygonColorMap = null;
     // Not sure this should be here....
     private PickSupport pickSupport = new PickSupport();
-    // FIXME: really need non-static...
-    public static BaseIconAnnotation hovered = null;
+
     /**
      * Store world points for a DataTable
      */
-    private ArrayList<Vec4> myWorldPoints = null;
+    private ArrayList<V3> myWorldPoints = null;
     private PointRenderer myPointRenderer = new PointRenderer();
     ;
     private static boolean refreshRenderers = true;
@@ -62,7 +57,7 @@ public class DataTableRenderer extends ProductRenderer {
     //    hackme = s;
     // }
     @Override
-    public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
+    public WdssiiJobStatus createForDatatype(GLWorld w, Product aProduct, WdssiiJobMonitor monitor) {
 
         // Make sure and always start monitor
         DataTable aDataTable = (DataTable) aProduct.getRawDataType();
@@ -76,7 +71,7 @@ public class DataTableRenderer extends ProductRenderer {
      *
      * @param dc Draw context in opengl for drawing our radial set
      */
-    public void drawData(DrawContext dc, boolean pickMode, java.awt.Point pickPoint) {
+    public void drawData(GLWorld w, boolean pickMode, java.awt.Point pickPoint) {
         if (pickMode) {
             return;
         }
@@ -86,7 +81,7 @@ public class DataTableRenderer extends ProductRenderer {
         }
         DataTable aDataTable = (DataTable) p.getRawDataType();
 
-        Globe g = dc.getGlobe();
+        //Globe g = dc.getGlobe();
 
         ArrayList<Location> locations = aDataTable.getLocations();
 
@@ -103,15 +98,16 @@ public class DataTableRenderer extends ProductRenderer {
 
 
         if ((myWorldPoints == null) || refreshRenderers) {
-            myWorldPoints = new ArrayList<Vec4>();
+            myWorldPoints = new ArrayList<V3>();
             // Only needed if renderer can change per point (such as category)
             //  myRenderers = new ArrayList<SymbolRenderer>();
             int row = 0;
             for (Location l : locations) {
-                Vec4 worldPoint = g.computePointFromPosition(
-                        Angle.fromDegrees(l.getLatitude()),
-                        Angle.fromDegrees(l.getLongitude()),
-                        l.getHeightKms() * 1000.0);
+                //Vec4 worldPoint = g.computePointFromPosition(
+                //        Angle.fromDegrees(l.getLatitude()),
+                //        Angle.fromDegrees(l.getLongitude()),
+                //        l.getHeightKms() * 1000.0);
+                V3 worldPoint = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms()*1000.0);
                 myWorldPoints.add(worldPoint);
                 row++;
             }
@@ -119,7 +115,7 @@ public class DataTableRenderer extends ProductRenderer {
             refreshRenderers = false;
         }
 
-        myPointRenderer.draw(dc, s, myWorldPoints, symbolColumn);
+        myPointRenderer.draw(w, s, myWorldPoints, symbolColumn);
     }
 
     /**
@@ -127,27 +123,21 @@ public class DataTableRenderer extends ProductRenderer {
      * @param dc Draw context in opengl for drawing our radial set
      */
     @Override
-    public void draw(DrawContext dc) {
-        drawData(dc, false, null);
+    public void draw(GLWorld w) {
+        drawData(w, false, null);
     }
 
     /**
      * Pick an object in the current dc at point
      */
     @Override
-    public void doPick(DrawContext dc, java.awt.Point pickPoint) {
-        drawData(dc, true, pickPoint);
+    public void doPick(GLWorld w, java.awt.Point pickPoint) {
+        drawData(w, true, pickPoint);
     }
 
     @Override
     public void highlightObject(Object o) {
-        hovered = null;
-        if ((o != null) && (o instanceof BaseIconAnnotation)) {
-            // Humm..need to make sure this is OUR icon
-            BaseIconAnnotation b = (BaseIconAnnotation) (o);
-            hovered = b;
-            FeatureList.theFeatures.repaintViews();
-        }
+       
     }
 
     @Override

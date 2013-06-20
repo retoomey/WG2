@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.products.Product;
 
 /**
@@ -175,7 +176,7 @@ public class TileRenderer extends ProductRenderer {
     }
 
     @Override
-    public void draw(DrawContext dc) {
+    public void draw(GLWorld w) {
     }
 
     @Override

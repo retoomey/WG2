@@ -2,11 +2,12 @@ package org.wdssii.gui.gis;
 
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.View;
-import gov.nasa.worldwind.geom.Angle;
+/*import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
+* */
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
@@ -35,6 +36,9 @@ import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.storage.GrowList;
 import org.wdssii.gui.GLUtil;
 import org.wdssii.datatypes.RadialUtil;
+import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.V2;
+import org.wdssii.geom.V3;
 
 /**
  *
@@ -63,7 +67,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	 * Verts for the map. Single for now (monster maps may fail)
 	 */
 	protected Array1D<Float> polygonData;
-	private GrowList<Vec4> myLabelPoints;
+	private GrowList<V3> myLabelPoints;
 	private GrowList<String> myLabelStrings;
 	/**
 	 * Current memento settings
@@ -94,11 +98,11 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	}
 
 	@Override
-	public void pick(DrawContext dc, Point p, FeatureMemento m) {
+	public void pick(GLWorld w, Point p, FeatureMemento m) {
 	}
 
 	@Override
-	public void preRender(DrawContext dc, FeatureMemento m) {
+	public void preRender(GLWorld w, FeatureMemento m) {
 	}
 
 	/**
@@ -106,29 +110,28 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	 */
 	public static class BackgroundPolarGridMaker extends WdssiiJob {
 
-		public DrawContext dc;
+		public GLWorld w;
 		private PolarGridMemento m;
 		private PolarGridRenderer myPolarGridRenderer;
 
-		public BackgroundPolarGridMaker(String jobName, DrawContext aDc, PolarGridRenderer r, PolarGridMemento p) {
+		public BackgroundPolarGridMaker(String jobName, GLWorld aW, PolarGridRenderer r, PolarGridMemento p) {
 			super(jobName);
-			dc = aDc;
+			w = aW;
 			myPolarGridRenderer = r;
 			m = p;
 		}
 
 		@Override
 		public WdssiiJobStatus run(WdssiiJobMonitor monitor) {
-			return create(dc, m, myPolarGridRenderer, monitor);
+			return create(w, m, myPolarGridRenderer, monitor);
 		}
 
 		/**
 		 * Do the work of generating the OpenGL stuff
 		 */
-		public WdssiiJobStatus create(DrawContext dc, PolarGridMemento p,
+		public WdssiiJobStatus create(GLWorld w, PolarGridMemento p,
 			PolarGridRenderer r, WdssiiJobMonitor monitor) {
 
-			Globe myGlobe = dc.getGlobe();
 			int idx = 0;
 
 			//	int myMaxR = 500; // firstgate+(numgates*gatewidth)....for a radialset
@@ -141,9 +144,9 @@ public class PolarGridRenderer implements Feature3DRenderer {
 				numCircles = 1;
 			} // HAVE to have at least one
 
-			LatLon center = p.getPropertyValue(PolarGridMemento.CENTER);
-			Location ourCenter = new Location(center.getLatitude().degrees,
-				center.getLongitude().degrees, 0);
+			V2 center = p.getPropertyValue(PolarGridMemento.CENTER);
+			Location ourCenter = new Location(center.x,
+				center.y, 0);
 			LOG.debug("Center is at " + ourCenter);
 
 //			if (ringApart > myMaxR) {
@@ -175,7 +178,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 				+ (numSpokes * (numCircles + 1) * 3), // Number of spoke points
 				0.0f);
 			GrowList<Integer> workOffsets = new GrowList<Integer>();
-			GrowList<Vec4> workLabelPoints = new GrowList<Vec4>();
+			GrowList<V3> workLabelPoints = new GrowList<V3>();
 			GrowList<String> workLabelStrings = new GrowList<String>();
 			workOffsets.add(0);  // Just one for now
 
@@ -191,10 +194,12 @@ public class PolarGridRenderer implements Feature3DRenderer {
 					RadialUtil.getAzRanElLocation(l, ourCenter,
 						sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
 						sinElevAngle, cosElevAngle);
-					Vec4 point = myGlobe.computePointFromPosition(
-						Angle.fromDegrees(l.getLatitude()),
-						Angle.fromDegrees(l.getLongitude()),
-						l.getHeightKms() * 1000.0);
+					//Vec4 point = myGlobe.computePointFromPosition(
+					//	Angle.fromDegrees(l.getLatitude()),
+					//	Angle.fromDegrees(l.getLongitude()),
+				//		l.getHeightKms() * 1000.0);
+                                        
+                                        V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms()*1000.0);
 					workPolygons.set(idx++, (float) point.x);
 					workPolygons.set(idx++, (float) point.y);
 					workPolygons.set(idx++, (float) point.z);
@@ -211,11 +216,12 @@ public class PolarGridRenderer implements Feature3DRenderer {
 			// Spoke pass...
 
 			// Calculate the absolute center, shared by each spoke....
-			Vec4 cpoint = myGlobe.computePointFromPosition(
-				Angle.fromDegrees(ourCenter.getLatitude()),
-				Angle.fromDegrees(ourCenter.getLongitude()),
-				ourCenter.getHeightKms() * 1000.0);
-
+			//Vec4 cpoint = myGlobe.computePointFromPosition(
+			//	Angle.fromDegrees(ourCenter.getLatitude()),
+			//	Angle.fromDegrees(ourCenter.getLongitude()),
+			//	ourCenter.getHeightKms() * 1000.0);
+                        
+                        V3 cpoint = w.projectLLH(ourCenter.getLatitude(), ourCenter.getLongitude(), ourCenter.getHeightKms()*1000.0);
 			// For each step in spoke degrees....
 			int spokeAngle = 0;
 			for (int d = 0; d < numSpokes; d += 1) {
@@ -232,10 +238,11 @@ public class PolarGridRenderer implements Feature3DRenderer {
 					RadialUtil.getAzRanElLocation(l, ourCenter,
 						sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
 						sinElevAngle, cosElevAngle);
-					Vec4 point = myGlobe.computePointFromPosition(
-						Angle.fromDegrees(l.getLatitude()),
-						Angle.fromDegrees(l.getLongitude()),
-						l.getHeightKms() * 1000.0);
+					//Vec4 point = myGlobe.computePointFromPosition(
+					//	Angle.fromDegrees(l.getLatitude()),
+					//	Angle.fromDegrees(l.getLongitude()),
+					//	l.getHeightKms() * 1000.0);
+                                        V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms()*1000.0);
 					workPolygons.set(idx++, (float) point.x);
 					workPolygons.set(idx++, (float) point.y);
 					workPolygons.set(idx++, (float) point.z);
@@ -259,10 +266,11 @@ public class PolarGridRenderer implements Feature3DRenderer {
 				RadialUtil.getAzRanElLocation(l, ourCenter,
 					sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
 					sinElevAngle, cosElevAngle);
-				Vec4 point = myGlobe.computePointFromPosition(
-					Angle.fromDegrees(l.getLatitude()),
-					Angle.fromDegrees(l.getLongitude()),
-					l.getHeightKms() * 1000.0);
+				//Vec4 point = myGlobe.computePointFromPosition(
+				//	Angle.fromDegrees(l.getLatitude()),
+				//	Angle.fromDegrees(l.getLongitude()),
+				//	l.getHeightKms() * 1000.0);
+                                V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms()*1000.0);
 
 				// Add STRING first, draw thread will use size of points to render,
 				// so we need to make sure string is available
@@ -315,13 +323,13 @@ public class PolarGridRenderer implements Feature3DRenderer {
 					double latDegs = l.getLatitude();
 					double lonDegs = l.getLongitude();
 					// Why am I mixing worldwind LatLon with wdssii location?
-					LatLon ll = old.getPropertyValue(PolarGridMemento.CENTER);
-					double latOldDegs = ll.latitude.degrees;
-					double lonOldDegs = ll.longitude.degrees;
+					V2 ll = old.getPropertyValue(PolarGridMemento.CENTER);
+					double latOldDegs = ll.x;
+					double lonOldDegs = ll.y;
 
 					if ((latOldDegs != latDegs) || (lonOldDegs != lonDegs)) {
 						needsUpdate = true;
-						LatLon aLatLon = LatLon.fromDegrees(latDegs, lonDegs);
+						V2 aLatLon = new V2(latDegs, lonDegs);
 						new1.setProperty(PolarGridMemento.CENTER, aLatLon);
 					}
 
@@ -343,7 +351,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	 * functions?
 	 */
 	@Override
-	public void draw(DrawContext dc, FeatureMemento mf) {
+	public void draw(GLWorld w, FeatureMemento mf) {
 
 		PolarGridMemento m = (PolarGridMemento) (mf);
 		// Regenerate if memento is different...
@@ -357,7 +365,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 				if (myWorker != null) {
 					myWorker.cancel(); // doesn't matter really
 				}
-				myWorker = new BackgroundPolarGridMaker("Job", dc, this, aCopy);
+				myWorker = new BackgroundPolarGridMaker("Job", w, this, aCopy);
 				myWorker.schedule();
 			}
 
@@ -365,7 +373,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 
 		synchronized (drawLock) {
 			if (isCreated() && (polygonData != null)) {
-				GL gl = dc.getGL();
+				final GL gl = w.gl;
 				Color line = (Color) m.getPropertyValue(PolarGridMemento.LINE_COLOR);
 				final float r = line.getRed() / 255.0f;
 				final float g = line.getGreen() / 255.0f;
@@ -405,7 +413,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 						gl.glColor4f(r, g, b, a);
 						Integer t = m.getPropertyValue(PolarGridMemento.LINE_THICKNESS);
 						gl.glLineWidth(t);
-						GLUtil.renderArrays(dc, z, myOffsets, GL.GL_LINE_STRIP);
+						GLUtil.renderArrays(w.gl, z, myOffsets, GL.GL_LINE_STRIP);
 
 					}
 				} finally {
@@ -426,17 +434,18 @@ public class PolarGridRenderer implements Feature3DRenderer {
 				//Globe myGlobe = dc.getGlobe();
 				Rectangle2DIntersector i = new Rectangle2DIntersector();
 				// Get the iterator for the object updated LAST
-				Iterator<Vec4> points = myLabelPoints.iterator();
+				Iterator<V3> points = myLabelPoints.iterator();
 				Iterator<String> strings = myLabelStrings.iterator();
-				final View myView = dc.getView();
+				//final View myView = dc.getView();
 
 
-				GLUtil.pushOrtho2D(dc);
+				GLUtil.pushOrtho2D(w);
 				aText.begin3DRendering();
 				while (strings.hasNext()) {
-					final Vec4 v = points.next();
+					final V3 v = points.next();
 					final String l = strings.next();
-					final Vec4 s = myView.project(v);
+					//final V2 s = myView.project(v);
+                                        final V2 s =  w.project(v);
 					Rectangle2D bounds = aText.getBounds(l);
 					bounds.setRect(bounds.getX() + s.x, bounds.getY() + s.y,
 						bounds.getWidth(), bounds.getHeight());
@@ -445,7 +454,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 					}
 				}
 				aText.end3DRendering();
-				GLUtil.popOrtho2D(dc);
+				GLUtil.popOrtho2D(w.gl);
 			}
 		}
 	}
@@ -480,7 +489,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	/**
 	 * Pick an object in the current dc at point
 	 */
-	public void doPick(DrawContext dc, java.awt.Point pickPoint) {
+	public void doPick(GLWorld w, java.awt.Point pickPoint) {
 	}
 
 	/**
@@ -489,7 +498,7 @@ public class PolarGridRenderer implements Feature3DRenderer {
 	 * changing of settings). The worker will stop on false
 	 */
 	public boolean updateData(BackgroundPolarGridMaker worker, GrowList<Integer> off, Array1D<Float> poly,
-		GrowList<Vec4> points, GrowList<String> labels, boolean done) {
+		GrowList<V3> points, GrowList<String> labels, boolean done) {
 
 		// WorkerLock --> drawLock.  Never switch order
 		boolean keepWorking;

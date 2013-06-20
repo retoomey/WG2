@@ -13,6 +13,9 @@ import org.wdssii.datatypes.writers.RadialSetESRIWriter;
 import org.wdssii.geom.Location;
 import org.wdssii.core.GridVisibleArea;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
+import org.wdssii.datatypes.writers.DataTypeWriter.DataTypeWriterOptions;
+import org.wdssii.datatypes.writers.RadialSetCSVWriter;
+import org.wdssii.datatypes.writers.RadialSetINPWriter;
 import org.wdssii.storage.Array1D;
 
 /*
@@ -570,86 +573,33 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
         return withinTable;
     }
 
+    /**
+     * Export to ESRI shapefile...experimental. Eventually create by reflection
+     * to disconnect.
+     */
     @Override
-    public void exportToURL(URL aURL, GridVisibleArea g) {
-        FileWriter fstream = null;
-        boolean success = false;
-        try {
-            fstream = new FileWriter(aURL.getFile());
-            BufferedWriter out = new BufferedWriter(fstream);
+    public void exportToESRI(URL aURL, WdssiiJobMonitor m) {
+        RadialSetESRIWriter w = new RadialSetESRIWriter();
+        DataTypeWriterOptions o = new DataTypeWriterOptions("RadialSet to Quads", m, aURL, this);
+        w.export(o);
+    }
 
-            // ----------------------------------------------------
-            // Bim's stuff...
-
-            // iazm_x max number of gridded data in the azimuth direction
-            // jrng_x max number of gridded data in the range direction
-            out.write(String.format("iazm_x=%d jrng_x=%d\n", g.numCols, g.numRows));
-
-            // rng_ref reference (centered) range (km) of gridded data
-            // This is the center row...., header value...
-            int centerRow = g.startRow + (g.numRows / 2);
-            float rangeRef = getRowRangeKms(centerRow);
-
-            // azm_ref reference (centered) degree of gridded data
-            // This is the center col...., header value...
-            int centerCol = g.startCol + (g.numCols / 2);
-            float azimuthRef = getColAzimuth(centerCol);
-            out.write(String.format("rng_ref=%6.2f azm_ref=%6.2f\n", rangeRef, azimuthRef));
-
-            // rngbeg, rngend
-            float rangeEnd = getRowRangeKms(g.startRow);
-            float rangeBeg = getRowRangeKms(g.lastFullRow);
-            out.write(String.format("rngbeg=%6.2f rngend=%6.2f\n", rangeBeg, rangeEnd));
-
-            // azmbeg, azmend
-            float azmbeg = getColAzimuth(g.startCol);
-            float azmend = getColAzimuth(g.lastFullColumn);
-            out.write(String.format("azmbeg=%6.2f azmend=%6.2f\n", azmbeg, azmend));
-
-            // drng, dazm;
-            float dazm = (azmend - azmbeg) / g.numCols;
-            float drng = (rangeEnd - rangeBeg) / g.numRows;
-            out.write(String.format("drng=%6.2f dazm=%6.2f\n", dazm, drng));
-
-            // bw, ebw...
-            float bw = getBeamWidthKms();
-            float ebw = bw;
-            out.write(String.format("bw=%6.2f ebw=%6.2f\n", bw, ebw));
-
-            float elev = this.getFixedAngleDegs();
-            out.write(String.format("elevdegs=%6.2f\n", elev));
-
-            // Output left to right, decreasing range increasing azimuth
-            int linebreak = 0;
-            CellQuery q = new CellQuery();
-            for (int row = g.startRow; row <= g.lastFullRow; row++) {
-                for (int col = g.startCol; col <= g.lastFullColumn; col++) {
-                    this.getCellValue(row, col, q);
-                    float v = q.value;
-                    out.write(String.format(" %6.3f", v));
-                    if (++linebreak >= g.numCols) {
-                        out.write("\n");
-                        linebreak = 0;
-                    }
-                }
-
-            }
-            //Close the output stream
-            out.close();
-            success = true;
-
-            // ----------------------------------------------------
-        } catch (IOException ex) {
-            LOG.error("Couldn't write file " + aURL.getFile() + " because " + ex.toString());
-            try {
-                fstream.close();
-            } catch (IOException x) {
-            }
+    /**
+     * Second export...FIXME merge these into generic export ability
+     */
+    @Override
+    public void export(URL aURL, GridVisibleArea g, String type) {
+        if (type.equals("INP")) {
+            RadialSetINPWriter w = new RadialSetINPWriter();
+            DataTypeWriterOptions o = new DataTypeWriterOptions("RadialSet to INP", null, aURL, this);
+            o.setSubGrid(g);
+            w.export(o);
+        } else if (type.equals("CSV")) {
+            RadialSetCSVWriter w = new RadialSetCSVWriter();
+            DataTypeWriterOptions o = new DataTypeWriterOptions("RadialSet to CSV", null, aURL, this);
+            o.setSubGrid(g);
+            w.export(o);
         }
-        if (success) {
-            LOG.info("Output file was written as " + aURL.getFile());
-        }
-
     }
 
     /**
@@ -672,15 +622,5 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
          return srmDeltas;
          */
         return null;
-    }
-
-    /**
-     * Export to ESRI shapefile...experimental. Eventually create by reflection
-     * to disconnect.
-     */
-    @Override
-    public void exportToESRI(URL aURL, WdssiiJobMonitor m) {
-        RadialSetESRIWriter w = new RadialSetESRIWriter();
-        w.export("RadialSet to Quads", this, aURL, m);
     }
 }

@@ -1,9 +1,6 @@
 package org.wdssii.gui.products.renderers;
 
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.Globe;
-import gov.nasa.worldwind.render.DrawContext;
+//import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.awt.Rectangle;
 import javax.media.opengl.GL;
@@ -15,6 +12,8 @@ import org.wdssii.datatypes.Table2DView;
 import org.wdssii.datatypes.Table2DView.LocationType;
 import org.wdssii.geom.Location;
 import org.wdssii.core.GridVisibleArea;
+import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.readouts.ProductReadout;
@@ -51,18 +50,18 @@ public abstract class ProductRenderer {
     /** Job for creating in the background any rendering */
     public class backgroundRender extends WdssiiJob {
 
-        public DrawContext dc;
+        public GLWorld w;
         public Product aProduct;
 
-        public backgroundRender(String jobName, DrawContext aDc, Product rec) {
+        public backgroundRender(String jobName, GLWorld aW, Product rec) {
             super(jobName);
-            dc = aDc;
+            w = aW;
             aProduct = rec;
         }
 
         @Override
         public WdssiiJobStatus run(WdssiiJobMonitor monitor) {
-            return createForDatatype(dc, aProduct, monitor);
+            return createForDatatype(w, aProduct, monitor);
         }
     }
         
@@ -74,21 +73,21 @@ public abstract class ProductRenderer {
     // instead)
     // public ColorMap getColorMap();
     // Create anything needed to draw this product in the current dc
-    public void initToProduct(DrawContext dc, Product aProduct) {
+    public void initToProduct(GLWorld w, Product aProduct) {
         myProduct = aProduct;
      
         // FIXME: handle background flag?
         if (myWorker == null) {
-             myWorker = new backgroundRender("Job", dc, aProduct);
+             myWorker = new backgroundRender("Job", w, aProduct);
              myWorker.schedule();
         }
     }
 
     /** Draw the product in the current dc */
-    public abstract void draw(DrawContext dc);
+    public abstract void draw(GLWorld w);
 
     /** Pick an object in the current dc at point */
-    public void doPick(DrawContext dc, java.awt.Point pickPoint){
+    public void doPick(GLWorld w, java.awt.Point pickPoint){
     
     }
     
@@ -101,7 +100,7 @@ public abstract class ProductRenderer {
      * Get the raw float readout for this product using a color trick render system...
      * Not all products will work this way of course...
      */
-    public float getReadoutValue(Point p, Rectangle view, DrawContext dc) {
+    public float getReadoutValue(Point p, Rectangle view, GLWorld w) {
        return DataType.MissingData;
     }
     
@@ -109,12 +108,12 @@ public abstract class ProductRenderer {
         
     }
 
-    public void drawReadoutCellOutline(DrawContext dc, ProductReadout pr) {
+    public void drawReadoutCellOutline(GLWorld w, ProductReadout pr) {
         // Subclasses should outline the data given in the ProductReadout
     }
 
     /** Based on a table grid visible area, draw the corresponding outline in the 3D world window */
-    public void drawGridOutline(DrawContext dc, GridVisibleArea a) {
+    public void drawGridOutline(GLWorld w, GridVisibleArea a) {
         Product aProduct = getProduct();
         if ((aProduct != null) && (a != null)) {
 
@@ -128,14 +127,14 @@ public abstract class ProductRenderer {
                 return;
             }  // Not a table
 
-            Globe myGlobe = dc.getGlobe();
-            GL gl = dc.getGL();
+           // Globe myGlobe = dc.getGlobe();
+            final GL gl = w.gl;
 
             gl.glPushAttrib(GL.GL_LINE_BIT);
             gl.glLineWidth(3);
             gl.glColor4d(1d, 1d, 1d, 1d);
             Location location;
-            Vec4 p;
+            V3 p;
             int counter = 0;
             location = new Location(1.0, 1.0, 1.0);
 
@@ -206,10 +205,11 @@ public abstract class ProductRenderer {
                     }
                     // Post vertex from last run of DFA (if point was valid)
                     if (validPoint) {
-                        p = myGlobe.computePointFromPosition(
-                                Angle.fromDegrees(location.getLatitude()),
-                                Angle.fromDegrees(location.getLongitude()),
-                                location.getHeightKms() * 1000);
+                        //p = myGlobe.computePointFromPosition(
+                        //        Angle.fromDegrees(location.getLatitude()),
+                        //        Angle.fromDegrees(location.getLongitude()),
+                         //       location.getHeightKms() * 1000);
+                        p = w.projectLLH(location.getLatitude(), location.getLongitude(), location.getHeightKms()*1000);
                         gl.glVertex3d(p.x, p.y, p.z);
                         validPoint = false;
                         counter++;
@@ -227,7 +227,7 @@ public abstract class ProductRenderer {
     }
 
     /** Do the work of generating the OpenGL stuff */
-    public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
+    public WdssiiJobStatus createForDatatype(GLWorld w, Product aProduct, WdssiiJobMonitor monitor) {
         return WdssiiJobStatus.CANCEL_STATUS;
     }
     

@@ -12,45 +12,50 @@ import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.render.DrawContext;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
+import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.worldwind.GLWorldWW;
 import org.wdssii.gui.products.Product;
 
-/** Render wind field tiles.  
- * 
+/**
+ * Render wind field tiles.
+ *
  * @author Robert Toomey
  *
  */
 public class WindFieldRenderer extends TileRenderer {
 
-   // @Override
-  //  public void initToProduct(DrawContext dc, Product aProduct) {
-  //      super.initToProduct(dc, aProduct);
-
-        //if (aProduct instanceof WindFieldProduct) {
-        //	myWindFieldProduct = (WindFieldProduct)aProduct;
-        //}
-  //  }
-    
+    // @Override
+    //  public void initToProduct(DrawContext dc, Product aProduct) {
+    //      super.initToProduct(dc, aProduct);
+    //if (aProduct instanceof WindFieldProduct) {
+    //	myWindFieldProduct = (WindFieldProduct)aProduct;
+    //}
+    //  }
     // The density of the lowest level tile.
     public final static int DENSITY_X = 16;
     public final static int DENSITY_Y = 16;
     private boolean mySetUpLevels = false;
 
-   // public void lazyInit() {
-   //     this.createTopLevelTiles();
-   // }
-
+    // public void lazyInit() {
+    //     this.createTopLevelTiles();
+    // }
     public WindFieldRenderer() {
         super(true);
     }
 
-    /** Create the largest area covering tile.  We sync this to the full lat lon grid of the data product, instead of
-     * to the entire planet (as in google earth, worldwind).  This prevents data 'jitter' on tile changes.
+    /**
+     * Create the largest area covering tile. We sync this to the full lat lon
+     * grid of the data product, instead of to the entire planet (as in google
+     * earth, worldwind). This prevents data 'jitter' on tile changes.
      */
     @Override
-    public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
-   // private void createTopLevelTiles() {
+    public WdssiiJobStatus createForDatatype(GLWorld w, Product aProduct, WdssiiJobMonitor monitor) {
+        // private void createTopLevelTiles() {
 
-        /** Get the full lat/lon grid of the windfield.  Currently the 'top' tile covers the full lat/lon */
+        /**
+         * Get the full lat/lon grid of the windfield. Currently the 'top' tile
+         * covers the full lat/lon
+         */
         WindField wf = getWindField();
         if (wf != null) {
             Location loc = wf.getLocation();
@@ -84,20 +89,25 @@ public class WindFieldRenderer extends TileRenderer {
     }
 
     @Override
-    public void draw(DrawContext dc) {
+    public void draw(GLWorld w) {
 
         if (getProduct() == null) {
             return;
         }
 
-        if (!isCreated()){
+        if (!isCreated()) {
             return;
         }
-      //  if (mySetUpLevels == false) {
-      //      lazyInit();
-      //      mySetUpLevels = true;
-      //  }
-
+        //  if (mySetUpLevels == false) {
+        //      lazyInit();
+        //      mySetUpLevels = true;
+        //  }
+// Hack back to old....
+        DrawContext dc = null;
+        if (w instanceof GLWorldWW) {
+            GLWorldWW ww = (GLWorldWW) (w);
+            dc = ww.getDC();
+        }
         // assemble tiles.  This gets/creates tile OBJECTS only..that would
         // draw at this time.   
         Product p = getProduct();

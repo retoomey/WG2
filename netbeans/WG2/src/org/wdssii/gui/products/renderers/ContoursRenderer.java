@@ -1,9 +1,5 @@
 package org.wdssii.gui.products.renderers;
 
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.Globe;
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Color;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -13,7 +9,9 @@ import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.Contour;
 import org.wdssii.datatypes.Contours;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.geom.Location;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.ColorMapFloatOutput;
@@ -50,12 +48,12 @@ public class ContoursRenderer extends ProductRenderer {
      *            Draw context in opengl for drawing our radial set
      */
     @Override
-    public void draw(DrawContext dc) {
-        drawData(dc, false);
+    public void draw(GLWorld w) {
+        drawData(w, false);
     }
     
     @Override
-    public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
+    public WdssiiJobStatus createForDatatype(GLWorld w, Product aProduct, WdssiiJobMonitor monitor) {
         
         
         try {
@@ -64,7 +62,7 @@ public class ContoursRenderer extends ProductRenderer {
             Contours aContourSet = (Contours) aProduct.getRawDataType();
             monitor.beginTask("ContoursRenderer:", aContourSet.getNumberOfContours());
             //int size = aContourSet.getNumberOfContours();
-            Globe myGlobe = dc.getGlobe();
+            //Globe myGlobe = dc.getGlobe();
             
             // COUNT pass.  We should stick this in the Contour object,
             // it can add stuff up as it loads.
@@ -96,11 +94,11 @@ public class ContoursRenderer extends ProductRenderer {
                    // Get the location and store a vertex....
                    // and put 'white' for color for now...
                     for(Location loc:l){
-                    Vec4 point = myGlobe.computePointFromPosition(
-                                    Angle.fromDegrees(loc.getLatitude()),
-                                    Angle.fromDegrees(loc.getLongitude()),
-                                    loc.getHeightKms() * 1000);
-                    
+                    //Vec4 point = myGlobe.computePointFromPosition(
+                    //                Angle.fromDegrees(loc.getLatitude()),
+                    //                Angle.fromDegrees(loc.getLongitude()),
+                    //                loc.getHeightKms() * 1000);
+                    V3 point = w.projectLLH(loc.getLatitude(), loc.getLongitude(), loc.getHeightKms() * 1000.0);
                     readout.set(idREAD++, 6.0f);
                   //  idy = out.putUnsignedBytes(colors, idy);
 
@@ -136,10 +134,10 @@ public class ContoursRenderer extends ProductRenderer {
      * @param dc
      *            Draw context in opengl for drawing our radial set
      */
-    public void drawData(DrawContext dc, boolean readoutMode) {
+    public void drawData(GLWorld w, boolean readoutMode) {
         
         if (isCreated() && (verts != null)) {
-            GL gl = dc.getGL();
+            final GL gl = w.gl;
 
             boolean attribsPushed = false;
             try {

@@ -45,8 +45,9 @@ public class WJSceneController extends BasicSceneController {
 
         // Make sure orderedRenderables added properly
         FeatureList f = ProductManager.getInstance().getFeatureList();
-        f.preRenderFeatureGroup(dc, LegendFeature.LegendGroup);
-        f.preRenderFeatureGroup(dc, WorldwindStockFeature.Group);
+        GLWorldWW w = new GLWorldWW(dc);
+        f.preRenderFeatureGroup(w, LegendFeature.LegendGroup);
+        f.preRenderFeatureGroup(w, WorldwindStockFeature.Group);
 
         // Pre-render the deferred/ordered surface renderables.
         this.preRenderOrderedSurfaceRenderables(dc);
@@ -55,15 +56,15 @@ public class WJSceneController extends BasicSceneController {
     @Override
     protected void draw(DrawContext dc) {
         try {
-
+            GLWorldWW w = new GLWorldWW(dc);
             FeatureList f = ProductManager.getInstance().getFeatureList();
 
             // Worldwind basemaps
-            f.renderFeatureGroup(dc, WorldwindStockFeature.Group);
+            f.renderFeatureGroup(w, WorldwindStockFeature.Group);
 
             // Products
-            f.renderFeatureGroup(dc, ProductFeature.ProductGroup);
-            
+            f.renderFeatureGroup(w, ProductFeature.ProductGroup);
+
             // 3d layer
             if (myLLHAreaLayer != null) {
                 dc.setCurrentLayer(myLLHAreaLayer);
@@ -73,9 +74,9 @@ public class WJSceneController extends BasicSceneController {
 
             // Have to draw last, so that stipple works 'behind' product...
             // It's 'behind' but actually renders on top..lol
-            f.renderFeatureGroup(dc, MapFeature.MapGroup);
-            f.renderFeatureGroup(dc, PolarGridFeature.PolarGridGroup);
-            f.renderFeatureGroup(dc, LegendFeature.LegendGroup);
+            f.renderFeatureGroup(w, MapFeature.MapGroup);
+            f.renderFeatureGroup(w, PolarGridFeature.PolarGridGroup);
+            f.renderFeatureGroup(w, LegendFeature.LegendGroup);
 
             // Draw the deferred/ordered surface renderables.
             // This is all the 2d stuff on top...
@@ -99,7 +100,7 @@ public class WJSceneController extends BasicSceneController {
             dc.setOrderedRenderingMode(false);
 
         } catch (Throwable e) {
-            LOG.error("Exception during render "+e.toString());
+            LOG.error("Exception during render " + e.toString());
         }
     }
 
@@ -108,7 +109,8 @@ public class WJSceneController extends BasicSceneController {
 
         // For now just pick legend layer or 3D layer buttons
         FeatureList f = ProductManager.getInstance().getFeatureList();
-        f.pickFeatureGroup(dc, dc.getPickPoint(), LegendFeature.LegendGroup);
+        GLWorldWW w = new GLWorldWW(dc);
+        f.pickFeatureGroup(w, dc.getPickPoint(), LegendFeature.LegendGroup);
         // 3d layer
         if (myLLHAreaLayer != null) {
             if (myLLHAreaLayer.isPickEnabled()) {

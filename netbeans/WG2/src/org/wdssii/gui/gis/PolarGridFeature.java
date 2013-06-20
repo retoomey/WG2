@@ -1,9 +1,9 @@
 package org.wdssii.gui.gis;
 
-import gov.nasa.worldwind.geom.LatLon;
 import java.awt.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.geom.V2;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.FeatureList;
@@ -37,7 +37,7 @@ public class PolarGridFeature extends Feature {
         public PolarGridMemento() {
             initProperty(LINE_THICKNESS, 2);
             initProperty(LINE_COLOR, Color.WHITE);
-            initProperty(CENTER, LatLon.fromDegrees(35.3331, -97.2778));
+            initProperty(CENTER, new V2(35.3331, -97.2778));
             initProperty(ELEV_DEGREES, 0.5d);
             initProperty(RING_COUNT, 10);
             initProperty(RING_RANGE, 10000);

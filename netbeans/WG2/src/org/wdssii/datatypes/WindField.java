@@ -234,5 +234,5 @@ public class WindField extends DataType implements Table2DView {
     }
 
     @Override
-    public void exportToURL(URL aURL, GridVisibleArea g){}
+    public void export(URL aURL, GridVisibleArea g, String type){}
 }

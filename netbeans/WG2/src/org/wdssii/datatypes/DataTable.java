@@ -281,5 +281,5 @@ public class DataTable extends DataType implements Table2DView, AttributeTable {
     }
 
     @Override
-    public void exportToURL(URL aURL, GridVisibleArea g){}
+    public void export(URL aURL, GridVisibleArea g, String type){}
 }

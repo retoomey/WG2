@@ -3,7 +3,7 @@ package org.wdssii.gui.swing;
 import java.awt.Graphics;
 import javax.swing.JComponent;
 import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.ColorMapRenderer;
+import org.wdssii.gui.renderers.ColorMapRenderer;
 
 /**
  * A widget that draws a ColorMap using a ColorMapRenderer

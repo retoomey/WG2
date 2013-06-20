@@ -110,7 +110,7 @@ public class Data2DTableChart extends ChartViewChart {
     /**
      * Readout XYZDataset is a JFreeChart dataset where we sample the product
      * value along the range.
-     * 
+     *
      * Would be nice to enhance for some feedback on how close we are to the
      * true readout 'point'
      */
@@ -124,6 +124,7 @@ public class Data2DTableChart extends ChartViewChart {
          * level. This is called with the current lat/lon of the chart
          * so that the terrain can be resampled by zoom
          */
+
         public void syncToRange(ValueAxis x,
                 double startLat,
                 double startLon,
@@ -207,14 +208,23 @@ public class Data2DTableChart extends ChartViewChart {
         group.setSelected(first.getModel(), true);
         updateMouseCursor();
 
-        JButton export = new JButton("Export...");
+        JButton export = new JButton("Export INP...");
         export.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                jExportActionPerformed(e);
+                jExportINPActionPerformed(e);
             }
         });
         bar.add(export);
+
+        JButton export2 = new JButton("Export CSV...");
+        export2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                jExportCSVActionPerformed(e);
+            }
+        });
+        bar.add(export2);
         selectionLabel = new JLabel("");
         bar.add(selectionLabel);
         return bar;
@@ -323,7 +333,7 @@ public class Data2DTableChart extends ChartViewChart {
         // Snag the top stick for the moment
         LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new StickFilter());
         if (f != null) {
-            return f;         
+            return f;
         }
         return null;
     }
@@ -366,7 +376,7 @@ public class Data2DTableChart extends ChartViewChart {
      * Return an LLHAreaFeature that contains a LLHAreaHeightStick
      */
     private static class StickFilter implements FeatureList.FeatureFilter {
-        
+
         @Override
         public boolean matches(Feature f) {
             if (f instanceof LLHAreaFeature) {
@@ -382,37 +392,67 @@ public class Data2DTableChart extends ChartViewChart {
         }
     }
 
-    /**
-     * Handle export. For the moment will only handle Bim's file format
-     */
-    private void jExportActionPerformed(java.awt.event.ActionEvent evt) {
+    private URL exportDialog(String end, String description, String title) {
         JFileChooser fileopen = new JFileChooser();
         fileopen.setDialogType(myMouseMode);
+        final String fend = end;
+        final String fdescription = description;
+
         fileopen.setFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {
                 String t = f.getName().toLowerCase();
                 // FIXME: need to get these from the Builders
-                return (f.isDirectory() || t.endsWith(".inp"));
+                return (f.isDirectory() || t.endsWith(fend));
             }
 
             @Override
             public String getDescription() {
-                return "INP Bim Wood format";
+                return fdescription;
             }
         });
-        fileopen.setDialogTitle("Export Table Selection");
+
+        fileopen.setDialogTitle(title);
         int ret = fileopen.showSaveDialog(myPanel);
+        URL aURL = null;
         if (ret == JFileChooser.APPROVE_OPTION) {
             File file = fileopen.getSelectedFile();
+            String name = file.getPath();
+            if (!name.toLowerCase().endsWith(fend)) {
+                file = new File(file.getPath() + fend);
+            }
             try {
-                // Bim's format....
-                URL aURL = file.toURI().toURL();
-                LOG.debug("Would try to write to " + aURL.toString());
-                if (myTable != null) {
-                    myTable.exportToURL(aURL);
-                }
+                aURL = file.toURI().toURL();
+                // if (myTable != null) {
+                //     myTable.exportToURL(aURL);
+                // }
             } catch (MalformedURLException ex) {
+                // it's ok..return NULL;
+            }
+        }
+        return aURL;
+    }
+
+    /**
+     * Handle export of CSV (for now, will eventually need a factory, etc. )
+     */
+    private void jExportCSVActionPerformed(java.awt.event.ActionEvent evt) {
+        URL aURL = exportDialog(".csv", "CSV format", "Export table as CSV");
+        if (aURL != null) {
+            if (myTable != null) {
+                myTable.exportToURL(aURL, "CSV");
+            }
+        }
+    }
+
+    /**
+     * Handle export.
+     */
+    private void jExportINPActionPerformed(java.awt.event.ActionEvent evt) {
+        URL aURL = exportDialog(".inp", "INP Bim Wood format", "Export table as INP");
+        if (aURL != null) {
+            if (myTable != null) {
+                myTable.exportToURL(aURL, "INP");
             }
         }
     }

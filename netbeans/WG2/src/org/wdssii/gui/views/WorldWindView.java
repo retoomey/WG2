@@ -36,6 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.core.CommandManager;
+import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.worldwind.GLWorldWW;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.DataCommand;
@@ -321,7 +323,11 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         return myWorld;
     }
 
-    public void DrawProductReadout(DrawContext dc) {
+    public void DrawProductReadout(GLWorld w) {
+        DrawContext dc = null;
+        if (w instanceof GLWorldWW){
+            dc = ((GLWorldWW)(w)).getDC();
+        }
         Product aProduct = ProductManager.getInstance().getTopProduct();
         if (aProduct == null) {
             return;
@@ -329,7 +335,7 @@ public class WorldWindView extends JThreadPanel implements CommandListener {
         Point p1 = dc.getPickPoint();
         if (p1 != null) {
             Rectangle rect = myWorld.getView().getViewport();
-            ProductReadout pr = aProduct.getProductReadout(p1, rect, dc);
+            ProductReadout pr = aProduct.getProductReadout(p1, rect, w);
             String readout = pr.getReadoutString();
             myStatusBar.setProductReadout(pr);
             drawLabel(dc, readout, new Vec4(p1.x, p1.y, 0), Color.BLACK);

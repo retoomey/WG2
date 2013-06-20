@@ -10,6 +10,7 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView;
 import org.wdssii.geom.Location;
 import org.wdssii.core.GridVisibleArea;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.products.renderers.ProductRenderer;
@@ -95,15 +96,16 @@ public class Product2DTable implements Feature3DRenderer {
 		jProductDataTable.setMode(myMouseMode);
 	}
 
+
 	/** Beginning of export ability */
-	public void exportToURL(URL aURL) {
+	public void exportToURL(URL aURL, String type) {
 		if (myProductFeature != null) {
 			DataType dt = myProductFeature.getLoadedDatatype();
 			if (dt instanceof Table2DView) {
 				Table2DView t = (Table2DView) (dt);
 				GridVisibleArea g = getSelectedGrid();
 				if (g != null) {
-					t.exportToURL(aURL, g);
+					t.export(aURL, g, type);
 				}
 			}
 		}
@@ -120,7 +122,7 @@ public class Product2DTable implements Feature3DRenderer {
 	 * @param m 
 	 */
 	@Override
-	public void draw(DrawContext dc, FeatureMemento m) {
+	public void draw(GLWorld w, FeatureMemento m) {
 		GridVisibleArea rect = getCurrentVisibleGrid();
 
 		// Delegate to the product feature product renderer....
@@ -129,17 +131,17 @@ public class Product2DTable implements Feature3DRenderer {
 			if (p != null) {
 				ProductRenderer r = p.getRenderer();
 				if (r != null) {
-					r.drawGridOutline(dc, rect);
+					r.drawGridOutline(w, rect);
 				}
 			}
 		}
 	}
 
 	@Override
-	public void pick(DrawContext dc, Point p, FeatureMemento m) {
+	public void pick(GLWorld w, Point p, FeatureMemento m) {
 	}
 
 	@Override
-	public void preRender(DrawContext dc, FeatureMemento m) {
+	public void preRender(GLWorld w, FeatureMemento m) {
 	}
 }

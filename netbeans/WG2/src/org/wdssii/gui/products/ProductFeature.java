@@ -7,6 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.Product.ProductTimeWindowAge;
@@ -231,7 +232,7 @@ public class ProductFeature extends Feature {
     }
      
     @Override
-    public void render(DrawContext dc) {
+    public void render(GLWorld w) {
         if (wouldRender()) {
             // If it would render needs to load or be loading...
             myProduct.startLoading();
@@ -239,7 +240,7 @@ public class ProductFeature extends Feature {
             // This is bad actually..we should pass it down the tree in
             // case of multiple objects sharing product....
             myProduct.myCurrentFList = this.getFList();  // bleh
-            myProduct.draw(dc);
+            myProduct.draw(w);
         }
     }
 

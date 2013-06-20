@@ -1,13 +1,12 @@
 package org.wdssii.gui.products.renderers;
 
 import org.wdssii.gui.renderers.QuadStripRenderer;
-import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.awt.Rectangle;
-import javax.media.opengl.GL;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialSet;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.storage.Array1D;
 
 /**
@@ -69,10 +68,9 @@ public abstract class RadialSetRenderer extends ProductRenderer {
      *
      * @param dc Draw context in opengl for drawing our radial set
      */
-    public void drawData(DrawContext dc, boolean readoutMode) {
+    public void drawData(GLWorld w, boolean readoutMode) {
         if (isCreated()) {
-            GL gl = dc.getGL();
-            myQuadRenderer.drawData(gl, readoutMode);
+            myQuadRenderer.drawData(w.gl, readoutMode);
         }
     }
 
@@ -81,8 +79,8 @@ public abstract class RadialSetRenderer extends ProductRenderer {
      * @param dc Draw context in opengl for drawing our radial set
      */
     @Override
-    public void draw(DrawContext dc) {
-        drawData(dc, false);
+    public void draw(GLWorld w) {
+        drawData(w, false);
     }
 
     /**
@@ -90,11 +88,10 @@ public abstract class RadialSetRenderer extends ProductRenderer {
      * system...
      */
     @Override
-    public float getReadoutValue(Point p, Rectangle view, DrawContext dc) {
+    public float getReadoutValue(Point p, Rectangle view, GLWorld w) {
         float value = DataType.MissingData;
         if (p != null) {
-            GL gl = dc.getGL();
-            value = myQuadRenderer.getReadout(p, view, gl, DataType.MissingData);
+            value = myQuadRenderer.getReadout(p, view, w.gl, DataType.MissingData);
         }
         return value;
     }

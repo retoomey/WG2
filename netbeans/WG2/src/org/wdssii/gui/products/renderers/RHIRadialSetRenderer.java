@@ -1,9 +1,5 @@
 package org.wdssii.gui.products.renderers;
 
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.Globe;
-import gov.nasa.worldwind.render.DrawContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
@@ -14,7 +10,9 @@ import org.wdssii.datatypes.RHIRadialSet.RHIRadialSetQuery;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialATHeightGateCache;
 import org.wdssii.datatypes.RadialUtil;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.geom.Location;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.products.*;
 import org.wdssii.storage.Array1D;
@@ -37,7 +35,7 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
     }
 
     @Override
-    public WdssiiJobStatus createForDatatype(DrawContext dc, Product aProduct, WdssiiJobMonitor monitor) {
+    public WdssiiJobStatus createForDatatype(GLWorld w, Product aProduct, WdssiiJobMonitor monitor) {
         //long start = System.currentTimeMillis();
         int counter = 0;
         int ccounter = 0;
@@ -47,7 +45,7 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
             // Make sure and always start monitor
             RHIRadialSet aRadialSet = (RHIRadialSet) aProduct.getRawDataType();
             monitor.beginTask("RadialSetRenderer", aRadialSet.getNumRadials());
-            Globe myGlobe = dc.getGlobe();
+            //Globe myGlobe = dc.getGlobe();
             FilterList aList = aProduct.getFilterList();
             final Location radarLoc = aRadialSet.getRadarLocation();
             final float firstGateKms = aRadialSet.getRangeToFirstGateKms();
@@ -169,11 +167,11 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                             updateIndex = idx;
                             updateOffsets = true;
 
-                            Vec4 point = myGlobe.computePointFromPosition(
-                                    Angle.fromDegrees(gate.getLatitude()),
-                                    Angle.fromDegrees(gate.getLongitude()),
-                                    gate.getHeightKms() * 1000);
-
+                            //Vec4 point = myGlobe.computePointFromPosition(
+                            //        Angle.fromDegrees(gate.getLatitude()),
+                            //        Angle.fromDegrees(gate.getLongitude()),
+                            //        gate.getHeightKms() * 1000);
+                            V3 point = w.projectLLH(gate.getLatitude(), gate.getLongitude(), gate.getHeightKms()*1000);
                             readout.set(idREAD++, value);
                             idy = out.putUnsignedBytes(colors, idy);
 
@@ -181,10 +179,11 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                             verts.set(idx++, (float) point.y);
                             verts.set(idx++, (float) point.z);
 
-                            Vec4 point1 = myGlobe.computePointFromPosition(
-                                    Angle.fromDegrees(gate1.getLatitude()),
-                                    Angle.fromDegrees(gate1.getLongitude()),
-                                    gate1.getHeightKms() * 1000);
+                            //Vec4 point1 = myGlobe.computePointFromPosition(
+                            //        Angle.fromDegrees(gate1.getLatitude()),
+                            //        Angle.fromDegrees(gate1.getLongitude()),
+                            //        gate1.getHeightKms() * 1000);
+                            V3 point1 = w.projectLLH(gate1.getLatitude(), gate1.getLongitude(), gate1.getHeightKms()*1000);
 
                             readout.set(idREAD++, value);
 
@@ -197,10 +196,11 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                         }
 
                         // Push back last two vertices of quad
-                        Vec4 point3 = myGlobe.computePointFromPosition(
-                                Angle.fromDegrees(gate3.getLatitude()),
-                                Angle.fromDegrees(gate3.getLongitude()),
-                                gate3.getHeightKms() * 1000);
+                        //Vec4 point3 = myGlobe.computePointFromPosition(
+                        //        Angle.fromDegrees(gate3.getLatitude()),
+                        //        Angle.fromDegrees(gate3.getLongitude()),
+                        //        gate3.getHeightKms() * 1000);
+                        V3 point3 = w.projectLLH(gate3.getLatitude(), gate3.getLongitude(), gate3.getHeightKms()*1000);
 
                         readout.set(idREAD++, value);
 
@@ -210,11 +210,11 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                         verts.set(idx++, (float) point3.y);
                         verts.set(idx++, (float) point3.z);
 
-                        Vec4 point2 = myGlobe.computePointFromPosition(
-                                Angle.fromDegrees(gate2.getLatitude()),
-                                Angle.fromDegrees(gate2.getLongitude()),
-                                gate2.getHeightKms() * 1000);
-
+                        //Vec4 point2 = myGlobe.computePointFromPosition(
+                        //        Angle.fromDegrees(gate2.getLatitude()),
+                        //        Angle.fromDegrees(gate2.getLongitude()),
+                        //        gate2.getHeightKms() * 1000);
+                        V3 point2 = w.projectLLH(gate2.getLatitude(), gate2.getLongitude(), gate2.getHeightKms()*1000.0);
                         readout.set(idREAD++, value);
 
                         idy = out.putUnsignedBytes(colors, idy);

@@ -1,5 +1,6 @@
 package org.wdssii.gui.charts;
 
+import com.jidesoft.swing.JideButton;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.globes.ElevationModel;
@@ -35,6 +36,7 @@ import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.products.ProductFeature;
+import org.wdssii.gui.swing.SimpleTable.ToolbarMode;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.LLHArea;
@@ -55,7 +57,7 @@ public class Data2DTableChart extends ChartViewChart {
     /**
      * Current mouse mode (editing) for this data table
      */
-    private int myMouseMode = 0;
+    private ToolbarMode myMouseMode = ToolbarMode.MOVE;
     /**
      * The main widget
      */
@@ -77,6 +79,8 @@ public class Data2DTableChart extends ChartViewChart {
 
         return new Data2DTableChart();
     }
+    private JButton myMoveButton;
+    private JButton mySelectButton;
 
     @Override
     public Object getNewGUIForChart(Object myChartBox) {
@@ -164,49 +168,35 @@ public class Data2DTableChart extends ChartViewChart {
         updateDataTable();
     }
 
-    private static class JMToggleButton extends JToggleButton {
-
-        private int myMode;
-
-        public JMToggleButton(int mode) {
-            super();
-            myMode = mode;
-        }
-
-        public int getMode() {
-            return myMode;
-        }
-    }
-
-    private JMToggleButton initMouseButton(int mode, ButtonGroup g, String icon, String tip) {
-        JMToggleButton b = new JMToggleButton(mode);
-        Icon i = SwingIconFactory.getIconByName(icon);
-        b.setIcon(i);
-        b.setToolTipText(tip);
-        g.add(b);
-        b.setFocusable(false);
-        b.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        b.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        b.addActionListener(new java.awt.event.ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMouseModeActionPerformed(evt);
-            }
-        });
-        return b;
-    }
-
     private JToolBar initToolBar() {
         JToolBar bar = new JToolBar();
         bar.setFloatable(false);
 
-        ButtonGroup group = new ButtonGroup();
-        JMToggleButton first = initMouseButton(0, group, "stock-tool-move-16.png", "Move table with mouse");
+        Icon i = SwingIconFactory.getIconByName("stock-tool-move-16.png");
+        JButton first = new JideButton("");
+        first.setIcon(i);
+        first.setToolTipText("Move table with mouse");
+        first.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setMouseMode(ToolbarMode.MOVE);
+            }
+        });
         bar.add(first);
-        bar.add(initMouseButton(1, group, "stock-tool-rect-select-16.png", "Select table with mouse"));
-        myMouseMode = 0;
-        group.setSelected(first.getModel(), true);
-        updateMouseCursor();
+        myMoveButton = first;
+
+        Icon i2 = SwingIconFactory.getIconByName("stock-tool-rect-select-16.png");
+        JButton second = new JideButton("");
+        second.setIcon(i2);
+        second.setToolTipText("Select table with mouse");
+        second.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setMouseMode(ToolbarMode.SELECT);
+            }
+        });
+        bar.add(second);
+        mySelectButton = second;
 
         JButton export = new JButton("Export INP...");
         export.addActionListener(new ActionListener() {
@@ -227,32 +217,40 @@ public class Data2DTableChart extends ChartViewChart {
         bar.add(export2);
         selectionLabel = new JLabel("");
         bar.add(selectionLabel);
+
+        setMouseMode(ToolbarMode.MOVE);
+
+
         return bar;
     }
 
-    private void jMouseModeActionPerformed(java.awt.event.ActionEvent evt) {
-        JMToggleButton abstractButton = (JMToggleButton) evt.getSource();
-        boolean selected = abstractButton.getModel().isSelected();
-        if (selected) {
-            myMouseMode = abstractButton.getMode();
-            if (myTable != null) {
-                myTable.setMode(myMouseMode);
-            }
-            updateMouseCursor();
+    public void setMouseMode(ToolbarMode m) {
+        myMouseMode = m;
+        if (myTable != null) {
+            myTable.setMode(myMouseMode);
         }
+        updateToolbar();
+        updateMouseCursor();
+    }
 
+    public void updateToolbar() {
+
+        if (myMoveButton != null) {
+            myMoveButton.setSelected(myMouseMode == ToolbarMode.MOVE);
+        }
+        if (mySelectButton != null) {
+            mySelectButton.setSelected(myMouseMode == ToolbarMode.SELECT);
+        }
     }
 
     private void updateMouseCursor() {
         switch (myMouseMode) {
-            case 0: // Mode mode
+            case MOVE: // Mode mode
                 myPanel.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-                LOG.debug("CURSOR SET TO MOVE");
             default:
                 break;
-            case 1:  // Hand mode
+            case SELECT:  // Hand mode
                 myPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                LOG.debug("CURSOR SET TO HAND");
                 break;
         }
 
@@ -394,7 +392,7 @@ public class Data2DTableChart extends ChartViewChart {
 
     private URL exportDialog(String end, String description, String title) {
         JFileChooser fileopen = new JFileChooser();
-        fileopen.setDialogType(myMouseMode);
+        fileopen.setDialogType(JFileChooser.SAVE_DIALOG);
         final String fend = end;
         final String fdescription = description;
 

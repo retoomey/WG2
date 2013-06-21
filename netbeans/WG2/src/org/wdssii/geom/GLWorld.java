@@ -49,4 +49,7 @@ public abstract class GLWorld {
     
     /** Are we picking?  Think this can go away */
     public abstract boolean isPickingMode();
+    
+    /** Get the multiplier in the vertical direction */
+    public abstract double getVerticalExaggeration();
 }

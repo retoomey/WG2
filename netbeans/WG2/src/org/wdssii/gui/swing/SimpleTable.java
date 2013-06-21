@@ -671,9 +671,15 @@ public class SimpleTable extends JLabel
     }
     // FIXME: this mouse stuff 'may' move out, since we have several
     // different table types ...
-    private int myMode = 0; // magic numbers for moment.. 
+    private ToolbarMode myMode = ToolbarMode.SELECT; 
 
-    public void setMode(int mode) { // hack
+    public enum ToolbarMode {
+
+        SELECT, // Select a table region
+        MOVE    // Move entire table
+    }
+
+    public void setMode(ToolbarMode mode) { // hack
         myMode = mode;
     }
     private Point start = new Point();
@@ -695,7 +701,7 @@ public class SimpleTable extends JLabel
         start = e.getPoint();
 
         // Get the start cell clicked
-        if (myMode == 1) {
+        if (myMode == ToolbarMode.SELECT) {
             if (myModel != null) {
                 Point newCell = new Point();
                 if (myModel.hitTest(e.getX(), e.getY(), newCell)) {
@@ -718,7 +724,7 @@ public class SimpleTable extends JLabel
     @Override
     public void mouseDragged(MouseEvent e) {
 
-        if (myMode == 0) { // move mode
+        if (myMode == ToolbarMode.MOVE) { // move mode
             // ----------------------------------------------
             // Drag the window centered on mouse....
             SimpleTable me = (SimpleTable) e.getSource();

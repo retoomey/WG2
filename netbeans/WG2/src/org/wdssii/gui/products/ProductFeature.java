@@ -1,6 +1,5 @@
 package org.wdssii.gui.products;
 
-import gov.nasa.worldwind.render.DrawContext;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;

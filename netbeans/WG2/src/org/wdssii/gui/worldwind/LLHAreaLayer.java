@@ -21,6 +21,7 @@ import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.commands.PointAddCommand;
 import org.wdssii.gui.commands.PointRemoveCommand;
@@ -162,7 +163,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     protected void doPick(DrawContext dc, java.awt.Point pickPoint) {
         // Draw the volumes themselves
         //pickOrdered(dc, getActiveAirspaces(), pickPoint, this);
-        drawOrdered(dc, getActiveAirspaces(), this);
+        drawOrdered(new GLWorldWW(dc), getActiveAirspaces(), this);
 
         // Draw the control points
         if (isArmed()) {
@@ -174,7 +175,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     protected void doRender(DrawContext dc) {
         // Draw the volumes themselves
         //renderOrdered(dc, getActiveAirspaces());
-        drawOrdered(dc, getActiveAirspaces(), null);
+        drawOrdered(new GLWorldWW(dc), getActiveAirspaces(), null);
 
         // Draw the control points
         if (this.isArmed()) {
@@ -293,21 +294,22 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         return this.pickSupport;
     }
 
-    protected void drawOrdered(DrawContext dc, Iterable<? extends LLHArea> llhAreas, Layer layer) {
+    protected void drawOrdered(GLWorld w, Iterable<? extends LLHArea> llhAreas, Layer layer) {
         for (LLHArea a : llhAreas) {
-            double eyeDistance = this.computeDistanceFromEye(dc, a);
+            double eyeDistance = this.computeDistanceFromEye(w, a);
             OrderedLLHArea orderedAirspace = new OrderedLLHArea(this, a, layer, eyeDistance);
+            final DrawContext dc = ((GLWorldWW)(w)).getDC(); // hack
             dc.getOrderedSurfaceRenderables().add(orderedAirspace);
             // dc.getOrderedRenderables().add(orderedAirspace);
         }
     }
 
-    protected double computeDistanceFromEye(DrawContext dc, LLHArea airspace) {
-        Extent extent = airspace.getExtent(dc);
+    protected double computeDistanceFromEye(GLWorld w, LLHArea airspace) {
+        Extent extent = airspace.getExtent(w);
         if (extent == null) {
             return 0;
         }
-
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
         if (dc.getView() == null || dc.getView().getEyePoint() == null) {
             return 0;
         }
@@ -360,7 +362,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         @Override
         public void render(DrawContext dc) {
             // The render method does not bind any pickable objects.
-            this.draw(dc, null);
+            this.draw(new GLWorldWW(dc), null);
         }
 
         @Override
@@ -369,7 +371,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             pickSupport.beginPicking(dc);
             try {
                 // The pick method will bind pickable objects to the renderer's PickSupport.
-                this.draw(dc, pickSupport);
+                this.draw(new GLWorldWW(dc), pickSupport);
             } finally {
                 pickSupport.endPicking(dc);
             }
@@ -378,26 +380,27 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             pickSupport.clearPickList();
         }
 
-        protected void draw(DrawContext dc, PickSupport pickSupport) {
+        protected void draw(GLWorld w, PickSupport pickSupport) {
             //LLHAreaLayer renderer = this.getRenderer();
-            renderer.drawOrderedAirspace(dc, this, pickSupport);
+            renderer.drawOrderedAirspace(w, this, pickSupport);
         }
     }
 
-    protected void drawOrderedAirspace(DrawContext dc, OrderedLLHArea orderedAirspace, PickSupport pickSupport) {
+    protected void drawOrderedAirspace(GLWorld w, OrderedLLHArea orderedAirspace, PickSupport pickSupport) {
 
-        this.beginRendering(dc);
+        this.beginRendering(w);
         try {
-            this.drawAirspace(dc, orderedAirspace.getAirspace(), pickSupport);
-            this.drawOrderedAirspaces(dc, pickSupport);
+            this.drawAirspace(w, orderedAirspace.getAirspace(), pickSupport);
+            this.drawOrderedAirspaces(w, pickSupport);
         } finally {
-            this.endRendering(dc);
+            this.endRendering(w);
         }
     }
 
-    protected void drawOrderedAirspaces(DrawContext dc, PickSupport pickSupport) {
+    protected void drawOrderedAirspaces(GLWorld w, PickSupport pickSupport) {
         // Batch render as many Airspaces as we can to save OpenGL state switching.
         // OrderedRenderable top = dc.getOrderedRenderables().peek();
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
         OrderedRenderable top = dc.getOrderedSurfaceRenderables().peek();
         while (top != null && top instanceof OrderedLLHArea) {
             OrderedLLHArea oa = (OrderedLLHArea) top;
@@ -408,7 +411,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
                 return;
             }
 
-            this.drawAirspace(dc, oa.getAirspace(), pickSupport);
+            this.drawAirspace(w, oa.getAirspace(), pickSupport);
 
             // Take the ordered airspace off the queue, then peek at the next item in the queue (but do not remove it).
             // dc.getOrderedRenderables().poll();
@@ -421,11 +424,11 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //**************************************************************//
     //********************  Airspace Rendering  ********************//
     //**************************************************************//
-    protected void drawAirspaces(DrawContext dc, Iterable<? extends LLHArea> airspaces, PickSupport pickSupport) {
+    protected void drawAirspaces(GLWorld w, Iterable<? extends LLHArea> airspaces, PickSupport pickSupport) {
         for (LLHArea airspace : airspaces) {
             try {
                 if (airspace != null) {
-                    this.drawAirspace(dc, airspace, pickSupport);
+                    this.drawAirspace(w, airspace, pickSupport);
                 }
             } catch (Exception e) {
                 String message = Logging.getMessage("generic.ExceptionWhileRenderingAirspace");
@@ -434,34 +437,34 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         }
     }
 
-    protected void drawAirspace(DrawContext dc, LLHArea airspace, PickSupport pickSupport) {
+    protected void drawAirspace(GLWorld w, LLHArea airspace, PickSupport pickSupport) {
         try {
             if (pickSupport != null) {
-                this.bindPickableObject(dc, airspace, pickSupport);
+                this.bindPickableObject(w, airspace, pickSupport);
             }
 
-            this.doDrawAirspace(dc, airspace);
+            this.doDrawAirspace(w, airspace);
         } catch (Exception e) {
             String message = Logging.getMessage("generic.ExceptionWhileRenderingAirspace");
             Logging.logger().log(java.util.logging.Level.SEVERE, message, e);
         }
     }
 
-    protected void doDrawAirspace(DrawContext dc, LLHArea airspace) {
+    protected void doDrawAirspace(GLWorld w, LLHArea airspace) {
         if (!airspace.isVisible()) {
             return;
         }
 
-        this.drawAirspaceShape(dc, airspace);
-
+        this.drawAirspaceShape(w, airspace);
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
         if (!dc.isPickingMode()) {
             if (this.isDrawExtents()) {
-                airspace.renderExtent(dc);
+                airspace.renderExtent(w);
             }
         }
     }
 
-    protected void drawAirspaceShape(DrawContext dc, LLHArea airspace) {
+    protected void drawAirspaceShape(GLWorld w, LLHArea airspace) {
         // Draw the airspace shape using a multiple pass algorithm. The motivation for this algorithm is twofold:
         //
         // 1. We want to draw the airspace on top of other intersecting shapes with similar depth values to eliminate
@@ -473,7 +476,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         //
         // These issues are resolved by making several passes for the interior and outline, as follows:
 
-        GL gl = dc.getGL();
+        final GL gl = w.gl;
 
         // If the outline and interior will be drawn, then draw the outline color, but do not affect the depth buffer
         // (outline pixels do not need the depth test). When the interior is drawn, it will draw on top of these
@@ -482,7 +485,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             gl.glColorMask(true, true, true, true);
             gl.glDepthMask(false);
 
-            this.drawAirspaceOutline(dc, airspace);
+            this.drawAirspaceOutline(w, airspace);
         }
 
         // If the interior will be drawn, then make two passes as follows. The first pass draws the interior depth
@@ -498,18 +501,18 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
                 gl.glDepthMask(true);
                 gl.glPolygonOffset(0, 0);
 
-                this.drawAirspaceInterior(dc, airspace);
+                this.drawAirspaceInterior(w, airspace);
 
                 // Draw color.
                 gl.glColorMask(true, true, true, true);
                 gl.glDepthMask(false);
                 gl.glPolygonOffset((float) this.getDepthOffsetFactor(), (float) this.getDepthOffsetUnits());
 
-                this.drawAirspaceInterior(dc, airspace);
+                this.drawAirspaceInterior(w, airspace);
             } else {
                 gl.glColorMask(true, true, true, true);
                 gl.glDepthMask(true);
-                this.drawAirspaceInterior(dc, airspace);
+                this.drawAirspaceInterior(w, airspace);
             }
         }
 
@@ -520,23 +523,25 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             gl.glColorMask(true, true, true, true);
             gl.glDepthMask(false);
 
-            this.drawAirspaceOutline(dc, airspace);
+            this.drawAirspaceOutline(w, airspace);
         }
     }
 
-    protected void drawAirspaceInterior(DrawContext dc, LLHArea airspace) {
+    protected void drawAirspaceInterior(GLWorld w, LLHArea airspace) {
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
+
         if (!dc.isPickingMode()) {
             if (this.isEnableLighting()) {
-                dc.getGL().glEnable(GL.GL_LIGHTING);
+                w.gl.glEnable(GL.GL_LIGHTING);
             }
-
             airspace.getAttributes().applyInterior(dc, this.isEnableLighting());
         }
 
-        airspace.renderGeometry(dc, "fill");
+        airspace.renderGeometry(w, "fill");
     }
 
-    protected void drawAirspaceOutline(DrawContext dc, LLHArea airspace) {
+    protected void drawAirspaceOutline(GLWorld w, LLHArea airspace) {
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
         if (dc.isPickingMode()) {
             double lineWidth = airspace.getAttributes().getOutlineWidth();
 
@@ -556,15 +561,16 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             airspace.getAttributes().applyOutline(dc, false);
         }
 
-        airspace.renderGeometry(dc, "outline");
+        airspace.renderGeometry(w, "outline");
     }
 
-    protected void beginRendering(DrawContext dc) {
+    protected void beginRendering(GLWorld w) {
 
-        GL gl = dc.getGL();
+        final GL gl = w.gl;
 
         gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT);
         gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
 
         if (!dc.isPickingMode()) {
             int attribMask =
@@ -582,12 +588,12 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             }
 
             if (this.isEnableBlending()) {
-                this.setBlending(dc);
+                this.setBlending(w);
             }
 
             if (this.isEnableLighting()) {
                 gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
-                this.setLighting(dc);
+                this.setLighting(w);
             }
 
             if (this.isEnableAntialiasing()) {
@@ -609,25 +615,16 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         gl.glDepthFunc(GL.GL_LEQUAL);
     }
 
-    protected void endRendering(DrawContext dc) {
-        if (dc == null) {
-            String message = Logging.getMessage("nullValue.DrawContextIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-        if (dc.getGL() == null) {
-            String message = Logging.getMessage("nullValue.DrawingContextGLIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalStateException(message);
-        }
-
-        GL gl = dc.getGL();
+    protected void endRendering(GLWorld w) {
+        final GL gl = w.gl;
 
         gl.glPopAttrib();
         gl.glPopClientAttrib();
     }
 
-    protected void bindPickableObject(DrawContext dc, LLHArea airspace, PickSupport pickSupport) {
+    protected void bindPickableObject(GLWorld w, LLHArea airspace, PickSupport pickSupport) {
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
+
         java.awt.Color pickColor = dc.getUniquePickColor();
         int colorCode = pickColor.getRGB();
         dc.getGL().glColor3ub((byte) pickColor.getRed(), (byte) pickColor.getGreen(), (byte) pickColor.getBlue());
@@ -715,9 +712,9 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //**************************************************************//
     //********************  Rendering Support  *********************//
     //**************************************************************//
-    public void setBlending(DrawContext dc) {
+    public void setBlending(GLWorld w) {
 
-        GL gl = dc.getGL();
+        final GL gl = w.gl;
 
         if (this.isUseEXTBlendFuncSeparate()) {
             this.setHaveEXTBlendFuncSeparate(gl.isExtensionAvailable(EXT_BLEND_FUNC_SEPARATE_STRING));
@@ -743,9 +740,9 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         }
     }
 
-    public void setLighting(DrawContext dc) {
+    public void setLighting(GLWorld w) {
 
-        GL gl = dc.getGL();
+        final GL gl = w.gl;
 
         gl.glEnable(GL.GL_LIGHTING);
         setLightModel(gl);
@@ -979,22 +976,22 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
          return newPosition;
          * */
     }
-    
-    public ArrayList<LatLon> originList(WorldWindow wwd, LLHArea area, Point mousePoint){
-         if (area instanceof LLHAreaSet) {
+
+    public ArrayList<LatLon> originList(WorldWindow wwd, LLHArea area, Point mousePoint) {
+        if (area instanceof LLHAreaSet) {
             LLHAreaSet set = (LLHAreaSet) (area);
             FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
             // currently copying all points into 'points'
             ArrayList<LatLon> newList = new ArrayList<LatLon>();
             @SuppressWarnings("unchecked")
             ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
-            for(LatLon l:list){
+            for (LatLon l : list) {
                 LatLon copy = new LatLon(l);
                 newList.add(copy);
             }
             return newList;
-         }
-         return null;
+        }
+        return null;
     }
 
     /**
@@ -1046,7 +1043,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         if (newPosition == null) {
             return;
         }
-        if (originList == null){
+        if (originList == null) {
             return;
         }
 

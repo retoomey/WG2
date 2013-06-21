@@ -17,12 +17,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.views.WorldWindView;
+import org.wdssii.gui.worldwind.GLWorldWW;
 
 /**
  * A root class for all of our volumes. Common functionality will go here.
@@ -312,12 +314,15 @@ public class LLHArea extends AVListImpl implements Movable {
         this.groundReference = groundReference;
     }
 
-    public boolean isAirspaceVisible(DrawContext dc) {
-        Extent extent = this.getExtent(dc);
+    public boolean isAirspaceVisible(GLWorld w) {
+        Extent extent = this.getExtent(w);
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
         return extent != null && extent.intersects(dc.getView().getFrustumInModelCoordinates());
     }
 
-    public Extent getExtent(DrawContext dc) {
+    public Extent getExtent(GLWorld w) {
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
+
         ExtentInfo extentInfo = this.extents.get(dc.getGlobe());
         if (extentInfo != null && extentInfo.isValid(dc)) {
             return extentInfo.extent;
@@ -332,18 +337,18 @@ public class LLHArea extends AVListImpl implements Movable {
         this.extents.clear(); // Doesn't hurt to remove all cached extents because re-creation is cheap
     }
 
-    public void renderGeometry(DrawContext dc, String drawStyle) {
+    public void renderGeometry(GLWorld w, String drawStyle) {
         if (drawStyle == null) {
             String message = Logging.getMessage("nullValue.StringIsNull");
             Logging.logger().severe(message);
             throw new IllegalArgumentException(message);
         }
 
-        this.doRenderGeometry(dc, drawStyle);
+        this.doRenderGeometry(w, drawStyle);
     }
 
-    public void renderExtent(DrawContext dc) {
-        this.doRenderExtent(dc);
+    public void renderExtent(GLWorld w) {
+        this.doRenderExtent(w);
     }
 
     @Override
@@ -428,11 +433,11 @@ public class LLHArea extends AVListImpl implements Movable {
         return this.computeBoundingCylinder(dc, this.locations);
     }
 
-    protected void doRenderGeometry(DrawContext dc, String drawStyle) {
-        this.doRenderGeometry(dc, drawStyle, getLocationList(), null);
+    protected void doRenderGeometry(GLWorld w, String drawStyle) {
+        this.doRenderGeometry(w, drawStyle, getLocationList(), null);
     }
 
-    protected void doRenderGeometry(DrawContext dc, String drawStyle, List<LatLon> locations, List<Boolean> edgeFlags) {
+    protected void doRenderGeometry(GLWorld w, String drawStyle, List<LatLon> locations, List<Boolean> edgeFlags) {
     }
 
     protected GeometryBuilder getGeometryBuilder() {
@@ -452,9 +457,10 @@ public class LLHArea extends AVListImpl implements Movable {
     // protected void doRender(DrawContext dc) {
     //    renderer.renderNow(dc, Arrays.asList(this));
     //}
-    protected void doRenderExtent(DrawContext dc) {
-        Extent extent = this.getExtent(dc);
+    protected void doRenderExtent(GLWorld w) {
+        Extent extent = this.getExtent(w);
         if (extent != null && extent instanceof Renderable) {
+            final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
             ((Renderable) extent).render(dc);
         }
     }
@@ -631,10 +637,9 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     /**
-     * Return info for a segment
-     * Not sure where to put this function
+     * Return info for a segment Not sure where to put this function
      */
-    public  VolumeSliceInput getSegmentInfo(VolumeSliceInput buffer, int segment, int rows, int cols) {
+    public VolumeSliceInput getSegmentInfo(VolumeSliceInput buffer, int segment, int rows, int cols) {
         java.util.List<LatLon> l = getLocations();
         if (l.size() > segment + 1) {
             double[] altitudes = getAltitudes();
@@ -655,8 +660,8 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     /**
-     * Given a lat lon list, return vslice order
-     * Not sure where to put this function
+     * Given a lat lon list, return vslice order Not sure where to put this
+     * function
      */
     protected static ArrayList<LatLon> getVSliceLocations(java.util.List<LatLon> input) {
 

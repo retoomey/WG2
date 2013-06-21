@@ -10,12 +10,14 @@ import java.util.List;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.ChartViewChart;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.views.ChartView;
+import org.wdssii.gui.worldwind.GLWorldWW;
 import org.wdssii.gui.worldwind.WorldwindUtil;
 
 /**
@@ -152,8 +154,8 @@ public class LLHAreaSet extends LLHArea {
     //**************************************************************//
     //********************  Geometry Rendering  ********************//
     //**************************************************************//
-    protected Vec4 computeReferenceCenter(DrawContext dc) {
-        Extent extent = this.getExtent(dc);
+    protected Vec4 computeReferenceCenter(GLWorld w) {
+        Extent extent = this.getExtent(w);
         return extent != null ? extent.getCenter() : null;
     }
 
@@ -198,12 +200,12 @@ public class LLHAreaSet extends LLHArea {
      * @param edgeFlags
      */
     @Override
-    protected void doRenderGeometry(DrawContext dc, String drawStyle, List<LatLon> locations, List<Boolean> edgeFlags) {
+    protected void doRenderGeometry(GLWorld w, String drawStyle, List<LatLon> locations, List<Boolean> edgeFlags) {
         if (locations.isEmpty()) {
             return;
         }
 
-        // Get the true altitudes for sampling purposes
+        // Get the true altitudes for sampling purposesz
         // vertical is for rendering only...getAltitudes(dc.getVerticalExaggeration());
         double[] altitudes = this.getAltitudes();
 
@@ -211,6 +213,7 @@ public class LLHAreaSet extends LLHArea {
         //myCurrentGrid.bottomHeight = altitudes[0];
         //myCurrentGrid.topHeight = altitudes[1];
         List<LatLon> list = this.getLocations();
+         final DrawContext dc = ((GLWorldWW)(w)).getDC(); // hack
         GL gl = dc.getGL();
 
         if (drawStyle.equals("fill")) {
@@ -293,7 +296,7 @@ public class LLHAreaSet extends LLHArea {
                 gl.glEnable(GL.GL_CULL_FACE);
                 gl.glFrontFace(GL.GL_CCW);
 
-                c.drawChartInLLHArea(dc, locations, altitudes, edgeFlags);
+                c.drawChartInLLHArea(w, locations, altitudes, edgeFlags);
                 //this.drawVSlice(dc, locations, edgeFlags);
 
                 gl.glPopAttrib();

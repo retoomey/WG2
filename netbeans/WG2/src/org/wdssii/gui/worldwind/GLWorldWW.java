@@ -34,6 +34,7 @@ public class GLWorldWW extends GLWorld {
     /**
      * Project from 3d to 2D in the current world
      */
+    @Override
     public V2 project(V3 a3D) {
         // Two news, yay.
         Vec4 vv = v.project(new Vec4(a3D.x, a3D.y, a3D.z));
@@ -43,6 +44,7 @@ public class GLWorldWW extends GLWorld {
     /**
      * Project a lat, lon, height into a 3D model point...
      */
+    @Override
     public V3 projectLLH(float latDegrees, float lonDegrees, float heightMeters) {
         final Vec4 v = g.computePointFromPosition(
                 Angle.fromDegrees(latDegrees),
@@ -51,6 +53,7 @@ public class GLWorldWW extends GLWorld {
         return new V3(v.x, v.y, v.z);
     }
     
+    @Override
     public V3 projectLLH(double latDegrees, double lonDegrees, double heightMeters) {
         final Vec4 v = g.computePointFromPosition(
                 Angle.fromDegrees(latDegrees),
@@ -64,6 +67,7 @@ public class GLWorldWW extends GLWorld {
     //}
     
     /** Get the elevation in meters at a given latitude, longitude location */
+    @Override
     public float getElevation(float latDegrees, float lonDegrees){
          Globe myGlobe = adc.getGlobe();
          ElevationModel e = myGlobe.getElevationModel();
@@ -72,13 +76,20 @@ public class GLWorldWW extends GLWorld {
     }
     
      /** Get the elevation in meters at a given latitude, longitude location */
+    @Override
     public double getElevation(double latDegrees, double lonDegrees){
          Globe myGlobe = adc.getGlobe();
          ElevationModel e = myGlobe.getElevationModel();
          return e.getElevation(Angle.fromDegrees(latDegrees), Angle.fromDegrees(lonDegrees));     
     }
     
+    @Override
     public  boolean isPickingMode(){
         return adc.isPickingMode();
+    }
+    
+    @Override
+    public double getVerticalExaggeration(){
+        return adc.getVerticalExaggeration();
     }
 }

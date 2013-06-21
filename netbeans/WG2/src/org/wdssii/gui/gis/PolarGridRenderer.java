@@ -1,13 +1,6 @@
 package org.wdssii.gui.gis;
 
 import com.sun.opengl.util.j2d.TextRenderer;
-import gov.nasa.worldwind.View;
-/*import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.LatLon;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.Globe;
-import gov.nasa.worldwind.render.DrawContext;
-* */
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;

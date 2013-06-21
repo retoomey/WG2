@@ -13,6 +13,7 @@ import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.geom.Location;
 import org.wdssii.core.GridVisibleArea;
 import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.swing.SimpleTable.ToolbarMode;
 import org.wdssii.gui.views.WorldWindView;
 
 /**
@@ -92,7 +93,7 @@ public class DataTable2DTable extends Product2DTable {
      */
     @Override
     public void createInScrollPane(JScrollPane scrollPane, ProductFeature f,
-    		int mouseMode) {
+    		ToolbarMode mouseMode) {
 
         // By now this is loaded or we wouldn't be here.
 	Product p = f.getProduct();    

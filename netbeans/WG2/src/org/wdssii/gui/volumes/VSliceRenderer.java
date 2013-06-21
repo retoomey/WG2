@@ -6,8 +6,10 @@ import gov.nasa.worldwind.render.airspaces.Geometry;
 import java.nio.Buffer;
 
 import javax.media.opengl.GL;
+import org.wdssii.geom.GLWorld;
 
 import org.wdssii.gui.products.VolumeSlice3DOutput;
+import org.wdssii.gui.worldwind.GLWorldWW;
 
 /** This draws the vslice using an airspace Polygon from WorldWind
  * FIXME: move into products so that subclasses of products can render differently...
@@ -23,8 +25,9 @@ public class VSliceRenderer {
     }
 
     /** Special render our vslice */
-    public void drawVSlice(DrawContext dc, VolumeSlice3DOutput vslice) {
+    public void drawVSlice(GLWorld w, VolumeSlice3DOutput vslice) {
         // We don't use reference center with our vslice, helps with speed quite a bit.
+        final DrawContext dc = ((GLWorldWW)(w)).getDC(); // hack
 
         if (dc.isPickingMode()) {  // With picking mode, just fill us in with full square for picking.
             drawGeometry(dc, vslice.getFillIndexGeometry(), vslice.getVertexGeometry());

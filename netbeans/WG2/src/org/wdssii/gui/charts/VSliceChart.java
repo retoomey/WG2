@@ -31,6 +31,7 @@ import org.jfree.ui.RectangleInsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
+import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.FeatureCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand;
@@ -46,6 +47,7 @@ import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSet;
 import org.wdssii.gui.volumes.VSliceRenderer;
+import org.wdssii.gui.worldwind.GLWorldWW;
 
 /**
  * Chart that draws a dynamic grid sampled from a product volume in both a
@@ -332,12 +334,12 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         public boolean equals(Object obj) {
             return super.equals(obj);
         }
-        
+
         @Override
         public int hashCode() {
             return super.hashCode();
         }
-        
+
         public void setCurrentVolumeValueName(String name) {
             myCurrentVolumeValueName = name;
         }
@@ -723,14 +725,14 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     @Override
     // All the 3D render stuff of the Chrt
     // Render in 3D
-    public void drawChartInLLHArea(DrawContext dc, java.util.List<LatLon> locations, double[] altitudes, java.util.List<Boolean> edgeFlags) {
+    public void drawChartInLLHArea(GLWorld w, java.util.List<LatLon> locations, double[] altitudes, java.util.List<Boolean> edgeFlags) {
         if (locations.size() > 1) {
             ArrayList<LatLon> ordered = updateCurrentGrid(locations);
             myCurrentGrid.bottomHeight = altitudes[0];
             myCurrentGrid.topHeight = altitudes[1];
-            VolumeSlice3DOutput geom = this.getVSliceGeometry(dc, ordered, edgeFlags);
+            VolumeSlice3DOutput geom = this.getVSliceGeometry(w, ordered, edgeFlags);
 
-            myRenderer.drawVSlice(dc, geom);
+            myRenderer.drawVSlice(w, geom);
         }
     }
 
@@ -781,10 +783,10 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
      *
      * @return
      */
-    private VolumeSlice3DOutput getVSliceGeometry(DrawContext dc, java.util.List<LatLon> locations, java.util.List<Boolean> edgeFlags) {
+    private VolumeSlice3DOutput getVSliceGeometry(GLWorld w, java.util.List<LatLon> locations, java.util.List<Boolean> edgeFlags) {
         String newKey = getNewCacheKey(locations);
         // Add exaggeration to cache key so changing exaggeration will redraw it
-        newKey += dc.getVerticalExaggeration();
+        newKey += w.getVerticalExaggeration();
         if (newKey.compareTo(myCacheKey) == 0) {
             return myGeometry;
         }
@@ -792,7 +794,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         // System.out.println("_------------>>> REGENERATE VSLICE!!!");
         myCacheKey = newKey;
         myGeometry.setHaveVSliceData(false);
-        this.makeVSlice(dc, locations, edgeFlags, myGeometry);
+        this.makeVSlice(w, locations, edgeFlags, myGeometry);
 
         // Fire changed event?  Is this enough?
         CommandManager.getInstance().executeCommand(new FeatureCommand(), true);
@@ -803,8 +805,10 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         return this.geometryBuilder;
     }
 
-    protected int computeCartesianPolygon(DrawContext dc, java.util.List<? extends LatLon> locations, java.util.List<Boolean> edgeFlags,
+    protected int computeCartesianPolygon(GLWorld w, java.util.List<? extends LatLon> locations, java.util.List<Boolean> edgeFlags,
             Vec4[] points, Boolean[] edgeFlagArray, Matrix[] transform) {
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
+
         Globe globe = dc.getGlobe();
 
         // Allocate space to hold the list of locations and location vertices.
@@ -918,11 +922,12 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         return count;
     }
 
-    private void makeVSlice(DrawContext dc, java.util.List<LatLon> locations, java.util.List<Boolean> edgeFlags,
+    private void makeVSlice(GLWorld w, java.util.List<LatLon> locations, java.util.List<Boolean> edgeFlags,
             VolumeSlice3DOutput dest) {
         if (locations.isEmpty()) {
             return;
         }
+        final DrawContext dc = ((GLWorldWW)(w)).getDC(); // hack
 
         // For dynamic sizing outlines...I might need this code for 'smart' legend over vslice, so
         // I'm leaving it here for the moment --Robert Toomey
@@ -931,7 +936,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         Vec4[] polyPoints = new Vec4[locations.size() + 1];
         Boolean[] polyEdgeFlags = new Boolean[locations.size() + 1];
         Matrix[] polyTransform = new Matrix[1];
-        int polyCount = this.computeCartesianPolygon(dc, locations, edgeFlags, polyPoints, polyEdgeFlags,
+        int polyCount = this.computeCartesianPolygon(w, locations, edgeFlags, polyPoints, polyEdgeFlags,
                 polyTransform);
 
         // Copy from polyVertices into polyPoints?  why???
@@ -1002,7 +1007,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
             double altitudes[] = new double[2];
             altitudes[0] = myCurrentGrid.bottomHeight;
             altitudes[1] = myCurrentGrid.topHeight;
-            double vert = dc.getVerticalExaggeration();
+            double vert = w.getVerticalExaggeration();
             for (int p = 0; p < numPoints; p++) {
                 int pindex = 3 * p;
                 Vec4 vec = new Vec4(locationVerts[pindex], locationVerts[pindex + 1], locationVerts[pindex + 2]);
@@ -1069,6 +1074,6 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
                 myCurrentGrid.bottomHeight, myCurrentGrid.topHeight);
         // Let the volume generate the 3D slice output
         // FIXME: Need to be able to change volumevalue
-        myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true, dc.getVerticalExaggeration(), null);
+        myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true, w.getVerticalExaggeration(), null);
     }
 }

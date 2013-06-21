@@ -1,6 +1,5 @@
 package org.wdssii.gui.products.renderers;
 
-//import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
 import java.awt.Rectangle;
 import javax.media.opengl.GL;

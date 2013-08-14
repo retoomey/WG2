@@ -38,7 +38,6 @@ import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.SimpleTable.ToolbarMode;
 import org.wdssii.gui.swing.SwingIconFactory;
-import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSet;
 
@@ -139,9 +138,11 @@ public class Data2DTableChart extends ChartViewChart {
             clearRange();
 
             // Sample and fill in with new values
-            WorldWindView eb = FeatureList.theFeatures.getWWView();
-            Globe globe = eb.getWwd().getModel().getGlobe();
-            ElevationModel m = globe.getElevationModel();
+           // WorldWindView eb = FeatureList.theFeatures.getWWView();
+           // Globe globe = eb.getWwd().getModel().getGlobe();
+           // ElevationModel m = globe.getElevationModel();
+            
+            ElevationModel m = WorldWindChart.getElevationModel();
             int size = getSampleSize();
             double deltaLat = (endLat - startLat) / (size - 1);
             double deltaLon = (endLon - startLon) / (size - 1);
@@ -309,6 +310,9 @@ public class Data2DTableChart extends ChartViewChart {
             LLHAreaFeature s = getTrackFeature();
             if (s != null) {
                 s.addRenderer(newTable);
+                LOG.debug("Added table to tracking feature "+newTable);
+            }else{
+                LOG.debug("Tracking feature was null");
             }
 
             // Feature update, move table to stick experiment...

@@ -1,7 +1,5 @@
 package org.wdssii.gui.products.renderers;
 
-import java.awt.Point;
-import java.awt.Rectangle;
 import javax.media.opengl.GL;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
@@ -93,14 +91,6 @@ public abstract class ProductRenderer {
     /** Return the product we draw */
     public Product getProduct() {
         return myProduct;
-    }
-
-    /**
-     * Get the raw float readout for this product using a color trick render system...
-     * Not all products will work this way of course...
-     */
-    public float getReadoutValue(Point p, Rectangle view, GLWorld w) {
-       return DataType.MissingData;
     }
     
     public void highlightObject(Object o){

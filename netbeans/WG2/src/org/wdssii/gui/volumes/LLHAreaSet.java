@@ -36,7 +36,7 @@ public class LLHAreaSet extends LLHArea {
     public int myNumRows = 50;
     public int myNumCols = 100;
     private String myChartKey;
-    
+
     /**
      * Change to pass onto the LLHArea. All fields common to LLHArea are here
      */
@@ -76,7 +76,7 @@ public class LLHAreaSet extends LLHArea {
         m.setProperty(LLHAreaSetMemento.GRID_ROWS, myNumRows);
         m.setProperty(LLHAreaSetMemento.GRID_COLS, myNumCols);
         m.setProperty(LLHAreaSetMemento.RENDERER, myChartKey);
-        
+
         // Stuff points into property copy each time could be bad later for >> N
         m.setProperty(LLHAreaSetMemento.POINTS, this.getArrayListCopyOfLocations());
         return m;
@@ -126,10 +126,10 @@ public class LLHAreaSet extends LLHArea {
         if (v != null) {
             myNumCols = v.intValue();
         }
-         String k = ((String) l.getPropertyValue(LLHAreaSetMemento.RENDERER));
-        if (k != null){
+        String k = ((String) l.getPropertyValue(LLHAreaSetMemento.RENDERER));
+        if (k != null) {
             myChartKey = k;
-        } 
+        }
 
     }
 
@@ -164,7 +164,7 @@ public class LLHAreaSet extends LLHArea {
      */
     public ChartViewChart get3DRendererChart() {
         ChartView v = getChartView();
-        if (v != null){
+        if (v != null) {
             return v.getChart();
         }
         return null;
@@ -178,15 +178,15 @@ public class LLHAreaSet extends LLHArea {
     public ChartView getChartView() {
         ArrayList<ChartView> list = ChartView.getList();
         for (ChartView c : list) {
-            if (c.getKey().equals(myChartKey)){
+            if (c.getKey().equals(myChartKey)) {
                 return c;
             }
         }
         // if not found and there's a list, use the first one....
-        if (!list.isEmpty()){
+        if (!list.isEmpty()) {
             ChartView fallBack = list.get(0);
             myChartKey = fallBack.getKey();
-            return fallBack;            
+            return fallBack;
         }
         return null;
     }
@@ -213,7 +213,7 @@ public class LLHAreaSet extends LLHArea {
         //myCurrentGrid.bottomHeight = altitudes[0];
         //myCurrentGrid.topHeight = altitudes[1];
         List<LatLon> list = this.getLocations();
-         final DrawContext dc = ((GLWorldWW)(w)).getDC(); // hack
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
         GL gl = dc.getGL();
 
         if (drawStyle.equals("fill")) {
@@ -308,14 +308,14 @@ public class LLHAreaSet extends LLHArea {
      * Get a key that represents the GIS location of this slice
      */
     public String getGISKey() {
-        
+
         // Add location and altitude...
         List<LatLon> locations = getLocationList();
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < locations.size(); i++) {
             LatLon l = locations.get(i);
-            buf.append(l.getLatitude()+":");
-            buf.append(l.getLongitude()+":");
+            buf.append(l.getLatitude() + ":");
+            buf.append(l.getLongitude() + ":");
         }
         //newKey = newKey + myCurrentGrid.bottomHeight;
         //newKey = newKey + myCurrentGrid.topHeight;
@@ -391,55 +391,79 @@ public class LLHAreaSet extends LLHArea {
     @Override
     protected List<LatLon> getDefaultLocations(WorldWindow wwd, Object params) {
 
-        // Taken from worldwind...we'll need to figure out how we want the vslice/isosurface to work...
-        Position position = WorldwindUtil.getNewShapePosition(wwd);
-        Angle heading = WorldwindUtil.getNewShapeHeading(wwd, true);
+        if (wwd != null) {
+            // Taken from worldwind...we'll need to figure out how we want the vslice/isosurface to work...
+            Position position = WorldwindUtil.getNewShapePosition(wwd);
+            Angle heading = WorldwindUtil.getNewShapeHeading(wwd, true);
 
-        /**
-         * Create based on viewport.
-         */
-        Globe globe = wwd.getModel().getGlobe();
-        Matrix transform = Matrix.IDENTITY;
-        transform = transform.multiply(globe.computeModelCoordinateOriginTransform(position));
-        transform = transform.multiply(Matrix.fromRotationZ(heading.multiply(-1)));
-        double sizeInMeters = DEFAULT_LENGTH_METERS;
-        double widthOver2 = sizeInMeters / 2.0;
-        double heightOver2 = sizeInMeters / 2.0;
+            /**
+             * Create based on viewport.
+             */
+            Globe globe = wwd.getModel().getGlobe();
+            Matrix transform = Matrix.IDENTITY;
+            transform = transform.multiply(globe.computeModelCoordinateOriginTransform(position));
+            transform = transform.multiply(Matrix.fromRotationZ(heading.multiply(-1)));
+            double sizeInMeters = DEFAULT_LENGTH_METERS;
+            double widthOver2 = sizeInMeters / 2.0;
+            double heightOver2 = sizeInMeters / 2.0;
 
-        int count = 2;
-        if (params instanceof Integer) {
-            Integer c = (Integer) (params);
-            count = c.intValue();
+            int count = 2;
+            if (params instanceof Integer) {
+                Integer c = (Integer) (params);
+                count = c.intValue();
+            }
+            Vec4[] points;
+
+            switch (count) {
+                case 1:
+                    points = new Vec4[]{
+                        //new Vec4(-widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower left (as if looking down, to sw)
+                        new Vec4(0.0, 0.0, 0.0).transformBy4(transform) // lower left (as if looking down, to sw)
+                    };
+                    break;
+                default:
+                case 2:
+                    points = new Vec4[]{
+                        new Vec4(-widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower left (as if looking down, to sw)
+                        // new Vec4(widthOver2,  -heightOver2, 0.0).transformBy4(transform), // lower right
+                        new Vec4(widthOver2, heightOver2, 0.0).transformBy4(transform), // upper right
+                    // new Vec4(-widthOver2,  heightOver2, 0.0).transformBy4(transform)  // upper left
+                    };
+            }
+
+            /**
+             * Convert from vector model coordinates to LatLon
+             */
+            LatLon[] locations = new LatLon[points.length];
+            for (int i = 0;
+                    i < locations.length;
+                    i++) {
+                locations[i] = new LatLon(globe.computePositionFromPoint(points[i]));
+            }
+            return Arrays.asList(locations);
+        } else {
+            int count = 2;
+            if (params instanceof Integer) {
+                Integer c = (Integer) (params);
+                count = c.intValue();
+            }
+            LatLon[] locations;
+
+            switch (count) {
+                case 1:
+                    locations = new LatLon[]{
+                        LatLon.fromDegrees(35.8, -98.4)
+                    };
+                    break;
+                default:
+                case 2:
+                    locations = new LatLon[]{
+                        LatLon.fromDegrees(35.8, -98.4),
+                        LatLon.fromDegrees(34.9, -96.4),};
+            }
+            return Arrays.asList(locations);
+
         }
-        Vec4[] points;
 
-        switch (count) {
-            case 1:
-                points = new Vec4[]{
-                    //new Vec4(-widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower left (as if looking down, to sw)
-                    new Vec4(0.0, 0.0, 0.0).transformBy4(transform) // lower left (as if looking down, to sw)
-                };
-                break;
-            default:
-            case 2:
-                points = new Vec4[]{
-                    new Vec4(-widthOver2, -heightOver2, 0.0).transformBy4(transform), // lower left (as if looking down, to sw)
-                    // new Vec4(widthOver2,  -heightOver2, 0.0).transformBy4(transform), // lower right
-                    new Vec4(widthOver2, heightOver2, 0.0).transformBy4(transform), // upper right
-                // new Vec4(-widthOver2,  heightOver2, 0.0).transformBy4(transform)  // upper left
-                };
-        }
-
-        /**
-         * Convert from vector model coordinates to LatLon
-         */
-        LatLon[] locations = new LatLon[points.length];
-        for (int i = 0;
-                i < locations.length;
-                i++) {
-            locations[i] = new LatLon(globe.computePositionFromPoint(points[i]));
-        }
-
-        return Arrays.asList(locations);
     }
 }

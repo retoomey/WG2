@@ -12,9 +12,7 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.geom.Location;
 import org.wdssii.core.GridVisibleArea;
-import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.swing.SimpleTable.ToolbarMode;
-import org.wdssii.gui.views.WorldWindView;
 
 /**
  * This sets up the table for a DataTable DataType object.
@@ -124,10 +122,12 @@ public class DataTable2DTable extends Product2DTable {
                             //  int column = target.getSelectedColumn();
                             try {
                                 Location l = data.getLocation(row);
-				WorldWindView earth = FeatureList.theFeatures.getWWView();
-                                if (earth != null) {
-                                    earth.gotoLocation(l);
-                                }
+				
+                                // FIXME: MULTIVIEW
+                                //WorldWindView earth = FeatureList.theFeatures.getWWView();
+                                //if (earth != null) {
+                                //    earth.gotoLocation(l);
+                               // }
                             } catch (Exception ex) {
                                 // recover by just doing nothing...
                             }

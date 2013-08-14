@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Created by WG2. Recommend not editing by hand -->
+<symbology merge="0" use="0">
+    <single>
+        <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="4" osize="2" ocolor="0x000000ff" useoutline="false" angle="45" yoffset="0" xoffset="0" points="13" color="0xff0000ff"/>
+    </single>
+    <categories column="Type_id">
+        <category value="DZ">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="20" osize="2" ocolor="0x000000ff" useoutline="true" angle="0" yoffset="0" xoffset="0" points="18" color="0x00ff00ff"/>
+        </category>
+        <category value="RA">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="arrowSymbol" tailthick="4" taillength="10" width="10" numpoints="4" osize="2" ocolor="0x000000ff" useoutline="true" angle="0" yoffset="0" xoffset="0" points="24" color="0x00ff00ff"/>
+        </category>
+        <category value="FD">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="20" osize="2" ocolor="0x000000ff" useoutline="true" angle="0" yoffset="0" xoffset="0" points="18" color="0xff9999ff"/>
+        </category>
+        <category value="FR">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="3" osize="1" ocolor="0x000000ff" useoutline="true" angle="90" yoffset="0" xoffset="0" points="24" color="0xff9999ff"/>
+        </category>
+        <category value="R/S">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="starSymbol" numpoints="6" osize="1" ocolor="0x000000ff" useoutline="true" lsize="1" angle="30" yoffset="0" xoffset="0" points="20" color="0x00ff00ff"/>
+        </category>
+        <category value="IP">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="20" osize="2" ocolor="0x000000ff" useoutline="true" angle="0" yoffset="0" xoffset="0" points="18" color="0x9966ffff"/>
+        </category>
+        <category value="GR">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="4" osize="1" ocolor="0x000000ff" useoutline="true" angle="45" yoffset="0" xoffset="0" points="20" color="0x9966ffff"/>
+        </category>
+        <category value="R/IP">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="3" osize="1" ocolor="0x000000ff" useoutline="true" angle="90" yoffset="0" xoffset="0" points="24" color="0x9966ffff"/>
+        </category>
+        <category value="DS">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="starSymbol" numpoints="6" osize="1" ocolor="0x000000ff" useoutline="true" lsize="1" angle="30" yoffset="0" xoffset="0" points="20" color="0xffffffff"/>
+        </category>
+        <category value="WS">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="starSymbol" numpoints="6" osize="1" ocolor="0x000000ff" useoutline="true" lsize="1" angle="30" yoffset="0" xoffset="0" points="20" color="0x0000ffff"/>
+        </category>
+        <category value="IP/S">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="starSymbol" numpoints="6" osize="1" ocolor="0x000000ff" useoutline="true" lsize="1" angle="30" yoffset="0" xoffset="0" points="20" color="0xff9999ff"/>
+        </category>
+        <category value="SL">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="4" osize="1" ocolor="0x000000ff" useoutline="true" angle="45" yoffset="0" xoffset="0" points="20" color="0xffffffff"/>
+        </category>
+    </categories>
+</symbology>

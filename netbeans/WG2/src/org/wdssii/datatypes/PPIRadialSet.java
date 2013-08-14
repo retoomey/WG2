@@ -455,12 +455,15 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
 
     @Override
     public boolean getCellValue(int row, int col, CellQuery output) {
-        float value = 0;
-        Radial r = getRadial((col));
-        if (r != null) {
-            int count = getNumGates();
-            if (count > 0) {
-                value = r.getValue((count - row - 1));
+        float value = DataType.MissingData;
+        int rcount = getNumRadials();
+        if (col < rcount) {
+            Radial r = getRadial((col));
+            if (r != null) {
+                int count = getNumGates();
+                if (count > 0) {
+                    value = r.getValue((count - row - 1));
+                }
             }
         }
         output.value = value;

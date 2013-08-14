@@ -7,7 +7,7 @@ import org.wdssii.gui.animators.Animator;
 import org.wdssii.gui.animators.Mover3D;
 import org.wdssii.gui.animators.TimeLooper;
 import org.wdssii.gui.commands.AnimateCommand.AnimateNotifyCancelCommand;
-import org.wdssii.gui.views.WorldWindView;
+import org.wdssii.gui.features.FeatureList;
 
 /* Animate manager handles grouping all Animators...
  * TimeLooper handles looping in the display...
@@ -26,8 +26,6 @@ public class AnimateManager {
     private AnimatorJob myLoopJob = null;
     /** Sync object for the RCP loop job */
     private final Object myLoopJobSync = new Object();
-    /** The single world wind earth ball */
-    private static WorldWindView theEarth = null;
     /** The single visual collection */
     private static AnimateManager myVisualCollection = new AnimateManager();
 
@@ -47,19 +45,12 @@ public class AnimateManager {
     public static void updateDuringRender() {
         // FIXME: disable this update if we are looping...loop
         // will update us...
-        if (theEarth != null) {
-            theEarth.updateOnMinTime();
-        }
+        FeatureList.theFeatures.updateOnMinTime();
     }
     
     // Collection of animators
     public static AnimateManager getVisualCollection() {
         return myVisualCollection;
-    }
-    
-    /** Set the single earth view */
-    public static void setEarthView(WorldWindView v){
-        theEarth = v;
     }
     
     /** Get the list of animators that show up in the animation view */

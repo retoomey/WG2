@@ -88,6 +88,12 @@ public class DataTableRenderer extends ProductRenderer {
         Symbology s = p.getSymbology();
         String column = s.getCategories().column;        
         Column symbolColumn = aDataTable.getColumnByName(column);
+        
+        // For 'trends' need to sort the column values...wait..fuck me
+        // need the row reference for..shit shit shit...
+        if (symbolColumn != null){
+            symbolColumn.createIndex();
+        }
         //  TreeMap<String, SymbolRenderer> myCategoryRenderer = new TreeMap<String, SymbolRenderer>();
         // We'd set up from xml, creating a symbol renderer per class
         // "hail" --> StarSymbolRenderer...

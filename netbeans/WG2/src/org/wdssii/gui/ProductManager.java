@@ -30,7 +30,6 @@ import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.sources.IndexSource;
 import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceList;
-import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.xml.*;
@@ -283,10 +282,10 @@ public class ProductManager implements Singleton {
             //Position p = event.getPosition();
             Point point = event.getScreenPoint();
             readout = String.format("(%d, %d)", point.x, point.y);
-            WorldWindView earth = FeatureList.theFeatures.getWWView();
-            if (earth != null) {
-                earth.getColor(point.x, point.y);
-            }
+            // WorldWindView earth = FeatureList.theFeatures.getWWView();
+            // if (earth != null) {
+            //     earth.getColor(point.x, point.y);
+            // }
             //readout = current.getReadout(p.getLatitude().getDegrees(),
             //		p.getLongitude().getDegrees(), 
             //		p.getHeight().get);

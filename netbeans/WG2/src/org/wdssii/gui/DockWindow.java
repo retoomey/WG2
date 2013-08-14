@@ -3,7 +3,6 @@ package org.wdssii.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -32,8 +31,8 @@ import net.infonode.tabbedpanel.TabLayoutPolicy;
 import net.infonode.util.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.gui.charts.WorldWindChart;
 import org.wdssii.gui.views.WdssiiDockedViewFactory;
-import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.storage.DataManager;
 
 /**
@@ -256,8 +255,8 @@ public class DockWindow {
         GraphicsDevice def = ge.getDefaultScreenDevice();
         DisplayMode dm = def.getDisplayMode();
         int margin = 50;
-        int width = dm.getWidth() - (2*margin);
-        int height = dm.getHeight() - (2*margin);
+        int width = dm.getWidth() - (2 * margin);
+        int height = dm.getHeight() - (2 * margin);
         int x = margin;
         int y = margin;
         showFrame(x, y, width, height);
@@ -479,7 +478,7 @@ public class DockWindow {
                 return getDynamicView(in.readInt());
             }
         });
-        if (WorldWindView.USE_HEAVYWEIGHT) {
+        if (WorldWindChart.USE_HEAVYWEIGHT) {
             rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, handler, true);
         } else {
             rootWindow = DockingUtil.createRootWindow(viewMap, handler,
@@ -553,7 +552,7 @@ public class DockWindow {
 
         // FIXME: Should hunt by reflection, auto handle this...
         // For the moment creating ALL views...
-        addViewByID("WorldWindView");
+        //  addViewByID("WorldWindView");
         addViewByID("NavView");
 
         addViewByID("DebugView");
@@ -577,7 +576,7 @@ public class DockWindow {
         DockingWindow[] v = views.toArray(new DockingWindow[views.size()]);
 
         // Special windows
-        DockingWindow earth = getViewByID("WorldWindView");
+        //  DockingWindow earth = getViewByID("WorldWindView");
         DockingWindow catalog = getViewByID("CatalogView");
         DockingWindow sources = getViewByID("SourcesView");
         DockingWindow nav = getViewByID("NavView");
@@ -591,10 +590,11 @@ public class DockWindow {
 
         // SplitWindow chart3D = new SplitWindow(false, 0.3f, objects, chart);
 
-        TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart});
+        // TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart});
+        TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts});
         rootWindow.setWindow(
                 new SplitWindow(true, 0.5f,
-                new SplitWindow(false, 0.7f, earth, nav), stuff));
+                new SplitWindow(false, 0.7f, chart, nav), stuff));
         stuff.setSelectedTab(0);
 
         /*
@@ -622,8 +622,21 @@ public class DockWindow {
         // String newTitle = currentTitle.replaceAll("tempdir", "["+dir+"]");
         String newTitle = WINDOWTITLE + " " + dir;
         myRootFrame.setTitle(newTitle);
-
         myRootFrame.setVisible(true);
+       // testbinding();
+
+    }
+
+    public void testbinding() {
+        KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
+        Action escapeAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                LOG.debug("Got escape...exiting application");
+                System.exit(0);
+            }
+        };
+        myRootFrame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
+        myRootFrame.getRootPane().getActionMap().put("ESCAPE", escapeAction);
     }
 
     /**

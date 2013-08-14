@@ -38,12 +38,10 @@ import org.wdssii.gui.commands.VolumeSetTypeCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.commands.VolumeValueCommand;
 import org.wdssii.gui.commands.VolumeValueCommand.VolumeValueFollowerView;
-import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.*;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.products.volumes.VolumeValue;
 import org.wdssii.gui.swing.SwingIconFactory;
-import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSet;
 import org.wdssii.gui.volumes.VSliceRenderer;
@@ -284,9 +282,15 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
             clearRange();
 
             // Sample and fill in with new values
-            WorldWindView eb = FeatureList.theFeatures.getWWView();
-            Globe globe = eb.getWwd().getModel().getGlobe();
-            ElevationModel m = globe.getElevationModel();
+            
+            // Uh oh..we might not have a WWView right?  No terrain then...
+          //  WorldWindView eb = FeatureList.theFeatures.getWWView();
+            
+            
+           // Globe globe = eb.getWwd().getModel().getGlobe();
+           // ElevationModel m = globe.getElevationModel();
+            ElevationModel m = WorldWindChart.getElevationModel();
+            
             int size = getSampleSize();
             double deltaLat = (endLat - startLat) / (size - 1);
             double deltaLon = (endLon - startLon) / (size - 1);

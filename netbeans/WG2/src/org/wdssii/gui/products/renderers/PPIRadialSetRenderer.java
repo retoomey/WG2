@@ -1,5 +1,8 @@
 package org.wdssii.gui.products.renderers;
 
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
@@ -15,6 +18,7 @@ import org.wdssii.geom.Location;
 import org.wdssii.geom.V3;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.products.*;
+import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
@@ -96,6 +100,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
             float[] point23 = new float[6];
             float[] temp;
             for (int i = 0; i < numRadials; i++) {
+                final int col = i;
                 monitor.subTask("Radial " + i + "/" + numRadials);
                 monitor.worked(1);   // Do it first to ensure it's called
 
@@ -120,6 +125,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                 int lastJWithData = -2;
                 Array1D<Float> values = r.getValues();
                 for (int j = 0; j < numGates; j++) {
+                    final int row = numGates - j - 1;
                     float value = values.get(j);
                     if (value == DataType.MissingData) {
                         // This new way we don't have to calculate anything
@@ -152,7 +158,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                             //        Angle.fromDegrees(loc0.getLatitude()),
                             //        Angle.fromDegrees(loc0.getLongitude()),
                             //        loc0.getHeightKms() * 1000);
-                            point0 = w.projectLLH(loc0.getLatitude(), loc0.getLongitude(), loc0.getHeightKms()*1000);
+                            point0 = w.projectLLH(loc0.getLatitude(), loc0.getLongitude(), loc0.getHeightKms() * 1000);
                             point01[0] = (float) point0.x;
                             point01[1] = (float) point0.y;
                             point01[2] = (float) point0.z;
@@ -163,7 +169,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                             //        Angle.fromDegrees(loc1.getLatitude()),
                             //        Angle.fromDegrees(loc1.getLongitude()),
                             //        loc1.getHeightKms() * 1000);
-                            point1 = w.projectLLH(loc1.getLatitude(), loc1.getLongitude(), loc1.getHeightKms()*1000);
+                            point1 = w.projectLLH(loc1.getLatitude(), loc1.getLongitude(), loc1.getHeightKms() * 1000);
 
                             point01[3] = (float) point1.x;
                             point01[4] = (float) point1.y;
@@ -192,9 +198,12 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                             // Then we have to write the new bottom values...
                             updateIndex = idx;
 
-                            readout.set(idREAD++, value);
+                            //readout.set(idREAD++, value);
+                            idREAD = addReadout(readout, row, col, value, idREAD);
                             idy = out.putUnsignedBytes(colors, idy);
-                            readout.set(idREAD++, value);
+                            idREAD = addReadout(readout, row, col, value, idREAD);
+
+                            //readout.set(idREAD++, value);
                             idy = out.putUnsignedBytes(colors, idy);
 
                             idx = verts.set(idx, point01);
@@ -202,11 +211,11 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
 
                         // Always write the 'top' of the strip
                         // Push back last two vertices of quad
-                       //point2 = myGlobe.computePointFromPosition(
-                       //         Angle.fromDegrees(loc2.getLatitude()),
-                       //         Angle.fromDegrees(loc2.getLongitude()),
+                        //point2 = myGlobe.computePointFromPosition(
+                        //         Angle.fromDegrees(loc2.getLatitude()),
+                        //         Angle.fromDegrees(loc2.getLongitude()),
                         //        loc2.getHeightKms() * 1000);
-                        point2 = w.projectLLH(loc2.getLatitude(), loc2.getLongitude(), loc2.getHeightKms()*1000);
+                        point2 = w.projectLLH(loc2.getLatitude(), loc2.getLongitude(), loc2.getHeightKms() * 1000);
 
                         point23[0] = (float) point2.x;
                         point23[1] = (float) point2.y;
@@ -215,15 +224,19 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                         //        Angle.fromDegrees(loc3.getLatitude()),
                         //        Angle.fromDegrees(loc3.getLongitude()),
                         //        loc3.getHeightKms() * 1000);
-                        point3 = w.projectLLH(loc3.getLatitude(), loc3.getLongitude(), loc3.getHeightKms()*1000);
+                        point3 = w.projectLLH(loc3.getLatitude(), loc3.getLongitude(), loc3.getHeightKms() * 1000);
 
                         point23[3] = (float) point3.x;
                         point23[4] = (float) point3.y;
                         point23[5] = (float) point3.z;
 
-                        readout.set(idREAD++, value);
+                        //readout.set(idREAD++, value);
+                        idREAD = addReadout(readout, row, col, value, idREAD);
+
                         idy = out.putUnsignedBytes(colors, idy);
-                        readout.set(idREAD++, value);
+                        idREAD = addReadout(readout, row, col, value, idREAD);
+
+                        //readout.set(idREAD++, value);
                         idy = out.putUnsignedBytes(colors, idy);
 
                         idx = verts.set(idx, point23);
@@ -262,6 +275,41 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
 
         setIsCreated();
         return WdssiiJobStatus.OK_STATUS;
+    }
+
+    // PPI Readout uses color matching shorts to float color
+    public int addReadout(Array1DOpenGL to, int row, int col, float value, int counter) {
+
+        // Humm ProductReadout should do this right?
+        // Only product readout should really know how we want to store the data
+        // This means proper product readout has to exist for us if renderer does...
+
+        // Note: Precision limited to -32767 to 32768 as short,
+        // we subtract 32767 to make it unsigned storage...
+        // 0 int --> -32767.  This gives us a max range of 0 to 65535 gates/floats
+        value = ProductReadout.intsToFloat(row + 1, col + 1);
+        to.set(counter++, value);
+        return counter;
+    }
+
+    /**
+     * Get readout as two ints
+     */
+    public int[] getReadout(Point p, Rectangle view, GLWorld w) {
+        int[] out = null;
+        if (p != null) {
+
+            ByteBuffer data = myQuadRenderer.getReadoutBytes(p, view, w.gl);
+
+            byte d0 = data.get(0);
+            byte d1 = data.get(1);
+            byte d2 = data.get(2);
+            byte d3 = data.get(3);
+            out = ProductReadout.bytesToInts(d0, d1, d2, d3);
+            out[0] -= 1;
+            out[1] -= 1;
+        }
+        return out;
     }
 
     @Override

@@ -3,7 +3,6 @@ package org.wdssii.gui.commands;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.products.Product;
 import org.wdssii.core.ProductButtonStatus;
-import org.wdssii.gui.views.WorldWindView;
 
 /** Command called by the 'jump' button in the navigator 
  * 
@@ -18,10 +17,11 @@ public class ProductJumpToCommand extends ProductCommand {
         if (p != null) {
             Location loc = p.getBaseLocation();
             if (myTargetListener != null) {
-                if (myTargetListener instanceof WorldWindView) {
-                    WorldWindView e = (WorldWindView) (myTargetListener);
-                    e.gotoLocation(loc);
-                }
+               // FIXME: MULTIVIEW
+               // if (myTargetListener instanceof WorldWindView) {
+               //     WorldWindView e = (WorldWindView) (myTargetListener);
+               //     e.gotoLocation(loc);
+               // }
             }
         }
         return false;

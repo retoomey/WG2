@@ -126,45 +126,76 @@ public class QuadStripRenderer {
      * use begin and endreadout..
      */
     public ByteBuffer getReadoutBytes(Point p, Rectangle view, GL gl) {
-
-        beginReadout(p, view, gl);
-        drawData(gl, true);
-        return endReadout(p, view, gl);
+        ByteBuffer b = null;
+        if (canDraw()) {
+            beginReadout(p, view, gl);
+            drawData(gl, true);
+            b = endReadout(p, view, gl);
+        }
+        return b;
     }
 
-    public static float byteBufferToFloat(ByteBuffer data) {
+    
 
-        byte d0 = data.get(0);
-        byte d1 = data.get(1);
-        byte d2 = data.get(2);
-        byte d3 = data.get(3);
-        return bytesToFloat(d0, d1, d2, d3);
-    }
-
+    //public static class ReadoutInfo {
     /**
-     * Convert bytes into a float...
+     * Was the readout information missing?
      */
-    public static float bytesToFloat(byte d0, byte d1, byte d2, byte d3) {
+    //  public boolean missing = true;
+    /**
+     * The 4 bytes as a float value
+     */
+    //  public float asFloat;
+    /**
+     * The first two bytes as a short -32768 to 32768
+     */
+    // public short asX;
+    /**
+     * The second two bytes as a short
+     */
+    // public short asY;
+    /**
+     * Get unsigned int range 0 to 65535
+     */
+    // public int getUnsignedXInt() {
+    //   return ((int) asX) + 32768;
+    //  }
+    /**
+     * Get unsigned int range 0 to 65535
+     */
+    //public int getUnsignedYInt() {
+    //    return ((int) asY) + 32768;
+    // }
+    //}
+    /**
+     * Get readout as a ReadoutInfo back from colors.
+     */
+    /*
+     public ReadoutInfo getReadout(Point p, Rectangle view, GL gl) {
+     ReadoutInfo r = new ReadoutInfo();
+     if (canDraw()) {
+     ByteBuffer data = getReadoutBytes(p, view, gl);
 
-        // byte type is SIGNED, we really just want the hex digits
-        int b0 = (0x000000FF & d0);
-        int b1 = (0x000000FF & d1);
-        int b2 = (0x000000FF & d2);
-        int b3 = (0x000000FF & d3);
-        int v1 = (b3 << 24);
-        int v2 = (b2 << 16);
-        int v3 = (b1 << 8);
-        int v4 = (b0);
-        int finalBits = v1 + v2 + v3 + v4;
-        float aFloat = Float.intBitsToFloat(finalBits);
+     byte d0 = data.get(0);
+     byte d1 = data.get(1);
+     byte d2 = data.get(2);
+     byte d3 = data.get(3);
 
-        return aFloat;
-    }
-
+     if ((d0 == 0) && (d1 == 0) && (d2 == 0) && (d3 == 0)) {
+     //out = "N/A";
+     //out.setValue(-1);
+     } else {
+     float readoutValue = bytesToFloat(data.get(0), data.get(1), data.get(2), data.get(3));
+     r.missing = false;
+     }
+     }
+     return r;
+     }
+     */
     /**
      * Get readout as a float value back from colors.
      */
-    public float getReadout(Point p, Rectangle view, GL gl, float missingValue) {
+   /* public float getReadout(Point p, Rectangle view, GL gl, float missingValue) {
         float readoutValue = missingValue;
         if (canDraw()) {
             ByteBuffer data = getReadoutBytes(p, view, gl);
@@ -179,11 +210,12 @@ public class QuadStripRenderer {
                 //out.setValue(-1);
             } else {
                 readoutValue = bytesToFloat(data.get(0), data.get(1), data.get(2), data.get(3));
+                //LOG.debug("Float back "+readoutValue);
             }
         }
         return readoutValue;
     }
-
+*/
     /**
      *
      * @param dc Draw context in opengl for drawing our radial set

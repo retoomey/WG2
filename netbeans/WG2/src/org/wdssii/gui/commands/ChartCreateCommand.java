@@ -41,9 +41,11 @@ public class ChartCreateCommand extends ProductCommand {
         // These strings are class names...
         // VSlice --> VSliceChart.java
         // Data2DTable --> Data2DTableChart
+        theList.add(new CommandOption("EXPERIMENATAL: Add Worldwind", "WorldWind"));
         theList.add(new CommandOption("Add VSlice Chart", "VSlice"));
         theList.add(new CommandOption("Add 2D Tracking Table", "Data2DTable"));
         theList.add(new CommandOption("Add Data Readout Chart", "DataRangeValue"));
+
         return theList;
     }
 

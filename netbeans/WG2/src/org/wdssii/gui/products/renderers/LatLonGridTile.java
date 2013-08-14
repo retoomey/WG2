@@ -350,7 +350,8 @@ public class LatLonGridTile extends TileRenderer.Tile {
 
     public static float endReadout(Point p, Rectangle view, DrawContext dc) {
         ByteBuffer data = QuadStripRenderer.endReadout(p, view, dc.getGL());
-        float f = QuadStripRenderer.byteBufferToFloat(data);
+        //float f = QuadStripRenderer.byteBufferToFloat(data);
+        float f = 0;
         return f;
     }
 

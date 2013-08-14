@@ -19,11 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.VolumeSliceInput;
-import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.worldwind.GLWorldWW;
 
 /**
@@ -218,7 +216,8 @@ public class LLHArea extends AVListImpl implements Movable {
     public double getRangeKms(int point1, int point2) {
         // FIXME: cleaner way of this?....fetch radius of current globe..
         // This should clean up later...bad design on my part.
-        WorldWindView v = FeatureList.theFeatures.getWWView();
+        //FIXME: MULTIVIEW
+       /* WorldWindView v = FeatureList.theFeatures.getWWView();
         if (v != null) {
             double radius = v.getWwd().getModel().getGlobe().getRadius();
             List<LatLon> l = this.getLocationList();
@@ -229,7 +228,8 @@ public class LLHArea extends AVListImpl implements Movable {
                 length = 0.0d;
             }
             return length;
-        }
+        }*/
+        
         return 1.0f; // bleh
     }
 

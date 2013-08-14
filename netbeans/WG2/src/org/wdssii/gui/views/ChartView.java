@@ -59,7 +59,11 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
     public void AnimateCommandUpdate(AnimateCommand command) {
         updateGUI(command);
     }
-
+    
+    public void DataCommandUpdate(DataCommand command) {
+        updateGUI(command); // load, delete, etc..	
+    }
+    
     // Keep a global list of sub views...
     // FIXME: could be generalized to any mdockview.
     // FIXME: Only called from GUI?  If so, no sync needed
@@ -106,7 +110,7 @@ public class ChartView extends JThreadPanel implements MDockView, CommandListene
         private String myCurrentChartChoice = ChartSetTypeCommand.getFirstChartChoice();
 
         public Factory() {
-            super("Chart", "chart_bar.png");
+            super("DataView", "chart_bar.png");
         }
 
         @Override

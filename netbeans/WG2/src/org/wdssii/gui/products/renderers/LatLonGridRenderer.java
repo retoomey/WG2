@@ -385,6 +385,7 @@ public class LatLonGridRenderer extends TileRenderer {
     /**
      * Get the readout for this product
      */
+    /*
     @Override
     public float getReadoutValue(Point p, Rectangle view, GLWorld w) {
 
@@ -393,5 +394,5 @@ public class LatLonGridRenderer extends TileRenderer {
             value = drawReadout(w, p, view, DataType.MissingData);
         }
         return value;
-    }
+    }*/
 }

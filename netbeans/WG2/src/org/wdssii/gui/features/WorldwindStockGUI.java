@@ -162,10 +162,11 @@ public class WorldwindStockGUI extends FeatureGUI {
         for (Feature3DRenderer f : list) {
             if (f instanceof WorldWindLayerRenderer) {
                 WorldWindLayerRenderer w = (WorldWindLayerRenderer) (f);
-                Layer layer = w.getLayer();
-                if (layer.getName().equalsIgnoreCase(name)) {
-                    layer.setEnabled(!layer.isEnabled());
-                }
+               // MULTIVIEW 
+               // Layer layer = w.getLayer();
+               // if (layer.getName().equalsIgnoreCase(name)) {
+               //     layer.setEnabled(!layer.isEnabled());
+               // }
             }
         }
         // At least fire a command for now.  We aren't storing the visible
@@ -216,6 +217,9 @@ public class WorldwindStockGUI extends FeatureGUI {
 
     /**
      * Update the layer list from information pulled from a WorldWind LayerList
+     * 
+     * FIXME: Problem...have to pull from a particular world ball for this to work
+     * right...unless we store state ourselves...
      */
     public final void updateLayerList() {
         ArrayList<LayerTableEntry> e = new ArrayList<LayerTableEntry>();
@@ -228,7 +232,7 @@ public class WorldwindStockGUI extends FeatureGUI {
         for (Feature3DRenderer f : list) {
             if (f instanceof WorldWindLayerRenderer) {
                 WorldWindLayerRenderer w = (WorldWindLayerRenderer) (f);
-                Layer layer = w.getLayer();
+               /* Layer layer = w.getLayer();
                 LayerTableEntry n = new LayerTableEntry();
                 layer.getName();
                 n.name = layer.getName();
@@ -239,6 +243,7 @@ public class WorldwindStockGUI extends FeatureGUI {
                     n.category = "NASA WorldWind Layer";
                 }
                 e.add(n);
+                * */
             }
         }
 

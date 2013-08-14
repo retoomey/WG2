@@ -1,7 +1,5 @@
 package org.wdssii.gui.products;
 
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -406,11 +404,14 @@ public class Product extends DelegateHelper {
         return pr;
     }
 
-    public ProductReadout getProductReadout(Point p, Rectangle aRect, GLWorld w) {
-
-        // Just one object cached...humm might cause issues later..
-        ProductReadout pr = (ProductReadout) getHelperObject("Readout", true, true, READOUT_CLASSPATH, "");
-        pr.doReadoutAtPoint(this, p, aRect, w);
+    public ProductReadout getProductReadout() {
+        ProductReadout pr;
+        if (updateDataTypeIfLoaded()) {
+            // Just one object cached...humm might cause issues later..
+            pr = (ProductReadout) getHelperObject("Readout", true, true, READOUT_CLASSPATH, "");
+        } else {
+            pr = new ProductReadout();  // Use default class as filler until datatype loaded
+        }
         return pr;
     }
 
@@ -494,11 +495,11 @@ public class Product extends DelegateHelper {
         cman.setColorKey(this, f);
     }
 
-    public String saveSymbology(Symbology s){
+    public String saveSymbology(Symbology s) {
         ProductManager cman = ProductManager.getInstance();
         return cman.saveSymbology(this, s);
     }
-    
+
     public void setSymbology(Symbology s) {
         ProductManager cman = ProductManager.getInstance();
         cman.setSymbology(this, s);

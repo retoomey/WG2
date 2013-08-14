@@ -1,8 +1,6 @@
 package org.wdssii.gui.products.renderers;
 
 import org.wdssii.gui.renderers.QuadStripRenderer;
-import java.awt.Point;
-import java.awt.Rectangle;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialSet;
@@ -81,18 +79,5 @@ public abstract class RadialSetRenderer extends ProductRenderer {
     @Override
     public void draw(GLWorld w) {
         drawData(w, false);
-    }
-
-    /**
-     * Get the raw float readout for this product using a color trick render
-     * system...
-     */
-    @Override
-    public float getReadoutValue(Point p, Rectangle view, GLWorld w) {
-        float value = DataType.MissingData;
-        if (p != null) {
-            value = myQuadRenderer.getReadout(p, view, w.gl, DataType.MissingData);
-        }
-        return value;
     }
 }

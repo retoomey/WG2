@@ -3,7 +3,10 @@ package org.wdssii.gui.features;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.charts.WorldWindChart;
 import org.wdssii.gui.worldwind.GLWorldWW;
 
 /**
@@ -12,75 +15,83 @@ import org.wdssii.gui.worldwind.GLWorldWW;
  * @author Robert Toomey
  */
 public class WorldWindLayerRenderer implements Feature3DRenderer {
+    private final static Logger LOG = LoggerFactory.getLogger(WorldWindLayerRenderer.class);
 
-    private Layer myLayer;
+    // MULTIVIEW can't hold onto layer since there are multiple layer
+    // objects, one per world wind chart....
+    // private Layer myLayer;
+    private String myLayerKey;
     /**
      * The token of the momento we use for visibility/pick check
      */
     private String myVisibleToken = "";
 
-    public WorldWindLayerRenderer(Layer l, String visibleToken) {
-        myLayer = l;
+    public WorldWindLayerRenderer(String l, String visibleToken) {
+        myLayerKey = l;
         myVisibleToken = visibleToken;
     }
 
     /**
      * Return the worldwind layer we wrap around
      */
-    public Layer getLayer() {
-        return myLayer;
-    }
-
+    //public Layer getLayer() {
+    //    return myLayer;
+    // }
     public boolean isVisible(FeatureMemento m) {
         Boolean on = m.getPropertyValue(myVisibleToken);
         return ((on != null) && on);
     }
 
-    @Override
-    public void preRender(GLWorld w, FeatureMemento m) {
+    private void renderaction(GLWorld w, FeatureMemento m, int type, Object o) {
         if (w instanceof GLWorldWW) {
             GLWorldWW g = (GLWorldWW) (w);
             DrawContext dc = g.getDC();
-            if (isVisible(m)) {
-                Layer oldLayer = dc.getCurrentLayer();
-                dc.setCurrentLayer(myLayer);// for proper pick event
-                myLayer.setEnabled(true);
-                myLayer.preRender(dc);
-                dc.setCurrentLayer(oldLayer);
-            } else {
-                myLayer.setEnabled(false);
+            WorldWindChart c = g.getWWWorld();
+            if (c != null) {
+                Layer l = c.getLayer(myLayerKey);
+                if (l == null) {
+                    LOG.debug("Layer " + myLayerKey + " is NULL");
+                } else {
+                    if (isVisible(m)) {
+                        Layer oldLayer = dc.getCurrentLayer();
+                        dc.setCurrentLayer(l);// for proper pick event
+                        l.setEnabled(true);
+                        switch (type) {
+                            case 0:
+                                l.preRender(dc);
+                                break;
+                            case 1: 
+                                l.render(dc);
+                                break;
+                            case 2:
+                                Point p = (Point)(o);
+                                l.pick(dc, p);
+                                break;
+                            default:
+                                LOG.error("FIX THIS Shouldn't be here");
+                                break;
+                        }
+                        dc.setCurrentLayer(oldLayer);
+                    } else {
+                        l.setEnabled(false);
+                    }
+                }
             }
         }
+    }
+
+    @Override
+    public void preRender(GLWorld w, FeatureMemento m) {
+        renderaction(w, m, 0, null);
     }
 
     @Override
     public void draw(GLWorld w, FeatureMemento m) {
-        if (w instanceof GLWorldWW) {
-            GLWorldWW g = (GLWorldWW) (w);
-            DrawContext dc = g.getDC();
-            if (isVisible(m)) {
-                Layer oldLayer = dc.getCurrentLayer();
-                dc.setCurrentLayer(myLayer);// for proper pick event
-                myLayer.setEnabled(true);
-                myLayer.render(dc);
-                dc.setCurrentLayer(oldLayer);
-            } else {
-                myLayer.setEnabled(false);
-            }
-        }
+        renderaction(w, m, 1, null);
     }
 
     @Override
     public void pick(GLWorld w, Point p, FeatureMemento m) {
-        if (w instanceof GLWorldWW) {
-            GLWorldWW g = (GLWorldWW) (w);
-            DrawContext dc = g.getDC();
-            if (isVisible(m)) {
-                Layer oldLayer = dc.getCurrentLayer();
-                dc.setCurrentLayer(myLayer);// for proper pick event
-                myLayer.pick(dc, p);
-                dc.setCurrentLayer(oldLayer);
-            }
-        }
+        renderaction(w, m, 2, p);
     }
 }

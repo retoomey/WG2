@@ -1,17 +1,20 @@
 package org.wdssii.gui.features;
 
-import gov.nasa.worldwind.layers.LayerList;
 import java.awt.Point;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.charts.ChartViewChart;
 import org.wdssii.gui.gis.MapFeature;
-import org.wdssii.gui.views.WorldWindView;
+//import org.wdssii.gui.views.WorldWindView;
 
 /**
  * FeatureList holds a list of the features of a particular window It will
  * eventually include 3d objects, products, maps, etc.
+ *
+ * FIXME: Starting to think composite pattern might be better for this
  *
  * @author Robert Toomey
  */
@@ -22,7 +25,10 @@ public class FeatureList {
      * Every FeatureList can have a world wind earthball view. This might become
      * more general later and become a list.
      */
-    private WorldWindView myWorldWindView;
+    // private WorldWindView myWorldWindView;
+    // FIXME: Charts becoming a more general DataView
+    private ArrayList<WeakReference<ChartViewChart>> myDataViews;
+
 
     /**
      * A simple filter to return boolean for mass actions such as deletion
@@ -73,40 +79,91 @@ public class FeatureList {
     }
 
     /**
-     * Set the world wind view that we use
+     * Set the world wind view that we use This fails for multiview since more
+     * than one view can share a feature list...
      */
-    public void setWorldWindView(WorldWindView v) {
-        myWorldWindView = v;
-        LayerList ll = v.getLayerList();
-        LegendFeature legend = LegendFeature.createLegend(this, ll);
-        addFeature(legend);
-        WorldwindStockFeature ww = WorldwindStockFeature.grabsAllLayers(this, ll);
-        addFeature(ww);
+    public void addDataView(ChartViewChart v) {
+        if (myDataViews == null) {
+            myDataViews = new ArrayList<WeakReference<ChartViewChart>>();
+        }
+        myDataViews.add(new WeakReference<ChartViewChart>(v));
+    }
+
+    /*public void setWorldWindView(WorldWindView v) {
+     myWorldWindView = v;
+     // LayerList ll = v.getLayerList();
+     // LegendFeature legend = LegendFeature.createLegend(this, ll);
+     // addFeature(legend);
+     // WorldwindStockFeature ww = WorldwindStockFeature.grabsAllLayers(this, ll);
+     // addFeature(ww);
+     }*/
+    private void cleanUpReferences() {
+        if (myDataViews != null) {
+            ArrayList<WeakReference<ChartViewChart>> cleanup = new ArrayList<WeakReference<ChartViewChart>>();
+
+            for (WeakReference<ChartViewChart> a : myDataViews) {
+                ChartViewChart v = a.get();
+                if (v == null) {
+                    cleanup.add(a);
+                    LOG.debug("**************ADD TO CLEANUP "+a);
+                }
+            }
+            myDataViews.removeAll(cleanup);
+            if (myDataViews.size() == 0) {
+                myDataViews = null;
+                 LOG.debug("**************DATAVIEW NULL");
+            }
+        }
     }
 
     /**
      * Update any graphical views that use this featurelist
      */
     public void updateOnMinTime() {
-        if (myWorldWindView != null) {
-            myWorldWindView.updateOnMinTime();
+        cleanUpReferences();
+        if (myDataViews != null) {
+            for (WeakReference<ChartViewChart> a : myDataViews) {
+                ChartViewChart v = a.get();
+                if (v != null) {
+                    v.updateOnMinTime();
+                }
+            }
         }
     }
 
     public void repaintViews() {
-        if (myWorldWindView != null) {
-            myWorldWindView.repaint();
+        cleanUpReferences();
+        if (myDataViews != null) {
+            for (WeakReference<ChartViewChart> a : myDataViews) {
+                ChartViewChart v = a.get();
+                if (v != null) {
+                    v.repaint();
+
+                }
+            }
         }
     }
 
+    public void addViewComponent(String name, Object component) {
+        cleanUpReferences();
+        if (myDataViews != null) {
+           
+            for (WeakReference<ChartViewChart> a : myDataViews) {
+                ChartViewChart v = a.get();
+                if (v != null) {
+                    v.addViewComponent(name, component);
+                }
+            }
+        }
+    }
+    
     /**
      * Get the world wind view this feature list belongs too, if any. For now at
      * least we have to have one
      */
-    public WorldWindView getWWView() {
-        return myWorldWindView;
-    }
-
+    // public WorldWindView getWWView() {
+    //     return myWorldWindView;
+    // }
     public void setMemento(String key, FeatureMemento m) {
         Feature f = getFeature(key);
         if (f != null) {
@@ -339,7 +396,7 @@ public class FeatureList {
     public void renderFeatureGroup(GLWorld w, String g) {
 
         List<Feature> list = getActiveFeatureGroup(g);
-        
+
         // For each rank...draw over lower ranks...
         for (int i = 0; i <= Feature.MAX_RANK; i++) {
             Iterator<Feature> iter = list.iterator();
@@ -469,9 +526,11 @@ public class FeatureList {
     public String getGUIInfoString() {
         return mySimulationTimeStamp;
     }
-    
-    /** Send a string message to all of our features */
-    public void sendMessage(String message){
+
+    /**
+     * Send a string message to all of our features
+     */
+    public void sendMessage(String message) {
         synchronized (featureSync) {
             Iterator<Feature> i = myFeatures.iterator();
             while (i.hasNext()) {

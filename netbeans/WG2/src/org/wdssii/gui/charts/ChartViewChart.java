@@ -136,4 +136,10 @@ public class ChartViewChart {
     public void drawChartInLLHArea(GLWorld w, List<LatLon> locations, double[] altitudes, List<Boolean> edgeFlags) {
 
     }
+    
+    public void updateOnMinTime(){}
+    public void repaint(){}
+
+    public void addViewComponent(String name, Object component) {
+    }
 }

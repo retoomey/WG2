@@ -64,7 +64,7 @@ public class SourceBookmarks {
         // disable temporarily...causes hanging when tensor.protect.nssl not 
         // available. 
         // FIXME: Move to JAXB priority 1 when actually at work.
-        if (true) { return b; }
+   //     if (true) { return b; }
         try {
 
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();

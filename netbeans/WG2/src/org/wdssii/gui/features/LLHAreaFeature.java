@@ -1,10 +1,8 @@
 package org.wdssii.gui.features;
 
-import gov.nasa.worldwind.WorldWindow;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.views.WorldWindView;
 import org.wdssii.gui.volumes.*;
 
 /**
@@ -44,7 +42,15 @@ public class LLHAreaFeature extends Feature {
 
             if (myFactory != null) {
                 FeatureTableInfo theData = new FeatureTableInfo();
-                success = myFactory.create(getWorld(), this, theData, info);
+                
+                // LLHArea shouldn't need a worldwind world to work....
+                // at moment it does..bleh...uses this to figure out
+                // where to place the initial points in lat/lon...
+                // How do we location lat/lon if no world available..or if
+                // there are two worlds?
+                
+                //FIXME: MULTIVIEW
+                success = myFactory.create(null, this, theData, info);
                 if (success) {
                     myLLHArea = (LLHArea) theData.created;
                     setVisible(true);
@@ -83,16 +89,16 @@ public class LLHAreaFeature extends Feature {
      * come from 'above' somehow. Should a feature know the FeatureList it is
      * in?
      */
-    private WorldWindow getWorld() {
-        WorldWindow world = null;
+  //  private WorldWindow getWorld() {
+  //      WorldWindow world = null;
 
-        WorldWindView v = list().getWWView();
-        if (v != null) {
-            world = v.getWwd();
-        }
+  //      WorldWindView v = list().getWWView();
+  //      if (v != null) {
+  //          world = v.getWwd();
+  //      }
 
-        return world;
-    }
+  //      return world;
+  //  }
 
     public LLHArea getLLHArea() {
         return myLLHArea;

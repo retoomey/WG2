@@ -41,13 +41,13 @@ public class RadialSetCSVWriter extends DataTypeWriter {
                 //Close the output stream
                 out.close();
                 success = true;
-                if (fstream != null){
+                if (fstream != null) {
                     fstream.close();
                 }
                 // ----------------------------------------------------
             } catch (IOException ex) {
                 LOG.error("Couldn't write file " + aURL.getFile() + " because " + ex.toString());
-            } 
+            }
             if (success) {
                 LOG.info("Output file was written as " + aURL.getFile());
             }
@@ -63,7 +63,7 @@ public class RadialSetCSVWriter extends DataTypeWriter {
             // Write out a CSV file.  Top column will be column names
             final char d = ','; // FIXME: dialog choosable
             final char n = '\n';
-            final String format = " %6.3f";
+            //final String format = " %6.3f";
 
             // Top CSV row is column names, or azimuth values...
             out.write(d);
@@ -86,7 +86,14 @@ public class RadialSetCSVWriter extends DataTypeWriter {
                 for (int col = g.startCol; col <= g.lastFullColumn; col++) {
                     r.getCellValue(row, col, q);
                     float v = q.value;
-                    out.write(String.format(format, v));
+
+                    String out2;
+                    if (Math.abs(v) < .05) {
+                        out2 = String.format(" %5.5f", v);
+                    } else {
+                        out2 = String.format(" %5.2f", v);
+                    }
+                    out.write(out2);
                     if (col < g.lastFullColumn) {
                         out.write(d);
                     } else {

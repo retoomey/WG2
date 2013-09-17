@@ -10,6 +10,7 @@ import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.util.GeometryBuilder;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +39,8 @@ import org.wdssii.gui.commands.VolumeSetTypeCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.commands.VolumeValueCommand;
 import org.wdssii.gui.commands.VolumeValueCommand.VolumeValueFollowerView;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureList.FeaturePosition;
 import org.wdssii.gui.products.*;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.products.volumes.VolumeValue;
@@ -89,6 +92,8 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     private VolumeSlice3DOutput myGeometry = new VolumeSlice3DOutput();
     private String myCacheKey = "";
     private GeometryBuilder geometryBuilder = new GeometryBuilder();
+    private int myMouseX = -1;
+    private int myMouseY = -1;
 
     // end VSlice 3d
     // Volume value follower
@@ -282,15 +287,15 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
             clearRange();
 
             // Sample and fill in with new values
-            
+
             // Uh oh..we might not have a WWView right?  No terrain then...
-          //  WorldWindView eb = FeatureList.theFeatures.getWWView();
-            
-            
-           // Globe globe = eb.getWwd().getModel().getGlobe();
-           // ElevationModel m = globe.getElevationModel();
+            //  WorldWindView eb = FeatureList.theFeatures.getWWView();
+
+
+            // Globe globe = eb.getWwd().getModel().getGlobe();
+            // ElevationModel m = globe.getElevationModel();
             ElevationModel m = WorldWindChart.getElevationModel();
-            
+
             int size = getSampleSize();
             double deltaLat = (endLat - startLat) / (size - 1);
             double deltaLon = (endLon - startLon) / (size - 1);
@@ -328,6 +333,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
          * The buffer for holding onto our 2D slice output data
          */
         private VolumeSlice2DOutput my2DSlice = new VolumeSlice2DOutput();
+        private VolumeSliceInput myInput;
 
         private VSliceFixedGridPlot(TerrainXYZDataset dataset, ValueAxis domainAxis, ValueAxis rangeAxis, XYItemRenderer renderer) {
             super(dataset, domainAxis, rangeAxis, renderer);
@@ -405,6 +411,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         public void updateAndDrawVSliceGrid(VolumeSliceInput subGrid, Graphics2D g2, Rectangle2D dataArea) {
 
             my2DSlice.setValid(false);  // Force new of data...bad...
+            myInput = null;
             if (subGrid != null) {
                 // -----------------------------------------------------
                 // Draw the vslice grid
@@ -414,6 +421,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
                     if (v != null) {
                         myCurrentVolumeValueName = v.getName();
                     }
+                    myInput = subGrid;
                     myVolume.generate2DGrid(subGrid, my2DSlice, myList, false, v);
                     int[] data = my2DSlice.getColor2dFloatArray(0);
 
@@ -514,6 +522,53 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         return null;
     }
 
+    public boolean haveData() {
+        return ((myChartPanel != null) && (myPlot != null)
+                && myPlot.my2DSlice.isValid());
+    }
+
+    /**
+     * When mouse is moved, update the feature position... this effects all view
+     * synchronization
+     */
+    @Override
+    public void handleMouseMoved(MouseEvent e) {
+        // Making public for moment...
+        if ((myChartPanel != null) && (myPlot != null)) {
+            boolean haveData = myPlot.my2DSlice.isValid();
+            if (haveData) {
+                Rectangle2D b = myChartPanel.getScreenDataArea();
+                final int y = (int) b.getY();
+                final int x = (int) b.getX();
+                final int h = (int) b.getHeight();
+                final int w = (int) b.getWidth();
+
+                int mx = e.getX();
+                int my = e.getY();
+                if ((w > 1) // need for divide by w-1
+                        && (h > 1)
+                        && (mx >= x)
+                        && (my >= y)
+                        && (mx < x + w)
+                        && (my < y + h)) {
+                    // Calculate the Lat/Lon value from X/Y mouse position...
+                    //myPlot.myInput.cols; // resolution
+                    // Columns span multiple pixels....find column we're in
+                    double percentX = (mx - x) / (1.0 * (w - 1));
+                    double percentY = (my - y) / (1.0 * (h - 1));
+                    int col = (int) (percentX * myPlot.myInput.cols);
+                    int row = (int) (percentY * myPlot.myInput.rows);
+
+                    float lat = (float) myPlot.myInput.getLatDegrees(col);
+                    float lon = (float) myPlot.myInput.getLonDegrees(col);
+                    float ht = (float) myPlot.myInput.getHeightKMS(row);
+                    FeaturePosition f = new FeaturePosition(lat, lon, ht);
+                    FeatureList.theFeatures.setTrackingPosition(f);
+                }
+            }
+        }
+    }
+
     /**
      * Draw the mouse overlay (readout) probably
      */
@@ -529,30 +584,53 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         final double xf = b.getX();
         final double yf = b.getY();
 
-        // Check to see mouse is inside the actual vslice chart area
-        if ((myMouseX > x)
-                && (myMouseY > y)
-                && (myMouseX < x + w)
-                && (myMouseY < y + h)) {
+        FeaturePosition f = FeatureList.theFeatures.getTrackingPosition();
 
-            // Draw a crosshair...
-            // Fixme: make this pretty with stroke
-            gd.setColor(Color.BLUE);
-            gd.setStroke(new BasicStroke(
-                    1f,
-                    BasicStroke.CAP_ROUND,
-                    BasicStroke.JOIN_ROUND,
-                    1f,
-                    new float[]{2f},
-                    0f));
-            // vertical
-            gd.drawLine(myMouseX, y + 5, myMouseX, y + h - 5);
-            // horizontal
-            gd.drawLine(x + 5, myMouseY, x + w - 5, myMouseY);
-            gd.setStroke(new BasicStroke(1));
+        if (f == null) {
+            return;
+        }
 
-            // Draw readout text.
-            if (myPlot != null) {
+        // Take position and convert to the 'grid' of our view....
+        myMouseY = 10;
+        myMouseX = 10;
+        if (myPlot != null) {
+
+            // float lat = (float) myPlot.myInput.getLatDegrees(0);
+            //        float lon = (float) myPlot.myInput.getLonDegrees(0);
+            //        float ht = (float) myPlot.myInput.getHeightKMS(0);
+            if (myPlot.myInput == null) {
+                return;
+            }
+            double p = myPlot.myInput.getPercentOfLat(f.latDegrees);
+            myMouseX = (int) (x + (p * w));
+
+            double p2 = myPlot.myInput.getPercentOfHeight(f.elevKM);
+            myMouseY = (int) (y + h - (p2 * h));
+
+            // Check to see mouse is inside the actual vslice chart area
+            if ((myMouseX > x)
+                    && (myMouseY > y)
+                    && (myMouseX < x + w)
+                    && (myMouseY < y + h)) {
+
+                // Draw a crosshair...
+                // Fixme: make this pretty with stroke
+                gd.setColor(Color.BLUE);
+                gd.setStroke(new BasicStroke(
+                        1f,
+                        BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_ROUND,
+                        1f,
+                        new float[]{2f},
+                        0f));
+                // vertical
+                gd.drawLine(myMouseX, y + 5, myMouseX, y + h - 5);
+                // horizontal
+                gd.drawLine(x + 5, myMouseY, x + w - 5, myMouseY);
+                gd.setStroke(new BasicStroke(1));
+
+                // Draw readout text.
+
                 boolean haveData = myPlot.my2DSlice.isValid();
                 if (haveData) {
 
@@ -587,7 +665,15 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
                     if (index < data.length) {
                         value = data[index];
                     }
-                    String out = String.format("%f at (%d, %d)", value, myRow, myCol);
+                    // FIXME: needs a lot of work..should depend on product right?
+                    //String out = String.format("%f at (%d, %d)", value, myRow, myCol);
+                    float lat = (float) myPlot.myInput.getLatDegrees(myCol);
+                    float lon = (float) myPlot.myInput.getLonDegrees(myCol);
+                    float hkms = (float) myPlot.myInput.getHeightKMS(myRow);
+                    // FeaturePosition f = new FeaturePosition(lat, lon, hkms);
+                    //  FeatureList.theFeatures.setTrackingPosition(f);
+
+                    String out = String.format("%f (%f, %f, %f)", value, lat, lon, hkms);
                     gd.drawString(out, myMouseX, myMouseY);
 
                 }
@@ -931,7 +1017,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         if (locations.isEmpty()) {
             return;
         }
-        final DrawContext dc = ((GLWorldWW)(w)).getDC(); // hack
+        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
 
         // For dynamic sizing outlines...I might need this code for 'smart' legend over vslice, so
         // I'm leaving it here for the moment --Robert Toomey
@@ -1079,5 +1165,20 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         // Let the volume generate the 3D slice output
         // FIXME: Need to be able to change volumevalue
         myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true, w.getVerticalExaggeration(), null);
+    }
+
+    @Override
+    public void setTrackingPosition(FeatureList fl, FeaturePosition f) {
+        // Bleh repaint overlay is all we need...
+        // FIXME: just redo overlay?
+        repaint();
+
+    }
+
+    @Override
+    public void repaint() {
+        if (myChartPanel != null) {
+            myChartPanel.repaint();
+        }
     }
 }

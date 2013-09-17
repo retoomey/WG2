@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.commands.ProductFollowCommand;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureList.FeaturePosition;
 
 /**
  * A Chart that goes inside the ChartView.
@@ -141,5 +143,9 @@ public class ChartViewChart {
     public void repaint(){}
 
     public void addViewComponent(String name, Object component) {
+    }
+
+    public void setTrackingPosition(FeatureList fl, FeaturePosition f) {
+        // Nothing by default
     }
 }

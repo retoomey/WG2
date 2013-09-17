@@ -29,7 +29,39 @@ public class FeatureList {
     // FIXME: Charts becoming a more general DataView
     private ArrayList<WeakReference<ChartViewChart>> myDataViews;
 
+    private FeaturePosition myFeaturePosition = null;
+    
+    public static class FeaturePosition {
+        public FeaturePosition(float lat, float lon, float elev){
+            latDegrees = lat;
+            lonDegrees = lon;
+            elevKM = elev;
+        }
+        public final float latDegrees;
+        public final float lonDegrees;
+        public final float elevKM;
+    }
+    /** Set a shared tracking position for everything that uses this FeatureList.
+     FIXME: Might become a passed object later if needed
+     */
+    public void setTrackingPosition(FeaturePosition p) {
+        // ?? Do we need to keep the tracking position...
+        // Notify all views of tracking position...
+        myFeaturePosition = p;
+        cleanUpReferences();
+        if (myDataViews != null) {
+            for (WeakReference<ChartViewChart> a : myDataViews) {
+                ChartViewChart v = a.get();
+                if (v != null) {
+                    v.setTrackingPosition(this, p);
+                }
+            }
+        }
+    }
 
+    public FeaturePosition getTrackingPosition(){
+        return myFeaturePosition;
+    }
     /**
      * A simple filter to return boolean for mass actions such as deletion
      */

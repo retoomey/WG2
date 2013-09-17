@@ -14,6 +14,7 @@ import org.jfree.chart.panel.Overlay;
 import org.jfree.data.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.gui.features.FeatureList;
 
 /**
  * A subclass of our chart that uses the JFreeChart library to render its stuff
@@ -30,7 +31,7 @@ public class ChartViewJFreeChart extends ChartViewChart {
     /**
      * The ChartPanel from JFreeChart
      */
-    private ChartPanel myChartPanel = null;
+    public ChartPanel myChartPanel = null;
     /**
      * The chart that does all the work
      */
@@ -39,14 +40,6 @@ public class ChartViewJFreeChart extends ChartViewChart {
      * Our guess on if the mouse is inside the window or not
      */
     public boolean myWithinWindow = false;
-    /**
-     * Latest known local mouse X for readout
-     */
-    public int myMouseX = 0;
-    /**
-     * Latest known local mouse Y for readout
-     */
-    public int myMouseY = 0;
 
     /**
      * A NumberAxis that forces auto range (zoom out or menu picked) to be a
@@ -65,17 +58,19 @@ public class ChartViewJFreeChart extends ChartViewChart {
         }
 
         @Override
-        public boolean equals(Object obj){
+        public boolean equals(Object obj) {
             return super.equals(obj);
         }
 
         @Override
         public int hashCode() {
-           return super.hashCode();
+            return super.hashCode();
         }
-        
-        /** Our stock axis for dynamic regenerating by zoom charts such as VSlice
-         * and readout */
+
+        /**
+         * Our stock axis for dynamic regenerating by zoom charts such as VSlice
+         * and readout
+         */
         public static FixedRangeNumberAxis getStockAxis(String label, boolean allownegative) {
             FixedRangeNumberAxis axis = new FixedRangeNumberAxis(label, allownegative);
             axis.setLowerMargin(0.0);
@@ -121,8 +116,6 @@ public class ChartViewJFreeChart extends ChartViewChart {
         }
     }
 
-    
-    
     @Override
     public Object getNewGUIForChart(Object myChartBox) {
 
@@ -155,13 +148,13 @@ public class ChartViewJFreeChart extends ChartViewChart {
             }
         };
         myChartPanel.addOverlay(test);
-
+        
         MouseInputListener m = new MouseInputListener() {
             @Override
             public void mouseDragged(MouseEvent e) {
                 myWithinWindow = true;
-                myMouseX = e.getX();
-                myMouseY = e.getY();
+                // myMouseX = e.getX();
+                // myMouseY = e.getY();
                 // chart will repaint due to JFreeChart zoom rectangle
             }
 
@@ -170,8 +163,14 @@ public class ChartViewJFreeChart extends ChartViewChart {
                 // Make sure readout overlay is updated.  Note the chart
                 // buffers into an image so it won't be regenerated
                 myWithinWindow = true;
-                myMouseX = e.getX();
-                myMouseY = e.getY();
+                // int X = e.getX();
+                //  int Y = e.getY();
+                handleMouseMoved(e);
+                // myMouseX = e.getX();
+                // myMouseY = e.getY();
+
+                // FeaturePosition f = new FeaturePosition(lat, lon, hkms);
+                //  FeatureList.theFeatures.setTrackingPosition(f);
                 myChartPanel.repaint();
             }
 
@@ -210,6 +209,10 @@ public class ChartViewJFreeChart extends ChartViewChart {
     public void paintMouseOverlay(Graphics2D gd, ChartPanel pnl) {
     }
 
+    public void handleMouseMoved(MouseEvent e) {
+       
+    }
+
     @Override
     public void takeSnapshot(String name) {
         int width = 1000;
@@ -219,5 +222,10 @@ public class ChartViewJFreeChart extends ChartViewChart {
         } catch (IOException e) {
             LOG.error("IO exception trying to output snapshot of chart " + e.toString());
         }
+    }
+
+    @Override
+    public void setTrackingPosition(FeatureList fl, FeatureList.FeaturePosition f) {
+        // Nothing by default
     }
 }

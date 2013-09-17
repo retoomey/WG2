@@ -8,6 +8,10 @@ import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.awt.WorldWindowGLJPanel;
+import gov.nasa.worldwind.event.PositionEvent;
+import gov.nasa.worldwind.event.PositionListener;
+import gov.nasa.worldwind.event.RenderingEvent;
+import gov.nasa.worldwind.event.RenderingListener;
 import gov.nasa.worldwind.event.SelectEvent;
 import gov.nasa.worldwind.event.SelectListener;
 import gov.nasa.worldwind.geom.Angle;
@@ -38,6 +42,7 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureList.FeaturePosition;
 import org.wdssii.gui.features.LegendFeature;
 import org.wdssii.gui.features.WorldwindStockFeature;
 import org.wdssii.gui.products.Product;
@@ -79,6 +84,43 @@ public class WorldWindChart extends ChartViewChart {
     private LLHAreaLayer myVolumeLayer;
     private LLHAreaController myLLHAreaController;
     private static ElevationModel theModel = null;
+
+    // With multiview, we will probably have to synchronize render
+    // and position events with multiple view types
+    private class PosRenderHelper implements PositionListener,
+            RenderingListener {
+
+        @Override
+        public void moved(PositionEvent pe) {
+            // We need to synchronize all the status bars and 
+            // other views...other view types won't be worldwind probably,
+            // so we store position in feature list....
+            //FeatureList.theFeatures.setTrackingPosition();
+            Position newPos = pe.getPosition();
+            float latDegrees = (float) newPos.latitude.degrees;
+            float lonDegrees = (float) newPos.longitude.degrees;
+            float elevKM = (float) newPos.elevation;
+            FeaturePosition p = new FeaturePosition(latDegrees, lonDegrees, elevKM);
+            FeatureList.theFeatures.setTrackingPosition(p);
+            // This will be done globally at setTrackingPosition
+            //myStatusBar.moved(pe, myWorld);
+        }
+
+        @Override
+        public void stageChanged(RenderingEvent re) {
+            // Not sure if I need this to be honest...
+            //  myStatusBar.stageChanged(re, myWorld);
+            // LOG.debug("Got stage changed event "+re);
+        }
+    }
+
+    @Override
+    public void setTrackingPosition(FeatureList fl, FeaturePosition f) {
+        // Nothing by default
+        if (myStatusBar != null){
+            myStatusBar.moved(fl, f, myWorld);
+        }
+    }
 
     /**
      * Static method to create a vslice chart, called by reflection
@@ -167,11 +209,11 @@ public class WorldWindChart extends ChartViewChart {
 
     public WorldWindChart() {
     }
-    
+
     public void updateChart(boolean force) {
         updateOnMinTime();
     }
-    
+
     @Override
     public Object getNewGUIForChart(Object parent) {
 
@@ -210,7 +252,7 @@ public class WorldWindChart extends ChartViewChart {
         // }
 
         myStatusBar = new ReadoutStatusBar();
-        myStatusBar.setEventSource(myWorld);
+        // myStatusBar.setEventSource(myWorld);
         worldHolder.add((Component) myStatusBar, new CC().dockSouth());
 
         //  // Put into split pane
@@ -225,6 +267,9 @@ public class WorldWindChart extends ChartViewChart {
         // toggled by user if it works correctly/incorrectly
         System.setProperty("sun.awt.noerasebackground", "true");
         // CommandManager.getInstance().addListener(ID, this);
+        PosRenderHelper h = new PosRenderHelper();
+        myWorld.addPositionListener(h);
+        myWorld.addRenderingListener(h);
         delayedInit();
         return worldHolder;
     }

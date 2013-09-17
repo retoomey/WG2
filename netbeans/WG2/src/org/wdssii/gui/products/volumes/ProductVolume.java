@@ -16,18 +16,19 @@ import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.*;
 import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
 
-/** The ProductVolume handles the 'up', 'down' and 'base' controls in the
- * display and the data required for it.  It is a helper object for Product.
- * Any Product that uses these controls creates a 'volume'.
- * Typically, a volume can be displayed in 3D with 
- * vertical slicing and/or isosurfaces.
- * 
+/**
+ * The ProductVolume handles the 'up', 'down' and 'base' controls in the display
+ * and the data required for it. It is a helper object for Product. Any Product
+ * that uses these controls creates a 'volume'. Typically, a volume can be
+ * displayed in 3D with vertical slicing and/or isosurfaces.
+ *
  * @author Robert Toomey
  */
 public class ProductVolume {
 
-    /** A volume that returns blank data.  This is what is filled in when
-     * there isn't a real volume available.
+    /**
+     * A volume that returns blank data. This is what is filled in when there
+     * isn't a real volume available.
      */
     public static class ProductNAVolume extends ProductVolume {
 
@@ -37,39 +38,52 @@ public class ProductVolume {
             return true;
         }
     }
-
     public final static ProductNAVolume nullVolume = new ProductNAVolume();
-    
-    /** The key that uniquely defines this volume (for caching/updating purposes) */
+    /**
+     * The key that uniquely defines this volume (for caching/updating purposes)
+     */
     protected String myKey = "";
-    /** The 'root' product of the volume.  The reference for the rest of the
+    /**
+     * The 'root' product of the volume. The reference for the rest of the
      * volume
      */
     protected Product myRootProduct = null;
-    /** Are we a virtual volume? */
+    /**
+     * Are we a virtual volume?
+     */
     protected boolean myIsVirtual = false;
 
-    /** Called on every access to VolumeProduct.  Allows lazy checking of state changes, initialization */
+    /**
+     * Called on every access to VolumeProduct. Allows lazy checking of state
+     * changes, initialization
+     */
     public void initVirtual(Product p, boolean virtual) {
         myRootProduct = p;
         myIsVirtual = virtual;
     }
 
-    /** The data value record used to run filters.  Subclasses can extend this for their own type,
-     * and add more information for filters to use. */
+    /**
+     * The data value record used to run filters. Subclasses can extend this for
+     * their own type, and add more information for filters to use.
+     */
     public DataValueRecord getNewDataValueRecord() {
         return new DataValueRecord();
     }
 
-    /** The menu list of VolumeValue choices.  This lets user choose between different types of interpolation, for example */
-    public List<String> getValueNameList(){
-	    ArrayList<String> stuff = new ArrayList<String>();
-	    return stuff;
+    /**
+     * The menu list of VolumeValue choices. This lets user choose between
+     * different types of interpolation, for example
+     */
+    public List<String> getValueNameList() {
+        ArrayList<String> stuff = new ArrayList<String>();
+        return stuff;
     }
 
-    /** Get a VolumeValue given a name */
-    public VolumeValue getVolumeValue(String name){
-	return null;
+    /**
+     * Get a VolumeValue given a name
+     */
+    public VolumeValue getVolumeValue(String name) {
+        return null;
     }
 
     // filler function, will have to be more advanced..
@@ -77,37 +91,39 @@ public class ProductVolume {
             FilterList list, boolean useFilters, VolumeValue v) {
         //ArrayList<DataFilter> list){
 /*
-        // Get value as fast as possible...
-        if (loc.getHeightKms() < 0) {
-            output.setColor(0, 0, 0, 0);
-            //output.red = output.green = output.blue = output.alpha = 0;
-            return true;
-        }
-        // Sphere test for vslice/isosurface.  Return a blue color based on distance from the center.
-        // If past the radius, return 0/black for value...
-        Location l = new Location(loc.getLatitude(), loc.getLongitude(), 0);  // Newing this here slllows us down
-        Location b = new Location(35.33, -97.27, 0.0);
+         // Get value as fast as possible...
+         if (loc.getHeightKms() < 0) {
+         output.setColor(0, 0, 0, 0);
+         //output.red = output.green = output.blue = output.alpha = 0;
+         return true;
+         }
+         // Sphere test for vslice/isosurface.  Return a blue color based on distance from the center.
+         // If past the radius, return 0/black for value...
+         Location l = new Location(loc.getLatitude(), loc.getLongitude(), 0);  // Newing this here slllows us down
+         Location b = new Location(35.33, -97.27, 0.0);
 
-        CPoint c1 = l.getCPoint();  // Really need to get rid of these cpoint thingies..because we have multiple projections in the new display.
-        CPoint c2 = b.getCPoint();
-        CVector dv = c1.minus(c2);
-        double distance = dv.norm();
+         CPoint c1 = l.getCPoint();  // Really need to get rid of these cpoint thingies..because we have multiple projections in the new display.
+         CPoint c2 = b.getCPoint();
+         CVector dv = c1.minus(c2);
+         double distance = dv.norm();
 
-        //System.out.println("Distance "+distance);
-        if (distance > 10000.0) {
-            output.setColor(0, 0, 0, 0);
-            //output.red = output.green = output.blue = output.alpha = 0;
-        } else {
-            output.setColor(0, 0, 255, 255);
-            //	output.red = 0;
-            //output.green = 0;
-            //	output.blue = output.alpha = 255;
-        }
-        */
+         //System.out.println("Distance "+distance);
+         if (distance > 10000.0) {
+         output.setColor(0, 0, 0, 0);
+         //output.red = output.green = output.blue = output.alpha = 0;
+         } else {
+         output.setColor(0, 0, 255, 255);
+         //	output.red = 0;
+         //output.green = 0;
+         //	output.blue = output.alpha = 255;
+         }
+         */
         return true;
     }
 
-    /** Generate a key that uniquely determines this volume based on product data */
+    /**
+     * Generate a key that uniquely determines this volume based on product data
+     */
     public String getKey() {
         return myKey;
     }
@@ -116,8 +132,9 @@ public class ProductVolume {
         myKey = k;
     }
 
-    /** Generate a 3D slice of this volume's data.  Putting it here because things like
-     * windfield will probably want a different way of generating. 
+    /**
+     * Generate a 3D slice of this volume's data. Putting it here because things
+     * like windfield will probably want a different way of generating.
      */
     public static void generateVSlice(
             VolumeSliceInput g, // All input data for creating slice
@@ -128,7 +145,7 @@ public class ProductVolume {
             double vert,
             DataValueRecord rec,
             ProductVolume pv,
-	    VolumeValue volumevalue) {
+            VolumeValue volumevalue) {
 
         // Grid indices with elements show a 5 col, 2 row quad.  Note overlapping points, top row
         // of quads is done differently
@@ -159,7 +176,7 @@ public class ProductVolume {
         Vec4 v;
         Location buffer = new Location(0, 0, 0);
 
-       // Globe globe = CommandManager.getInstance().getEarthBall().getWwd().getView().getGlobe();
+        // Globe globe = CommandManager.getInstance().getEarthBall().getWwd().getView().getGlobe();
 
         for (int row = 0; row < g.rows; row++) {
             currentLat = g.startLat;
@@ -318,13 +335,13 @@ public class ProductVolume {
             Globe gb, // Nasa globe for projection... not sure I want to directly depend on this class.
             FilterList list,
             boolean useFilters, // ArrayList<DataFilter> list /* Data filter list to use*/)
-            double vert)
-    {
-         generateVSlice(g, dest, gb, list, useFilters, vert, null, nullVolume, null);
+            double vert) {
+        generateVSlice(g, dest, gb, list, useFilters, vert, null, nullVolume, null);
     }
-    
-    /** Generate a 3D slice of this volume's data.  Putting it here because things like
-     * windfield will probably want a different way of generating. 
+
+    /**
+     * Generate a 3D slice of this volume's data. Putting it here because things
+     * like windfield will probably want a different way of generating.
      */
     public void generateSlice3D(
             VolumeSliceInput g, // All input data for creating slice
@@ -333,22 +350,24 @@ public class ProductVolume {
             FilterList list,
             boolean useFilters, // ArrayList<DataFilter> list /* Data filter list to use*/)
             double vert,
-	    VolumeValue volumevalue) {
+            VolumeValue volumevalue) {
 
         // Generates a 2D array of colors as well as a 3D index/vertex array at once.
         // Have code together to ensure consistency.
         DataValueRecord rec = getNewDataValueRecord();
 
-        generateVSlice(g, dest, gb, list, useFilters, vert, rec, this, volumevalue);       
+        generateVSlice(g, dest, gb, list, useFilters, vert, rec, this, volumevalue);
     }
 
-    /** Generate a 2D slice.  Differs from 3D in info... */
+    /**
+     * Generate a 2D slice. Differs from 3D in info...
+     */
     public void generate2DGrid(
             VolumeSliceInput g,
             VolumeSlice2DOutput dest,
             FilterList list,
             boolean useFilters,
-	    VolumeValue volumevalue) {
+            VolumeValue volumevalue) {
 
         if (g == null) {
             return;
@@ -365,10 +384,15 @@ public class ProductVolume {
         int[] color2DVertices = dest.getColor2dFloatArray(3 * g.rows * g.cols);
         float[] value2DVertices = dest.getValue2dFloatArray(g.rows * g.cols);
 
-        double startHeight = g.topHeight;
-        double deltaHeight = (g.topHeight - g.bottomHeight) / (1.0 * g.rows);
-        double deltaLat = (g.endLat - g.startLat) / g.cols;
-        double deltaLon = (g.endLon - g.startLon) / g.cols;
+        // double startHeight = g.topHeight;
+        // double deltaHeight = (g.topHeight - g.bottomHeight) / (1.0 * g.rows);
+        // double deltaLat = (g.endLat - g.startLat) / g.cols;
+        // double deltaLon = (g.endLon - g.startLon) / g.cols;
+        final double startHeight = g.getStartHeight();
+        final double deltaHeight = g.getDeltaHeight();
+        final double deltaLat = g.getDeltaLat();
+        final double deltaLon = g.getDeltaLon();
+
         ColorMapOutput data = new ColorMapOutput();
 
         // Shift to 'center' for each square so we get data value at the center of the grid square
@@ -409,7 +433,7 @@ public class ProductVolume {
         }
         if (warning) {
             System.out.println("Exception during 2D VSlice grid generation " + message);
-        }else{
+        } else {
             dest.setValid(true);
         }
     }

@@ -28,7 +28,7 @@ import org.wdssii.gui.commands.PointRemoveCommand;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.volumes.LLHAreaFeature;
 import org.wdssii.gui.volumes.*;
 
 /**

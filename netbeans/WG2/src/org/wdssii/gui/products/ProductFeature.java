@@ -1,14 +1,15 @@
 package org.wdssii.gui.products;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureRenderer;
 import org.wdssii.gui.products.Product.ProductTimeWindowAge;
 import org.wdssii.gui.products.Product.ProductTimeWindowInfo;
 import org.wdssii.gui.products.navigators.ProductNavigator;
@@ -229,8 +230,28 @@ public class ProductFeature extends Feature {
        setRank(myProduct.getFeatureRank());
        return super.getRank();
     }
-     
+    
     @Override
+    public ArrayList<FeatureRenderer> getRendererList(String id, String packageName)
+    {
+        ArrayList<FeatureRenderer> list = null;
+         if (wouldRender()) {
+            // If it would render needs to load or be loading...
+            myProduct.startLoading();
+            
+            // This is bad actually..we should pass it down the tree in
+            // case of multiple objects sharing product....
+            myProduct.myCurrentFList = this.getFList();  // bleh
+            FeatureRenderer r = myProduct.getRenderer(id, packageName);
+            if (r != null){
+                list = new ArrayList<FeatureRenderer>();
+                list.add(r);
+            }
+            //myProduct.draw(w);
+        }
+         return list;
+    }
+   /* GOOP @Override
     public void render(GLWorld w) {
         if (wouldRender()) {
             // If it would render needs to load or be loading...
@@ -242,7 +263,7 @@ public class ProductFeature extends Feature {
             myProduct.draw(w);
         }
     }
-
+*/
     /**
      * Set the simulation time to ours. Usually done when we are selected, this
      * doesn't actually change any other products simulation time.

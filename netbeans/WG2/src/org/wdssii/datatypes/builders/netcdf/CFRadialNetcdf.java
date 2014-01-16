@@ -349,8 +349,6 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
                         totalDelta += delta;
                        // LOG.debug("Range is "+rangeMeters+" with delta "+delta);
                         prevMeters = rangeMeters;
-                    }else{
-                       // LOG.debug("First range is "+rangeMeters);
                     }
                 }
                 

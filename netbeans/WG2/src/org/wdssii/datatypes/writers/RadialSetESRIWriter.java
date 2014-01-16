@@ -20,7 +20,7 @@ import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
-import org.geotools.feature.FeatureCollections;
+import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -53,7 +53,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
 
     @Override
     public WdssiiJobStatus export(DataTypeWriterOptions o) {
-        
+
         final DataType data = o.getData();
         final WdssiiJobMonitor monitor = o.getMonitor();
         final URL aURL = o.getURL();
@@ -65,7 +65,8 @@ public class RadialSetESRIWriter extends ESRIWriter {
         try {
             // Setup for JTS feature
             final SimpleFeatureType TYPE = createFeatureType();
-            SimpleFeatureCollection collection = FeatureCollections.newCollection();
+           // SimpleFeatureCollection collection = FeatureCollections.newCollection();
+            DefaultFeatureCollection collection = new DefaultFeatureCollection();
             GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
             SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(TYPE);
 
@@ -123,11 +124,10 @@ public class RadialSetESRIWriter extends ESRIWriter {
                 for (int j = 0; j < numGates; j++) {
                     float value = values.get(j);
 
-                    if (value == DataType.MissingData) {
-                        // This new way we don't have to calculate anything
-                        // with missing data.  Much better for long bursts of
-                        // missing...
-                    } else {
+                    // This new way we don't have to calculate anything
+                    // with missing data.  Much better for long bursts of
+                    // missing...
+                    if (value != DataType.MissingData) {
 
                         // Calculate the two points closest to the radar center
                         // if last written then we have this cached from the 
@@ -184,7 +184,7 @@ public class RadialSetESRIWriter extends ESRIWriter {
                         featureBuilder.add(geometryFactory.createPolygon(shell, null));
                         featureBuilder.add(value);  // Float "Value"
                         SimpleFeature feature = featureBuilder.buildFeature(String.valueOf(featureId++));
-                        collection.add(feature);
+                        collection.add(feature);               
                     }
                     rangeKms += gateWidthKms;
                 }

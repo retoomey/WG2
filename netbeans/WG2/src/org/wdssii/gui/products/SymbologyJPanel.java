@@ -22,7 +22,7 @@ import org.wdssii.datatypes.AttributeTable;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.SwingGUIPlugInPanel;
+import org.wdssii.gui.swing.SwingGUIPlugInPanel;
 import org.wdssii.gui.symbology.SymbologyFactory;
 import org.wdssii.gui.symbology.SymbologyGUI;
 import org.wdssii.gui.symbology.SymbologyGUI.SymbologyGUIListener;
@@ -42,6 +42,7 @@ public class SymbologyJPanel extends JPanel implements SymbologyGUIListener {
     private SymbologyGUI myCurrentGUI = null;
     private ProductFeature myProductFeature = null;
     private Symbology mySymbology = null;
+    private JCheckBox mySecondLatLonButton;
     private JCheckBox myMergeButton;
     private JComboBox myList;
     private JLabel myURLLabel;
@@ -115,10 +116,21 @@ public class SymbologyJPanel extends JPanel implements SymbologyGUIListener {
         add(myGUIHolder, new CC().growX().growY());
 
         // Create the south button panel
-        //JPanel buttonPanel = new JPanel();
-        //buttonPanel.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        //  JCheckBox button = new JCheckBox("Live");  // This will be global I think...
-        //buttonPanel.add(button, new CC().flowX());
+
+        mySecondLatLonButton = new JCheckBox("Use 2nd LatLon");
+        mySecondLatLonButton.setToolTipText("Use attributes Latitude2/Longitude2 for direction line");
+        mySecondLatLonButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                if (mySecondLatLonButton.isSelected()) {
+                    mySymbology.use2ndlatlon = Symbology.USE_2ND_LAT_LON;
+                } else {
+                    mySymbology.use2ndlatlon = Symbology.DONT_USE_2ND_LAT_LON;
+                }
+                symbologyChanged();
+            }
+        });
+
         myMergeButton = new JCheckBox("Merge Points");
         myMergeButton.setToolTipText("Level of detail merge common points on screen into one.");
         myMergeButton.addActionListener(new java.awt.event.ActionListener() {
@@ -133,21 +145,21 @@ public class SymbologyJPanel extends JPanel implements SymbologyGUIListener {
                 symbologyChanged();
             }
         });
-        //buttonPanel.add(myMergeButton, new CC().flowX());
-        //add(buttonPanel, new CC().dockSouth());
         topDock.add(urlPath, new CC().span(2));
         topDock.add(save, new CC());
         topDock.add(revert, new CC().wrap());
 
         topDock.add(new JLabel("Type:"), new CC());
         topDock.add(theList, new CC());
-        topDock.add(myMergeButton, new CC().span(2));
+
+        // FIXME: Make drop down menu of options?
+        topDock.add(mySecondLatLonButton, new CC().span(1));
+        topDock.add(myMergeButton, new CC().span(1));
         sep1.setBackground(Color.BLACK);
         sep1.setForeground(Color.WHITE);
         topDock.add(sep1, new CC().growX().span(4));
         mySave.setEnabled(false);
         myRevert.setEnabled(false);
-        //topDock.add(button, new CC().flowX());
 
         initGUIToSymbology();
 
@@ -237,6 +249,9 @@ public class SymbologyJPanel extends JPanel implements SymbologyGUIListener {
             if (myMergeButton != null) {
                 myMergeButton.setSelected(mySymbology.merge == Symbology.MERGE_CATEGORIES);
             }
+            if (mySecondLatLonButton != null) {
+                mySecondLatLonButton.setSelected(mySymbology.use2ndlatlon == Symbology.USE_2ND_LAT_LON);
+            }
             if (mySave != null) {
                 mySave.setEnabled(mySymbologyDirty);
             }
@@ -272,7 +287,9 @@ public class SymbologyJPanel extends JPanel implements SymbologyGUIListener {
 
     public void saveCurrentSymbology() {
         String error = myProductFeature.getProduct().saveSymbology(mySymbology);
-        LOG.debug("ERROR RETURNED IS " + error);
+        if (!error.isEmpty()) {
+            LOG.debug("ERROR RETURNED IS " + error);
+        }
         mySymbologyDirty = (!error.isEmpty());
         updateControls();
     }

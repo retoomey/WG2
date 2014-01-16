@@ -8,7 +8,6 @@ import java.awt.Color;
 import javax.swing.JComponent;
 import org.wdssii.gui.features.Feature.FeatureTableInfo;
 import org.wdssii.gui.features.FeatureGUI;
-import org.wdssii.gui.features.LLHAreaFeature;
 
 /** The root class for creating a LLHArea.  This creates the drawing part and the editor part for a slice, box, stick, etc. 
  * Slices are used for VSlices in the display, Boxes for isosurfaces, Sticks for time height trends...and future stuff.

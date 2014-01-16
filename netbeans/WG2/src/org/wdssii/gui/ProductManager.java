@@ -1,7 +1,6 @@
 package org.wdssii.gui;
 
 import org.wdssii.core.Singleton;
-import gov.nasa.worldwind.event.PositionEvent;
 import java.awt.Color;
 import java.awt.Point;
 import java.io.File;
@@ -274,13 +273,12 @@ public class ProductManager implements Singleton {
     /**
      * Currently called by ReadoutStatusBar to get the text for readout
      */
-    public String getReadout(PositionEvent event) {
+    public String getReadout(Point point) {
 
         String readout = "None";
         Product current = getTopProduct();
         if (current != null) {
             //Position p = event.getPosition();
-            Point point = event.getScreenPoint();
             readout = String.format("(%d, %d)", point.x, point.y);
             // WorldWindView earth = FeatureList.theFeatures.getWWView();
             // if (earth != null) {

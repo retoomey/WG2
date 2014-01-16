@@ -31,7 +31,7 @@ import net.infonode.tabbedpanel.TabLayoutPolicy;
 import net.infonode.util.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.charts.WorldWindChart;
+import org.wdssii.gui.charts.WorldWindDataView;
 import org.wdssii.gui.views.WdssiiDockedViewFactory;
 import org.wdssii.storage.DataManager;
 
@@ -478,7 +478,7 @@ public class DockWindow {
                 return getDynamicView(in.readInt());
             }
         });
-        if (WorldWindChart.USE_HEAVYWEIGHT) {
+        if (WorldWindDataView.USE_HEAVYWEIGHT) {
             rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, handler, true);
         } else {
             rootWindow = DockingUtil.createRootWindow(viewMap, handler,
@@ -559,7 +559,7 @@ public class DockWindow {
         addViewByID("CatalogView");
         addViewByID("SourcesView");
 
-        addViewByID("ChartView");
+        addViewByID("DataFeatureView");
         addViewByID("FeaturesView");
 
         // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.
@@ -580,7 +580,7 @@ public class DockWindow {
         DockingWindow catalog = getViewByID("CatalogView");
         DockingWindow sources = getViewByID("SourcesView");
         DockingWindow nav = getViewByID("NavView");
-        DockingWindow chart = getViewByID("ChartView");
+        DockingWindow chart = getViewByID("DataFeatureView");
         DockingWindow debug = getViewByID("DebugView");
         DockingWindow features = getViewByID("FeaturesView");
 

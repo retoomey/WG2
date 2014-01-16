@@ -1,6 +1,6 @@
 package org.wdssii.gui.features;
 
-import org.wdssii.gui.SwingGUIPlugInPanel;
+import org.wdssii.gui.swing.SwingGUIPlugInPanel;
 
 /**
  * Used to create a swing based GUI for controlling the properties of a Feature

@@ -7,7 +7,7 @@ import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.Table2DView.CellQuery;
 import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.renderers.PPIRadialSetRenderer;
+import org.wdssii.gui.renderers.PPIRadialSetRenderer;
 
 /**
  *

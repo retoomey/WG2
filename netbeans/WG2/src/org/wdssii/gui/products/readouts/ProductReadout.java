@@ -6,11 +6,9 @@ import java.awt.Rectangle;
 import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.datatypes.DataType;
 import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductTextFormatter;
-import org.wdssii.gui.products.renderers.ProductRenderer;
 
 /**
  * The root helper class of all product readouts. This classes job is hide the

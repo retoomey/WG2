@@ -4,7 +4,7 @@ import javax.swing.JScrollPane;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.datatypes.AttributeTable;
-import org.wdssii.gui.SwingGUIPlugInPanel;
+import org.wdssii.gui.swing.SwingGUIPlugInPanel;
 import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**

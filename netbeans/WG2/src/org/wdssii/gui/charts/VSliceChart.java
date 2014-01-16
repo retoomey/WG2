@@ -294,7 +294,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
 
             // Globe globe = eb.getWwd().getModel().getGlobe();
             // ElevationModel m = globe.getElevationModel();
-            ElevationModel m = WorldWindChart.getElevationModel();
+            ElevationModel m = WorldWindDataView.getElevationModel();
 
             int size = getSampleSize();
             double deltaLat = (endLat - startLat) / (size - 1);
@@ -484,7 +484,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     /**
      * Static method to create a vslice chart, called by reflection
      */
-    public static VSliceChart createVSliceChart() {
+    public static VSliceChart create() {
 
         // Our special axis
         FixedRangeNumberAxis distanceAxis = FixedRangeNumberAxis.getStockAxis("Distance KM", true);

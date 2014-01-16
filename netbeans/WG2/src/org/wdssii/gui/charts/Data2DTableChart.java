@@ -4,7 +4,6 @@ import com.jidesoft.swing.JideButton;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.globes.ElevationModel;
-import gov.nasa.worldwind.globes.Globe;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,7 +11,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -20,7 +18,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
@@ -33,7 +30,7 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.volumes.LLHAreaFeature;
 import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.SimpleTable.ToolbarMode;
@@ -46,7 +43,7 @@ import org.wdssii.gui.volumes.LLHAreaSet;
  *
  * @author Robert Toomey
  */
-public class Data2DTableChart extends ChartViewChart {
+public class Data2DTableChart extends DataView {
 
     private final static Logger LOG = LoggerFactory.getLogger(Data2DTableChart.class);
     /**
@@ -74,7 +71,7 @@ public class Data2DTableChart extends ChartViewChart {
     /**
      * Static method to create a chart, called by reflection
      */
-    public static Data2DTableChart createData2DTableChart() {
+    public static Data2DTableChart create() {
 
         return new Data2DTableChart();
     }
@@ -142,7 +139,7 @@ public class Data2DTableChart extends ChartViewChart {
            // Globe globe = eb.getWwd().getModel().getGlobe();
            // ElevationModel m = globe.getElevationModel();
             
-            ElevationModel m = WorldWindChart.getElevationModel();
+            ElevationModel m = WorldWindDataView.getElevationModel();
             int size = getSampleSize();
             double deltaLat = (endLat - startLat) / (size - 1);
             double deltaLon = (endLon - startLon) / (size - 1);
@@ -199,6 +196,7 @@ public class Data2DTableChart extends ChartViewChart {
         bar.add(second);
         mySelectButton = second;
 
+        /* Don't need?  Not 100% sure yet
         JButton export = new JButton("Export INP...");
         export.addActionListener(new ActionListener() {
             @Override
@@ -207,6 +205,7 @@ public class Data2DTableChart extends ChartViewChart {
             }
         });
         bar.add(export);
+        */
 
         JButton export2 = new JButton("Export CSV...");
         export2.addActionListener(new ActionListener() {
@@ -259,7 +258,7 @@ public class Data2DTableChart extends ChartViewChart {
 
     private void updateDataTable() {
         if (myPanel != null) {  // GUI might not exist yet
-            LOG.debug("UPDATE TABLE CALLED....");
+           // LOG.debug("UPDATE TABLE CALLED....");
             Product2DTable newTable;
             Product2DTable oldTable = myTable;
 
@@ -306,10 +305,10 @@ public class Data2DTableChart extends ChartViewChart {
             // Always register..bleh..this is because you can add a stick without changing table..
             // bleh...guess it's cheap enough to do for now
             // Ok we need 'Table Features' that are linked to data tables... FIXME
-            FeatureList.theFeatures.remove3DRenderer(oldTable);
+          // GOOP  FeatureList.theFeatures.remove3DRenderer(oldTable);
             LLHAreaFeature s = getTrackFeature();
             if (s != null) {
-                s.addRenderer(newTable);
+             // GOOP  s.addRenderer(newTable);
                 LOG.debug("Added table to tracking feature "+newTable);
             }else{
                 LOG.debug("Tracking feature was null");

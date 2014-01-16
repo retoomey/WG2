@@ -35,10 +35,13 @@ public class Contours extends DataType implements Table2DView {
 
     /** Get the number of unique contours in this contour */
     public int getNumberOfContours() {
+        int size;
         if (myContours != null) {
-            return myContours.size();
+            size = myContours.size();
+        }else{
+            size = 0;
         }
-        return 0;
+        return size;
     }
 
     /** Get the array list of contour objects */

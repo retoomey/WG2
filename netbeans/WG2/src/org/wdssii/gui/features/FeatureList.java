@@ -1,14 +1,10 @@
 package org.wdssii.gui.features;
 
-import java.awt.Point;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.geom.GLWorld;
-import org.wdssii.gui.charts.ChartViewChart;
-import org.wdssii.gui.gis.MapFeature;
-//import org.wdssii.gui.views.WorldWindView;
+import org.wdssii.gui.charts.DataView;
 
 /**
  * FeatureList holds a list of the features of a particular window It will
@@ -27,7 +23,7 @@ public class FeatureList {
      */
     // private WorldWindView myWorldWindView;
     // FIXME: Charts becoming a more general DataView
-    private ArrayList<WeakReference<ChartViewChart>> myDataViews;
+    private ArrayList<WeakReference<DataView>> myDataViews;
 
     private FeaturePosition myFeaturePosition = null;
     
@@ -50,8 +46,8 @@ public class FeatureList {
         myFeaturePosition = p;
         cleanUpReferences();
         if (myDataViews != null) {
-            for (WeakReference<ChartViewChart> a : myDataViews) {
-                ChartViewChart v = a.get();
+            for (WeakReference<DataView> a : myDataViews) {
+                DataView v = a.get();
                 if (v != null) {
                     v.setTrackingPosition(this, p);
                 }
@@ -114,11 +110,11 @@ public class FeatureList {
      * Set the world wind view that we use This fails for multiview since more
      * than one view can share a feature list...
      */
-    public void addDataView(ChartViewChart v) {
+    public void addDataView(DataView v) {
         if (myDataViews == null) {
-            myDataViews = new ArrayList<WeakReference<ChartViewChart>>();
+            myDataViews = new ArrayList<WeakReference<DataView>>();
         }
-        myDataViews.add(new WeakReference<ChartViewChart>(v));
+        myDataViews.add(new WeakReference<DataView>(v));
     }
 
     /*public void setWorldWindView(WorldWindView v) {
@@ -131,10 +127,10 @@ public class FeatureList {
      }*/
     private void cleanUpReferences() {
         if (myDataViews != null) {
-            ArrayList<WeakReference<ChartViewChart>> cleanup = new ArrayList<WeakReference<ChartViewChart>>();
+            ArrayList<WeakReference<DataView>> cleanup = new ArrayList<WeakReference<DataView>>();
 
-            for (WeakReference<ChartViewChart> a : myDataViews) {
-                ChartViewChart v = a.get();
+            for (WeakReference<DataView> a : myDataViews) {
+                DataView v = a.get();
                 if (v == null) {
                     cleanup.add(a);
                     LOG.debug("**************ADD TO CLEANUP "+a);
@@ -154,8 +150,8 @@ public class FeatureList {
     public void updateOnMinTime() {
         cleanUpReferences();
         if (myDataViews != null) {
-            for (WeakReference<ChartViewChart> a : myDataViews) {
-                ChartViewChart v = a.get();
+            for (WeakReference<DataView> a : myDataViews) {
+                DataView v = a.get();
                 if (v != null) {
                     v.updateOnMinTime();
                 }
@@ -166,8 +162,8 @@ public class FeatureList {
     public void repaintViews() {
         cleanUpReferences();
         if (myDataViews != null) {
-            for (WeakReference<ChartViewChart> a : myDataViews) {
-                ChartViewChart v = a.get();
+            for (WeakReference<DataView> a : myDataViews) {
+                DataView v = a.get();
                 if (v != null) {
                     v.repaint();
 
@@ -180,8 +176,8 @@ public class FeatureList {
         cleanUpReferences();
         if (myDataViews != null) {
            
-            for (WeakReference<ChartViewChart> a : myDataViews) {
-                ChartViewChart v = a.get();
+            for (WeakReference<DataView> a : myDataViews) {
+                DataView v = a.get();
                 if (v != null) {
                     v.addViewComponent(name, component);
                 }
@@ -226,7 +222,7 @@ public class FeatureList {
     /**
      * Remove a 3DRenderer from any feature
      */
-    public void remove3DRenderer(Feature3DRenderer r) {
+   /* public void remove3DRenderer(Feature3DRenderer r) {
         if (r != null) {
             synchronized (featureSync) {
                 Iterator<Feature> iter = myFeatures.iterator();
@@ -237,7 +233,7 @@ public class FeatureList {
             }
         }
     }
-
+*/
     /**
      * Remove a Feature by object
      */
@@ -409,50 +405,6 @@ public class FeatureList {
         return first;
     }
 
-    /**
-     * preRender all features that are in the given group
-     */
-    public void preRenderFeatureGroup(GLWorld w, String g) {
-
-        List<Feature> list = getActiveFeatureGroup(g);
-        Iterator<Feature> iter = list.iterator();
-        while (iter.hasNext()) {
-            Feature f = iter.next();
-            f.preRender(w);
-        }
-    }
-
-    /**
-     * Render all features that are in the given group
-     */
-    public void renderFeatureGroup(GLWorld w, String g) {
-
-        List<Feature> list = getActiveFeatureGroup(g);
-
-        // For each rank...draw over lower ranks...
-        for (int i = 0; i <= Feature.MAX_RANK; i++) {
-            Iterator<Feature> iter = list.iterator();
-            while (iter.hasNext()) {
-                Feature f = iter.next();
-                if (f.getRank() == i) {
-                    f.render(w);
-                }
-            }
-        }
-    }
-
-    /**
-     * Pick all features that are in the given group
-     */
-    public void pickFeatureGroup(GLWorld w, Point p, String g) {
-
-        List<Feature> list = getActiveFeatureGroup(g);
-        Iterator<Feature> iter = list.iterator();
-        while (iter.hasNext()) {
-            Feature f = iter.next();
-            f.pick(w, p);
-        }
-    }
 
     /**
      * Get all visible/onlymode features in a group. All that should be shown.

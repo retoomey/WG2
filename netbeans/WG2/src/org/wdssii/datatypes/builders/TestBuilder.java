@@ -1,7 +1,6 @@
 package org.wdssii.datatypes.builders;
 
 import java.util.ArrayList;
-import java.util.Date;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;

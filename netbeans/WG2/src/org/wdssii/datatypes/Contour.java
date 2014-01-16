@@ -23,10 +23,13 @@ public class Contour {
     
     /** Get the number of points in this contour */
     public int getSize() {
+        int size;
         if (locations != null) {
-            return locations.size();
+            size = locations.size();
+        }else{
+            size = 0;
         }
-        return 0;
+        return size;
     }
 
     /** Get the location list for the contour */

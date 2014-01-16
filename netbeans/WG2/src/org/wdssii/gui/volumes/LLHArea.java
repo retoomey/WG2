@@ -20,7 +20,6 @@ import java.util.List;
 import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.worldwind.GLWorldWW;
 

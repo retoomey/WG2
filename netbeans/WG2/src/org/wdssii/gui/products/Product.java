@@ -16,7 +16,7 @@ import org.wdssii.gui.ProductManager.ProductDataInfo;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.products.navigators.ProductNavigator;
 import org.wdssii.gui.products.readouts.ProductReadout;
-import org.wdssii.gui.products.renderers.ProductRenderer;
+import org.wdssii.gui.renderers.ProductRenderer;
 import org.wdssii.gui.products.volumes.IndexRecordVolume;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.sources.IndexSource;
@@ -399,6 +399,13 @@ public class Product extends DelegateHelper {
 
 // Stock helper objects -------------------------------------------------------
     // Return the thing that draws this product
+    public ProductRenderer getRenderer(String id, String packageName) {
+        ProductRenderer pr = (ProductRenderer) getHelperObject(id, "Renderer", false, true, packageName+".products", "");
+        if (pr != null){pr.setProduct(this);}
+        return pr;
+    }
+
+    @Deprecated
     public ProductRenderer getRenderer() {
         ProductRenderer pr = (ProductRenderer) getHelperObject("Renderer", false, true, RENDERER_CLASSPATH, "");
         return pr;
@@ -835,7 +842,7 @@ public class Product extends DelegateHelper {
      *
      * @param dc worldwind drawing context
      */
-    public void draw(GLWorld w) {
+   /* public void draw(GLWorld w) {
 
         ProductRenderer pr = getRenderer();
         if (pr != null) {
@@ -850,8 +857,8 @@ public class Product extends DelegateHelper {
             pr.draw(w);
         }
     }
-
-    public void doPick(GLWorld w, java.awt.Point pickPoint) {
+*/
+   /* public void doPick(GLWorld w, java.awt.Point pickPoint) {
 
         ProductRenderer pr = getRenderer();
         if (pr != null) {
@@ -866,7 +873,7 @@ public class Product extends DelegateHelper {
             pr.doPick(w, pickPoint);
         }
     }
-
+*/
     /*
      * Get our product that sync in time/subtype to the given product. We
      * can return null if we don't have a match.

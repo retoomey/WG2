@@ -12,7 +12,7 @@ import org.wdssii.core.GridVisibleArea;
 import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.products.renderers.ProductRenderer;
+import org.wdssii.gui.renderers.ProductRenderer;
 import org.wdssii.gui.swing.ProductTableModel;
 import org.wdssii.gui.swing.SimpleTable;
 import org.wdssii.gui.swing.SimpleTable.ToolbarMode;
@@ -24,7 +24,7 @@ import org.wdssii.gui.swing.SimpleTable.ToolbarMode;
  * @author Robert Toomey
  *
  */
-public class Product2DTable implements Feature3DRenderer {
+public class Product2DTable extends Feature3DRenderer {
 
     private final static Logger LOG = LoggerFactory.getLogger(Product2DTable.class);
     // The default 2D table for a product uses the virtual table for

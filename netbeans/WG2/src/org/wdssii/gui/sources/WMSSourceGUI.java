@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.FeatureCommand;
-import org.wdssii.gui.features.WorldwindStockFeature;
+import org.wdssii.gui.worldwind.WorldwindStockFeature;
 import org.wdssii.gui.sources.WMSSource.LayerInfo;
 import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;

@@ -412,7 +412,7 @@ public class DataType {
     public String getUnit() {
         String unit = attributes.get("Unit");
         if (unit == null) {
-            return "dimensionless";
+            unit = "dimensionless";
         }
         return unit;
     }

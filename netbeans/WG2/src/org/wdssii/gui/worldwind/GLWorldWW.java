@@ -9,7 +9,7 @@ import gov.nasa.worldwind.render.DrawContext;
 import org.wdssii.geom.GLWorld;
 import org.wdssii.geom.V2;
 import org.wdssii.geom.V3;
-import org.wdssii.gui.charts.WorldWindChart;
+import org.wdssii.gui.charts.WorldWindDataView;
 
 /**
  * A GLWorld that has a Worldwind DrawContext
@@ -21,7 +21,7 @@ public class GLWorldWW extends GLWorld {
     private final View v;
     private final Globe g;
     private final DrawContext adc;
-    private final WorldWindChart world;
+    private final WorldWindDataView world;
 
     public GLWorldWW(DrawContext dc) {
         super(dc.getGL(), dc.getView().getViewport().width, dc.getView().getViewport().height);
@@ -31,10 +31,10 @@ public class GLWorldWW extends GLWorld {
         world = null;
     }
 
-    public WorldWindChart getWWWorld(){
+    public WorldWindDataView getWWWorld(){
         return world;
     }
-    public GLWorldWW(DrawContext dc, WorldWindChart w) {
+    public GLWorldWW(DrawContext dc, WorldWindDataView w) {
         super(dc.getGL(), dc.getView().getViewport().width, dc.getView().getViewport().height);
         adc = dc;
         v = dc.getView();

@@ -2,11 +2,12 @@ package org.wdssii.datatypes;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.wdssii.geom.Location;
 import org.wdssii.core.GridVisibleArea;
@@ -17,10 +18,17 @@ import org.wdssii.core.GridVisibleArea;
  */
 public class DataTable extends DataType implements Table2DView, AttributeTable {
 
+    private final static Logger LOG = LoggerFactory.getLogger(DataTable.class);
     /**
-     * List of locations gathers from the rows of data
+     * List of locations gathers from the rows of data UpdateLocations currently
+     * scans the FULL table and creates Location points. This could break with
+     * large data sets.
      */
     private ArrayList<Location> myLocations;
+    /**
+     * Optional second latitude/longitude per point
+     */
+    private ArrayList<Location> myLocations2;
     /**
      * Store an array list of columns
      */
@@ -114,7 +122,6 @@ public class DataTable extends DataType implements Table2DView, AttributeTable {
         private final String name;
         private final String unit;
         private final List<String> values;
-        
         // Created IFF createIndex called. Index for key --> row value
         private TreeMap<String, Integer> myIndex = null;
 
@@ -204,11 +211,11 @@ public class DataTable extends DataType implements Table2DView, AttributeTable {
                 }
             }
         }
-        
-        public int getRowForIndexKey(String key){
-            if (myIndex != null){
+
+        public int getRowForIndexKey(String key) {
+            if (myIndex != null) {
                 Integer value = myIndex.get(key);
-                if (value == null){
+                if (value == null) {
                     return -1;
                 }
                 return value;
@@ -243,11 +250,17 @@ public class DataTable extends DataType implements Table2DView, AttributeTable {
     public DataTable(DataTableMemento memento) {
         super(memento);
         myColumns = memento.columns;
-        updateLocations();
+        myLocations = updateLocations("Latitude", "Longitude", "Height");
+        myLocations2 = updateLocations("Latitude2", "Longitude2", "Height2");
+        //updateLocations();
     }
 
     public ArrayList<Location> getLocations() {
         return myLocations;
+    }
+
+    public ArrayList<Location> getLocations2() {
+        return myLocations2;
     }
 
     public Location getLocation(int row) {
@@ -271,20 +284,18 @@ public class DataTable extends DataType implements Table2DView, AttributeTable {
     }
 
     /**
-     * Try to create a location array from the columns of data. Currently pretty
-     * fragile, no handling of missing data, etc...
+     * Try to create a location array
      */
-    public final void updateLocations() {
-
+    public final ArrayList<Location> updateLocations(String latAttribute, String lonAttribute, String heightAttribute) {
+        ArrayList<Location> newList = null;
         try {
-            myLocations = new ArrayList<Location>();
             // Ok, should be three columns.  Latitude, Longitude, Height
             // For the moment, to have icons we HAVE to have the 3 columns
-            Column f1 = getColumnByName("Latitude");
+            Column f1 = getColumnByName(latAttribute);
             if (f1 != null) {
-                Column f2 = getColumnByName("Longitude");
+                Column f2 = getColumnByName(lonAttribute);
                 if (f2 != null) {
-                    Column f3 = getColumnByName("Height");
+                    Column f3 = getColumnByName(heightAttribute);
                     List<String> heights = null;
                     boolean haveHeights = false;
                     if (f3 != null) {
@@ -297,6 +308,8 @@ public class DataTable extends DataType implements Table2DView, AttributeTable {
                     List<String> lons = f2.values;
                     int size = lats.size();
 
+                    /** Create a new ArrayList of locations */
+                    newList = new ArrayList<Location>();
                     for (int i = 0; i < size; i++) {
                         String latS = lats.get(i);
                         String lonS = lons.get(i);
@@ -310,12 +323,14 @@ public class DataTable extends DataType implements Table2DView, AttributeTable {
                         double lat = Double.parseDouble(latS);
                         double lon = Double.parseDouble(lonS);
                         Location loc = new Location(lat, lon, h);
-                        myLocations.add(loc);
+                        newList.add(loc);
                     }
                 }
             }
         } catch (Exception e) {
+            LOG.error("Was unable to read XML attribute Lat,Lon,Height values");
         }
+        return newList;
     }
 
     @Override

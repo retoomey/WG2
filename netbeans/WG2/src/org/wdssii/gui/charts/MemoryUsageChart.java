@@ -43,7 +43,7 @@ public class MemoryUsageChart extends ChartViewJFreeChart {
     /**
      * Creates a new application.
      */
-    public static MemoryUsageChart createMemoryUsageChart() {
+    public static MemoryUsageChart create() {
         // create two series that automatically discard data more than 30 seconds old...
         //  this.total = new TimeSeries("Total", Millisecond.class);
 

@@ -3,7 +3,7 @@ package org.wdssii.gui.commands;
 import org.wdssii.core.WdssiiCommand;
 import java.util.ArrayList;
 import org.wdssii.core.SingletonManager;
-import org.wdssii.gui.views.ChartView;
+import org.wdssii.gui.views.DataFeatureView;
 import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
 import org.wdssii.xml.wdssiiConfig.Tag_setup;
 
@@ -59,8 +59,8 @@ public class ChartSetTypeCommand extends WdssiiCommand {
 
         String choice = null;
         if (myTargetListener != null) {
-            if (myTargetListener instanceof ChartView) {
-                choice = ((ChartView) myTargetListener).getCurrentChoice();
+            if (myTargetListener instanceof DataFeatureView) {
+                choice = ((DataFeatureView) myTargetListener).getCurrentChoice();
             }
         }
         if (choice == null) {
@@ -106,7 +106,7 @@ public class ChartSetTypeCommand extends WdssiiCommand {
         } catch (java.lang.NullPointerException e) {
             // it's ok, just means missing xml in chain...	
         }
-        defaultName = "WorldWind";
+        defaultName = "WorldWindDataView";
         return defaultName;
     }
 
@@ -122,8 +122,8 @@ public class ChartSetTypeCommand extends WdssiiCommand {
             if (value != null) {
                 // Need the view in order to send the command...
                 if (myTargetListener != null) {
-                    if (myTargetListener instanceof ChartView) {
-                        ((ChartView) myTargetListener).setCurrentChoice(value);
+                    if (myTargetListener instanceof DataFeatureView) {
+                        ((DataFeatureView) myTargetListener).setCurrentChoice(value);
                     }
                 }
             }

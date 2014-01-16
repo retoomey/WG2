@@ -1,5 +1,6 @@
 package org.wdssii.gui.renderers;
 
+import org.wdssii.gui.features.Feature3DRenderer;
 import com.sun.opengl.util.j2d.TextRenderer;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -15,7 +16,6 @@ import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LegendFeature.LegendMemento;
 import org.wdssii.gui.products.ProductFeature;
@@ -28,7 +28,7 @@ import org.wdssii.gui.products.ProductFeature;
  *
  * @author Robert Toomey
  */
-public class ColorMapRenderer implements Feature3DRenderer {
+public class ColorMapRenderer extends Feature3DRenderer {
 
 	private final static Logger LOG = LoggerFactory.getLogger(ColorMapRenderer.class);
 	/**

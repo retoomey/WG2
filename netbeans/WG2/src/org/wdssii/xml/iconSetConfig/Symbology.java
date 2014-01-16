@@ -23,6 +23,8 @@ public class Symbology {
     public static final int SINGLE = 0;
     public static final int MERGE_NONE = 0;
     public static final int MERGE_CATEGORIES = 1;
+    public static final int DONT_USE_2ND_LAT_LON = 0;
+    public static final int USE_2ND_LAT_LON = 1;
     /**
      * Categories unique values
      */
@@ -63,6 +65,7 @@ public class Symbology {
         this.name = s.name;
         this.use = s.use;
         this.merge = s.merge;
+        this.use2ndlatlon = s.use2ndlatlon;
         this.myDataName = s.myDataName;
         this.myURL = s.myURL;
         if (s.single != null) {
@@ -218,6 +221,8 @@ public class Symbology {
      */
     @XmlAttribute(name = "use")
     public int use = SINGLE;
+    @XmlAttribute(name = "use2ndlatlon")
+    public int use2ndlatlon = DONT_USE_2ND_LAT_LON;
     @XmlAttribute(name = "merge")
     public int merge = MERGE_CATEGORIES;
     /**

@@ -23,7 +23,7 @@ import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.volumes.LLHAreaFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.Product.Navigation;
 import org.wdssii.gui.products.volumes.ProductVolume;
@@ -424,7 +424,7 @@ public class TimeTrendChart extends ChartViewJFreeChart {
     /**
      * Static method to create a vslice chart
      */
-    public static TimeTrendChart createTimeTrendChart() {
+    public static TimeTrendChart create() {
 
         VSliceDataset dataset = new VSliceDataset();
 

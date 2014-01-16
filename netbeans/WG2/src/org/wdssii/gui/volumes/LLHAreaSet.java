@@ -12,11 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.charts.ChartViewChart;
-import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.volumes.ProductVolume;
-import org.wdssii.gui.views.ChartView;
+import org.wdssii.gui.views.DataFeatureView;
 import org.wdssii.gui.worldwind.GLWorldWW;
 import org.wdssii.gui.worldwind.WorldwindUtil;
 
@@ -162,29 +161,29 @@ public class LLHAreaSet extends LLHArea {
     /**
      * Get our chart object, if any that we use to fill in our stuff
      */
-    public ChartViewChart get3DRendererChart() {
-        ChartView v = getChartView();
+    public DataView get3DRendererChart() {
+        DataFeatureView v = getChartView();
         if (v != null) {
             return v.getChart();
         }
         return null;
     }
 
-    public void setChartView(ChartView v0) {
+    public void setChartView(DataFeatureView v0) {
         // We don't hold the object in case name changes or it is destroyed
         myChartKey = v0.getKey();
     }
 
-    public ChartView getChartView() {
-        ArrayList<ChartView> list = ChartView.getList();
-        for (ChartView c : list) {
+    public DataFeatureView getChartView() {
+        ArrayList<DataFeatureView> list = DataFeatureView.getList();
+        for (DataFeatureView c : list) {
             if (c.getKey().equals(myChartKey)) {
                 return c;
             }
         }
         // if not found and there's a list, use the first one....
         if (!list.isEmpty()) {
-            ChartView fallBack = list.get(0);
+            DataFeatureView fallBack = list.get(0);
             myChartKey = fallBack.getKey();
             return fallBack;
         }
@@ -287,7 +286,7 @@ public class LLHAreaSet extends LLHArea {
                 gl.glPopAttrib();
             }
             // Pass render to chart object....
-            ChartViewChart c = get3DRendererChart();
+            DataView c = get3DRendererChart();
             if (c != null) {
                 // Ok if chart exists...use it to draw.....
 

@@ -37,14 +37,11 @@ public class ChartCreateCommand extends ProductCommand {
     public ArrayList<CommandOption> getCommandOptions() {
         ArrayList<CommandOption> theList = new ArrayList<CommandOption>();
 
-        // FIXME: Should factory this eventually
-        // These strings are class names...
-        // VSlice --> VSliceChart.java
-        // Data2DTable --> Data2DTableChart
-        theList.add(new CommandOption("EXPERIMENATAL: Add Worldwind", "WorldWind"));
-        theList.add(new CommandOption("Add VSlice Chart", "VSlice"));
-        theList.add(new CommandOption("Add 2D Tracking Table", "Data2DTable"));
-        theList.add(new CommandOption("Add Data Readout Chart", "DataRangeValue"));
+        theList.add(new CommandOption("Add Worldwind", "WorldWindDataView"));
+       // theList.add(new CommandOption("Add GeoToolDataView", "GeoToolDataView"));
+        theList.add(new CommandOption("Add VSlice Chart", "VSliceChart"));
+        theList.add(new CommandOption("Add 2D Tracking Table", "Data2DTableChart"));
+        theList.add(new CommandOption("Add Data Readout Chart", "DataRangeValueChart"));
 
         return theList;
     }

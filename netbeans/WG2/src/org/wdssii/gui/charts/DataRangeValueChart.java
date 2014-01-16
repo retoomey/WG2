@@ -281,7 +281,7 @@ public class DataRangeValueChart extends LLHAreaChart {
     /**
      * Static method to create a DataRangeValueChart chart, called by reflection
      */
-    public static DataRangeValueChart createDataRangeValueChart() {
+    public static DataRangeValueChart create() {
 
         FixedRangeNumberAxis distanceAxis = FixedRangeNumberAxis.getStockAxis("Distance KM", true);
         FixedRangeNumberAxis readoutAxis = FixedRangeNumberAxis.getStockAxis("Readout", true);

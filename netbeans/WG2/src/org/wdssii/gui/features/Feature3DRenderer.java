@@ -9,14 +9,14 @@ import org.wdssii.geom.GLWorld;
  *
  * @author Robert Toomey
  */
-public interface Feature3DRenderer {
+public abstract class Feature3DRenderer extends FeatureRenderer {
 
     public static final int RASTER = 0;
     public static final int POINT = 1;
 
-    public void preRender(GLWorld w, FeatureMemento m);
+    public abstract void preRender(GLWorld w, FeatureMemento m);
 
-    public void draw(GLWorld w, FeatureMemento m);
+    public abstract void draw(GLWorld w, FeatureMemento m);
 
-    public void pick(GLWorld w, Point p, FeatureMemento m);
+    public abstract void pick(GLWorld w, Point p, FeatureMemento m);
 }

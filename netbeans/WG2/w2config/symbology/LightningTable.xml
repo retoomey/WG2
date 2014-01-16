@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Created by WG2. Recommend not editing by hand -->
+<symbology merge="0" use2ndlatlon="1" use="0">
+    <single>
+        <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="4" osize="2" ocolor="0x000000ff" useoutline="true" angle="45" yoffset="0" xoffset="0" points="20" color="0xff0000ff"/>
+    </single>
+    <categories column="RowName">
+        <category value="71">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="4" osize="2" ocolor="0x000000ff" useoutline="true" angle="45" yoffset="0" xoffset="0" points="20" color="0x000000ff"/>
+        </category>
+        <category value="84">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="4" osize="2" ocolor="0x000000ff" useoutline="true" angle="45" yoffset="0" xoffset="0" points="20" color="0x330000ff"/>
+        </category>
+        <category value="86">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="4" osize="2" ocolor="0x000000ff" useoutline="true" angle="45" yoffset="0" xoffset="0" points="20" color="0x660000ff"/>
+        </category>
+        <category value="89">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="4" osize="2" ocolor="0x000000ff" useoutline="true" angle="45" yoffset="0" xoffset="0" points="20" color="0x990000ff"/>
+        </category>
+        <category value="91">
+            <symbols xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="polygonSymbol" numpoints="20" osize="2" ocolor="0x000000ff" useoutline="true" angle="0" yoffset="0" xoffset="0" points="22" color="0xff6633ff"/>
+        </category>
+    </categories>
+</symbology>

@@ -1,10 +1,13 @@
 package org.wdssii.gui.features;
 
-import java.awt.Point;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 import javax.swing.JComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
-import org.wdssii.geom.GLWorld;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
@@ -19,6 +22,12 @@ import org.wdssii.properties.Mementor;
  * @author Robert Toomey
  */
 public class Feature implements Mementor {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Feature.class);
+    /**
+     * Storage for renderers based off of a passed in ID
+     */
+    private Map<String, ArrayList<FeatureRenderer>> myRenderers;
 
     /**
      * Used to get information back from a Feature factory to put into the
@@ -55,23 +64,19 @@ public class Feature implements Mementor {
      */
     private String myMessage = "";
     /**
-     * Generic Feature3DRenderers
-     */
-    ArrayList<Feature3DRenderer> myRenderers;
-    /**
      * The GUI for this feature
      */
     private FeatureGUI myControls;
-
-    /** The 'rank' of feature.  For example, point data has
-     * a higher rank value than raster data, making it always stay
-     * higher on the render stack (so it isn't covered by by the raster)
+    /**
+     * The 'rank' of feature. For example, point data has a higher rank value
+     * than raster data, making it always stay higher on the render stack (so it
+     * isn't covered by by the raster)
      */
     private int myRank = 0;
     public final static int RASTER = 0;
     public final static int POINT = 1;
     public final static int MAX_RANK = 1;
-    
+
     /**
      * Create a feature with a default memento
      */
@@ -90,6 +95,77 @@ public class Feature implements Mementor {
         myFeatureList = f;
         myFeatureGroup = g;
         mySettings = settings;
+    }
+
+    /**
+     * FACTORY for getting renderer for a view type, such as worldwind,
+     * geotools, awiips2, etc.
+     */
+    public void addNewRendererItem(
+            ArrayList<FeatureRenderer> list, String id, String packageName, String className) {
+        FeatureRenderer r = createRenderer(id, packageName, className);
+        if (r != null) {
+            list.add(r);
+        }
+    }
+
+    public ArrayList<FeatureRenderer> getNewRendererList(String type, String packageName) {
+        return null; // Default we don't render anything
+    }
+
+    /**
+     * Generically store a renderer list
+     */
+    public void storeRendererList(String id, ArrayList<FeatureRenderer> list) {
+        if (myRenderers == null) {
+            myRenderers = new TreeMap<String, ArrayList<FeatureRenderer>>();
+        }
+        myRenderers.put(id, list);
+    }
+
+    /**
+     * Generically get back a renderer list
+     */
+    public ArrayList<FeatureRenderer> getRendererList(String id, String packageName) {
+        if (myRenderers == null) {
+            myRenderers = new TreeMap<String, ArrayList<FeatureRenderer>>();
+        }
+        ArrayList<FeatureRenderer> stuff = myRenderers.get(id);
+        if (stuff == null) {
+            stuff = getNewRendererList(id, packageName);
+            storeRendererList(id, stuff);
+        }
+        return stuff;
+    }
+
+    /**
+     * Create a renderer by reflection. Decouples from class while allowing
+     * others to use us for caching FeatureRenderers.
+     */
+    public FeatureRenderer createRenderer(String id, String packageName, String className) {
+
+        // Example org.wdssii.
+        Class<?> aClass = null;
+        FeatureRenderer newRenderer = null;
+
+        // "org.wdssii" + "." + "WW"+"MapRenderer" for example....
+        // Worldwind id is WW
+        // Geotools will be GT
+        // Awiips will be AW2
+        String make = packageName + "." +id+className;
+        try {
+            aClass = Class.forName(make);
+            Constructor<?> c = aClass.getConstructor();
+            if (c == null) {
+                LOG.error("Tried to create: " + make);
+            }
+            newRenderer = (FeatureRenderer) c.newInstance();
+            LOG.debug("Created renderer " + make);
+        } catch (Exception e) {
+            LOG.error("Couldn't create class by name '"
+                    + make + "' because " + e.toString());
+        }
+        return newRenderer;
     }
 
     /**
@@ -112,14 +188,14 @@ public class Feature implements Mementor {
         }
     }
 
-    public int getRank(){
+    public int getRank() {
         return myRank;
     }
-    
-    public void setRank(int r){
+
+    public void setRank(int r) {
         myRank = r;
     }
-    
+
     /**
      * Called when property of our memento is changed
      */
@@ -240,64 +316,61 @@ public class Feature implements Mementor {
     public void wasSelected() {
     }
 
-    public void addRenderer(Feature3DRenderer f) {
-        // Lazy create to save memory
-        if (myRenderers == null) {
-            myRenderers = new ArrayList<Feature3DRenderer>();
-        }
-        // Add if not already there...
-        if (f != null) {
-            if (!myRenderers.contains(f)) {
-                myRenderers.add(f);
-            }
-        }
-    }
+    /*public void addRenderer(Feature3DRenderer f) {
+     // Lazy create to save memory
+     if (myRenderers == null) {
+     myRenderers = new ArrayList<Feature3DRenderer>();
+     }
+     // Add if not already there...
+     if (f != null) {
+     if (!myRenderers.contains(f)) {
+     myRenderers.add(f);
+     }
+     }
+     }
 
-    public void removeRenderer(Feature3DRenderer f) {
-        if (myRenderers != null) {
-            myRenderers.remove(f);
-            if (myRenderers.isEmpty()) {
-                myRenderers = null;
-            }
-        }
-    }
-
+     public void removeRenderer(Feature3DRenderer f) {
+     if (myRenderers != null) {
+     myRenderers.remove(f);
+     if (myRenderers.isEmpty()) {
+     myRenderers = null;
+     }
+     }
+     }
+     */
     /**
      * preRender a feature
      */
-    public void preRender(GLWorld w) {
-        if (myRenderers != null) {
-            FeatureMemento m = getMemento();
-            for (Feature3DRenderer r : myRenderers) {
-                r.preRender(w, m);
-            }
-        }
-    }
-
+    //public void preRender(GLWorld w) {
+    //    if (myRenderers != null) {
+    //        FeatureMemento m = getMemento();
+    //        for (Feature3DRenderer r : myRenderers) {
+    //            r.preRender(w, m);
+    //        }
+    //    }
+    //}
     /**
      * Render a feature
      */
-    public void render(GLWorld w) {
-        if (myRenderers != null) {
-            FeatureMemento m = getMemento();
-            for (Feature3DRenderer r : myRenderers) {
-                r.draw(w, m);
-            }
-        }
-    }
-
+    //public void render(GLWorld w) {
+    //    if (myRenderers != null) {
+    //        FeatureMemento m = getMemento();
+    //        for (Feature3DRenderer r : myRenderers) {
+    //            r.draw(w, m);
+    //        }
+    //    }
+    //}
     /**
      * Pick a feature
      */
-    public void pick(GLWorld w, Point p) {
-        if (myRenderers != null) {
-            FeatureMemento m = getMemento();
-            for (Feature3DRenderer r : myRenderers) {
-                r.pick(w, p, m);
-            }
-        }
-    }
-
+    //public void pick(GLWorld w, Point p) {
+    //    if (myRenderers != null) {
+    //        FeatureMemento m = getMemento();
+    //        for (Feature3DRenderer r : myRenderers) {
+    //            r.pick(w, p, m);
+    //        }
+    //    }
+    //}
     /**
      * Would this feature render? This may be different than is visible or not,
      * for example a product might be 'visible' but won't draw because it is too
@@ -342,15 +415,15 @@ public class Feature implements Mementor {
         return new defaultGUI();
     }
 
-    public FeatureGUI getControls(){
-        if (myControls == null){
-          myControls = createNewControls();
+    public FeatureGUI getControls() {
+        if (myControls == null) {
+            myControls = createNewControls();
         }
         return myControls;
     }
-    
-    public void sendMessage(String message){
-        if (myControls != null){
+
+    public void sendMessage(String message) {
+        if (myControls != null) {
             myControls.sendMessage(message);
         }
     }

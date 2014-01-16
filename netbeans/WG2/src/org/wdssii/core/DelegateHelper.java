@@ -53,6 +53,11 @@ public abstract class DelegateHelper {
         return getClass().getSimpleName();
     }
 
+     protected Object getHelperObject(String classSuffix, boolean useBaseClass,
+            boolean cache, String root, String extrainfo) 
+     {
+         return getHelperObject("", classSuffix, useBaseClass, cache, root, extrainfo);
+     }
     /**
      * Get a helper object from cache
      *
@@ -65,7 +70,7 @@ public abstract class DelegateHelper {
      * @param extrainfo
      * @return
      */
-    protected Object getHelperObject(String classSuffix, boolean useBaseClass,
+    protected Object getHelperObject(String classPrefix, String classSuffix, boolean useBaseClass,
             boolean cache, String root, String extrainfo) {
         Object helper;
 
@@ -76,7 +81,7 @@ public abstract class DelegateHelper {
         // replaced with specialized class...
         if (helper == null) {
 
-            String baseClass = getPrefixName();
+            String baseClass = classPrefix+getPrefixName();
 
             /**
              * You can return null until 'ready', this will continue to recheck

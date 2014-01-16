@@ -4,7 +4,6 @@ import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
 import org.wdssii.gui.features.Feature.FeatureTableInfo;
 import org.wdssii.gui.features.FeatureGUI;
-import org.wdssii.gui.features.LLHAreaFeature;
 
 /** Factory which creates a 'slice'.  Two lat/lon points and a fixed height range between them*/
 public class LLHAreaSetFactory extends LLHAreaFactory {

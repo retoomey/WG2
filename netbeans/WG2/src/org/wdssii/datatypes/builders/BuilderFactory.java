@@ -49,15 +49,6 @@ public abstract class BuilderFactory {
      */
     public static DataType createDataType(IndexRecord rec)
             throws DataUnavailableException {
-
-	    /*
-        String builderName = rec.getBuilderName();
-        Builder builder = factory.getPrototypeMaster(builderName);
-        if (builder == null) {
-            LOG.error("ERROR: no such builder: " + builderName);
-            return null;
-        }
-	*/
 	Builder builder = rec.getBuilder();
 	if (builder == null){
             LOG.error("No builder for this record");
@@ -70,13 +61,6 @@ public abstract class BuilderFactory {
      * that holds a pointer to a future DataType.  See DataRequest for example 
      */
     public static DataRequest createDataRequest(IndexRecord rec) {
-        /*String builderName = rec.getBuilderName();
-        Builder builder = factory.getPrototypeMaster(builderName);
-        if (builder == null) {
-            LOG.error("ERROR: no such builder: " + builderName);
-            return null;
-        }
-	* */
 	Builder builder = rec.getBuilder();
 	if (builder == null){
             LOG.error("No builder for this record");

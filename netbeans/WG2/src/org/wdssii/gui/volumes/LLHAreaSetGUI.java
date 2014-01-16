@@ -40,6 +40,7 @@ import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
@@ -52,12 +53,11 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.PointRemoveCommand;
 import org.wdssii.gui.features.FeatureGUI;
-import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.properties.ComboStringGUI;
 import org.wdssii.gui.properties.IntegerGUI;
 import org.wdssii.gui.properties.PropertyGUI;
 import org.wdssii.gui.swing.*;
-import org.wdssii.gui.views.ChartView;
+import org.wdssii.gui.views.DataFeatureView;
 import org.wdssii.gui.volumes.LLHAreaController.ToolbarMode;
 import org.wdssii.gui.volumes.LLHAreaSet.LLHAreaSetMemento;
 
@@ -207,9 +207,9 @@ public class LLHAreaSetGUI extends FeatureGUI {
         ComboStringGUI.ArrayListProvider listMaker = new ComboStringGUI.ArrayListProvider() {
             @Override
             public ArrayList<String> getList() {
-                ArrayList<ChartView> charts = ChartView.getList();
+                ArrayList<DataFeatureView> charts = DataFeatureView.getList();
                 ArrayList<String> list = new ArrayList<String>();
-                for (ChartView v : charts) {
+                for (DataFeatureView v : charts) {
                     String key = v.getTitle();  // FIXME: should be get key since title can change
                     list.add(key);
                 }
@@ -349,7 +349,8 @@ public class LLHAreaSetGUI extends FeatureGUI {
              * each Feature created from a record in the input csv
              * data file
              */
-            SimpleFeatureCollection collection = FeatureCollections.newCollection();
+            //SimpleFeatureCollection collection = FeatureCollections.newCollection();
+            DefaultFeatureCollection collection = new DefaultFeatureCollection();
             /*
              * GeometryFactory will be used to create the geometry
              * attribute of each feature (a Point object for the
@@ -386,6 +387,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
                 //  featureBuilder.add(counter);
                 SimpleFeature feature = featureBuilder.buildFeature(null);
                 collection.add(feature);
+                
 
             }
 

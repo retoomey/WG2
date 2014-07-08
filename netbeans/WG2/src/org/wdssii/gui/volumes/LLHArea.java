@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.LLD;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.products.VolumeSliceInput;
@@ -133,13 +134,13 @@ public class LLHArea extends AVListImpl implements Movable {
     private AirspaceAttributes attributes;
     protected double lowerAltitude = 0.0;
     protected double upperAltitude = 1.0;
-    private LatLon groundReference;
+    private LLD groundReference;
     // Geometry computation and rendering support.
     private GeometryBuilder geometryBuilder = new GeometryBuilder();
     /**
      * The list of locations that make us up
      */
-    private List<LatLon> locations = new ArrayList<LatLon>();
+    private List<LLD> locations = new ArrayList<LLD>();
 
     public LLHArea(LLHAreaFeature f) {
         this(new BasicAirspaceAttributes());
@@ -255,15 +256,16 @@ public class LLHArea extends AVListImpl implements Movable {
         return 0;
     }
 
-    public ArrayList<LatLon> getArrayListCopyOfLocations() {
-        ArrayList<LatLon> newList = new ArrayList<LatLon>();
-        for (LatLon l : locations) {
-            newList.add(new LatLon(l.getLatitude(), l.getLongitude()));
+    public ArrayList<LLD> getArrayListCopyOfLocations() {
+        ArrayList<LLD> newList = new ArrayList<LLD>();
+        for (LLD l : locations) {
+            //newList.add(new LatLon(l.getLatitude(), l.getLongitude()));
+            newList.add(new LLD(l));
         }
         return newList;
     }
 
-    public List<LatLon> getLocations() {
+    public List<LLD> getLocations() {
         return Collections.unmodifiableList(this.locations);
     }
 
@@ -305,11 +307,11 @@ public class LLHArea extends AVListImpl implements Movable {
         this.setAltitudes(altitude, altitude);
     }
 
-    public LatLon getGroundReference() {
+    public LLD getGroundReference() {
         return this.groundReference;
     }
 
-    public void setGroundReference(LatLon groundReference) {
+    public void setGroundReference(LLD groundReference) {
         this.groundReference = groundReference;
     }
 
@@ -369,28 +371,32 @@ public class LLHArea extends AVListImpl implements Movable {
         // Update all locations...
 
         int count = this.locations.size();
-        LatLon[] newLocations = new LatLon[count];
+        LLD[] newLocations = new LLD[count];
         for (int i = 0; i < count; i++) {
-            LatLon ll = this.locations.get(i);
+            LLD lld = this.locations.get(i);
+            LatLon ll = new LatLon(Angle.fromDegrees(lld.latDegrees()), Angle.fromDegrees(lld.lonDegrees()));
             double distance = LatLon.greatCircleDistance(oldRef, ll).radians;
             double azimuth = LatLon.greatCircleAzimuth(oldRef, ll).radians;
-            newLocations[i] = LatLon.greatCircleEndPosition(newRef, azimuth, distance);
+            //newLocations[i] = LatLon.greatCircleEndPosition(newRef, azimuth, distance);
+            LatLon newLoc = LatLon.greatCircleEndPosition(newRef, azimuth, distance);
+            newLocations[i] = new LLD(newLoc.latitude.degrees, newLoc.longitude.degrees);
         }
         this.setLocations(Arrays.asList(newLocations));
     }
 
-    public void setLocations(Iterable<? extends LatLon> locations) {
+    public void setLocations(Iterable<? extends LLD> locations) {
         this.locations.clear();
         this.addLocations(locations);
     }
+    
 
-    protected List<LatLon> getLocationList() {
+    protected List<LLD> getLocationList() {
         return this.locations;
     }
 
-    protected void addLocations(Iterable<? extends LatLon> newLocations) {
+    protected void addLocations(Iterable<? extends LLD> newLocations) {
         if (newLocations != null) {
-            for (LatLon ll : newLocations) {
+            for (LLD ll : newLocations) {
                 if (ll != null) {
                     this.locations.add(ll);
                 }
@@ -403,20 +409,21 @@ public class LLHArea extends AVListImpl implements Movable {
     public void updateCurrentGrid() {
     }
 
-    protected Position computeReferencePosition(List<? extends LatLon> locations, double[] altitudes) {
+    protected Position computeReferencePosition(List<? extends LLD> locations, double[] altitudes) {
         int count = locations.size();
         if (count == 0) {
             return null;
         }
 
-        LatLon ll;
+        LLD ll;
         if (count < 3) {
             ll = locations.get(0);
         } else {
             ll = locations.get(count / 2);
         }
 
-        return new Position(ll, altitudes[0]);
+        LatLon newOne = new LatLon(Angle.fromDegrees(ll.latDegrees()), Angle.fromDegrees(ll.lonDegrees()));
+        return new Position(newOne, altitudes[0]);
     }
 
     //**************************************************************//
@@ -436,7 +443,7 @@ public class LLHArea extends AVListImpl implements Movable {
         this.doRenderGeometry(w, drawStyle, getLocationList(), null);
     }
 
-    protected void doRenderGeometry(GLWorld w, String drawStyle, List<LatLon> locations, List<Boolean> edgeFlags) {
+    protected void doRenderGeometry(GLWorld w, String drawStyle, List<LLD> locations, List<Boolean> edgeFlags) {
     }
 
     protected GeometryBuilder getGeometryBuilder() {
@@ -464,7 +471,7 @@ public class LLHArea extends AVListImpl implements Movable {
         }
     }
 
-    protected Cylinder computeBoundingCylinder(DrawContext dc, Iterable<? extends LatLon> locations) {
+    protected Cylinder computeBoundingCylinder(DrawContext dc, Iterable<? extends LLD> locations) {
         Globe globe = dc.getGlobe();
         double verticalExaggeration = dc.getVerticalExaggeration();
         double[] altitudes = this.getAltitudes();
@@ -472,8 +479,10 @@ public class LLHArea extends AVListImpl implements Movable {
         // Get the points corresponding to the given locations at the lower and upper altitudes.
         ArrayList<Vec4> points = new ArrayList<Vec4>();
         for (int a = 0; a < 2; a++) {
-            for (LatLon ll : locations) {
-                points.add(globe.computePointFromPosition(ll.getLatitude(), ll.getLongitude(),
+            for (LLD ll : locations) {
+                //points.add(globe.computePointFromPosition(ll.getLatitude(), ll.getLongitude(),
+                //        verticalExaggeration * altitudes[a]));
+                points.add(globe.computePointFromPosition(Angle.fromDegrees(ll.latDegrees()),Angle.fromDegrees(ll.lonDegrees()),
                         verticalExaggeration * altitudes[a]));
             }
         }
@@ -618,11 +627,13 @@ public class LLHArea extends AVListImpl implements Movable {
      * Add a control point
      */
     protected void addPolygonControlPoint(ArrayList<LLHAreaControlPoint> list, DrawContext dc, int locationIndex, int altitudeIndex) {
-        LatLon location = getLocations().get(locationIndex);
+        LLD location = getLocations().get(locationIndex);
         double altitude = getAltitudes()[altitudeIndex];
 
         double vert = dc.getVerticalExaggeration();
-        Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude * vert);
+        //Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude * vert);
+        Vec4 point = dc.getGlobe().computePointFromPosition( Angle.fromDegrees(location.latDegrees()),Angle.fromDegrees(location.lonDegrees()), altitude * vert);
+       
         LLHAreaControlPoint controlPoint =
                 new LLHAreaControlPoint(this, locationIndex, altitudeIndex, point);
         list.add(controlPoint);
@@ -631,7 +642,7 @@ public class LLHArea extends AVListImpl implements Movable {
     /**
      * The default location for a newly created LLHArea
      */
-    protected List<LatLon> getDefaultLocations(WorldWindow wwd, Object params) {
+    protected List<LLD> getDefaultLocations(WorldWindow wwd, Object params) {
         return null;
     }
 
@@ -639,18 +650,24 @@ public class LLHArea extends AVListImpl implements Movable {
      * Return info for a segment Not sure where to put this function
      */
     public VolumeSliceInput getSegmentInfo(VolumeSliceInput buffer, int segment, int rows, int cols) {
-        java.util.List<LatLon> l = getLocations();
+        java.util.List<LLD> l = getLocations();
         if (l.size() > segment + 1) {
             double[] altitudes = getAltitudes();
-            ArrayList<LatLon> list = getVSliceLocations(getLocations());
+            ArrayList<LLD> list = getVSliceLocations(getLocations());
             if (buffer != null) {
-                buffer.set(rows, cols, list.get(0).latitude.degrees, list.get(0).longitude.degrees,
-                        list.get(1).latitude.degrees, list.get(1).longitude.degrees,
+                //buffer.set(rows, cols, list.get(0).latitude.degrees, list.get(0).longitude.degrees,
+                //        list.get(1).latitude.degrees, list.get(1).longitude.degrees,
+                //        altitudes[0], altitudes[1]);
+                buffer.set(rows, cols, list.get(0).latDegrees(), list.get(0).lonDegrees(),
+                        list.get(1).latDegrees(), list.get(1).latDegrees(),
                         altitudes[0], altitudes[1]);
                 return buffer;
             } else {
-                return new VolumeSliceInput(rows, cols, list.get(0).latitude.degrees, list.get(0).longitude.degrees,
-                        list.get(1).latitude.degrees, list.get(1).longitude.degrees,
+                //return new VolumeSliceInput(rows, cols, list.get(0).latitude.degrees, list.get(0).longitude.degrees,
+                //        list.get(1).latitude.degrees, list.get(1).longitude.degrees,
+                //        altitudes[0], altitudes[1]);
+                return new VolumeSliceInput(rows, cols, list.get(0).latDegrees(), list.get(0).lonDegrees(),
+                        list.get(1).latDegrees(), list.get(1).lonDegrees(),
                         altitudes[0], altitudes[1]);
             }
         } else {
@@ -662,15 +679,16 @@ public class LLHArea extends AVListImpl implements Movable {
      * Given a lat lon list, return vslice order Not sure where to put this
      * function
      */
-    protected static ArrayList<LatLon> getVSliceLocations(java.util.List<LatLon> input) {
+    protected static ArrayList<LLD> getVSliceLocations(java.util.List<LLD> input) {
 
-        ArrayList<LatLon> out = null;
+        ArrayList<LLD> out = null;
         if (input.size() > 1) {
-            out = new ArrayList<LatLon>();
-            LatLon l1 = input.get(0);
-            LatLon l2 = input.get(1);
-            LatLon leftBottom, rightBottom;
-            if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
+            out = new ArrayList<LLD>();
+            LLD l1 = input.get(0);
+            LLD l2 = input.get(1);
+            LLD leftBottom, rightBottom;
+           // if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
+             if (l1.latDegrees() < l2.lonDegrees()) {
                 leftBottom = l1;
                 rightBottom = l2;
             } else {

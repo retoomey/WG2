@@ -1,6 +1,5 @@
 package org.wdssii.gui.charts;
 
-import gov.nasa.worldwind.geom.LatLon;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import org.jfree.chart.JFreeChart;
@@ -14,20 +13,10 @@ import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.DomainOrder;
-import org.jfree.data.Range;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetGroup;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-import org.wdssii.geom.Location;
-import org.wdssii.gui.ColorMap.ColorMapOutput;
-import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.volumes.LLHAreaFeature;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.products.Product.Navigation;
-import org.wdssii.gui.products.volumes.ProductVolume;
-import org.wdssii.gui.volumes.LLHArea;
 
 public class TimeTrendChart extends ChartViewJFreeChart {
 

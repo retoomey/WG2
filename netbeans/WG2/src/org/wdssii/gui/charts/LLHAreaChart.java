@@ -1,5 +1,6 @@
 package org.wdssii.gui.charts;
 
+import org.wdssii.gui.worldwind.VSliceChart;
 import java.awt.geom.Rectangle2D;
 import org.jfree.chart.axis.ValueAxis;
 import org.wdssii.gui.features.Feature;

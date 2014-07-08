@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.LLD;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.commands.PointAddCommand;
 import org.wdssii.gui.commands.PointRemoveCommand;
@@ -477,7 +478,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
         // These issues are resolved by making several passes for the interior and outline, as follows:
 
         final GL gl = w.gl;
-
+ final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
+        LOG.debug("MAIN PICKING MODE DC IS "+dc.isPickingMode());
         // If the outline and interior will be drawn, then draw the outline color, but do not affect the depth buffer
         // (outline pixels do not need the depth test). When the interior is drawn, it will draw on top of these
         // colors, and the outline will be visible behind the potentially transparent interior.
@@ -977,16 +979,16 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
          * */
     }
 
-    public ArrayList<LatLon> originList(WorldWindow wwd, LLHArea area, Point mousePoint) {
+    public ArrayList<LLD> originList(WorldWindow wwd, LLHArea area, Point mousePoint) {
         if (area instanceof LLHAreaSet) {
             LLHAreaSet set = (LLHAreaSet) (area);
             FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
             // currently copying all points into 'points'
-            ArrayList<LatLon> newList = new ArrayList<LatLon>();
+            ArrayList<LLD> newList = new ArrayList<LLD>();
             @SuppressWarnings("unchecked")
-            ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
-            for (LatLon l : list) {
-                LatLon copy = new LatLon(l);
+            ArrayList<LLD> list = ((ArrayList<LLD>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+            for (LLD l : list) {
+                LLD copy = new LLD(l);
                 newList.add(copy);
             }
             return newList;
@@ -1015,7 +1017,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
     //**************************************************************//
 
     public void doMoveAirspaceLaterally(WorldWindow wwd, LLHArea airspace,
-            ArrayList<LatLon> originList, Position origin, Point mousePoint) {
+            ArrayList<LLD> originList, Position origin, Point mousePoint) {
 
         // Include this test to ensure any derived implementation performs it.
         if (this.getAirspace() == null || this.getAirspace() != airspace) {
@@ -1055,7 +1057,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
             // currently copying all points into 'points'
             @SuppressWarnings("unchecked")
-            ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+            ArrayList<LLD> list = ((ArrayList<LLD>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
             if (list != null) {
 
                 // Delta from original point to current point...
@@ -1064,10 +1066,13 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
                 if (!originList.isEmpty()) {  // Need at least one existing point for reference...
                     int index = 0;
-                    for (LatLon l : originList) {
-                        LatLon l2 = LatLon.fromDegrees(l.latitude.degrees + dlat, l.longitude.degrees + dlon);
-                        Position temp = new Position(l2, elevation);
-                        list.set(index, temp);
+                    for (LLD l : originList) {
+                       // LatLon l2 = LatLon.fromDegrees(l.latitude.degrees + dlat, l.longitude.degrees + dlon);
+                        LLD l2 = new LLD(l.latDegrees() + dlat, l.lonDegrees() + dlon);
+                        list.set(index, l2);
+              // FIXMELLD: Not sure we use/need the elevation stored...
+              //          Position temp = new Position(l2, elevation);
+              //          list.set(index, temp);
                         index++;
 
                     }
@@ -1126,7 +1131,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
             // currently copying all points into 'points'
             @SuppressWarnings("unchecked")
-            ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+            ArrayList<LLD> list = ((ArrayList<LLD>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
             if (list != null) {
                 //list.add(newLocation);
                 // m.setProperty(LLHAreaSet.LLHAreaSetMemento.POINTS, list); same list
@@ -1252,8 +1257,11 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
         this.getAirspace().setAltitudes(altitudes[LOWER_ALTITUDE], altitudes[UPPER_ALTITUDE]);
 
-        ArrayList<LatLon> locationList = new ArrayList<LatLon>();
-        locationList.add(new LatLon(newPosition));
+        ArrayList<LLD> locationList = new ArrayList<LLD>();
+        LatLon l = new LatLon(newPosition);
+        //FIXMELLH: position ignored
+        locationList.add(new LLD(l.latitude.degrees, l.longitude.degrees));
+        //locationList.add(new LatLon(newPosition));
 
         this.getAirspace().setLocations(locationList);
 
@@ -1290,14 +1298,15 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
         Vec4 newPoint = controlPoint.getPoint();
         LatLon newLocation = new LatLon(wwd.getModel().getGlobe().computePositionFromPoint(newPoint));
-
-        ArrayList<LatLon> locationList = new ArrayList<LatLon>(this.getAirspace().getLocations());
-        locationList.add(controlPoint.getLocationIndex(), newLocation);
+        LLD l = new LLD(newLocation.latitude.degrees, newLocation.longitude.degrees);
+        ArrayList<LLD> locationList = new ArrayList<LLD>(this.getAirspace().getLocations());
+        locationList.add(controlPoint.getLocationIndex(), l);
 
         LLHArea area = this.getAirspace();
         if (area instanceof LLHAreaSet) {
             LLHAreaSet set = (LLHAreaSet) (area);
-            PointAddCommand c = new PointAddCommand(set, newLocation, controlPoint.getLocationIndex());
+            LLD newLLD = new LLD(newLocation.latitude.degrees, newLocation.longitude.degrees);
+            PointAddCommand c = new PointAddCommand(set, newLLD, controlPoint.getLocationIndex());
             CommandManager.getInstance().executeCommand(c, true);
         }
 
@@ -1502,16 +1511,21 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
             FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui control...hummm
             // currently copying all points into 'points'
             @SuppressWarnings("unchecked")
-            ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+            ArrayList<LLD> list = ((ArrayList<LLD>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
             if (list != null) {
-                list.set(index, newPosition);
+             // FIXMELLH:   list.set(index, newPosition);
+                LLD newOne = new LLD(newPosition.latitude.degrees, newPosition.longitude.degrees);
+                list.set(index, newOne);
+                
                 FeatureMemento fm = (FeatureMemento) (m); // Check it
                 FeatureChangeCommand c = new FeatureChangeCommand(area.getFeature(), fm);
                 CommandManager.getInstance().executeCommand(c, true);
             }
         } else {
-            List<LatLon> newLocationList = new ArrayList<LatLon>(this.getAirspace().getLocations());
-            newLocationList.set(index, newPosition);
+            List<LLD> newLocationList = new ArrayList<LLD>(this.getAirspace().getLocations());
+             // FIXMELLH:   list.set(index, newPosition);
+                LLD newOne = new LLD(newPosition.latitude.degrees, newPosition.longitude.degrees);
+            newLocationList.set(index, newOne);
             this.getAirspace().setLocations(newLocationList);
         }
     }

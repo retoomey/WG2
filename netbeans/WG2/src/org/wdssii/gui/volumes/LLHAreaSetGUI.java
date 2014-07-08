@@ -10,9 +10,7 @@ import com.jidesoft.swing.JideButton;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
-import gov.nasa.worldwind.geom.LatLon;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -37,11 +35,9 @@ import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
-import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -51,6 +47,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
+import org.wdssii.geom.LLD;
 import org.wdssii.gui.commands.PointRemoveCommand;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.properties.ComboStringGUI;
@@ -360,7 +357,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
 
             SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(TYPE);
 
-            List<LatLon> list = myLLHAreaSet.getLocations();
+            List<LLD> list = myLLHAreaSet.getLocations();
             int i = 0;
             int counter = 1;
             LLHAreaSetMemento m = myLLHAreaSet.getMemento();
@@ -372,10 +369,10 @@ public class LLHAreaSetGUI extends FeatureGUI {
             if (b == null) {
                 b = 0;
             }
-            for (LatLon l : list) {
+            for (LLD l : list) {
                 //LLHAreaSetTableData d = new LLHAreaSetTableData();
-                double latitude = l.latitude.degrees;
-                double longitude = l.longitude.degrees;
+                double latitude = l.latDegrees();
+                double longitude = l.lonDegrees();
                 /*
                  * Longitude (= x coord) first !
                  */
@@ -662,12 +659,12 @@ public class LLHAreaSetGUI extends FeatureGUI {
 
         //myLLHAreaSet.getLocationList(); GUI thread different
         ArrayList<LLHAreaSetTableData> aList = new ArrayList<LLHAreaSetTableData>();
-        List<LatLon> list = myLLHAreaSet.getLocations();
+        List<LLD> list = myLLHAreaSet.getLocations();
         int i = 0;
-        for (LatLon l : list) {
+        for (LLD l : list) {
             LLHAreaSetTableData d = new LLHAreaSetTableData();
-            d.lat = l.latitude.degrees;  // possible jitter...
-            d.lon = l.longitude.degrees;
+            d.lat = l.latDegrees();  // possible jitter...
+            d.lon = l.lonDegrees();
             d.index = i++;
             aList.add(d);
         }

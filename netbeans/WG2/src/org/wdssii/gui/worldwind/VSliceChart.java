@@ -1,7 +1,6 @@
-package org.wdssii.gui.charts;
+package org.wdssii.gui.worldwind;
 
 import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.geom.Matrix;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Vec4;
@@ -33,7 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.LLD;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.charts.DynamicXYZDataset;
+import org.wdssii.gui.charts.LLHAreaChart;
 import org.wdssii.gui.commands.FeatureCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
@@ -48,7 +50,6 @@ import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSet;
 import org.wdssii.gui.volumes.VSliceRenderer;
-import org.wdssii.gui.worldwind.GLWorldWW;
 
 /**
  * Chart that draws a dynamic grid sampled from a product volume in both a
@@ -80,8 +81,8 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     private VolumeSliceInput myCurrentGrid =
             new VolumeSliceInput(myNumRows, myNumCols, 0, 0,
             0, 0, 0, 50);
-    private LatLon myLeftLocation;
-    private LatLon myRightLocation;
+    private LLD myLeftLocation;
+    private LLD myRightLocation;
     /**
      * How many times to 'split' the raw fill or outline of slice. This isn't
      * the same as the vslice resolution.
@@ -730,7 +731,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
      * This is the current key used to tell if the 3D slice in the earth view
      * needs to be remade or not.....
      */
-    private String getNewCacheKey(java.util.List<LatLon> locations) {
+    private String getNewCacheKey(java.util.List<LLD> locations) {
 
         // FIXME: this is wrong....should be the filters for the product we are following....this
         // is the top product.....
@@ -761,7 +762,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
      * @param useFilters
      * @return
      */
-    public String getKey(java.util.List<LatLon> locations, String follow, boolean virtual, FilterList list, boolean useFilters) {
+    public String getKey(java.util.List<LLD> locations, String follow, boolean virtual, FilterList list, boolean useFilters) {
         // Start with GIS location key
         String newKey = getGISKey(locations);
 
@@ -780,15 +781,15 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     /**
      * Get a key that represents the GIS location of this slice
      */
-    public String getGISKey(java.util.List<LatLon> locations) {
+    public String getGISKey(java.util.List<LLD> locations) {
         // Add location and altitude...
         //java.util.List<LatLon> locations = getLocationList();
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < locations.size(); i++) {
-            LatLon l = locations.get(i);
-            buf.append(l.getLatitude());
+            LLD l = locations.get(i);
+            buf.append(l.latDegrees());
             buf.append(':');
-            buf.append(l.getLongitude());
+            buf.append(l.lonDegrees());
             buf.append(':');
 
         }
@@ -815,9 +816,9 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     @Override
     // All the 3D render stuff of the Chrt
     // Render in 3D
-    public void drawChartInLLHArea(GLWorld w, java.util.List<LatLon> locations, double[] altitudes, java.util.List<Boolean> edgeFlags) {
+    public void drawChartInLLHArea(GLWorld w, java.util.List<LLD> locations, double[] altitudes, java.util.List<Boolean> edgeFlags) {
         if (locations.size() > 1) {
-            ArrayList<LatLon> ordered = updateCurrentGrid(locations);
+            ArrayList<LLD> ordered = updateCurrentGrid(locations);
             myCurrentGrid.bottomHeight = altitudes[0];
             myCurrentGrid.topHeight = altitudes[1];
             VolumeSlice3DOutput geom = this.getVSliceGeometry(w, ordered, edgeFlags);
@@ -826,13 +827,13 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         }
     }
 
-    protected void orderLocations(java.util.List<LatLon> input) {
+    protected void orderLocations(java.util.List<LLD> input) {
         // VSlice only.  Two locations, the points on the bottom. 
         // Make sure the east one is right of the west one...
-        LatLon l1 = input.get(0);
-        LatLon l2 = input.get(1);
-        LatLon leftBottom, rightBottom;
-        if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
+        LLD l1 = input.get(0);
+        LLD l2 = input.get(1);
+        LLD leftBottom, rightBottom;
+        if (l1.lonDegrees() < l2.lonDegrees()) {
             leftBottom = l1;
             rightBottom = l2;
         } else {
@@ -846,20 +847,20 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     /**
      * Update the current grid that is the GIS location of the slice
      */
-    public ArrayList<LatLon> updateCurrentGrid(java.util.List<LatLon> locations) {
+    public ArrayList<LLD> updateCurrentGrid(java.util.List<LLD> locations) {
 
         // Generate the 3D VSlice in the window, and the 2D slice for charting...
         orderLocations(locations);
-        double startLat = myLeftLocation.getLatitude().getDegrees();
-        double startLon = myLeftLocation.getLongitude().getDegrees();
-        double endLat = myRightLocation.getLatitude().getDegrees();
-        double endLon = myRightLocation.getLongitude().getDegrees();
+        double startLat = myLeftLocation.latDegrees();
+        double startLon = myLeftLocation.lonDegrees();
+        double endLat = myRightLocation.latDegrees();
+        double endLon = myRightLocation.lonDegrees();
 
         myCurrentGrid.startLat = startLat;
         myCurrentGrid.startLon = startLon;
         myCurrentGrid.endLat = endLat;
         myCurrentGrid.endLon = endLon;
-        ArrayList<LatLon> orderedList = new ArrayList<LatLon>();
+        ArrayList<LLD> orderedList = new ArrayList<LLD>();
         orderedList.add(myLeftLocation);
         orderedList.add(myRightLocation);
         return orderedList;
@@ -873,7 +874,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
      *
      * @return
      */
-    private VolumeSlice3DOutput getVSliceGeometry(GLWorld w, java.util.List<LatLon> locations, java.util.List<Boolean> edgeFlags) {
+    private VolumeSlice3DOutput getVSliceGeometry(GLWorld w, java.util.List<LLD> locations, java.util.List<Boolean> edgeFlags) {
         String newKey = getNewCacheKey(locations);
         // Add exaggeration to cache key so changing exaggeration will redraw it
         newKey += w.getVerticalExaggeration();
@@ -895,7 +896,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         return this.geometryBuilder;
     }
 
-    protected int computeCartesianPolygon(GLWorld w, java.util.List<? extends LatLon> locations, java.util.List<Boolean> edgeFlags,
+    protected int computeCartesianPolygon(GLWorld w, java.util.List<? extends LLD> locations, java.util.List<Boolean> edgeFlags,
             Vec4[] points, Boolean[] edgeFlagArray, Matrix[] transform) {
         final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
 
@@ -906,8 +907,8 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
 
         // Compute the cartesian points for each location.
         for (int i = 0; i < locationCount; i++) {
-            LatLon ll = locations.get(i);
-            points[i] = globe.computePointFromPosition(ll.getLatitude(), ll.getLongitude(), 0.0);
+            LLD ll = locations.get(i);
+            points[i] = globe.computePointFromPosition(Angle.fromDegrees(ll.latDegrees()), Angle.fromDegrees(ll.lonDegrees()), 0.0);
 
             if (edgeFlagArray != null) {
                 edgeFlagArray[i] = (edgeFlags != null) ? edgeFlags.get(i) : true;
@@ -1012,7 +1013,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         return count;
     }
 
-    private void makeVSlice(GLWorld w, java.util.List<LatLon> locations, java.util.List<Boolean> edgeFlags,
+    private void makeVSlice(GLWorld w, java.util.List<LLD> locations, java.util.List<Boolean> edgeFlags,
             VolumeSlice3DOutput dest) {
         if (locations.isEmpty()) {
             return;

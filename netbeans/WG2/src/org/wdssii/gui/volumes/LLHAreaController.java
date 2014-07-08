@@ -2,7 +2,6 @@ package org.wdssii.gui.volumes;
 
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.event.InputHandler;
-import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.pick.PickedObject;
 import gov.nasa.worldwind.pick.PickedObjectList;
@@ -14,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.geom.LLD;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
@@ -43,7 +43,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
     private LLHAreaControlPoint activeControlPoint;
     private DFAMode myDFAState = DFAMode.NO_ACTION;
     private Position origin;
-    private ArrayList<LatLon> originList;
+    private ArrayList<LLD> originList;
     private boolean consumeMouseClick;
 
     // Current action we are doing with mouse
@@ -168,7 +168,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         this.activeLLHArea = airspace;
     }
 
-    protected void setOrigin(Position p, ArrayList<LatLon> l) {
+    protected void setOrigin(Position p, ArrayList<LLD> l) {
         this.origin = p;
         this.originList = l;
     }
@@ -177,7 +177,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         return this.origin;
     }
 
-    protected ArrayList<LatLon> getOriginList() {
+    protected ArrayList<LLD> getOriginList() {
         return this.originList;
     }
 

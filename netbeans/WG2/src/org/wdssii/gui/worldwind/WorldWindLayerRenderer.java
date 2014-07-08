@@ -7,7 +7,6 @@ import java.awt.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.GLWorld;
-import org.wdssii.gui.charts.WorldWindDataView;
 import org.wdssii.gui.features.FeatureMemento;
 
 /**

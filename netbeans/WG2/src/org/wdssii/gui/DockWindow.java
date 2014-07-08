@@ -31,7 +31,7 @@ import net.infonode.tabbedpanel.TabLayoutPolicy;
 import net.infonode.util.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.gui.charts.WorldWindDataView;
+import org.wdssii.gui.worldwind.WorldWindDataView;
 import org.wdssii.gui.views.WdssiiDockedViewFactory;
 import org.wdssii.storage.DataManager;
 

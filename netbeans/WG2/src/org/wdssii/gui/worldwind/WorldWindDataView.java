@@ -1,4 +1,4 @@
-package org.wdssii.gui.charts;
+package org.wdssii.gui.worldwind;
 
 import gov.nasa.worldwind.Configuration;
 import gov.nasa.worldwind.Model;
@@ -39,18 +39,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeaturePosition;
 import org.wdssii.gui.features.LegendFeature;
-import org.wdssii.gui.worldwind.WorldwindStockFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.renderers.ProductRenderer;
 import org.wdssii.gui.volumes.LLHAreaController;
 import org.wdssii.gui.volumes.LLHAreaSetGUI;
-import org.wdssii.gui.worldwind.LLHAreaLayer;
-import org.wdssii.gui.worldwind.ReadoutStatusBar;
-import org.wdssii.gui.worldwind.WJSceneController;
-import org.wdssii.gui.worldwind.WorldwindUtil;
 
 /**
  * Experimental. As I move towards multiwindow looks like stuff will be moving

@@ -11,6 +11,7 @@ import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.LLD;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.products.FilterList;
@@ -56,7 +57,7 @@ public class LLHAreaSet extends LLHArea {
             initProperty(GRID_ROWS, 50);
             initProperty(GRID_COLS, 100);
             // Experimental...
-            initProperty(POINTS, new ArrayList<LatLon>());
+            initProperty(POINTS, new ArrayList<LLD>());
             initProperty(RENDERER, "");
         }
     }
@@ -92,7 +93,7 @@ public class LLHAreaSet extends LLHArea {
         super.setFromMemento(l);
 
         @SuppressWarnings("unchecked")
-        ArrayList<LatLon> list = ((ArrayList<LatLon>) l.getPropertyValue(LLHAreaSetMemento.POINTS));
+        ArrayList<LLD> list = ((ArrayList<LLD>) l.getPropertyValue(LLHAreaSetMemento.POINTS));
         if (list != null) {
             this.setLocations(list);
             // FeatureMemento fm = (FeatureMemento)(m); // Check it
@@ -199,7 +200,7 @@ public class LLHAreaSet extends LLHArea {
      * @param edgeFlags
      */
     @Override
-    protected void doRenderGeometry(GLWorld w, String drawStyle, List<LatLon> locations, List<Boolean> edgeFlags) {
+    protected void doRenderGeometry(GLWorld w, String drawStyle, List<LLD> locations, List<Boolean> edgeFlags) {
         if (locations.isEmpty()) {
             return;
         }
@@ -211,8 +212,9 @@ public class LLHAreaSet extends LLHArea {
         // We were syncing to my current grid here...
         //myCurrentGrid.bottomHeight = altitudes[0];
         //myCurrentGrid.topHeight = altitudes[1];
-        List<LatLon> list = this.getLocations();
+        List<LLD> list = this.getLocations();
         final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
+        LOG.debug("PICKING MODE DC IS "+dc.isPickingMode());
         GL gl = dc.getGL();
 
         if (drawStyle.equals("fill")) {
@@ -240,10 +242,10 @@ public class LLHAreaSet extends LLHArea {
 
                     if (list.size() > 1) {
                         gl.glBegin(GL.GL_QUAD_STRIP);
-                        for (LatLon l : list) {
+                        for (LLD l : list) {
                             // Calculate vec from position
-                            Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
-                            Vec4 top = globe.computePointFromPosition(l.latitude, l.longitude, topHeight);
+                            Vec4 bot = globe.computePointFromPosition(Angle.fromDegrees(l.latDegrees()), Angle.fromDegrees(l.lonDegrees()), botHeight);
+                            Vec4 top = globe.computePointFromPosition(Angle.fromDegrees(l.latDegrees()), Angle.fromDegrees(l.lonDegrees()), topHeight);
                             gl.glVertex3d(bot.x, bot.y, bot.z);
                             gl.glVertex3d(top.x, top.y, top.z);
                         }
@@ -251,31 +253,31 @@ public class LLHAreaSet extends LLHArea {
                     } else {
                         // Size of 1.  Draw a box so user can 'hit' line...
                         // Calculate vec from position
-                        LatLon l = list.get(0);
-                        Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
+                        LLD l = list.get(0);
+                        Vec4 bot = globe.computePointFromPosition(Angle.fromDegrees(l.latDegrees()), Angle.fromDegrees(l.lonDegrees()), botHeight);
                         LLHAreaControlPoint.CircleMarker.billboard(dc, bot);
                     }
                 } else {
                     // Connect the dots with a line strip...
                     if (list.size() > 1) {
                         gl.glBegin(GL.GL_LINE_STRIP);
-                        for (LatLon l : list) {
-                            Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
+                        for (LLD l : list) {
+                            Vec4 bot = globe.computePointFromPosition(Angle.fromDegrees(l.latDegrees()), Angle.fromDegrees(l.lonDegrees()), botHeight);
                             gl.glVertex3d(bot.x, bot.y, bot.z);
                         }
                         gl.glEnd();
                     } else {
                         // Draw special box in case of single point so always visible
-                        LatLon l = list.get(0);
-                        Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
+                        LLD l = list.get(0);
+                        Vec4 bot = globe.computePointFromPosition(Angle.fromDegrees(l.latDegrees()), Angle.fromDegrees(l.lonDegrees()), botHeight);
                         LLHAreaControlPoint.CircleMarker.billboard(dc, bot);
                     }
 
                     // Draw 'heights' of sticks as well since we only draw bot points
                     gl.glBegin(GL.GL_LINES);
-                    for (LatLon l : list) {
-                        Vec4 bot = globe.computePointFromPosition(l.latitude, l.longitude, botHeight);
-                        Vec4 top = globe.computePointFromPosition(l.latitude, l.longitude, topHeight);
+                    for (LLD l : list) {
+                        Vec4 bot = globe.computePointFromPosition(Angle.fromDegrees(l.latDegrees()), Angle.fromDegrees(l.lonDegrees()), botHeight);
+                        Vec4 top = globe.computePointFromPosition(Angle.fromDegrees(l.latDegrees()), Angle.fromDegrees(l.lonDegrees()), topHeight);
                         gl.glVertex3d(bot.x, bot.y, bot.z);
                         gl.glVertex3d(top.x, top.y, top.z);
                     }
@@ -288,9 +290,11 @@ public class LLHAreaSet extends LLHArea {
             // Pass render to chart object....
             DataView c = get3DRendererChart();
             if (c != null) {
+                LOG.debug("Chart is "+c+"\n");
                 // Ok if chart exists...use it to draw.....
 
                 // Shouldn't this code be in the renderer???
+                // yes, yes it should be....
                 gl.glPushAttrib(GL.GL_POLYGON_BIT);
                 gl.glEnable(GL.GL_CULL_FACE);
                 gl.glFrontFace(GL.GL_CCW);
@@ -309,12 +313,12 @@ public class LLHAreaSet extends LLHArea {
     public String getGISKey() {
 
         // Add location and altitude...
-        List<LatLon> locations = getLocationList();
+        List<LLD> locations = getLocationList();
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < locations.size(); i++) {
-            LatLon l = locations.get(i);
-            buf.append(l.getLatitude() + ":");
-            buf.append(l.getLongitude() + ":");
+            LLD l = locations.get(i);
+            buf.append(l.latDegrees() + ":");
+            buf.append(l.lonDegrees() + ":");
         }
         //newKey = newKey + myCurrentGrid.bottomHeight;
         //newKey = newKey + myCurrentGrid.topHeight;
@@ -388,7 +392,7 @@ public class LLHAreaSet extends LLHArea {
      * The default location for a newly created LLHArea
      */
     @Override
-    protected List<LatLon> getDefaultLocations(WorldWindow wwd, Object params) {
+    protected List<LLD> getDefaultLocations(WorldWindow wwd, Object params) {
 
         if (wwd != null) {
             // Taken from worldwind...we'll need to figure out how we want the vslice/isosurface to work...
@@ -433,11 +437,13 @@ public class LLHAreaSet extends LLHArea {
             /**
              * Convert from vector model coordinates to LatLon
              */
-            LatLon[] locations = new LatLon[points.length];
+            LLD[] locations = new LLD[points.length];
             for (int i = 0;
                     i < locations.length;
                     i++) {
-                locations[i] = new LatLon(globe.computePositionFromPoint(points[i]));
+               // locations[i] = new LatLon(globe.computePositionFromPoint(points[i]));
+                LatLon l1 = new LatLon(globe.computePositionFromPoint(points[i]));
+                locations[i] = new LLD(l1.latitude.degrees, l1.longitude.degrees);
             }
             return Arrays.asList(locations);
         } else {
@@ -446,19 +452,23 @@ public class LLHAreaSet extends LLHArea {
                 Integer c = (Integer) (params);
                 count = c.intValue();
             }
-            LatLon[] locations;
+            LLD[] locations;
 
             switch (count) {
                 case 1:
-                    locations = new LatLon[]{
-                        LatLon.fromDegrees(35.8, -98.4)
+                    locations = new LLD[]{
+                       // LatLon.fromDegrees(35.8, -98.4)
+                        new LLD(35.8, -98.4)
                     };
+                    
                     break;
                 default:
                 case 2:
-                    locations = new LatLon[]{
-                        LatLon.fromDegrees(35.8, -98.4),
-                        LatLon.fromDegrees(34.9, -96.4),};
+                    locations = new LLD[]{
+                       // LatLon.fromDegrees(35.8, -98.4),
+                        new LLD(35.8, -98.4),
+                       // LatLon.fromDegrees(34.9, -96.4),};
+                        new LLD(34.9, -96.4), };
             }
             return Arrays.asList(locations);
 

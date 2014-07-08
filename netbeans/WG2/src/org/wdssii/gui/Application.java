@@ -65,7 +65,7 @@ public class Application {
         LOG.info("WDSSII GUI VERSION 2.0 [{}, {}, ({} bit)]", new Object[]{name, arch, bits});
 
         if (bits.equals("32")) {
-            LOG.error("Sorry, currently no 64 bit support.\n  You really want to run this on a 64 bit OS");
+            LOG.error("Sorry, currently no 32 bit support.\n  You really want to run this on a 64 bit OS");
             LOG.error("You may have 64 and 32 bit Java and be running the 32 version in your path");
             System.exit(0);
         }

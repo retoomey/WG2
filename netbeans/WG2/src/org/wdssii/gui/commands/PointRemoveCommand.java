@@ -1,7 +1,7 @@
 package org.wdssii.gui.commands;
 
-import gov.nasa.worldwind.geom.LatLon;
 import java.util.ArrayList;
+import org.wdssii.geom.LLD;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.volumes.LLHAreaSet;
 
@@ -21,11 +21,11 @@ public class PointRemoveCommand extends FeatureChangeCommand {
         // Create a list copy without the point
         FeatureMemento m = area.getMemento(); // vs getNewMemento as in gui control...hummm
         @SuppressWarnings("unchecked")
-        ArrayList<LatLon> list = ((ArrayList<LatLon>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+        ArrayList<LLD> list = ((ArrayList<LLD>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
         if (list != null) {
             FeatureMemento fm = (FeatureMemento) (m); // Check it
             if (index == -1) {
-                m.setProperty(LLHAreaSet.LLHAreaSetMemento.POINTS, new ArrayList<LatLon>());
+                m.setProperty(LLHAreaSet.LLHAreaSetMemento.POINTS, new ArrayList<LLD>());
             } else {
                 list.remove(index);
             }

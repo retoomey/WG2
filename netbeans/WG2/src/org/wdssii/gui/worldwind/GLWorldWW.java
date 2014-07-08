@@ -9,7 +9,6 @@ import gov.nasa.worldwind.render.DrawContext;
 import org.wdssii.geom.GLWorld;
 import org.wdssii.geom.V2;
 import org.wdssii.geom.V3;
-import org.wdssii.gui.charts.WorldWindDataView;
 
 /**
  * A GLWorld that has a Worldwind DrawContext

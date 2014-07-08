@@ -1,8 +1,8 @@
 package org.wdssii.gui.charts;
 
+import org.wdssii.gui.worldwind.WorldWindDataView;
 import com.jidesoft.swing.JideButton;
 import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.globes.ElevationModel;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
@@ -26,6 +26,7 @@ import net.miginfocom.swing.MigLayout;
 import org.jfree.chart.axis.ValueAxis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wdssii.geom.LLD;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.Feature;
@@ -347,12 +348,12 @@ public class Data2DTableChart extends DataView {
         LLHAreaSet stick = getTrackStick();
         if (stick != null) {
             // FIXME: would be nice to have a Position ability
-            List<LatLon> list = stick.getLocations();
+            List<LLD> list = stick.getLocations();
             double[] alts = stick.getAltitudes();
             if (!list.isEmpty()) {
-                LatLon l = list.get(0);
+                LLD l = list.get(0);
                 double a = alts[0]; // assuming correct
-                L = new Location(l.latitude.degrees, l.longitude.degrees, a);
+                L = new Location(l.latDegrees(), l.lonDegrees(), a);
             }
         }
         return L;

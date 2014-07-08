@@ -3,7 +3,6 @@ package org.wdssii.gui.products.volumes;
 // I want to remove these dependencies
 import org.wdssii.core.ProductButtonStatus;
 import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.Globe;
 import java.nio.FloatBuffer;
@@ -245,10 +244,11 @@ public class ProductVolume {
 
                 // Only add topleft and top right points on top row, otherwise they overlap....
                 if (addTopLeft) {
-                    LatLon topLeft = new LatLon(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon));
+                    //LatLon topLeft = new LatLon(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon));
                     // v = g.computePoint(gb, topLeft.getLatitude(), topLeft.getLongitude(), currentHeight*vert,
                     //        useTerrain);
-                    v = gb.computePointFromPosition(topLeft.getLatitude(), topLeft.getLongitude(), currentHeight * vert);
+                    //v = gb.computePointFromPosition(topLeft.getLatitude(), topLeft.getLongitude(), currentHeight * vert);
+                    v = gb.computePointFromPosition(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon), currentHeight * vert);
                     vertexBuffer.put((float) (v.x));
                     vertexBuffer.put((float) (v.y));
                     vertexBuffer.put((float) (v.z));
@@ -257,10 +257,12 @@ public class ProductVolume {
 
                 if (addBottomLeft) {
 
-                    LatLon bottomLeft = new LatLon(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon));
+                   // LatLon bottomLeft = new LatLon(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon));
                     // v = g.computePoint(gb, bottomLeft.getLatitude(), bottomLeft.getLongitude(), (currentHeight - deltaHeight)*vert,
                     //         useTerrain);
-                    v = gb.computePointFromPosition(bottomLeft.getLatitude(), bottomLeft.getLongitude(), (currentHeight - deltaHeight) * vert);
+                   // v = gb.computePointFromPosition(bottomLeft.getLatitude(), bottomLeft.getLongitude(), (currentHeight - deltaHeight) * vert);
+                    v = gb.computePointFromPosition(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon), (currentHeight - deltaHeight) * vert);
+
                     vertexBuffer.put((float) (v.x));
                     vertexBuffer.put((float) (v.y));
                     vertexBuffer.put((float) (v.z));
@@ -268,10 +270,11 @@ public class ProductVolume {
                 }
 
                 if (addBottomRight) {
-                    LatLon bottomRight = new LatLon(Angle.fromDegrees(currentLat + deltaLat), Angle.fromDegrees(currentLon + deltaLon));
+                    //LatLon bottomRight = new LatLon(Angle.fromDegrees(currentLat + deltaLat), Angle.fromDegrees(currentLon + deltaLon));
                     // v = g.computePoint(gb, bottomRight.getLatitude(), bottomRight.getLongitude(), (currentHeight - deltaHeight)*vert,
                     //         useTerrain);
-                    v = gb.computePointFromPosition(bottomRight.getLatitude(), bottomRight.getLongitude(), (currentHeight - deltaHeight) * vert);
+                    //v = gb.computePointFromPosition(bottomRight.getLatitude(), bottomRight.getLongitude(), (currentHeight - deltaHeight) * vert);
+                    v = gb.computePointFromPosition(Angle.fromDegrees(currentLat + deltaLat), Angle.fromDegrees(currentLon + deltaLon), (currentHeight - deltaHeight) * vert);
                     vertexBuffer.put((float) (v.x));
                     vertexBuffer.put((float) (v.y));
                     vertexBuffer.put((float) (v.z));
@@ -295,10 +298,11 @@ public class ProductVolume {
 
                 if (addTopRight) {  // Only on top row
 
-                    LatLon topRight = new LatLon(Angle.fromDegrees(currentLat + deltaLat), Angle.fromDegrees(currentLon + deltaLon));
+                    //LatLon topRight = new LatLon(Angle.fromDegrees(currentLat + deltaLat), Angle.fromDegrees(currentLon + deltaLon));
                     // v = g.computePoint(gb, topRight.getLatitude(), topRight.getLongitude(), currentHeight*vert,
                     //         useTerrain);
-                    v = gb.computePointFromPosition(topRight.getLatitude(), topRight.getLongitude(), currentHeight * vert);
+                    //v = gb.computePointFromPosition(topRight.getLatitude(), topRight.getLongitude(), currentHeight * vert);
+                    v = gb.computePointFromPosition(Angle.fromDegrees(currentLat + deltaLat), Angle.fromDegrees(currentLon + deltaLon), currentHeight * vert);
                     vertexBuffer.put((float) (v.x));
                     vertexBuffer.put((float) (v.y));
                     vertexBuffer.put((float) (v.z));

@@ -10,9 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.core.SingletonManager;
 import org.wdssii.gui.charts.DataView;
-import org.wdssii.gui.charts.VSliceChart;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.commands.ChartCreateCommand.ChartFollowerView;
 import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
@@ -20,8 +18,6 @@ import org.wdssii.gui.commands.ProductToggleFilterCommand.ProductFilterFollowerV
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
-import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
-import org.wdssii.xml.wdssiiConfig.Tag_setup;
 
 /**
  * The Chart view interface lets us wrap around an RCP view or netbean view
@@ -59,42 +55,41 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
     public void AnimateCommandUpdate(AnimateCommand command) {
         updateGUI(command);
     }
-    
+
     public void DataCommandUpdate(DataCommand command) {
         updateGUI(command); // load, delete, etc..	
     }
-    
     // Keep a global list of sub views...
     // FIXME: could be generalized to any mdockview.
     // FIXME: Only called from GUI?  If so, no sync needed
     // We are assuming one and only one chart view
     private static ArrayList<DataFeatureView> theSubViews = new ArrayList<DataFeatureView>();
-    
-    public static ArrayList<DataFeatureView> getList(){
+
+    public static ArrayList<DataFeatureView> getList() {
         ArrayList<DataFeatureView> list = new ArrayList<DataFeatureView>();
-        for(DataFeatureView c: theSubViews){
+        for (DataFeatureView c : theSubViews) {
             list.add(c);
         }
         return list;
     }
-    
-    public static void addSubView(DataFeatureView v){
+
+    public static void addSubView(DataFeatureView v) {
         theSubViews.add(v);
         LOG.debug("ADD subview list is :");
-        for(DataFeatureView c: theSubViews){
-            LOG.debug("Chart is "+c.getTitle());
+        for (DataFeatureView c : theSubViews) {
+            LOG.debug("Chart is " + c.getTitle());
         }
     }
-    
-    public static void removeSubView(DataFeatureView v){
+
+    public static void removeSubView(DataFeatureView v) {
         theSubViews.remove(v);
     }
-    
+
     @Override
     public void windowAdded() {
-       addSubView(this);
+        addSubView(this);
     }
-    
+
     @Override
     public void windowClosing() {
         //throw new UnsupportedOperationException("Not supported yet.");
@@ -179,13 +174,15 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
      */
     private boolean myUseProductFilters;
     public final String[] myInterps = new String[]{"None", "Experiment: Binomial I"};
-   
-    /** The visible title used for GUI stuff */
+    /**
+     * The visible title used for GUI stuff
+     */
     private String myTitle;
-
-    /** The neverchanging key for this chart */
+    /**
+     * The neverchanging key for this chart
+     */
     private final String myKey;
-    
+
     /**
      * An empty chart used for generating info for the 'top' container in
      * multiview. It's a temporary object
@@ -202,14 +199,14 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
         initCharts(chartName);
     }
 
-    public String getTitle(){
+    public String getTitle() {
         return myTitle;
     }
-    
-    public String getKey(){
+
+    public String getKey() {
         return myKey;
     }
-    
+
     private void initComponents() {
 
         myChartBox = new javax.swing.JPanel();
@@ -288,59 +285,81 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
         if ((myCurrentChoice == null) || (factoryChoice.compareTo(myCurrentChoice) != 0)) {
 
             // Create object by name from XML..if possible
-            Tag_setup doc = SingletonManager.getInstance().getSetupXML();
-            if (doc != null) {
-                ArrayList<Tag_chart> list = doc.charts.charts;
-                if (list != null) {
+           /* Tag_setup doc = SingletonManager.getInstance().getSetupXML();
+             if (doc != null) {
+             ArrayList<Tag_chart> list = doc.charts.charts;
+             if (list != null) {
 
-                    DataView chart = null;
+             DataView chart = null;
 
-                    // Try to create chart using XML file....
-                    for (Tag_chart c : list) {
-                        if ((c.gName != null) && (c.gName.compareTo(factoryChoice) == 0)) {
-                            Class<?> aClass = null;
-                            try {
-                                aClass = Class.forName("org.wdssii.gui.charts." + c.name + "Chart");
-                                Method createMethod = aClass.getMethod("create" + c.name + "Chart", new Class[]{});
-                                chart = (DataView) createMethod.invoke(null, new Object[]{});
-                                LOG.debug("Generated chart by factory lookup " + c.gName + " to " + c.name);
-                                //setChart(chart);
-                                myCurrentChoice = c.gName;
-                            } catch (Exception e) {
-                                LOG.error("Couldn't create WdssiiChart by name '"
-                                        + c.name + "' because " + e.toString());
-                                myCurrentChoice = "";
-                                //  setChart(null);
-                            }
-                        }
-                    }
+             // Try to create chart using XML file....
+             for (Tag_chart c : list) {
+             if ((c.gName != null) && (c.gName.compareTo(factoryChoice) == 0)) {
+             Class<?> aClass = null;
+             try {
+             aClass = Class.forName("org.wdssii.gui.charts." + c.name + "Chart");
+             Method createMethod = aClass.getMethod("create" + c.name + "Chart", new Class[]{});
+             chart = (DataView) createMethod.invoke(null, new Object[]{});
+             LOG.debug("Generated chart by factory lookup " + c.gName + " to " + c.name);
+             //setChart(chart);
+             myCurrentChoice = c.gName;
+             } catch (Exception e) {
+             LOG.error("Couldn't create WdssiiChart by name '"
+             + c.name + "' because " + e.toString());
+             myCurrentChoice = "";
+             //  setChart(null);
+             }
+             }
+             }
 
-                    // Try to create chart from pure class name...
-                    // Not sure I really need an xml file for charts..could create a listing simply
-                    // by jar hunting.  Only matters if we have plugins someday.
-                    if (chart == null) {
-                        try {
-                            Class<?> aClass = null;
-                            aClass = Class.forName("org.wdssii.gui.charts." + factoryChoice);
-                            Method createMethod = aClass.getMethod("create", new Class[]{});
-                            chart = (DataView) createMethod.invoke(null, new Object[]{});
-                            LOG.debug("Generated chart by reflection " + factoryChoice);
-                            //setChart(chart);
-                            myCurrentChoice = factoryChoice;
-                        } catch (Exception e) {
-                            LOG.error("Couldn't create WdssiiChart by name '"
-                                    + factoryChoice + "' because " + e.toString());
-                            setChart(null);
-                        }
+             // Try to create chart from pure class name...
+             // Not sure I really need an xml file for charts..could create a listing simply
+             // by jar hunting.  Only matters if we have plugins someday.
+             if (chart == null) {
+             try {
+             Class<?> aClass = null;
+             aClass = Class.forName(factoryChoice);
+             Method createMethod = aClass.getMethod("create", new Class[]{});
+             chart = (DataView) createMethod.invoke(null, new Object[]{});
+             LOG.debug("Generated chart by reflection " + factoryChoice);
+             //setChart(chart);
+             myCurrentChoice = factoryChoice;
+             } catch (Exception e) {
+             LOG.error("Couldn't create WdssiiChart by name '"
+             + factoryChoice + "' because " + e.toString());
+             setChart(null);
+             }
 
-                    }
-                    setChart(chart);
-                    // bet I'm gonna get sync errors here....maybe not, we shouldn't
-                    // be still reading in the xml by this time.  Could be though.
+             }
+             setChart(chart);
+             // bet I'm gonna get sync errors here....maybe not, we shouldn't
+             // be still reading in the xml by this time.  Could be though.
 
+             }
+             }
+             */
+
+            // Try to create chart from pure class name...
+            // Not sure I really need an xml file for charts..could create a listing simply
+            // by jar hunting.  Only matters if we have plugins someday.
+            DataView chart = null;
+            if (chart == null) {
+                try {
+                    Class<?> aClass = null;
+                    aClass = Class.forName(factoryChoice);
+                    Method createMethod = aClass.getMethod("create", new Class[]{});
+                    chart = (DataView) createMethod.invoke(null, new Object[]{});
+                    LOG.debug("Generated chart by reflection " + factoryChoice);
+                    //setChart(chart);
+                    myCurrentChoice = factoryChoice;
+                } catch (Exception e) {
+                    LOG.error("Couldn't create WdssiiChart by name '"
+                            + factoryChoice + "' because " + e.toString());
+                    setChart(null);
                 }
-            }
 
+            }
+            setChart(chart);
             // Dispose old chart and GUI
             if (myChartPanel != null) {
                 myChartBox.remove(myChartPanel);
@@ -375,9 +394,11 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
         }
         myChart = chart;
     }
-    
-    /** Get the current chart we have */
-    public DataView getChart(){
+
+    /**
+     * Get the current chart we have
+     */
+    public DataView getChart() {
         return myChart;
     }
 

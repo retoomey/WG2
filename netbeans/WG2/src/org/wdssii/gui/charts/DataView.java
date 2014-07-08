@@ -1,10 +1,10 @@
 package org.wdssii.gui.charts;
 
-import gov.nasa.worldwind.geom.LatLon;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.LLD;
 import org.wdssii.gui.commands.ProductFollowCommand;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeaturePosition;
@@ -118,7 +118,7 @@ public class DataView {
 
     // All the 3D render stuff of the Chrt
     // Render in 3D
-    public void drawChartInLLHArea(GLWorld w, List<LatLon> locations, double[] altitudes, List<Boolean> edgeFlags) {
+    public void drawChartInLLHArea(GLWorld w, List<LLD> locations, double[] altitudes, List<Boolean> edgeFlags) {
 
     }
     

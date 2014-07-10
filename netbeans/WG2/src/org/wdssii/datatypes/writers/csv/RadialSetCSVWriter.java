@@ -1,4 +1,4 @@
-package org.wdssii.datatypes.writers;
+package org.wdssii.datatypes.writers.csv;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -6,12 +6,13 @@ import java.io.IOException;
 import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.core.GridVisibleArea;
+import org.wdssii.geom.GridVisibleArea;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.RadialSet;
 import org.wdssii.datatypes.Table2DView;
+import org.wdssii.datatypes.writers.DataTypeWriter;
 
 /**
  * Export radial set data as CSV text file
@@ -21,6 +22,11 @@ import org.wdssii.datatypes.Table2DView;
 public class RadialSetCSVWriter extends DataTypeWriter {
 
     private final static Logger LOG = LoggerFactory.getLogger(RadialSetCSVWriter.class);
+
+    @Override
+    public void exportDataTypeToURL(DataType d, URL aURL, GridVisibleArea g, WdssiiJob.WdssiiJobMonitor m) {
+        throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     @Override
     public WdssiiJob.WdssiiJobStatus export(DataTypeWriterOptions o) {

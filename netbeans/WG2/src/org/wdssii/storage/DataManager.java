@@ -7,8 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.core.LRUCache;
-import org.wdssii.core.LRUCache.LRUCacheListener;
+import org.wdssii.storage.LRUCache.LRUCacheListener;
 
 /**
  * The data manager will handle: Loading/Offloading data from disk to ram...

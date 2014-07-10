@@ -53,7 +53,9 @@ public class Array2DfloatSparse extends DataStorage implements Array2D<Float> {
     private ArrayList<ArrayNode> myXData;
 
     /** A sparse array
+     * This code would require a dependency on netcdf...
      */
+    /*
     public Array2DfloatSparse(int x, int y, float backgroundValue,
             ucar.ma2.Array data, // Array of data values
             ucar.ma2.Array xvalues,
@@ -111,7 +113,8 @@ public class Array2DfloatSparse extends DataStorage implements Array2D<Float> {
             //LOG.warn("VALUE OF X: "+n.myIndex);
         }
     }
-
+*/
+    
     private ArrayNode getXNode(ArrayNode x, ArrayNode y, float value) {
         ArrayNode found = null;
         ArrayNode foundY = null;

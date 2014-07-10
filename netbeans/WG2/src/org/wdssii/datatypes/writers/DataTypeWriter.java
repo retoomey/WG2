@@ -1,12 +1,13 @@
 package org.wdssii.datatypes.writers;
 
 import java.net.URL;
-import org.wdssii.core.GridVisibleArea;
+import org.wdssii.geom.GridVisibleArea;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.core.WdssiiJob.WdssiiSameThreadJobMonitor;
 import org.wdssii.datatypes.DataType;
+import org.wdssii.gui.products.ProductFeatureGUI;
 
 /**
  * Base class of all DataType writers
@@ -19,6 +20,9 @@ public abstract class DataTypeWriter {
      * The worker job iff we are threading
      */
     private BackgroundJob myWorker = null;
+
+    /** Export data type to a URL */
+    public abstract void exportDataTypeToURL(DataType d, URL aURL, GridVisibleArea g, WdssiiJobMonitor m);
 
     /**
      * Base class of all writer options. Options have all the information needed
@@ -115,6 +119,29 @@ public abstract class DataTypeWriter {
         }
     }
 
+    /** Get a helper class.  For example ESRIWriter could create a RadialSetESRIWriter to
+     * handle that particular datatype */
+    public DataTypeWriter getHelperClass(String createByName) {
+
+        DataTypeWriter newWriter = null;
+        // Create particular writer from datatype name by reflection
+        try {
+            Class<?> aClass = null;
+            aClass = Class.forName(createByName);
+            //   Class<?>[] argTypes = new Class[]{NetcdfFile.class, boolean.class};
+            //   Object[] args = new Object[]{ncfile, sparse}; // Actual args
+
+            //DataType createFromNetcdf(NetcdfFile ncfile, boolean sparse)
+            //   //Constructor<?> c = aClass.getConstructor(argTypes);
+            Object classInstance = aClass.newInstance();
+            newWriter = (DataTypeWriter)(classInstance);
+            //    Method aMethod = aClass.getMethod("createFromNetcdf", argTypes);
+            //   obj = (DataType) aMethod.invoke(classInstance, args);
+        } catch (Exception e) {
+        }
+        return newWriter;
+    }
+    
     /**
      * Do the actual export work
      */

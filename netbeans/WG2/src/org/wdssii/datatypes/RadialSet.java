@@ -2,8 +2,6 @@ package org.wdssii.datatypes;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.geom.CPoint;
-import org.wdssii.geom.CVector;
 import org.wdssii.geom.Location;
 
 /**
@@ -41,22 +39,6 @@ public class RadialSet extends DataType {
      */
     protected Radial[] radials;
     /**
-     * Cache the radar location CPoint for speed
-     */
-    private final CPoint radarLocation;
-    /**
-     * Cross product of z and y vector
-     */
-    private final CVector myUx;
-    /**
-     * Y-azis vector north-ward relative to RadialSet center
-     */
-    private final CVector myUy;
-    /**
-     * Z-axis perpendicular to the earth's surface
-     */
-    private final CVector myUz;
-    /**
      * Range to the first gate of the RadialSet in Kms
      */
     private final float rangeToFirstGate;
@@ -81,22 +63,6 @@ public class RadialSet extends DataType {
          */
         public Radial[] radials;
         /**
-         * Cache the radar location CPoint for speed
-         */
-        public CPoint radarLocation;
-        /**
-         * Cross product of z and y vector
-         */
-        public CVector myUx;
-        /**
-         * Y-azis vector north-ward relative to RadialSet center
-         */
-        public CVector myUy;
-        /**
-         * Z-axis perpendicular to the earth's surface
-         */
-        public CVector myUz;
-        /**
          * Range to the first gate of the RadialSet in Kms
          */
         public float rangeToFirstGate;
@@ -117,10 +83,6 @@ public class RadialSet extends DataType {
         this.fixedAngleSin = (float) Math.sin(fixedAngleRads);
         this.fixedAngleCos = (float) Math.cos(fixedAngleRads);
         this.radials = m.radials;
-        this.radarLocation = m.radarLocation;
-        this.myUx = m.myUx;
-        this.myUy = m.myUy;
-        this.myUz = m.myUz;
         this.rangeToFirstGate = m.rangeToFirstGate;
         this.myMaxGateNumber = m.maxGateNumber;
     }
@@ -136,11 +98,10 @@ public class RadialSet extends DataType {
      * Get the number of Radial objects in this RadialSet
      */
     public int getNumRadials() {
-        if (radials != null) {
-            return radials.length;
-        } else {
+        if (radials == null) {
             return 0;
         }
+        return radials.length;
     }
 
     /**
@@ -338,19 +299,6 @@ public class RadialSet extends DataType {
         }
     }
 
-    /**
-     * mean azimuthal spacing of all radials. Not used it seems...
-     */
-    /*
-     public float getAzimuthalSpacing() {
-     float as = 0;
-     for (Radial r : radials) {
-     as += r.getAzimuthalSpacingDegs();
-     }
-     float result = (radials.length <= 1) ? as : (as / radials.length);
-     return result;
-     }
-     */
     /**
      * Given speed in meters per second, a direction in degrees (for the SRM
      * vector), and an azimuth, generates the SRM value

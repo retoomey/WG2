@@ -10,8 +10,6 @@ import org.wdssii.datatypes.RHIRadialSet.RHIRadialSetMemento;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
-import org.wdssii.geom.CPoint;
-import org.wdssii.geom.CVector;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array2D;
 import org.wdssii.storage.Array2DfloatAsTiles;
@@ -133,11 +131,6 @@ public class RHIRadialSetNetcdf extends DataTypeNetcdf {
 		float az = 90.0f;
                 r.fixedAngleDegs = az;
                 r.rangeToFirstGate = distToFirstGate / 1000;
-                // set up the co-ordinate system
-                r.radarLocation = r.originLocation.getCPoint();
-                r.myUz = r.radarLocation.minus(new CPoint(0, 0, 0)).unit();
-                r.myUx = new CVector(0, 0, 1).crossProduct(r.myUz).unit();
-                r.myUy = r.myUz.crossProduct(r.myUx);
 
                 Array2D<Float> values = null;
                 int num_radials = 0;

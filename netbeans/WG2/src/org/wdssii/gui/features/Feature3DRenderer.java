@@ -1,7 +1,7 @@
 package org.wdssii.gui.features;
 
 import java.awt.Point;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 
 /**
  * A Feature3DRenderer renders something in the 3D world view Features use

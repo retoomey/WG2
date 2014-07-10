@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;

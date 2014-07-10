@@ -7,9 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView;
+import org.wdssii.datatypes.writers.DataTypeWriter;
+import org.wdssii.datatypes.writers.WriterFactory;
 import org.wdssii.geom.Location;
-import org.wdssii.core.GridVisibleArea;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.geom.GridVisibleArea;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.renderers.ProductRenderer;
@@ -113,7 +115,8 @@ public class Product2DTable extends Feature3DRenderer {
                 Table2DView t = (Table2DView) (dt);
                 GridVisibleArea g = getSelectedGrid();
                 if (g != null) {
-                    t.export(aURL, g, type);
+                    DataTypeWriter writer = WriterFactory.getWriter(type);
+                    writer.exportDataTypeToURL(dt, aURL,g, null);
                 }
             }
         }

@@ -1,4 +1,4 @@
-package org.wdssii.datatypes.writers;
+package org.wdssii.datatypes.writers.esri;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -37,6 +37,7 @@ import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialATHeightGateCache;
 import org.wdssii.datatypes.RadialSet;
 import org.wdssii.datatypes.RadialUtil;
+import org.wdssii.datatypes.writers.ESRIWriter;
 import org.wdssii.geom.Location;
 import org.wdssii.storage.Array1D;
 

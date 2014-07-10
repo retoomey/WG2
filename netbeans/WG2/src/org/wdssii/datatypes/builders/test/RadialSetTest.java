@@ -7,8 +7,6 @@ import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetMemento;
 import org.wdssii.datatypes.Radial;
-import org.wdssii.geom.CPoint;
-import org.wdssii.geom.CVector;
 import org.wdssii.index.Index;
 import org.wdssii.index.IndexRecord;
 import org.wdssii.storage.Array1D;
@@ -93,10 +91,6 @@ public class RadialSetTest extends DataTypeTest {
 
             r.fixedAngleDegs = elev;
             r.rangeToFirstGate = distToFirstGate / 1000;
-            r.radarLocation = r.originLocation.getCPoint();
-            r.myUz = r.radarLocation.minus(new CPoint(0, 0, 0)).unit();
-            r.myUx = new CVector(0, 0, 1).crossProduct(r.myUz).unit();
-            r.myUy = r.myUz.crossProduct(r.myUx);
 
             r.radials = new Radial[num_radials];
             float az = 0;

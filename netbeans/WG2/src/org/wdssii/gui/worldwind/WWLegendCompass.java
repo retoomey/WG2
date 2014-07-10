@@ -1,6 +1,6 @@
 package org.wdssii.gui.worldwind;
 
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LegendFeature;

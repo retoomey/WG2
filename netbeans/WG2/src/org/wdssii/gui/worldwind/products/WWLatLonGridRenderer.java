@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonGrid;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.products.Product;

@@ -16,7 +16,7 @@ import org.wdssii.index.IndexRecord;
  * pass the information to the netcdfbuilder to build the datatype.
  * 
  */
-public abstract class BuilderFactory {
+public class BuilderFactory {
 
     private final static Logger LOG = LoggerFactory.getLogger(BuilderFactory.class);
     /** name to Builder */

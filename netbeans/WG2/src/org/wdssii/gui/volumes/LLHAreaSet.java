@@ -10,7 +10,7 @@ import java.util.List;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.LLD;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.DataView;

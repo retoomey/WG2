@@ -35,7 +35,7 @@ public class Location {
     }
     
     /** True modulus */
-    private double mod(double x, double y) {
+    private final double mod(double x, double y) {
         double result = x % y;
         if (result < 0) {
             result += y;
@@ -60,14 +60,4 @@ public class Location {
         return "[ " + lat + ", " + lon + ", " + ht + "]";
     }
 
-    public CPoint getCPoint() {
-        double r = EarthRadius + ht; // kms
-        double phi = lon * Math.PI / 180.0; // radians();
-        double beta = lat * Math.PI / 180.0; // .radians();
-        double x = r * Math.cos(phi) * Math.cos(beta);
-        double y = r * Math.sin(phi) * Math.cos(beta);
-        double z = r * Math.sin(beta);
-
-        return new CPoint(x, y, z);
-    }
 }

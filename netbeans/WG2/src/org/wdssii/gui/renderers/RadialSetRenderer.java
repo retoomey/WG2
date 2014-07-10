@@ -4,7 +4,7 @@ import java.awt.Point;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialSet;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.storage.Array1D;
 

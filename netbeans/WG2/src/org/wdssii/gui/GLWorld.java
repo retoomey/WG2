@@ -1,6 +1,8 @@
-package org.wdssii.geom;
+package org.wdssii.gui;
 
 import javax.media.opengl.GL;
+import org.wdssii.geom.V2;
+import org.wdssii.geom.V3;
 
 /**
  * A wrapper for rendering in an openGL Lat/Lon/Height world, passing this allows

@@ -1,7 +1,5 @@
 package org.wdssii.datatypes;
 
-import org.wdssii.core.SingletonManager;
-
 /** A wrapper to a DataType.  This is used by builders to allow lazy create of a DataType
  * in a thread.  isReady() is true once the DataType is completely created/loaded.
  * 
@@ -20,7 +18,12 @@ public class DataRequest {
 
     public DataType myDataType = null;
     public boolean myDataTypeReady = false;
-
+    public static DataRequestGlobalListener myGlobalListener = null;
+    
+    public static interface DataRequestGlobalListener {
+        public void notifyDataRequestDone();
+    }
+    
     /** Is the DataType object loaded and ready for use? */
     public boolean isReady() {
         return myDataTypeReady;
@@ -32,11 +35,18 @@ public class DataRequest {
      */
     public void setReady(DataType dt) {
         myDataType = dt;  // Completed datatype
-        myDataTypeReady = true;        
-        SingletonManager.getInstance().notifyDataRequestDone();       
+        myDataTypeReady = true; 
+        if (myGlobalListener != null){
+            //SingletonManager.getInstance().notifyDataRequestDone();   
+            myGlobalListener.notifyDataRequestDone();
+        }
     }
 
     public DataType getDataType() {
         return myDataType;
+    }
+    
+    public static void setDataRequestGlobalListener(DataRequestGlobalListener l){
+        myGlobalListener = l;
     }
 }

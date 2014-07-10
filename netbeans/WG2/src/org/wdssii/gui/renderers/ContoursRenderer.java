@@ -10,7 +10,7 @@ import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.Contour;
 import org.wdssii.datatypes.Contours;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.Location;
 import org.wdssii.geom.V3;
 import org.wdssii.gui.AnimateManager;

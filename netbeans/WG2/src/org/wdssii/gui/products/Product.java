@@ -8,7 +8,6 @@ import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.datatypes.builders.BuilderFactory;
-import org.wdssii.geom.GLWorld;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ProductManager;

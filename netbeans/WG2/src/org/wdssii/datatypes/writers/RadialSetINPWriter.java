@@ -6,7 +6,8 @@ import java.io.IOException;
 import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.core.GridVisibleArea;
+import org.wdssii.core.WdssiiJob;
+import org.wdssii.geom.GridVisibleArea;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.PPIRadialSet;
@@ -16,6 +17,9 @@ import org.wdssii.datatypes.Table2DView;
 /**
  * Export radial set data as Bim Wood's INP text file
  *
+ * Code still here, probably not needed anymore....
+ * It's not currently linked to anything...
+ * 
  * FIXME: Add comments describing the format fully...
  *
  * @author Robert Toomey
@@ -23,6 +27,11 @@ import org.wdssii.datatypes.Table2DView;
 public class RadialSetINPWriter extends DataTypeWriter {
 
     private final static Logger LOG = LoggerFactory.getLogger(RadialSetINPWriter.class);
+
+    @Override
+    public void exportDataTypeToURL(DataType d, URL aURL, GridVisibleArea g, WdssiiJob.WdssiiJobMonitor m) {
+        throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     @Override
     public WdssiiJobStatus export(DataTypeWriterOptions o) {
@@ -121,4 +130,5 @@ public class RadialSetINPWriter extends DataTypeWriter {
             LOG.error("Can only output a PPIRadialSet right now...");
         }
     }
+
 }

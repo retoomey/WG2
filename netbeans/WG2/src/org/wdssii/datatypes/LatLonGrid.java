@@ -4,7 +4,7 @@ import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.geom.Location;
-import org.wdssii.core.GridVisibleArea;
+import org.wdssii.geom.GridVisibleArea;
 import org.wdssii.storage.Array2D;
 
 /**
@@ -269,7 +269,4 @@ public class LatLonGrid extends DataType implements Table2DView {
 		}
 	}
 
-	@Override
-	public void export(URL aURL, GridVisibleArea g, String type) {
-	}
 }

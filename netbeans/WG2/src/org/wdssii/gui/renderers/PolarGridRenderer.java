@@ -29,7 +29,7 @@ import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.storage.GrowList;
 import org.wdssii.gui.GLUtil;
 import org.wdssii.datatypes.RadialUtil;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.V2;
 import org.wdssii.geom.V3;
 

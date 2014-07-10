@@ -13,7 +13,7 @@ import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetQuery;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialATHeightGateCache;
 import org.wdssii.datatypes.RadialUtil;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.Location;
 import org.wdssii.geom.V3;
 import org.wdssii.gui.AnimateManager;

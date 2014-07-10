@@ -7,7 +7,7 @@ package org.wdssii.datatypes;
 import java.net.URL;
 import java.util.ArrayList;
 import org.wdssii.geom.Location;
-import org.wdssii.core.GridVisibleArea;
+import org.wdssii.geom.GridVisibleArea;
 import org.wdssii.storage.Array3D;
 
 /**
@@ -196,7 +196,4 @@ public class LatLonHeightGrid extends DataType implements Table2DView {
     public float getHeight(int index){
         return heightsMeters.get(index);
     }
-    
-    @Override
-    public void export(URL aURL, GridVisibleArea g, String type){}
 }

@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.core.GridVisibleArea;
+import org.wdssii.geom.GridVisibleArea;
 import org.wdssii.geom.Location;
 
 /**
@@ -297,8 +297,4 @@ public class RHIRadialSet extends RadialSet implements Table2DView {
         return withinTable;
     }
     
-    @Override
-    public void export(URL aURL, GridVisibleArea g, String type) {
-        LOG.debug("exportToURL not implemented for RHI yet");
-    }
 }

@@ -21,7 +21,7 @@ import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.CommandManager;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.LLD;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.commands.PointAddCommand;

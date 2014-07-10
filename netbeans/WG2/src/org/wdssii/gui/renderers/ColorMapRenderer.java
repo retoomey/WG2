@@ -11,7 +11,7 @@ import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.GLUtil;

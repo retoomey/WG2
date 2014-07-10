@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.V3;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;

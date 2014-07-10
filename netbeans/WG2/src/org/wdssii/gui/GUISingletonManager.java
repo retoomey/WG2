@@ -2,6 +2,8 @@ package org.wdssii.gui;
 
 import org.wdssii.core.CommandManager;
 import org.wdssii.core.SingletonManager;
+import org.wdssii.datatypes.DataRequest;
+import org.wdssii.datatypes.DataRequest.DataRequestGlobalListener;
 import org.wdssii.gui.commands.ProductChangeCommand;
 
 /**
@@ -9,7 +11,7 @@ import org.wdssii.gui.commands.ProductChangeCommand;
  *
  * @author Robert Toomey
  */
-public class GUISingletonManager extends SingletonManager {
+public class GUISingletonManager extends SingletonManager implements DataRequestGlobalListener  {
 
     private GUISingletonManager() {
     }
@@ -29,6 +31,7 @@ public class GUISingletonManager extends SingletonManager {
         add(CommandManager.create());
         add(SourceManager.create());
     
+        DataRequest.setDataRequestGlobalListener(this);
         notifyAllCreated();
     }
 

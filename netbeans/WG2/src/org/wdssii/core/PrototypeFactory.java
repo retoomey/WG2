@@ -89,4 +89,8 @@ public class PrototypeFactory<X extends Object> {
 			LOG.error(e.toString());
 		}
 	}
+        
+        public PrototypeFactory() {
+            // Create an empty factory without reading a file..
+        }
 }

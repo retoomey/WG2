@@ -6,7 +6,7 @@ import gov.nasa.worldwind.render.airspaces.Geometry;
 import java.nio.Buffer;
 
 import javax.media.opengl.GL;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 
 import org.wdssii.gui.products.VolumeSlice3DOutput;
 import org.wdssii.gui.worldwind.GLWorldWW;

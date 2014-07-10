@@ -17,7 +17,7 @@ import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonHeightGrid;
 import org.wdssii.datatypes.LatLonHeightGrid.LatLonHeightGridQuery;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.AnimateManager;
 import org.wdssii.gui.features.FeatureMemento;

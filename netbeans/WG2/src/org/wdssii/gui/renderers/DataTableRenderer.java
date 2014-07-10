@@ -8,7 +8,7 @@ import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.Location;
 import org.wdssii.geom.V3;
 import org.wdssii.gui.AnimateManager;

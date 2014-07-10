@@ -1,4 +1,4 @@
-package org.wdssii.core;
+package org.wdssii.geom;
 
 import java.awt.Rectangle;
 

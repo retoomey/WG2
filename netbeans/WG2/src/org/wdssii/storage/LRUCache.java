@@ -1,4 +1,4 @@
-package org.wdssii.core;
+package org.wdssii.storage;
 
 import java.util.ArrayList;
 import java.util.Iterator;

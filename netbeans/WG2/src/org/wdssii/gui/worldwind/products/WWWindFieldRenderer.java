@@ -12,7 +12,7 @@ import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.render.DrawContext;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.worldwind.GLWorldWW;

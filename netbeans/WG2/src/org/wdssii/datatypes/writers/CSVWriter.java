@@ -10,15 +10,13 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.geom.GridVisibleArea;
 
 /**
- * Base class for all ESRI geotools output from a DataType
- *
- * FIXME: common esri stuff will go here eventually..
- *
+ * Base class for all CSV output from a DataType
+ * *
  * @author Robert Toomey
  */
-public class ESRIWriter extends DataTypeWriter {
+public class CSVWriter extends DataTypeWriter {
     
-    private final static Logger LOG = LoggerFactory.getLogger(ESRIWriter.class);
+    private final static Logger LOG = LoggerFactory.getLogger(CSVWriter.class);
 
     /**
      * Dispatch to helper classes
@@ -28,15 +26,15 @@ public class ESRIWriter extends DataTypeWriter {
         
         String name = d.getClass().getSimpleName();
         if (m != null){
-            m.subTask("Creating ESRI writer for " + name);
+            m.subTask("Creating CSV writer for " + name);
         }
-        DataTypeWriter w = getHelperClass("org.wdssii.datatypes.writers.esri." + name + "ESRIWriter");
+        DataTypeWriter w = getHelperClass("org.wdssii.datatypes.writers.csv." + name + "CSVWriter");
         if (w != null) {
-            DataTypeWriterOptions o2 = new DataTypeWriterOptions(name + " to Quads", m, aURL, d);
+            DataTypeWriterOptions o2 = new DataTypeWriterOptions(name + " to CSV", m, aURL, d);
             o2.setSubGrid(g);
             w.export(o2);
         } else {
-            LOG.error("Couldn't find ESRI writer for datatype "+name);
+            LOG.error("Couldn't find CSV writer for datatype "+name);
         }
     }
 

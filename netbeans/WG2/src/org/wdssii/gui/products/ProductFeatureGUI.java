@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
+import org.wdssii.datatypes.writers.DataTypeWriter;
+import org.wdssii.datatypes.writers.WriterFactory;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.swing.ProgressDialog;
 
@@ -244,7 +246,12 @@ public class ProductFeatureGUI extends FeatureGUI {
                             m = new ProgressDialogJobMonitor((JFrame) something, this, title);
                         }
 
-                        d.exportToESRI(aURL, m);
+                        // Use factory to do it now...
+                        DataTypeWriter writer =  WriterFactory.getWriter("ESRI");
+                        writer.exportDataTypeToURL(d, aURL, null, m);
+                           
+
+                       // d.exportToESRI(aURL, m);
                     } else {
                         // warn or something?
                     }

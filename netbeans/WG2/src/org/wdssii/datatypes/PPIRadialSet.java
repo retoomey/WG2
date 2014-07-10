@@ -1,21 +1,11 @@
 package org.wdssii.datatypes;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.datatypes.writers.RadialSetESRIWriter;
 import org.wdssii.geom.Location;
-import org.wdssii.core.GridVisibleArea;
-import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
-import org.wdssii.datatypes.writers.DataTypeWriter.DataTypeWriterOptions;
-import org.wdssii.datatypes.writers.RadialSetCSVWriter;
-import org.wdssii.datatypes.writers.RadialSetINPWriter;
 import org.wdssii.storage.Array1D;
 
 /*
@@ -574,35 +564,6 @@ public class PPIRadialSet extends RadialSet implements Table2DView {
         output.colInRange = ((col > 0) && (col < getNumRows()));
         withinTable = output.rowInRange && output.colInRange;
         return withinTable;
-    }
-
-    /**
-     * Export to ESRI shapefile...experimental. Eventually create by reflection
-     * to disconnect.
-     */
-    @Override
-    public void exportToESRI(URL aURL, WdssiiJobMonitor m) {
-        RadialSetESRIWriter w = new RadialSetESRIWriter();
-        DataTypeWriterOptions o = new DataTypeWriterOptions("RadialSet to Quads", m, aURL, this);
-        w.export(o);
-    }
-
-    /**
-     * Second export...FIXME merge these into generic export ability
-     */
-    @Override
-    public void export(URL aURL, GridVisibleArea g, String type) {
-        if (type.equals("INP")) {
-            RadialSetINPWriter w = new RadialSetINPWriter();
-            DataTypeWriterOptions o = new DataTypeWriterOptions("RadialSet to INP", null, aURL, this);
-            o.setSubGrid(g);
-            w.export(o);
-        } else if (type.equals("CSV")) {
-            RadialSetCSVWriter w = new RadialSetCSVWriter();
-            DataTypeWriterOptions o = new DataTypeWriterOptions("RadialSet to CSV", null, aURL, this);
-            o.setSubGrid(g);
-            w.export(o);
-        }
     }
 
     /**

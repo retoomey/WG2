@@ -6,7 +6,7 @@ import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.globes.ElevationModel;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.V2;
 import org.wdssii.geom.V3;
 

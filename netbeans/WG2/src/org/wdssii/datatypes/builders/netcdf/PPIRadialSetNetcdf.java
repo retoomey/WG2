@@ -9,8 +9,6 @@ import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetMemento;
 import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.builders.NetcdfBuilder;
 import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
-import org.wdssii.geom.CPoint;
-import org.wdssii.geom.CVector;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array2D;
 import ucar.ma2.Array;
@@ -97,11 +95,6 @@ public class PPIRadialSetNetcdf extends DataTypeNetcdf {
                 // Valid for all info but the radials
                 r.fixedAngleDegs = elev;
                 r.rangeToFirstGate = distToFirstGate / 1000;
-                // set up the co-ordinate system
-                r.radarLocation = r.originLocation.getCPoint();
-                r.myUz = r.radarLocation.minus(new CPoint(0, 0, 0)).unit();
-                r.myUx = new CVector(0, 0, 1).crossProduct(r.myUz).unit();
-                r.myUy = r.myUz.crossProduct(r.myUx);
 
                 Array2D<Float> values = null;
                 int num_radials = 0;

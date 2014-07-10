@@ -3,7 +3,7 @@ package org.wdssii.gui.charts;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.geom.GLWorld;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.LLD;
 import org.wdssii.gui.commands.ProductFollowCommand;
 import org.wdssii.gui.features.FeatureList;

@@ -1,4 +1,4 @@
-package org.wdssii.datatypes.builders;
+package org.wdssii.datatypes.builders.xml;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,11 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataType;
+import org.wdssii.datatypes.builders.Builder;
 import org.wdssii.datatypes.builders.xml.ContoursXML;
 import org.wdssii.datatypes.builders.xml.DataTableXML;
 import org.wdssii.datatypes.builders.xml.DataTypeXML;
-import org.wdssii.index.IndexRecord;
-import org.wdssii.util.StringUtil;
+import org.wdssii.core.StringUtil;
 import org.wdssii.xml.Tag_datatype;
 
 /**
@@ -52,7 +52,7 @@ public class XMLBuilder extends Builder {
         super("xml");
     }
 
-    @Override
+  /*  @Override
     public DataType createDataType(IndexRecord rec, WdssiiJobMonitor w) {
         URL url = rec.getDataLocationURL(this);
         if (url == null) {
@@ -61,7 +61,7 @@ public class XMLBuilder extends Builder {
 
         return createDataTypeFromURL(url, w);
     }
-
+*/
     /** pass in the file name and obtain an object back. */
     public DataType createDataTypeFromURL(URL aURL, WdssiiJobMonitor m) {
 

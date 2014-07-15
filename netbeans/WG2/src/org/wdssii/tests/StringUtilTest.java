@@ -2,7 +2,7 @@ package org.wdssii.tests;
 
 import java.util.List;
 
-import org.wdssii.util.StringUtil;
+import org.wdssii.core.StringUtil;
 
 
 import junit.framework.TestCase;

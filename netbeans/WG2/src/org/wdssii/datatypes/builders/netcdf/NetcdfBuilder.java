@@ -1,4 +1,4 @@
-package org.wdssii.datatypes.builders;
+package org.wdssii.datatypes.builders.netcdf;
 
 /**
  * @author lakshman
@@ -19,16 +19,14 @@ import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.core.DataUnavailableException;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
-import org.wdssii.datatypes.builders.netcdf.CFRadialNetcdf;
-import org.wdssii.index.IndexRecord;
+import org.wdssii.datatypes.builders.Builder;
 import org.wdssii.storage.Array2D;
 import org.wdssii.storage.Array2DfloatAsTiles;
 import org.wdssii.storage.DataManager;
-import org.wdssii.util.StringUtil;
+import org.wdssii.core.StringUtil;
 
 import ucar.ma2.Array;
 import ucar.ma2.Index;
@@ -55,21 +53,6 @@ public class NetcdfBuilder extends Builder {
 
     public NetcdfBuilder() {
         super("netcdf");
-    }
-
-    /**
-     * Here's where we do the work of building a DataType
-     */
-    @Override
-    public DataType createDataType(IndexRecord rec, WdssiiJobMonitor m) {
-        LOG.debug("trying to createDataType for IndexRecord " + rec);
-        URL url = rec.getDataLocationURL(this);
-        if (url == null) {
-            LOG.debug("Data location URL is NULL");
-            return null;
-        }
-
-        return createDataTypeFromURL(url, m);
     }
 
     /**
@@ -132,17 +115,9 @@ public class NetcdfBuilder extends Builder {
 
             copy(urlC, fc);
         } catch (Exception e) {
-            throw new FormatException("Can not read remote file: " + path);
+            LOG.error("Can not read remote file: "+path);
         }
         return localFile;
-    }
-
-    @SuppressWarnings("serial")
-    private static class FormatException extends DataUnavailableException {
-
-        FormatException(String msg) {
-            super(msg);
-        }
     }
 
     private DataType fromNetcdfFile(String path, WdssiiJobMonitor m) {
@@ -301,11 +276,10 @@ public class NetcdfBuilder extends Builder {
         return info;
     }
 
-    public static Variable getVariable(NetcdfFile ncfile, String name)
-            throws FormatException {
+    public static Variable getVariable(NetcdfFile ncfile, String name) {
         Variable data = ncfile.findVariable(name);
         if (data == null) {
-            throw new FormatException("missing variable " + name);
+            LOG.error("Netcdf Missing Variable "+name);
         }
         return data;
     }

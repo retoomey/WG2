@@ -2,7 +2,7 @@ package org.wdssii.gui.commands;
 
 import org.wdssii.core.WdssiiCommand;
 import java.util.ArrayList;
-import org.wdssii.core.SingletonManager;
+import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.views.DataFeatureView;
 import org.wdssii.xml.wdssiiConfig.Tag_charts.Tag_chart;
 import org.wdssii.xml.wdssiiConfig.Tag_setup;
@@ -20,7 +20,7 @@ public class ChartSetTypeCommand extends WdssiiCommand {
 
         // Fill in drop down from the XML
         ArrayList<CommandOption> options = new ArrayList<CommandOption>();
-        Tag_setup doc = SingletonManager.getInstance().getSetupXML();
+        Tag_setup doc = PreferencesManager.getInstance().getSetupXML();
         if (doc != null) {
          
             ArrayList<Tag_chart> list = doc.charts.charts;
@@ -75,7 +75,7 @@ public class ChartSetTypeCommand extends WdssiiCommand {
         String defaultName = null;
 
        // WdssiiXMLDocument doc = SingletonManager.getInstance().getSetupXML();
-        Tag_setup doc = SingletonManager.getInstance().getSetupXML();
+        Tag_setup doc = PreferencesManager.getInstance().getSetupXML();
         /*	if (doc != null){
         WdssiiXMLCollection c = doc.get("charts");
         if (c != null){

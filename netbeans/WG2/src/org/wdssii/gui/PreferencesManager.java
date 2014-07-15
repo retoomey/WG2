@@ -7,10 +7,12 @@ import org.wdssii.core.CommandManager;
 import org.wdssii.core.Singleton;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.sources.SourceList;
-import org.wdssii.util.StringUtil;
+import org.wdssii.core.StringUtil;
+import org.wdssii.core.W2Config;
 import org.wdssii.xml.Util;
 import org.wdssii.xml.config.Source;
 import org.wdssii.xml.config.W2Pref;
+import org.wdssii.xml.wdssiiConfig.Tag_setup;
 
 /**
  * Preference manager handles wdssii preferences. It has a PreferenceHandler
@@ -28,7 +30,9 @@ public class PreferencesManager implements Singleton {
      */
     private W2Pref theW2Prefs = null;
     private PreferenceHandler myPrefs = null;
-
+ // Don't let it be read while it's reading...
+    private final Object wdssiiReadLock = new Object();
+    private Tag_setup theWdssiiXML;
     /**
      * Interface for a raw preference reader/writer
      */
@@ -111,7 +115,25 @@ public class PreferencesManager implements Singleton {
     public void singletonManagerCallback() {
         loadConfig();
     }
+    
+    public void readwdssiixml(){
+           try {
+            synchronized (wdssiiReadLock) {
+                URL u = W2Config.getURL("wdssii.xml");
+                theWdssiiXML = new Tag_setup();
+                theWdssiiXML.processAsRoot(u);
+            }
 
+        } catch (Exception e) {
+            //System.out.println("*********Exception reading setup configuration file:"+e.toString());
+        }
+    }
+    public Tag_setup getSetupXML() {
+        synchronized (wdssiiReadLock) {
+            return theWdssiiXML;
+        }
+    }
+    
     public static void introduce(PreferenceHandler p) {
         if (instance == null) {
             LOG.debug("Preference Manager must be created by SingletonManager");

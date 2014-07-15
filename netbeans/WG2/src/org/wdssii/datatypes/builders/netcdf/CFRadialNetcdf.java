@@ -12,7 +12,7 @@ import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.datatypes.PPIRadialSet;
 import org.wdssii.datatypes.PPIRadialSet.PPIRadialSetMemento;
 import org.wdssii.datatypes.Radial;
-import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
+import org.wdssii.datatypes.builders.netcdf.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.geom.Location;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array2D;

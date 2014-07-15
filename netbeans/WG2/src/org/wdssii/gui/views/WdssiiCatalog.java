@@ -23,10 +23,10 @@ import net.miginfocom.layout.CC;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.core.RadarInfo;
-import org.wdssii.core.SourceBookmarks;
-import org.wdssii.core.SourceBookmarks.BookmarkURLData;
-import org.wdssii.core.SourceBookmarks.BookmarkURLSource;
+import org.wdssii.gui.RadarInfo;
+import org.wdssii.xml.SourceBookmarks;
+import org.wdssii.xml.SourceBookmarks.BookmarkURLData;
+import org.wdssii.xml.SourceBookmarks.BookmarkURLSource;
 import org.wdssii.datatypes.builders.Builder.BuilderFileInfo;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.SourceAddCommand;
@@ -38,7 +38,7 @@ import org.wdssii.gui.swing.CONUSJPanel;
 import org.wdssii.gui.swing.CONUSJPanel.CONUSJPanelListener;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
-import org.wdssii.util.StringUtil;
+import org.wdssii.core.StringUtil;
 
 /**
  *

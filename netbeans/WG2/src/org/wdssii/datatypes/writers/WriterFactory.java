@@ -23,8 +23,8 @@ public class WriterFactory {
      */
     static {
         factory = new PrototypeFactory<DataTypeWriter>();
-        factory.addDefault("ESRI", "org.wdssii.datatypes.writers.ESRIWriter");
-        factory.addDefault("CSV", "org.wdssii.datatypes.writers.CSVWriter");
+        factory.addDefault("ESRI", "org.wdssii.datatypes.writers.esri.ESRIWriter");
+        factory.addDefault("CSV", "org.wdssii.datatypes.writers.csv.CSVWriter");
 
     }
     

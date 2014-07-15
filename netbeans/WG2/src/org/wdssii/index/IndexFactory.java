@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.core.DataUnavailableException;
 import org.wdssii.core.PrototypeFactory;
 
 /**
@@ -58,7 +57,7 @@ public class IndexFactory {
      * Creates an index. Add listeners using addIndexRecordListener
      */
     public static Index createIndex(String url)
-            throws IllegalArgumentException, DataUnavailableException {
+            throws IllegalArgumentException {
         return createIndex(url, new HashSet<IndexRecordListener>());
     }
 
@@ -66,7 +65,7 @@ public class IndexFactory {
      * convenience function when only one listener needs to be provided.
      */
     public static Index createIndex(String url, IndexRecordListener listener)
-            throws IllegalArgumentException, DataUnavailableException {
+            throws IllegalArgumentException {
         Set<IndexRecordListener> listeners = new HashSet<IndexRecordListener>();
         listeners.add(listener);
         return createIndex(url, listeners);
@@ -133,7 +132,7 @@ public class IndexFactory {
      */
     public static Index createIndex(String url,
             Set<IndexRecordListener> listeners)
-            throws IllegalArgumentException, DataUnavailableException {
+            throws IllegalArgumentException {
 
         // Should we create URL here, or higher up?
         URL aURL;

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.wdssii.core.ConfigurationException;
 import org.wdssii.storage.LRUCache;
 import org.wdssii.storage.LRUCache.LRUTrimComparator;
 import org.wdssii.core.W2Config;
@@ -979,7 +978,7 @@ public class ProductManager implements Singleton {
             productInfoXML = W2Config.getElement("misc/productinfo");
             //	System.out
             //			.println(">>>>>>>>>>>>LOADED THE PRODUCT INFO DATABASE>>>>YAY!!!");
-        } catch (ConfigurationException c) {
+        } catch (Exception c) {
             //	System.out
             //			.println("Couldn't log product information, using defaults.");
         }

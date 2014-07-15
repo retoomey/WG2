@@ -14,7 +14,6 @@ import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.index.IndexRecord;
 import org.wdssii.storage.DataManager;
 
 /**
@@ -45,7 +44,7 @@ public abstract class Builder {
         /** Choice from file.  Elevation, height, etc... */
         public String Choice = "None";
         /** Was the DataType 'sparse'? */
-        boolean sparse = false;
+        public boolean sparse = false;
         /** Any error during xml reading. GUI can show a dialog */
         public String error;
         /** Field set to true only if everything read correctly */
@@ -68,19 +67,21 @@ public abstract class Builder {
     lazy fills in the DataType for a DataRequest */
     public class BuilderBackgroundJob extends WdssiiJob {
 
-        IndexRecord myIndexRecord;
+       // IndexRecord myIndexRecord;
+        URL url;
         DataRequest myDataRequest;
 
-        public BuilderBackgroundJob(String name, IndexRecord rec, DataRequest dr) {
+        public BuilderBackgroundJob(String name, URL l, DataRequest dr) {
             super(name);
+            url = l;
             myDataRequest = dr;
-            myIndexRecord = rec;
+            //myIndexRecord = rec;
         }
 
         @Override
         public WdssiiJobStatus run(WdssiiJobMonitor monitor) {
             //	monitor.beginTask("DataRequest from "+myIndexRecord.getDataType(), IProgressMonitor.UNKNOWN);
-            DataType dt = createDataType(myIndexRecord, monitor);
+            DataType dt = createDataTypeFromURL(url, monitor);
 	    if (dt == null){
 		   String b =  Builder.this.getClass().getSimpleName();
 		   LOG.error("Builder "+b+" failed to load this data"); 
@@ -145,18 +146,15 @@ public abstract class Builder {
 
     
     /** Create a DataRequest, which spawns a background job */
-    public DataRequest createDataRequest(IndexRecord rec) {
+    public DataRequest createDataRequest(URL url, String dataType) {
         DataRequest dr = new DataRequest();
-        BuilderBackgroundJob b = new BuilderBackgroundJob("Building " + rec.getDataType(), rec, dr);
+        BuilderBackgroundJob b = new BuilderBackgroundJob("Building " + dataType, url, dr);
         b.schedule();
         return dr;
     }
 
-    /** Create a DataType object in this thread and report to given monitor while doing it.
-    The monitor is allowed to be null.
-     */
-    public abstract DataType createDataType(IndexRecord rec, WdssiiJobMonitor w);
-    
+    public abstract DataType createDataTypeFromURL(URL aURL, WdssiiJobMonitor m);
+
     /** Subclasses should override to create a valid URL for this record.
      * The URL is used to fetch the actual data file for the record.
      * @param rec

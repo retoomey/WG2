@@ -1,12 +1,10 @@
 package org.wdssii.datatypes.builders;
 
+import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.core.DataUnavailableException;
 import org.wdssii.core.PrototypeFactory;
 import org.wdssii.datatypes.DataRequest;
-import org.wdssii.datatypes.DataType;
-import org.wdssii.index.IndexRecord;
 
 /**
  * @author lakshman
@@ -29,9 +27,8 @@ public class BuilderFactory {
     static {
         factory = new PrototypeFactory<Builder>(
                 "java/Builder.xml");
-        factory.addDefault("netcdf", "org.wdssii.datatypes.builders.NetcdfBuilder");
-        factory.addDefault("W2ALGS", "org.wdssii.datatypes.builders.XMLBuilder");
-        factory.addDefault("test", "org.wdssii.datatypes.builders.TestBuilder");
+        factory.addDefault("netcdf", "org.wdssii.datatypes.builders.netcdf.NetcdfBuilder");
+        factory.addDefault("W2ALGS", "org.wdssii.datatypes.builders.xml.XMLBuilder");
 
     }
     
@@ -47,7 +44,7 @@ public class BuilderFactory {
      * @return
      * @throws DataUnavailableException
      */
-    public static DataType createDataType(IndexRecord rec)
+  /*  public static DataType createDataType(IndexRecord rec)
             throws DataUnavailableException {
 	Builder builder = rec.getBuilder();
 	if (builder == null){
@@ -55,17 +52,18 @@ public class BuilderFactory {
             return null;
 	}
         return builder.createDataType(rec, null);
-    }
+    }*/
 
     /** The background job version.  This doesn't block and returns a DataRequest which is a future
      * that holds a pointer to a future DataType.  See DataRequest for example 
      */
-    public static DataRequest createDataRequest(IndexRecord rec) {
-	Builder builder = rec.getBuilder();
+    public static DataRequest createDataRequestURL(Builder builder, URL theURL, String theDataType) 
+    {
+	//Builder builder = rec.getBuilder();
 	if (builder == null){
             LOG.error("No builder for this record");
             return null;
 	}
-        return builder.createDataRequest(rec);
+        return builder.createDataRequest(theURL, theDataType);
     }
 }

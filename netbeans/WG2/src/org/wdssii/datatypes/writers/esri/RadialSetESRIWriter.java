@@ -37,7 +37,6 @@ import org.wdssii.datatypes.Radial;
 import org.wdssii.datatypes.RadialATHeightGateCache;
 import org.wdssii.datatypes.RadialSet;
 import org.wdssii.datatypes.RadialUtil;
-import org.wdssii.datatypes.writers.ESRIWriter;
 import org.wdssii.geom.Location;
 import org.wdssii.storage.Array1D;
 

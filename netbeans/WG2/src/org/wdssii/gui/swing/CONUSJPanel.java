@@ -15,9 +15,9 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Map;
 import javax.swing.JPanel;
-import org.wdssii.core.RadarInfo;
-import org.wdssii.core.RadarInfo.ARadarInfo;
-import org.wdssii.core.SourceBookmarks.BookmarkURLSource;
+import org.wdssii.gui.RadarInfo;
+import org.wdssii.gui.RadarInfo.ARadarInfo;
+import org.wdssii.xml.SourceBookmarks.BookmarkURLSource;
 
 /**
  * CONUS JPanel shows the CONUS image from the web, with vcp information.

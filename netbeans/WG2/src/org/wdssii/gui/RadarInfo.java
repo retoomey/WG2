@@ -1,4 +1,4 @@
-package org.wdssii.core;
+package org.wdssii.gui;
 
 import java.awt.Color;
 import java.awt.Rectangle;

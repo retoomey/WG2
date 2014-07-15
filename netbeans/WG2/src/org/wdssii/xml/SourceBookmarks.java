@@ -1,4 +1,4 @@
-package org.wdssii.core;
+package org.wdssii.xml;
 
 import java.util.ArrayList;
 import java.util.Collections;

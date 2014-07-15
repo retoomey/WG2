@@ -8,7 +8,7 @@ import org.wdssii.datatypes.LatLonHeightGrid.LatLonHeightGridMemento;
 import ucar.nc2.NetcdfFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
+import org.wdssii.datatypes.builders.netcdf.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.storage.Array3D;
 import org.wdssii.storage.Array3DfloatRAM;
 import ucar.ma2.Array;

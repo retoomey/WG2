@@ -7,6 +7,7 @@ import org.wdssii.core.DelegateHelper;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
+import org.wdssii.datatypes.builders.Builder;
 import org.wdssii.datatypes.builders.BuilderFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap;
@@ -153,7 +154,9 @@ public class Product extends DelegateHelper {
             if (myDataRequest == null) {
                 if (myRecord != null) {
                     try {
-                        DataRequest dr = BuilderFactory.createDataRequest(myRecord);
+                        Builder b = myRecord.getBuilder();
+                        DataRequest dr = BuilderFactory.createDataRequestURL(b, myRecord.getDataLocationURL(b), myRecord.getDataType());
+                        //DataRequest dr = BuilderFactory.createDataRequest(myRecord.getBuilder(), myRecord.getDataType());
                         myDataRequest = dr;
                     } catch (Exception e) {
                         LOG.error("Exception starting to load data..." + e.toString());

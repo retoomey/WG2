@@ -290,7 +290,7 @@ public class W2Config {
      * @deprecated
      */
     public static Element getElement(String filename)
-            throws ConfigurationException {
+           {
 
         // First try with ".xml" on the end of it...
         URL u;
@@ -306,8 +306,9 @@ public class W2Config {
             Document doc = parser.parse(u.openStream());
             return doc.getDocumentElement();
         } catch (Exception e) {
-            throw new ConfigurationException(e);
+            LOG.error("Unable to parse element from "+filename);
         }
+        return null;
     }
 
     /**

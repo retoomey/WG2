@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.builders.Builder;
 import org.wdssii.datatypes.builders.BuilderFactory;
-import org.wdssii.util.StringUtil;
+import org.wdssii.core.StringUtil;
 
 /**
  * @author lakshman

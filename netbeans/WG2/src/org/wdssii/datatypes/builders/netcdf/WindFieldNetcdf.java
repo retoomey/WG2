@@ -6,8 +6,7 @@ import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.WindField;
 import org.wdssii.datatypes.WindField.WindFieldMemento;
-import org.wdssii.datatypes.builders.NetcdfBuilder;
-import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
+import org.wdssii.datatypes.builders.netcdf.NetcdfBuilder.NetcdfFileInfo;
 import org.wdssii.storage.Array2D;
 import ucar.nc2.NetcdfFile;
 

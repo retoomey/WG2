@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
-import org.wdssii.datatypes.builders.NetcdfBuilder.NetcdfFileInfo;
-import org.wdssii.util.StringUtil;
+import org.wdssii.datatypes.builders.netcdf.NetcdfBuilder.NetcdfFileInfo;
+import org.wdssii.core.StringUtil;
 import ucar.nc2.Attribute;
 
 /**

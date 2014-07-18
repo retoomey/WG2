@@ -2,8 +2,8 @@ package org.wdssii.core;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * WdssiiJob is our class that acts as a wrapper to another job type, such as

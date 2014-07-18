@@ -1,7 +1,7 @@
 package org.wdssii.properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * A collection of properties that belong together.

@@ -3,8 +3,8 @@ package org.wdssii.properties;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * A memento using strings to lookup properties

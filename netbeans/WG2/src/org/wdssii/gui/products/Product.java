@@ -1,8 +1,8 @@
 package org.wdssii.gui.products;
 
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.DelegateHelper;
 import org.wdssii.datatypes.DataRequest;
 import org.wdssii.datatypes.DataType;

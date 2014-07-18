@@ -1,7 +1,7 @@
 package org.wdssii.datatypes.writers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.PrototypeFactory;
 
 /**

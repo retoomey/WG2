@@ -3,8 +3,8 @@ package org.wdssii.storage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * LRUCache  -- Generic data structure for a Least Recently User Cache.

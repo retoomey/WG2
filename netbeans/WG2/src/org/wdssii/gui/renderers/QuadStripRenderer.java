@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Iterator;
 import javax.media.opengl.GL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
 

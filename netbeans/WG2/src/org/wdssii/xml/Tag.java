@@ -12,8 +12,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.W2Config;
 import sun.net.www.protocol.file.FileURLConnection;
 

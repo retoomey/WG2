@@ -2,8 +2,8 @@ package org.wdssii.gui.features;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.geom.V2;
 
 /**

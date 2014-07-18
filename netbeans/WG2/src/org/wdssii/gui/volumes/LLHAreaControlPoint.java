@@ -12,8 +12,8 @@ import gov.nasa.worldwind.render.markers.BasicMarkerShape;
 import gov.nasa.worldwind.render.markers.Marker;
 import gov.nasa.worldwind.render.markers.MarkerAttributes;
 import javax.media.opengl.GL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 public class LLHAreaControlPoint  {
 

@@ -1,7 +1,7 @@
 package org.wdssii.index;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /** IndexCollection doesn't directly connects to indexes. The IndexWatcher
  * class does.  This hides the connect/reconnect among other

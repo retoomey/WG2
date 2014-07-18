@@ -2,8 +2,8 @@ package org.wdssii.index;
 
 import java.net.URL;
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.StringUtil;
 import org.wdssii.xml.Tag;
 import org.wdssii.xml.index.Tag_codeindex;
@@ -156,7 +156,7 @@ public class XMLIndex extends Index {
             }
 
         } catch (Exception e) {
-            LOG.error("Failed to load XML format index from " + b, e);
+            LOG.error("Failed to load XML format index from " + b+ " "+e.toString());
         }
         if (!valid) {
             counter = -1;

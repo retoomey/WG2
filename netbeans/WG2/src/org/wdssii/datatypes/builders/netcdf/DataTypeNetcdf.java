@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import org.wdssii.geom.Location;
 import ucar.nc2.NetcdfFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.builders.netcdf.NetcdfBuilder.NetcdfFileInfo;
@@ -89,7 +89,7 @@ public abstract class DataTypeNetcdf {
             double ht = ncfile.findGlobalAttribute("Height").getNumericValue().doubleValue();
             loc = new Location(lat, lon, ht / 1000);
         } catch (Exception e) {
-            LOG.warn("Couldn't read in location from netcdf file", e);
+            LOG.warn("Couldn't read in location from netcdf file: "+e.toString());
         }
 
         return loc;

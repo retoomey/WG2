@@ -1,18 +1,13 @@
 package org.wdssii.gui;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import org.slf4j.ILoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wdssii.core.WDSSII;
 import org.wdssii.core.WdssiiJob;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.storage.DataManager;
 
 /**
@@ -22,12 +17,28 @@ import org.wdssii.storage.DataManager;
  */
 public class Application {
 
-    private final static Logger LOG = LoggerFactory.getLogger(Application.class);
+    private final static Logger LOG;// = LoggerFactory.getLogger(Application.class);
 
+    public static String logmessage;
+    
+    static {
+        // Initialize our logging to Sf4j.  Explicitly calling classes by full name
+        // just because all the similiar names is slightly confusing.  We create
+        // a simple wrapper to all logging to allow us to patch into various logging
+        // systems.  Which is what sl4fj does as well, but we need to remove the
+        // dependency on sl4fj imports in our code as well for systems where it doesn't
+        // play well.
+        org.wdssii.log.sl4fj.Slf4jLoggerFactory ourLogging = new org.wdssii.log.sl4fj.Slf4jLoggerFactory();
+        org.wdssii.log.LoggerFactory.setLoggerFactory(ourLogging);
+        logmessage = ourLogging.firstMessage;
+
+        LOG = LoggerFactory.getLogger(Application.class);
+    }
+    
     public void start() {
-        
+
         GUISingletonManager.setup();
-        
+
         DataManager.getInstance();
 
         // Create the WDSSII low-level core for products
@@ -35,8 +46,6 @@ public class Application {
 
         // Add the netbeans job creator
         WdssiiJob.introduce(new JobSwingFactory());
-        
-
 
         // Defaults to UIManager
         // Don't allow double click to work in file chooser
@@ -54,8 +63,6 @@ public class Application {
     }
 
     public static void main(String[] args) {
-
-        String logmessage = initializeLogger();
 
         final String arch = System.getProperty("os.arch");
         final String name = System.getProperty("os.name");
@@ -75,12 +82,11 @@ public class Application {
             LOG.info(logmessage);
         }
 
-        // initialize geotools to whatever sf4j bound too.  Bleh a commons
-        // subclass wrapper logging to Sl4fj that may be bound to commons..rofl. 
-        // Or logback, or log4j...We're using logback right now.
+        // initialize geotools to whatever WDSSII logging is bound too. 
         try {
             org.geotools.util.logging.Logging.GEOTOOLS.setLoggerFactory(
-                    "org.geotools.util.logging.Slf4jLoggerFactory");
+                    "org.geotools.util.logging.WdssiiLoggerFactory");
+                    //"org.geotools.util.logging.Slf4jLoggerFactory");
         } catch (Exception e) {
             LOG.error("Couldn't bind GEOTOOLS logger system to ours " + e.toString());
         }
@@ -93,61 +99,6 @@ public class Application {
 
         Application a = new Application();
         a.start();
-    }
-
-    /**
-     * Initialize the logback system. If we're bound to it.
-     *
-     * If SLF4J is bound to logback in the current environment, then we manually
-     * assign the logback.xml file. If deployed as a jar, we put the logback.xml
-     * in the same directory. I don't want it inside the jar so that it can
-     * easily be modified for debugging without having to know how to get it
-     * in/out of the jar. Jars assume the classpath is only the jar typically by
-     * default.
-     *
-     * So basically: 1. For deployment there is a user.dir such as
-     * "WG2-timestamp" and the logback.xml file will be in this folder with the
-     * deployed jar. 2. For development in the IDE the user.dir will be the root
-     * IDE folder where I have a debug logback.xml by default.
-     */
-    public static String initializeLogger() {
-        String message = null;
-
-        ILoggerFactory ilog = LoggerFactory.getILoggerFactory();
-        if (ilog instanceof LoggerContext) {
-            LoggerContext context = (LoggerContext) ilog;
-
-            try {
-
-                // Find the logback.xml file.  Otherwise we're stuck with
-                // the default logback output.
-                // For jar deployment this will be where the windows.bat, WG2.jar
-                // is at.  For IDE running this will be the 'root' folder
-                // of the IDE.  I have two logback.xml files, one for deployment
-                // in util/run and another for debugging in IDE.
-                String dir = System.getProperty("user.dir") + "/logback.xml";
-                boolean exists = (new File(dir)).exists();
-
-                // Problem with this is that it causes logging to happen,
-                // and we aren't ready yet...
-                // URL aURL = W2Config.getURL("logback.xml");
-                if (exists) {
-                    JoranConfigurator configurator = new JoranConfigurator();
-                    configurator.setContext(context);
-                    // Call context.reset() to clear any previous configuration, e.g. default 
-                    // configuration. For multi-step configuration, omit calling context.reset().
-                    context.reset();
-                    configurator.doConfigure(dir);
-                    message = "Logback configuration file " + dir;
-                } else {
-                    message = "Couldn't find logback configuration file, default logging is on";
-                }
-            } catch (JoranException je) {
-                // StatusPrinter will handle this
-            }
-            // StatusPrinter.printInCaseOfErrorsOrWarnings(context);
-        }
-        return message;
     }
 
     public static void addNativeLibrariesOrDie(String rootdir) {

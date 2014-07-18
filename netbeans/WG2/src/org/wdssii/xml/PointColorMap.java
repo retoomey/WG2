@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.xml.bind.annotation.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * a PointColorMap is a list of Point tags that define bins of a color map This

@@ -7,8 +7,8 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import net.infonode.docking.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.DockWindow;
 import org.wdssii.gui.swing.SwingIconFactory;
 

@@ -12,8 +12,8 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.OverlayChangeListener;
 import org.jfree.chart.panel.Overlay;
 import org.jfree.data.Range;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.features.FeatureList;
 
 /**

@@ -8,8 +8,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import net.miginfocom.layout.CC;
 import net.miginfocom.swing.MigLayout;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.products.SymbolPanel.SymbolPanelListener;
 import org.wdssii.xml.iconSetConfig.Symbol;
 

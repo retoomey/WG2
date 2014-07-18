@@ -5,8 +5,8 @@ import org.wdssii.gui.symbology.SingleSymbol;
 import org.wdssii.gui.symbology.SymbologyGUI;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**

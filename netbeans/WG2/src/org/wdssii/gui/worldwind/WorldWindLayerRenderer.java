@@ -4,8 +4,8 @@ import org.wdssii.gui.features.Feature3DRenderer;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.render.DrawContext;
 import java.awt.Point;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.features.FeatureMemento;
 

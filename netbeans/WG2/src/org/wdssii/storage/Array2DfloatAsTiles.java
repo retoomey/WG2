@@ -3,8 +3,8 @@ package org.wdssii.storage;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  *   Breaks a 2D array down into a grid where each DataManager node is a square

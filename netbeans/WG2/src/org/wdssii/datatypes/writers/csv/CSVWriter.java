@@ -1,8 +1,8 @@
 package org.wdssii.datatypes.writers.csv;
 
 import java.net.URL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 

@@ -1,7 +1,7 @@
 package org.wdssii.datatypes.builders.netcdf;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.WindField;

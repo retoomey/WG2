@@ -3,8 +3,8 @@ package org.wdssii.datatypes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.storage.Array1D;
 

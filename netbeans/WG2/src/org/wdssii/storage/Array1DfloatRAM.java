@@ -2,8 +2,8 @@ package org.wdssii.storage;
 
 import java.nio.FloatBuffer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * Full 1D float array in RAM.  Not recommended since for massive radar data

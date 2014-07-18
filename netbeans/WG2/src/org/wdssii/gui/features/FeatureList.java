@@ -2,8 +2,8 @@ package org.wdssii.gui.features;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.charts.DataView;
 
 /**

@@ -5,8 +5,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.TreeSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.GUIPlugInPanel;
 import org.wdssii.gui.views.SourcesURLLoadDialog;
 

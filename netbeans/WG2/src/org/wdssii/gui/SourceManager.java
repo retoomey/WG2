@@ -1,7 +1,7 @@
 package org.wdssii.gui;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.core.Singleton;
 import org.wdssii.gui.commands.SourceAddCommand;

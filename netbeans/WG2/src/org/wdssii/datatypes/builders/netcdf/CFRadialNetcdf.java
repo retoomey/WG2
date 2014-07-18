@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeMemento;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
@@ -92,7 +92,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
             }
             loc = new Location(lat, lon, height / 1000);
         } catch (Exception e) {
-            LOG.warn("Couldn't read in location from netcdf file", e);
+            LOG.warn("Couldn't read in location from netcdf file: "+e.toString());
         }
 
         return loc;

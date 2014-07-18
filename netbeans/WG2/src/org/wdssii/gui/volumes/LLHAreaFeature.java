@@ -1,8 +1,8 @@
 package org.wdssii.gui.volumes;
 
 import java.util.TreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.FeatureList;

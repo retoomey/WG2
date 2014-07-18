@@ -1,7 +1,7 @@
 package org.wdssii.storage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  *  a 3D array.  Only use this if you have the ram for it.

@@ -1,7 +1,7 @@
 package org.wdssii.gui.commands;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;

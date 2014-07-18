@@ -2,8 +2,8 @@ package org.wdssii.gui.swing;
 
 import java.awt.Color;
 import java.awt.event.AdjustmentEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeQuery;
 import org.wdssii.datatypes.Table2DView;

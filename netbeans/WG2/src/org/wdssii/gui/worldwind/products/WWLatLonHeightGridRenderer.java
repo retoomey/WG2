@@ -11,8 +11,8 @@ import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
 // 
 import java.awt.Point;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.LatLonHeightGrid;

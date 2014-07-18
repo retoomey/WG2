@@ -7,8 +7,8 @@ import net.infonode.docking.*;
 import net.infonode.docking.properties.DockingWindowProperties;
 import net.infonode.docking.properties.ViewProperties;
 import net.infonode.docking.properties.ViewTitleBarProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.DockWindow;
 
 /**

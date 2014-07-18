@@ -2,8 +2,8 @@ package org.wdssii.gui.volumes;
 
 import javax.media.opengl.GL;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.GLShader;
 
 /** Alpha beginnings of an IsoSurface ability.. */

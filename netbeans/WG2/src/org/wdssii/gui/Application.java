@@ -1,5 +1,7 @@
 package org.wdssii.gui;
 
+import org.wdssii.gui.views.infonode.InfonodeViews;
+import org.wdssii.gui.views.ViewManager;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import javax.swing.SwingUtilities;
@@ -57,7 +59,8 @@ public class Application {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                DockWindow.startWindows();
+                InfonodeViews d = new InfonodeViews();
+                ViewManager.init(d);
             }
         });
     }

@@ -1,22 +1,21 @@
 package org.wdssii.gui.views;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JButton;
-import javax.swing.JPanel;
-import net.infonode.docking.*;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
-import org.wdssii.gui.DockWindow;
 import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.gui.views.ViewManager.RootContainer;
 
 /**
- * A docked factory handling adding of new sub-docked Views
+ * Multiple windows contained within a single window
  *
- * Docked windows are all children of a single control window. Dynamic windows
- * can be created that are listed/owned by this main docking window.
+ * Windows are all children of a single control window. Dynamic windows can be
+ * created that are listed/owned by this main docking window.
  *
  * @author Robert Toomey
  */
@@ -49,48 +48,38 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
         super(title, icon);
     }
     /**
-     * The root window we add new subviews to
+     * The root component we add new subviews to
      */
-    private RootWindow rootW;
+    private RootContainer rootW;
     /**
      * Each subview gets a unique counter in its title
      */
     private int counter = 1;
-    /**
-     * Our factory
-     */
-    private WdssiiDockedViewFactory myAddFactory;
 
     @Override
-    public DockingWindow getNewDockingWindow() {
-
-        JPanel holder = new JPanel();
-        holder.setLayout(new BorderLayout());
-
-        //info = new JTextField();
-        //info.setText("Testing Nested Docking Charts (in progress)");
-        //holder.add(info, BorderLayout.NORTH);
+    public WdssiiView createWdssiiView() {
 
         // -------------------------------------------------------------
         // Create a root window (just a square that's hold views), it's
-        // not a view itself...all charts will dock to this
-        RootWindow root = DockWindow.createARootWindow();
-        rootW = root;
-        addNewSubView();
-        holder.add(root, BorderLayout.CENTER);
-        // ------------------------------------------------------------
+        // not a view itself...all charts will go into this
+        rootW = ViewManager.createRootContainer();
+        Component c = (Container)(rootW);
+       // c.setVisible(false);
+        addNewSubView();  // The 'first' data view...
 
         // The main view that contains all sub-docked views
         String title = getWindowTitle();
         Icon i = getWindowIcon();
-        View topWindow = new View(title + "s", i, holder);
-        MDockView m = getTempComponent();
 
-        List<Object> l = getCustomTitleBarComponents(topWindow);
+        // Add the top level window title items
+        List<Object> l = new ArrayList<Object>();
+
+        MDockView m = getTempComponent();
         m.addGlobalCustomTitleBarComponents(l);
         addCreationButton(l);
-
-        return topWindow;
+        rootW.addControls(l);
+        
+        return new WdssiiView(title + "s", i, c, l, "classkey");
     }
 
     /**
@@ -113,66 +102,30 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
     /**
      * Add view already created
      */
-    protected void addNewSubView(View v) {
-        //Icon i = getWindowIcon();
-        DockingWindow base = rootW.getWindow();
-
-        // Depending on how user has moved stuff around, should be one of three
-        // possibilities:
-        // 1.  All closed, so null --> create a new tabwindow
-        // 2.  Dragged into split window...
-        // 3.  TabWindow already...
-        if (base == null) {
-            TabWindow theTab = new TabWindow(v);
-            rootW.setWindow(theTab);
-        } else {
-            if (base instanceof TabWindow) {
-                TabWindow theTab = (TabWindow) (base);
-                theTab.addTab(v);
-            } else if (base instanceof SplitWindow) {
-                TabWindow theTab = new TabWindow(new DockingWindow[]{v, base});
-                rootW.setWindow(theTab);
-            } else {
-                LOG.error("Unknown window type...We should handle this type (FIXME)");
-            }
-        }
+    protected void addNewSubView(WdssiiView v) {
+       // ViewManager.addWdssiiViewToRootContainer(rootW, v, null);
     }
 
     /**
      * Create a new subview, add to management
      */
-    public View addNewSubView() {
+    public void addNewSubView() {
+
         Icon i = getWindowIcon();
         String title = getWindowTitle();
-
         int c = getNewViewCounter();
         Component p = getNewSubViewComponent(c);
-        View v = new View(title + "-" + c, i, p);
+
+        // Gather menu items for this sub view
+        List<Object> l = new ArrayList<Object>();
         MDockView m = null;
         if (p instanceof MDockView) {
             m = (MDockView) (p);
+            m.addCustomTitleBarComponents(l);
         }
-        final MDockView link = m;
-        if (m != null) {
-            m.addCustomTitleBarComponents(getCustomTitleBarComponents(v));
-        }
-        // Add a 'close' listener so we can remove from the global list when
-        // deleted
-        if (link != null) {
-
-            link.windowAdded();
-            v.addListener(new DockingWindowAdapter() {
-                @Override
-                public void windowClosing(DockingWindow window)
-                        throws OperationAbortedException {
-                    if (link != null) {
-                        link.windowClosing();
-                    }
-                }
-            });
-        }
-        addNewSubView(v);
-        return v;
+        WdssiiView v = new WdssiiView(title + "-" + c, i, p, l, "classkey2");
+        
+        rootW.addWdssiiView(v, m);
     }
 
     /**

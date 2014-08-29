@@ -1,49 +1,69 @@
-package org.wdssii.gui;
+package org.wdssii.gui.views.infonode;
 
+import com.jidesoft.swing.JideMenu;
+import com.jidesoft.swing.JideSplitButton;
+import org.wdssii.gui.views.WdssiiDockedViewFactory;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.*;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.stream.StreamSource;
 import net.infonode.docking.*;
 import net.infonode.docking.mouse.DockingWindowActionMouseButtonListener;
+import net.infonode.docking.properties.DockingWindowProperties;
 import net.infonode.docking.properties.RootWindowProperties;
+import net.infonode.docking.properties.ViewProperties;
+import net.infonode.docking.properties.ViewTitleBarProperties;
 import net.infonode.docking.theme.*;
 import net.infonode.docking.util.DockingUtil;
 import net.infonode.docking.util.MixedViewHandler;
 import net.infonode.docking.util.ViewMap;
+import net.infonode.docking.util.WindowMenuUtil;
 import net.infonode.gui.laf.InfoNodeLookAndFeel;
 import net.infonode.gui.laf.InfoNodeLookAndFeelTheme;
 import net.infonode.tabbedpanel.TabAreaVisiblePolicy;
 import net.infonode.tabbedpanel.TabLayoutPolicy;
 import net.infonode.util.Direction;
+import org.wdssii.gui.views.ViewManager.RootContainer;
+import org.wdssii.gui.views.ViewManager.ViewMaker;
+import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
+import org.wdssii.gui.views.WdssiiView;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.worldwind.WorldWindDataView;
-import org.wdssii.gui.views.WdssiiDockedViewFactory;
 import org.wdssii.storage.DataManager;
 
 /**
- * The main GUI window. This handles the main menu items as well as the docking
- * wrappers for each of our views.
+ * The main window layout using infonode
  *
  * @author Robert Toomey
  */
-public class DockWindow {
+public class InfonodeViews implements ViewMaker {
 
-    private final static Logger LOG = LoggerFactory.getLogger(DockWindow.class);
+    private final static Logger LOG = LoggerFactory.getLogger(InfonodeViews.class);
     /**
      * Default main window title string
      */
@@ -94,19 +114,37 @@ public class DockWindow {
             new ClassicDockingTheme()};
     }
 
-    public static void startWindows() {
+    public static class IView extends View {
+
+        public WdssiiView wv;
+
+        public IView(WdssiiView w, String paramString, Icon paramIcon, Component paramComponent) {
+            super(paramString, paramIcon, paramComponent);
+            wv = w;
+        }
+
+        public String getWdssiiKey() {
+            return wv.getKey();
+        }
+    }
+
+    /**
+     * Initial the start up window configuration
+     */
+    @Override
+    public void init() {
         // This actually sets the java UI, so we do this first
         setColorTheme(myCurrentColorThemeIndex);
         // Docking windows should be run in the Swing thread
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                DockWindow d = new DockWindow();
-                d.setupRootWindow();
+                // DockWindow d = new DockWindow();
+                setupRootWindow();
+                // setupTestWindow();
             }
         });
     }
-    //Set the Frame to Full Screen
 
     public void setFullScreen(DisplayMode dm, JFrame win) {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -157,12 +195,13 @@ public class DockWindow {
      */
     private final Object viewLock = new Object();
     private ArrayList<DockingWindow> views = new ArrayList<DockingWindow>();
+    //private Map<String, DockingWindow> myViews = new TreeMap<String, DockingWindow>();
     /**
      * Contains all the static views
      */
     private ViewMap viewMap = new ViewMap();
     /**
-     * Helper factories for getting view info
+     * Helper factories for getting view info FIXME: Move this to ViewManager..
      */
     private Map<String, WdssiiDockedViewFactory> myFactory = new TreeMap<String, WdssiiDockedViewFactory>();
     /**
@@ -234,7 +273,36 @@ public class DockWindow {
      */
     private static JFrame myRootFrame;
 
-    public DockWindow() {
+    public InfonodeViews() {
+    }
+
+    public void setupTestWindow() {
+        View[] views = new View[5];
+        ViewHolder viewHolder = new ViewHolder();
+        for (int i = 0; i < views.length; i++) {
+            views[i] = new View("View " + i, null, new JLabel("This is view " + i + "!"));
+            viewHolder.addView(i, views[i]);
+        }
+        viewHolder.addView(views.length, getViewByID("NavView"));
+
+        rootWindow = DockingUtil.createRootWindow(viewHolder, true);
+        Rectangle r = getScreenBounds();
+        int margin = 50;
+        int width = (int) (r.getWidth() - (2 * margin));
+        int height = (int) (r.getHeight() - (2 * margin));
+        int x = margin;
+        int y = margin;
+        showFrame(x, y, width, height);
+    }
+
+    public Rectangle getScreenBounds() {
+        // FIXME: Eventually going to have to add multiple screen layout support
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gs = ge.getScreenDevices();
+        GraphicsDevice def = ge.getDefaultScreenDevice();
+        DisplayMode dm = def.getDisplayMode();
+        Rectangle rect = new Rectangle(0, 0, dm.getWidth(), dm.getHeight());
+        return rect;
     }
 
     public void setupRootWindow() {
@@ -250,13 +318,10 @@ public class DockWindow {
         // For now, we will fill the default display..but subtract a margin...bleh
         // Get the default screen for now to setup.  Need this in configuration
         // will have to 'try' to layout using multiple windows
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice[] gs = ge.getScreenDevices();
-        GraphicsDevice def = ge.getDefaultScreenDevice();
-        DisplayMode dm = def.getDisplayMode();
+        Rectangle r = getScreenBounds();
         int margin = 50;
-        int width = dm.getWidth() - (2 * margin);
-        int height = dm.getHeight() - (2 * margin);
+        int width = (int) (r.getWidth() - (2 * margin));
+        int height = (int) (r.getHeight() - (2 * margin));
         int x = margin;
         int y = margin;
         showFrame(x, y, width, height);
@@ -328,34 +393,52 @@ public class DockWindow {
         return f;
     }
 
-    private DockingWindow createViewByID(String shortName) {
-        DockingWindow v = null;
+    public static void wrapWdssiiViewWithGUI2(WdssiiView wv) {
+        if (wv.container == null) {
+            View v = new IView(wv, wv.getTitle(), wv.getIcon(), wv.getComponent());
 
-        WdssiiDockedViewFactory f = getFactoryFor(shortName);
-        if (f != null) {
-            v = f.getNewDockingWindow();
-            f.setDock(v);
-        }
-        return v;
-    }
-
-    private void addViewByID(String shortName) {
-        DockingWindow v = createViewByID(shortName);
-        if (v != null) {
-            synchronized (viewLock) {
-                views.add(v);
+            // Add wanting title bar controls from WdssiiView to the real view list
+            List<Object> list = wv.getWindowTitleItems();
+            if (list != null) {
+                List<Object> realList = v.getCustomTitleBarComponents();
+                for (Object o : list) {
+                    realList.add(o);
+                }
             }
+            wv.container = v; // Keep a reference to the GUI
         }
     }
 
-    private DockingWindow getViewByID(String shortName) {
-        WdssiiDockedViewFactory f = getFactoryFor(shortName);
-        DockingWindow v = null;
-        if (f != null) {
-            Object c = f.getDock();
-            if (c instanceof DockingWindow) {
-                v = (DockingWindow) (c);
+    /**
+     * Wrap a WdssiiView with the GUI item used by our windowing system, we
+     * store information to the GUI item into the WdssiiView. In our case, we
+     * wrap with an infonode dockable window
+     */
+    @Override
+    public void wrapWdssiiViewWithGUI(WdssiiView wv) {
+        if (wv.container == null) {
+            View v = new IView(wv, wv.getTitle(), wv.getIcon(), wv.getComponent());
+
+            // Add wanting title bar controls from WdssiiView to the real view list
+            List<Object> list = wv.getWindowTitleItems();
+            if (list != null) {
+                List<Object> realList = v.getCustomTitleBarComponents();
+                for (Object o : list) {
+                    realList.add(o);
+                }
             }
+            wv.container = v; // Keep a reference to the GUI
+        }
+    }
+
+    private View getViewByID(String shortName) {
+        WdssiiDockedViewFactory f = getFactoryFor(shortName);
+        View v = null;
+        if (f != null) {
+            WdssiiView wv = f.getWdssiiView();
+            wv.setKey(shortName);
+            wrapWdssiiViewWithGUI(wv);
+            v = (View) wv.container;
         }
         return v;
     }
@@ -368,6 +451,186 @@ public class DockWindow {
             JMenuItem m = new JMenuItem(title, i);
             root.add(m);
         }
+    }
+
+    /**
+     * A Rootwindow with some extra stuff
+     */
+    public static class WRootWindow extends RootWindow implements RootContainer {
+
+        private List<WdssiiView> theList = new ArrayList<WdssiiView>();
+
+        public WRootWindow(boolean paramBoolean, ViewSerializer paramViewSerializer, DockingWindow paramDockingWindow) {
+            super(paramBoolean, paramViewSerializer, paramDockingWindow);
+        }
+
+        public void addWdssiiView(WdssiiView wv, MDockView md) {
+            InfonodeViews.wrapWdssiiViewWithGUI2(wv);
+            theList.add(wv);
+            View theView = (View) (wv.container);
+            DockingWindow base = getWindow();
+
+            // Depending on how user has moved stuff around, should be one of three
+            // possibilities:
+            // 1.  All closed, so null --> create a new tabwindow
+            // 2.  Dragged into split window...
+            // 3.  TabWindow already...
+            if (base == null) {
+                TabWindow theTab = new TabWindow(theView);
+                setWindow(theTab);
+            } else {
+                if (base instanceof TabWindow) {
+                    TabWindow theTab = (TabWindow) (base);
+                    theTab.addTab(theView);
+                } else if (base instanceof SplitWindow) {
+                    TabWindow theTab = new TabWindow(new DockingWindow[]{theView, base});
+                    setWindow(theTab);
+                } else {
+                    LOG.error("Unknown window type...We should handle this type (FIXME)");
+                }
+            }
+            if (md != null) {
+                final MDockView link = md;
+                final WdssiiView wvfinal = wv;
+                link.windowAdded();
+                theView.addListener(new DockingWindowAdapter() {
+                    @Override
+                    public void windowClosing(DockingWindow window)
+                            throws OperationAbortedException {
+                        LOG.debug("Window closing");
+                        theList.remove(wvfinal);
+                        if (link != null) {
+                            link.windowClosing();
+                        }
+                    }
+
+                    @Override
+                    public void windowClosed(DockingWindow window) {
+                        LOG.debug("Window closed");
+                    }
+
+                    @Override
+                    public void windowRemoved(DockingWindow window, DockingWindow w2) {
+                        LOG.debug("Window removed");
+                    }
+                });
+            }
+
+        }
+
+        @Override
+        public void addControls(List<Object> addTo) {
+            // The product follow menu
+            //Icon link = SwingIconFactory.getIconByName("plus.png");
+            JideSplitButton b = new JideSplitButton("");
+            //b.setIcon(link);
+            b.setText("Window");
+            b.setAlwaysDropdown(true);
+            b.setToolTipText("Windows");
+            b.setPopupMenuCustomizer(new JideMenu.PopupMenuCustomizer() {
+                @Override
+                public void customize(JPopupMenu menu) {
+                    menu.removeAll();
+                    // FIXME: sync lock? probably
+                    for (WdssiiView v : theList) {
+                        JMenuItem newOne = new JMenuItem(v.getTitle());
+                        newOne.addActionListener(new java.awt.event.ActionListener() {
+                            @Override
+                            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                                LOG.debug("Picked a window item");
+                            }
+                        });
+                        menu.add(newOne);
+                    }
+                }
+            });
+            addTo.add(b);
+        }
+
+        @Override
+        public void createSingleSubWindow(String controlTitle, Icon i, Component f, Component c) {
+            // Inside the root window we'll add two views...
+
+            View controls = new View(controlTitle, i, c);
+            View select = new View(controlTitle + " selection", i, f);
+
+            // The select is our 'root', so make it non-dragable.  Basically
+            // the main view will be the actual holder for this.  By making it a view,
+            // we allow the other view to be docked above it, etc..
+            ViewProperties vp = select.getViewProperties();
+            ViewTitleBarProperties tp = vp.getViewTitleBarProperties();
+            tp.setVisible(false);
+
+            // Since menu allows changing, make a new window properties
+            DockingWindowProperties org = controls.getWindowProperties();
+            org.setCloseEnabled(false);
+            org.setMaximizeEnabled(false);
+            org.setMinimizeEnabled(false);
+
+            SplitWindow w = new SplitWindow(false, select, controls);
+            setWindow(w);
+            // Add a 'close' listener to our internal root so that if the
+            // control window is closed we redock instead.. (we could close
+            // it but we'll need some control to get it back then)
+            // Add a listener which shows dialogs when a window is closing or closed.
+            addListener(new DockingWindowAdapter() {
+                @Override
+                public void windowClosing(DockingWindow window)
+                        throws OperationAbortedException {
+                    window.dock();
+                }
+            });
+        }
+    }
+
+    /**
+     * Create a root component. We create an infonode RootWindow, so that stuff
+     * will 'dock' to us
+     *
+     * @return
+     */
+    @Override
+    public RootContainer createRootContainer() {
+        //RootWindowProperties override = new RootWindowProperties();
+        WRootWindow aWindow;
+
+        ViewMap someViewMap = new ViewMap();
+        // FIXME: don't get this yet really....
+        // The mixed view map makes it easy to mix static and dynamic views inside the same root window
+        MixedViewHandler handler = new MixedViewHandler(someViewMap,
+                new ViewSerializer() {
+            @Override
+            public void writeView(View view,
+                    ObjectOutputStream out) throws IOException {
+                // out.writeInt(((DynamicView) view).getId());
+            }
+
+            @Override
+            public View readView(ObjectInputStream in)
+                    throws IOException {
+                return null;
+                //return getDynamicView(in.readInt());
+            }
+        });
+
+        TabWindow localTabWindow = new TabWindow();
+        for (int i = 0; i < someViewMap.getViewCount(); i++) {
+            localTabWindow.addTab(someViewMap.getViewAtIndex(i));
+        }
+        localTabWindow.setSelectedTab(0);
+        aWindow = new WRootWindow(false, handler, localTabWindow);
+        aWindow.setPopupMenuFactory(WindowMenuUtil.createWindowMenuFactory(someViewMap, true));
+
+        //aWindow = DockingUtil.createRootWindow(someViewMap, handler,
+        //        true);
+        // aWindow = DockingUtil.createRootWindow(false, someViewMap, handler,
+        //        true);
+        // Default to the properties global
+        synchronized (propSync) {
+            aWindow.getRootWindowProperties().addSuperObject(properties);
+        }
+
+        return aWindow;
     }
 
     /**
@@ -479,9 +742,13 @@ public class DockWindow {
             }
         });
         if (WorldWindDataView.USE_HEAVYWEIGHT) {
-            rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, handler, true);
+            // rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, handler, true);
+            rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, true);
+
         } else {
-            rootWindow = DockingUtil.createRootWindow(viewMap, handler,
+            // rootWindow = DockingUtil.createRootWindow(viewMap, handler,
+            //         true);
+            rootWindow = DockingUtil.createRootWindow(viewMap,
                     true);
         }
 
@@ -553,21 +820,22 @@ public class DockWindow {
         // FIXME: Should hunt by reflection, auto handle this...
         // For the moment creating ALL views...
         //  addViewByID("WorldWindView");
-        addViewByID("NavView");
+        getViewByID("NavView");
 
-        addViewByID("DebugView");
-        addViewByID("CatalogView");
-        addViewByID("SourcesView");
+        // getViewByID("DebugView");
+        getViewByID("CatalogView");
+        getViewByID("SourcesView");
 
-        addViewByID("DataFeatureView");
-        addViewByID("FeaturesView");
+        getViewByID("DataFeatureView");
+        getViewByID("FeaturesView");
 
         // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.
         rootWindow.addTabMouseButtonListener(DockingWindowActionMouseButtonListener.MIDDLE_BUTTON_CLOSE_LISTENER);
     }
 
     /**
-     * Sets the default window layout.
+     * Sets a super basic default window layout in case layout files fail for
+     * some reason
      */
     private void setDefaultLayout() {
 
@@ -576,15 +844,14 @@ public class DockWindow {
         DockingWindow[] v = views.toArray(new DockingWindow[views.size()]);
 
         // Special windows
-        //  DockingWindow earth = getViewByID("WorldWindView");
         DockingWindow catalog = getViewByID("CatalogView");
         DockingWindow sources = getViewByID("SourcesView");
         DockingWindow nav = getViewByID("NavView");
         DockingWindow chart = getViewByID("DataFeatureView");
-        DockingWindow debug = getViewByID("DebugView");
+        //DockingWindow debug = getViewByID("DebugView");
         DockingWindow features = getViewByID("FeaturesView");
 
-        // TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
+        //TabWindow debug = new TabWindow(new DockingWindow[]{jobs, cache});
         TabWindow sourceProducts = new TabWindow(new DockingWindow[]{sources, features, catalog});
         sourceProducts.setSelectedTab(0);
 
@@ -593,9 +860,10 @@ public class DockWindow {
         // TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart});
         TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts});
         rootWindow.setWindow(
-                new SplitWindow(true, 0.5f,
-                new SplitWindow(false, 0.7f, chart, nav), stuff));
+                 new SplitWindow(true, 0.5f,
+                 new SplitWindow(false, 0.7f, chart, nav), stuff));
         stuff.setSelectedTab(0);
+        //rootWindow.setWindow(new SplitWindow(false, 0.7f, features, chart));
 
         /*
          * WindowBar windowBar = rootWindow.getWindowBar(Direction.DOWN); while
@@ -613,8 +881,7 @@ public class DockWindow {
         myRootFrame = new JFrame(WINDOWTITLE);
         myRootFrame.getContentPane().add(rootWindow, BorderLayout.CENTER);
         myRootFrame.setJMenuBar(createMenuBar());
-        //myRootFrame.setSize(width, height);
-        myRootFrame.setBounds(50, 50, width, height);
+        myRootFrame.setBounds(x, y, width, height);
         myRootFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // String currentTitle = w.getTitle();
@@ -623,75 +890,28 @@ public class DockWindow {
         String newTitle = WINDOWTITLE + " " + dir;
         myRootFrame.setTitle(newTitle);
         myRootFrame.setVisible(true);
-       // testbinding();
+        // testbinding();
 
     }
 
-    public void testbinding() {
-        KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
-        Action escapeAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                LOG.debug("Got escape...exiting application");
-                System.exit(0);
-            }
-        };
-        myRootFrame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
-        myRootFrame.getRootPane().getActionMap().put("ESCAPE", escapeAction);
-    }
+    private void setMainWindowBounds(int x, int y, int width, int height) {
+        myRootFrame.setVisible(true);
 
-    /**
-     * Creates the frame tool bar.
-     *
-     * @return the frame tool bar
-     */
-    private JToolBar createToolBar() {
-        JToolBar toolBar = new JToolBar();
-        // Assumes called after factories created...
-        // FIXME: order/sort the menus...
-        for (Map.Entry<String, WdssiiDockedViewFactory> e : myFactory.entrySet()) {
-            final WdssiiDockedViewFactory f = e.getValue();
-            JButton newOne = new JButton(f.getMenuIcon());
-            newOne.setToolTipText(f.getMenuTitle());
-            newOne.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            Object o = f.getDock();
-                            if (o != null) {
-
-                                // What to do if view exists.....
-                                if (o instanceof View) {
-                                    View v = (View) (o);
-                                    // Ensure the view is shown in the root window
-                                    DockingUtil.addWindow(v,
-                                            rootWindow);
-                                    //Transfer focus to the view
-                                    v.restoreFocus();
-                                }
-                            } else {
-                                // FIXME: later on, create the view.
-                                // Eventually we want to only make views that
-                                // are being used or called up...
-                            }
-
-                        }
-                    });
-                }
-            });
-            toolBar.add(newOne);
+        // Integrety check to the screen bounds....
+        Rectangle r = getScreenBounds();
+        if (x < r.x) {
+            x = r.x;
         }
-        /*
-         * new JToolBar(); JLabel label = new JLabel("Drag New View");
-         * toolBar.add(label); new DockingWindowDragSource(label, new
-         * DockingWindowDraggerProvider() {
-         *
-         * public DockingWindowDragger getDragger( MouseEvent mouseEvent) {
-         * return getDynamicView(getDynamicViewId()).startDrag(rootWindow); }
-         * });
-         */
-        return toolBar;
+        if (y < r.y) {
+            y = r.y;
+        }
+        if (width > r.width) {
+            width = r.width;
+        }
+        if (height > r.height) {
+            height = r.height;
+        }
+        myRootFrame.setBounds(x, y, width, height);
     }
 
     /**
@@ -805,6 +1025,233 @@ public class DockWindow {
         }
 
         return themesMenu;
+    }
+
+    /**
+     * Print out the tree of window children
+     */
+    public void dumpChildren(DockingWindow r, int level) {
+        int win = r.getChildWindowCount();
+        String space = "";
+        for (int s = 0; s < level; s++) {
+            space += " ";
+        }
+        for (int i = 0; i < win; i++) {
+            DockingWindow subWindow = r.getChildWindow(i);
+
+            LOG.debug(space + i + " " + subWindow.getClass().getSimpleName());
+            this.dumpChildren(subWindow, ++level);
+        }
+    }
+
+    public DockingWindow buildWindow(org.wdssii.xml.views.DockWindow r) {
+
+        DockingWindow dock = null;
+
+        // ---------------------------------------------------
+        // First, create and gather all child windows....
+        List<DockingWindow> theList = new ArrayList<DockingWindow>();
+        if (r.window == null) {
+        } else {
+            for (org.wdssii.xml.views.DockWindow dw : r.window) {
+                DockingWindow c = buildWindow(dw);
+                if (c == null) {
+                    LOG.debug("We got a null child....");
+                }
+                theList.add(c);
+
+            }
+        }
+
+        // ---------------------------------------------------
+        // Then create this one, using the children as parameters...
+        if (r instanceof org.wdssii.xml.views.RootWindow) {
+            LOG.debug("Rootwindow found");
+            DockingWindow stuff = theList.get(4);
+            // Floating Windows can cause the internal root window to be
+            // completely empty...
+            if (!(stuff instanceof FloatingWindow)) {
+                rootWindow.setWindow(stuff);
+            }
+            org.wdssii.xml.views.RootWindow rw = (org.wdssii.xml.views.RootWindow) (r);
+            setMainWindowBounds(rw.x, rw.y, rw.width, rw.height);
+
+        } else if (r instanceof org.wdssii.xml.views.WindowBar) {
+            dock = null;
+            LOG.debug("Windowbar found");
+        } else if (r instanceof org.wdssii.xml.views.TabWindow) {
+            LOG.debug("TabWindow found");
+            DockingWindow[] test = (DockingWindow[]) theList.toArray(new DockingWindow[0]);
+            dock = new TabWindow(test);
+        } else if (r instanceof org.wdssii.xml.views.SplitWindow) {
+            LOG.debug("SplitWindow found");
+            org.wdssii.xml.views.SplitWindow sw = (org.wdssii.xml.views.SplitWindow) (r);
+            dock = new SplitWindow(sw.isHorizontal, sw.dividerLocation, theList.get(0), theList.get(1));
+        } else if (r instanceof org.wdssii.xml.views.View) {
+            org.wdssii.xml.views.View sw = (org.wdssii.xml.views.View) (r);
+            LOG.debug("Key for window is " + sw.key);
+            dock = this.getViewByID(sw.key);
+        } else if (r instanceof org.wdssii.xml.views.FloatingWindow) {
+            org.wdssii.xml.views.FloatingWindow fw = (org.wdssii.xml.views.FloatingWindow) (r);
+            // dock = new FloatingWindow(rootWindow, theList.get(0), new Point(10,10), new Dimension (100,100));
+            LOG.debug("Floating window at " + fw.x + ", " + fw.y + ", " + fw.width + ", " + fw.height);
+            Point p = new Point(fw.x, fw.y);
+            Dimension d = new Dimension(fw.width, fw.height);
+            DockingWindow l = theList.get(0);
+            LOG.debug("Docking window part is " + l);
+
+            dock = rootWindow.createFloatingWindow(p, d, l);
+            ((FloatingWindow) dock).getTopLevelAncestor().setVisible(true);
+        }
+        return dock;
+    }
+
+    /**
+     * Get all child windows from given and below in XML format
+     */
+    public org.wdssii.xml.views.DockWindow getChildWindows(DockingWindow r, int level) {
+
+        org.wdssii.xml.views.DockWindow dock = null;
+
+        // RootWindow, TabWindow, SplitWindow, WindowBar are subclasses of DockingWindow
+        // 'Could' reflect these.  We just make a dao class for each infonode class
+        // This should rarely change.  We'll probably add our own mini-super layout window
+        // here eventually.
+        if (r instanceof RootWindow) {
+            org.wdssii.xml.views.RootWindow rx = new org.wdssii.xml.views.RootWindow();
+            dock = rx;
+            Rectangle rect = myRootFrame.getBounds();
+            rx.x = (int) rect.getX();
+            rx.y = (int) rect.getY();
+            rx.width = (int) rect.getWidth();
+            rx.height = (int) rect.getHeight();
+        } else if (r instanceof TabWindow) {
+            dock = new org.wdssii.xml.views.TabWindow();
+        } else if (r instanceof WindowBar) {
+            dock = new org.wdssii.xml.views.WindowBar();
+        } else if (r instanceof SplitWindow) {
+            org.wdssii.xml.views.SplitWindow swx = new org.wdssii.xml.views.SplitWindow();
+            dock = swx;
+            SplitWindow sw = (SplitWindow) (r);
+            swx.dividerLocation = sw.getDividerLocation();
+            swx.isHorizontal = sw.isHorizontal();
+            // Could save properties too...
+            //SplitWindowProperties x= sw.getSplitWindowProperties();
+            //int div = x.getDividerSize();
+            //LOG.error("Div size is "+div);
+            //x.setDividerSize(20);
+        } else if (r instanceof IView) {   // Special view with one of our things in it
+            org.wdssii.xml.views.View vx = new org.wdssii.xml.views.View();
+            dock = vx;
+            IView v = (IView) (r);
+            vx.title = v.getTitle();
+            vx.key = v.getWdssiiKey();
+        } else if (r instanceof FloatingWindow) {
+            org.wdssii.xml.views.FloatingWindow fx = new org.wdssii.xml.views.FloatingWindow();
+            dock = fx;
+            FloatingWindow f = (FloatingWindow) (r);
+            Container c = f.getTopLevelAncestor();
+            fx.x = c.getX();
+            fx.y = c.getY();
+            fx.width = f.getWidth();
+            fx.height = f.getHeight();
+
+        } else {
+            LOG.error("Unknown window type encountered " + r.getClass().getCanonicalName());
+            LOG.error("I don't know how to save this window or it's subwindows");
+        }
+
+        // For each child of the dockwindow, add it...
+        if (dock != null) {
+            int win = r.getChildWindowCount();
+            for (int i = 0; i < win; i++) {
+                DockingWindow subWindow = r.getChildWindow(i);
+                org.wdssii.xml.views.DockWindow child = getChildWindows(subWindow, ++level);
+                if (child != null) {
+                    dock.addChild(child);
+                }
+            }
+        }
+
+        return dock;
+    }
+
+    private JMenu testMenu() {
+        JMenu testMenu = new JMenu("Test");
+        // Dangerous if rootWindow changes..
+        final RootWindow r = rootWindow;
+
+        JMenuItem item = new JMenuItem("Save layout");
+        testMenu.add(item).addActionListener(
+                new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    dumpChildren(r, 0);
+
+                    // JAXB OUTPUT
+                    org.wdssii.xml.views.DockWindow rr = getChildWindows(r, 0);
+                    File file = new File("c:/timesheets/testlayout.xml");
+                    JAXBContext jaxbContext = JAXBContext.newInstance(org.wdssii.xml.views.RootWindow.class);
+                    Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+                    jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,
+                            true);
+
+                    jaxbMarshaller.marshal(rr, file);
+                    jaxbMarshaller.marshal(rr, System.out);
+
+                } catch (Exception ex) {
+                    LOG.error("Couldn't save layout " + ex.toString());
+                }
+            }
+        });
+
+        JMenuItem item2 = new JMenuItem("Restore layout");
+        testMenu.add(item2).addActionListener(
+                new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                try {
+                    JAXBContext jc = JAXBContext.newInstance(org.wdssii.xml.views.RootWindow.class);
+
+                    StreamSource xml = new StreamSource("c:/timesheets/testlayout.xml");
+                    Unmarshaller unmarshaller = jc.createUnmarshaller();
+                    // JAXBElement<org.wdssii.xml.views.RootWindow> theRoot =
+                    JAXBElement<org.wdssii.xml.views.RootWindow> theRoot =
+                            unmarshaller.unmarshal(xml, org.wdssii.xml.views.RootWindow.class);
+
+                    // Have to close all the old floating windows first, quirk with
+                    // infonode
+                    closeAllFloatingWindows();
+
+                    // Build the window using the xml
+                    buildWindow(theRoot.getValue());
+                    //     rootWindow.setWindow(
+                    // new SplitWindow(true, 0.5f,
+                    //new SplitWindow(false, 0.7f, chart, nav), stuff));
+
+                } catch (Exception ex) {
+                    LOG.error("Couldn't read layout " + ex.toString());
+                }
+            }
+        });
+        return testMenu;
+    }
+
+    private void closeAllFloatingWindows() {
+        int current = rootWindow.getChildWindowCount();
+        List<FloatingWindow> list = new ArrayList<FloatingWindow>();
+        for (int i = 0; i < current; i++) {
+            DockingWindow win = rootWindow.getChildWindow(i);
+            if (win instanceof FloatingWindow) {
+                list.add((FloatingWindow) (win));
+            }
+        }
+        for (FloatingWindow f : list) {
+            f.close();
+        }
     }
 
     /**
@@ -982,12 +1429,14 @@ public class DockWindow {
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
-                            Object o = f.getDock();
-                            if (o != null) {
 
+                            WdssiiView wv = f.getWdssiiView();
+                            if (wv != null) {
+
+                                Object o = wv.container;
                                 // What to do if view exists.....
-                                if (o instanceof View) {
-                                    View v = (View) (o);
+                                if (o instanceof DockingWindow) {
+                                    DockingWindow v = (DockingWindow) (o);
                                     // Ensure the view is shown in the root window
                                     DockingUtil.addWindow(v,
                                             rootWindow);
@@ -1011,6 +1460,7 @@ public class DockWindow {
         // Theme controls how windows look
         menu.add(createInfonodeWindowThemeMenu());
         menu.add(createInfonodeColorThemeMenu());
+        menu.add(testMenu());
         menu.add(createWindowBarsMenu());
         menu.add(createPropertiesMenu());
 

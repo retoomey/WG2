@@ -1,17 +1,6 @@
 package org.wdssii.gui.views;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
-import javax.swing.Icon;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import net.infonode.docking.DockingWindow;
-import net.infonode.docking.RootWindow;
-import net.infonode.docking.TabWindow;
-import net.infonode.docking.View;
-import net.infonode.docking.properties.WindowTabProperties;
-import net.infonode.properties.propertymap.PropertyMap;
-import org.wdssii.gui.DockWindow;
 import org.wdssii.gui.swing.JThreadPanel;
 
 /**
@@ -37,8 +26,10 @@ public class DebugView extends JThreadPanel
         }
 
         @Override
-        public DockingWindow getNewDockingWindow() {
+        public WdssiiView getWdssiiView() {
 
+            return null;
+            /*
             JPanel holder = new JPanel();
             holder.setLayout(new BorderLayout());
             
@@ -49,7 +40,7 @@ public class DebugView extends JThreadPanel
             // -------------------------------------------------------------
             // Create a root window (just a square that's hold views), it's
             // not a view itself...all charts will dock to this
-            RootWindow root = DockWindow.createARootWindow();
+            RootWindow root = InfonodeViews.createARootWindow();
 
             // Jobs view
             JobsView.Factory f1 = new JobsView.Factory();
@@ -83,6 +74,7 @@ public class DebugView extends JThreadPanel
             View topWindow = new View("Debug", i, holder);
            
             return topWindow;
+            * */
         }
 
         @Override

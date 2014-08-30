@@ -29,7 +29,7 @@ public class SourceAddCommand extends SourceClearCommand {
         private String niceName;
         private URL sourceURL;
         private boolean connect;
-        public JComponent rootWindow = null; // root for any dialogs
+       // public JComponent rootWindow = null; // root for any dialogs
         public String message;
         
         public SourceAddParams(String aNiceName, URL aSourceURL, boolean aConnect) {
@@ -103,11 +103,6 @@ public class SourceAddCommand extends SourceClearCommand {
     }
     private final static Logger LOG = LoggerFactory.getLogger(SourceAddCommand.class);
     private SourceAddParams myParams;
-    /**
-     * By default if user clicks a button, require a confirm dialog
-     */
-    private boolean myUserConfirm = false;
-    private boolean myUserReport = false;
 
     /**
      *
@@ -120,15 +115,6 @@ public class SourceAddCommand extends SourceClearCommand {
         myParams = params;
     }
 
-    /**
-     * Set if dialogs show up or not
-     */
-    public void setConfirmReport(boolean c, boolean r, JComponent root) {
-        myUserConfirm = c;
-        myUserReport = r;
-        myParams.rootWindow = root;
-    }
-
     @Override
     public boolean execute() {
 
@@ -139,11 +125,11 @@ public class SourceAddCommand extends SourceClearCommand {
             // Remember if user wants dialog to show on add or not...
             PreferencesManager p = PreferencesManager.getInstance();
             boolean showDialog = p.getBoolean(PrefConstants.PREF_showAddCommandDialog);
-            if (myUserConfirm && showDialog) {
+            if (getUserConfirm() && showDialog) {
                 JCheckBox checkbox = new JCheckBox("Do not show this message again.");
                 String message = "Add and connect to source '" + myParams.niceName + "'?";
                 Object[] params = {message, checkbox};
-                int n = JOptionPane.showConfirmDialog(myParams.rootWindow, params, "Confirm source addition", JOptionPane.YES_NO_OPTION);
+                int n = JOptionPane.showConfirmDialog(getRootComponent(), params, "Confirm source addition", JOptionPane.YES_NO_OPTION);
                 boolean dontShow = checkbox.isSelected();
                 if (n == 0) { // Yes
                     doJob = true;
@@ -158,12 +144,12 @@ public class SourceAddCommand extends SourceClearCommand {
                 // String newKey = add(myParams.niceName, myParams.sourceURL, myParams.realTime, myParams.history);  // Don't lag here.
                 String newKey = add(myParams);
                 updateGUI = true;  // Add needs a 'unconnected' icon and name in list.
-                if (myUserReport) {
+                if (getUserReport()) {
                     if (newKey != null) {
-                        JOptionPane.showMessageDialog(myParams.rootWindow, "Add was successful",
+                        JOptionPane.showMessageDialog(getRootComponent(), "Add was successful",
                                 "Add success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        JOptionPane.showMessageDialog(myParams.rootWindow, myParams.message,
+                        JOptionPane.showMessageDialog(getRootComponent(), myParams.message,
                                 "Add failure", JOptionPane.ERROR_MESSAGE);
                     }
                 }

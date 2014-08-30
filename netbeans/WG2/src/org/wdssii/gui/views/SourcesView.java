@@ -643,7 +643,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
                 URL aURL = file.toURI().toURL();
                 LOG.debug("Trying to write output to " + aURL.toString());
                 // Tag root = SourceList.theSources.getTag();
-                PreferencesManager.getInstance().saveConfig(aURL);
+                PreferencesManager.getInstance().saveAsDocument(aURL);
                 //if (root != null) {
                 //     root.writeAsRoot(aURL);
                 // }

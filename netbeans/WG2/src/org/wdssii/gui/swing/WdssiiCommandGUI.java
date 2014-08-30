@@ -7,15 +7,17 @@ import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 import org.wdssii.core.CommandManager;
 import org.wdssii.core.WdssiiCommand;
 
 /**
- *  Create Swing GUI items for WdssiiCommand
- * 
+ * Create Swing GUI items for WdssiiCommand
+ *
  * @author Robert Toomey
  */
 public class WdssiiCommandGUI {
+
     public static class CommandMenuItem extends JMenuItem implements WdssiiCommand.CommandItem {
 
         public String option;
@@ -66,10 +68,14 @@ public class WdssiiCommandGUI {
         };
         for (WdssiiCommand.CommandOption m : list) {
             // item = new CommandMenuItem(m.visibleText, m.commandText);
-            CommandMenuItem item = new CommandMenuItem(m.visibleText, m.commandText);
-            // JMenuItem item = (JMenuItem) i.createWidget(m.visibleText);
-            menu.add(item);
-            item.addActionListener(menuAction);
+            if (m.visibleText.isEmpty()) {
+                menu.add(new JSeparator());
+            } else {
+                CommandMenuItem item = new CommandMenuItem(m.visibleText, m.commandText);
+                // JMenuItem item = (JMenuItem) i.createWidget(m.visibleText);
+                menu.add(item);
+                item.addActionListener(menuAction);
+            }
         }
     }
 
@@ -82,7 +88,7 @@ public class WdssiiCommandGUI {
         return menu;
     }
 
-    public static void fillCheckMenuFor(JPopupMenu menu, WdssiiCommand l){
+    public static void fillCheckMenuFor(JPopupMenu menu, WdssiiCommand l) {
         menu.removeAll();
         ButtonGroup group = new ButtonGroup();
         String current = l.getSelectedOption();
@@ -111,9 +117,9 @@ public class WdssiiCommandGUI {
                 item.setSelected(true);
             }
             item.addActionListener(menuAction);
-        } 
+        }
     }
-    
+
     /**
      * Generate a dynamic popup menu from a given menu list command
      */
@@ -122,5 +128,4 @@ public class WdssiiCommandGUI {
         fillCheckMenuFor(menu, l);
         return menu;
     }
-
 }

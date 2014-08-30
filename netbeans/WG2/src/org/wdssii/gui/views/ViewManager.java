@@ -2,9 +2,11 @@ package org.wdssii.gui.views;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.net.URL;
 import java.util.List;
 import javax.swing.Icon;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
+import org.wdssii.xml.views.RootWindow;
 
 /**
  * This class will wrap generic window managing of all WG2 views This will hide
@@ -19,13 +21,19 @@ public class ViewManager {
      * Holder the class doing the work here
      */
     public static ViewMaker myWorker = null;
+    
+    public static void setConfigPath(URL aURL) {
+       if (myWorker != null){
+           myWorker.setConfigPath(aURL);
+       }
+    }
 
     public static interface RootContainer {
 
         public void addWdssiiView(WdssiiView w, MDockView md);
 
         public void addControls(List<Object> list);
-        
+
         public void createSingleSubWindow(String controlTitle, Icon i, Component f, Component c);
     }
 
@@ -45,6 +53,21 @@ public class ViewManager {
          * Wrap a WdssiiView with an actual GUI container
          */
         public void wrapWdssiiViewWithGUI(WdssiiView wv);
+
+        /** 
+         * 
+         * @return layout xml JAXB node
+         */
+        public RootWindow getLayoutXML();
+
+        /** Set layout to that from XML, if possible */
+        public void setLayoutXML(RootWindow r);
+        
+        /** Set a new layout state */
+        public void setNewLayout();
+        
+        /** Set the URL path of this document */
+        public void setConfigPath(URL aURL);
         /**
          * Add a WdssiiView to a given root container
          */
@@ -83,6 +106,24 @@ public class ViewManager {
             myWorker.wrapWdssiiViewWithGUI(wv);
         }
     }
+
+    public static RootWindow getLayoutXML() {
+        RootWindow xml = null;
+        if (myWorker != null){
+            xml = myWorker.getLayoutXML();
+        }
+        return xml;
+    }
     
-    
+     public static void setLayoutXML(RootWindow r) {
+        if (myWorker != null){
+            myWorker.setLayoutXML(r);
+        }
+    }
+     
+     public static void setNewLayout() {
+        if (myWorker != null){
+            myWorker.setNewLayout();
+        }
+    }
 }

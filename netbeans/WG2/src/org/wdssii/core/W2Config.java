@@ -289,8 +289,7 @@ public class W2Config {
      *
      * @deprecated
      */
-    public static Element getElement(String filename)
-           {
+    public static Element getElement(String filename) {
 
         // First try with ".xml" on the end of it...
         URL u;
@@ -306,21 +305,50 @@ public class W2Config {
             Document doc = parser.parse(u.openStream());
             return doc.getDocumentElement();
         } catch (Exception e) {
-            LOG.error("Unable to parse element from "+filename);
+            LOG.error("Unable to parse element from " + filename);
         }
         return null;
     }
 
     /**
-     * Get the preferred directory for save location...
-     * Passing in 'symbology' yields default directory for lookup
+     * Get the preferred directory for save location... This will try to find a
+     * directory in path, if not it will try to create a directory with this
+     * name within the base w2config folder
      */
     public static URL getPreferredDir(String base) {
+
+        URL preferredDir = null;
         // Get the preferred directory for symbology?
-        URL preferredDir = W2Config.getURL(base + "/");
-       // if (preferredDir != null) {
-       //     LOG.debug("Found preferred symbology directory at " + preferredDir);
-       // }
+        try {
+            preferredDir = W2Config.getURL(base + "/");
+            if (preferredDir == null) {
+                // Let's try to make one inside a w2config folder...
+                // We 'should' have at least have our w2config folder from
+                // the distribution...
+                preferredDir = W2Config.getURL("w2config");
+                if (preferredDir != null) {
+                    // Ok, we have a w2config.  We'll try to make a directory
+                    String output = preferredDir.getFile() + "/" + base;
+                    File dir = new File(output);
+                    if (!dir.exists()) {
+                        if (dir.mkdir()) {
+                            LOG.info("Created directory "+dir.getAbsolutePath());
+                            preferredDir = dir.toURI().toURL();
+                        } else {
+                            LOG.error("Couldn't create directory '" + base + "' within '" + preferredDir.getFile() + "',maybe permission settings?");
+                        }
+                    } else {
+                        preferredDir = dir.toURI().toURL();
+                    }
+                } else {
+                    LOG.error("Couldn't find ANY base w2config folder, if you downloaded the distribution, there should be at least a w2config folder in there");
+                    LOG.error("You might need to reinstall.");
+                }
+            }
+        } catch (Exception e) {
+            // Well..we might be SOL here...dialog and quit?
+            LOG.error("Exception looking for required directory '"+base+"' "+e.toString());
+        }
         return preferredDir;
     }
 }

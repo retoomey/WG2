@@ -16,12 +16,14 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -47,6 +49,12 @@ import net.infonode.gui.laf.InfoNodeLookAndFeelTheme;
 import net.infonode.tabbedpanel.TabAreaVisiblePolicy;
 import net.infonode.tabbedpanel.TabLayoutPolicy;
 import net.infonode.util.Direction;
+import org.wdssii.core.CommandManager;
+import org.wdssii.gui.Application;
+import org.wdssii.gui.commands.ExitCommand;
+import org.wdssii.gui.commands.NewCommand;
+import org.wdssii.gui.commands.OpenCommand;
+import org.wdssii.gui.commands.SaveCommand;
 import org.wdssii.gui.views.ViewManager.RootContainer;
 import org.wdssii.gui.views.ViewManager.ViewMaker;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
@@ -54,7 +62,6 @@ import org.wdssii.gui.views.WdssiiView;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.worldwind.WorldWindDataView;
-import org.wdssii.storage.DataManager;
 
 /**
  * The main window layout using infonode
@@ -67,7 +74,11 @@ public class InfonodeViews implements ViewMaker {
     /**
      * Default main window title string
      */
-    final static String WINDOWTITLE = "WDSSII GUI 2.0";
+    //public final static String WINDOWTITLE = "WDSSII GUI 2.0";
+    public final static String WINDOWTITLE =
+            Application.NAME + " " + Application.MAJOR_VERSION + "."
+            + Application.MINOR_VERSION;
+    public final static String UNTITLED = "Untitled";
     /**
      * Color themes for infonode
      */
@@ -112,6 +123,54 @@ public class InfonodeViews implements ViewMaker {
             new ShapedGradientDockingTheme(),
             new SoftBlueIceDockingTheme(),
             new ClassicDockingTheme()};
+    }
+
+    @Override
+    public org.wdssii.xml.views.RootWindow getLayoutXML() {
+        org.wdssii.xml.views.DockWindow rr = getChildWindows(rootWindow, 0);
+        return (org.wdssii.xml.views.RootWindow) (rr);
+    }
+
+    @Override
+    public void setLayoutXML(org.wdssii.xml.views.RootWindow r) {
+        org.wdssii.xml.views.DockWindow oldLayout = getChildWindows(rootWindow, 0);
+        try {
+            // Have to close all the old floating windows first, quirk with
+            // infonode
+            closeAllFloatingWindows();
+            // Build the window using the xml
+            buildWindow(r);
+        } catch (Exception e) {
+            closeAllFloatingWindows();
+            buildWindow(oldLayout);
+        }
+    }
+
+    @Override
+    public void setNewLayout() {
+        setDefaultLayout();
+        // isn't the main window bound part of the default layout?
+        // Rectangle r = getScreenBounds();
+        // setMainWindowBounds(r);
+    }
+
+    @Override
+    public void setConfigPath(URL aURL) {
+        String s;
+        if (aURL == null) {
+            s = UNTITLED;
+        } else {
+            s = aURL.toString();
+        }
+        setMainTitle(s);
+    }
+
+    private void setMainTitle(String s) {
+        // String currentTitle = w.getTitle();
+        //String dir = DataManager.getInstance().getRootTempDir();
+        // String newTitle = currentTitle.replaceAll("tempdir", "["+dir+"]");
+        // FIXME: shorten it to shortest path?
+        myRootFrame.setTitle(s + " - " + WINDOWTITLE); //+ " " + dir)
     }
 
     public static class IView extends View {
@@ -195,7 +254,6 @@ public class InfonodeViews implements ViewMaker {
      */
     private final Object viewLock = new Object();
     private ArrayList<DockingWindow> views = new ArrayList<DockingWindow>();
-    //private Map<String, DockingWindow> myViews = new TreeMap<String, DockingWindow>();
     /**
      * Contains all the static views
      */
@@ -205,69 +263,17 @@ public class InfonodeViews implements ViewMaker {
      */
     private Map<String, WdssiiDockedViewFactory> myFactory = new TreeMap<String, WdssiiDockedViewFactory>();
     /**
-     * The view menu items
-     */
-    //  private JMenuItem[] viewItems = new JMenuItem[views.length];
-    /**
-     * Contains the dynamic views that has been added to the root window
-     */
-    private HashMap dynamicViews = new HashMap();
-    /**
      * The currently applied docking windows theme
      */
     private static DockingWindowsTheme currentTheme = null;
-
-    /**
-     * A dynamically created view containing an id.
-     */
-    public static class DynamicView extends View {
-
-        private int id;
-
-        /**
-         * Constructor.
-         *
-         * @param title the view title
-         * @param icon the view icon
-         * @param component the view component
-         * @param id the view id
-         */
-        DynamicView(String title, Icon icon, Component component, int id) {
-            super(title, icon, component);
-            this.id = id;
-        }
-
-        /**
-         * Returns the view id.
-         *
-         * @return the view id
-         */
-        public int getId() {
-            return id;
-        }
-    }
     /**
      * In this properties object the modified property values for close buttons
      * etc. are stored. This object is cleared when the theme is changed.
      */
-//	private static RootWindowProperties properties = new RootWindowProperties();
     private static RootWindowProperties properties = new RootWindowProperties();
     // Seeing a strange intermittent startup bug with properties, checking to see if
     // it's a sync issue...
     private static final Object propSync = new Object();
-//		PropertiesUtil.createTitleBarStyleRootWindowProperties();
-//	private static RootWindowProperties titleBarStyleProperties = PropertiesUtil.createTitleBarStyleRootWindowProperties();
-    /**
-     * Where the layouts are stored.
-     */
-    private byte[][] layouts = new byte[3][];
-    /**
-     * Menu item for enabling/disabling adding of a menu bar and a status label
-     * to all new floating windows.
-     */
-    // private JCheckBoxMenuItem enableMenuAndStatusLabelMenuItem = new JCheckBoxMenuItem(
-    //         "Add Menu Bar and Status Label to all New Floating Windows",
-    //         true);
     /**
      * The application frame
      */
@@ -276,98 +282,30 @@ public class InfonodeViews implements ViewMaker {
     public InfonodeViews() {
     }
 
-    public void setupTestWindow() {
-        View[] views = new View[5];
-        ViewHolder viewHolder = new ViewHolder();
-        for (int i = 0; i < views.length; i++) {
-            views[i] = new View("View " + i, null, new JLabel("This is view " + i + "!"));
-            viewHolder.addView(i, views[i]);
-        }
-        viewHolder.addView(views.length, getViewByID("NavView"));
-
-        rootWindow = DockingUtil.createRootWindow(viewHolder, true);
-        Rectangle r = getScreenBounds();
-        int margin = 50;
-        int width = (int) (r.getWidth() - (2 * margin));
-        int height = (int) (r.getHeight() - (2 * margin));
-        int x = margin;
-        int y = margin;
-        showFrame(x, y, width, height);
-    }
-
+    /**
+     * Get the rectangle for the screen boundary of the default display
+     */
     public Rectangle getScreenBounds() {
         // FIXME: Eventually going to have to add multiple screen layout support
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice[] gs = ge.getScreenDevices();
+        //GraphicsDevice[] gs = ge.getScreenDevices();
         GraphicsDevice def = ge.getDefaultScreenDevice();
         DisplayMode dm = def.getDisplayMode();
-        Rectangle rect = new Rectangle(0, 0, dm.getWidth(), dm.getHeight());
-        return rect;
+        return new Rectangle(0, 0, dm.getWidth(), dm.getHeight());
     }
 
     public void setupRootWindow() {
 
+        // Do we make these savable?
         setTheme(myCurrentThemeIndex);
         setUpGlobalProperties();
+
+        // Create a root window, then a frame
         createRootWindow();
+        createNewFrame();
+
+        // Set the default layout
         setDefaultLayout();
-
-        // Experimenting...
-        // DisplayMode dm=new DisplayMode(800, 600, 16, DisplayMode.REFRESH_RATE_UNKNOWN);
-        // setFullScreen(dm, myRootFrame);
-        // For now, we will fill the default display..but subtract a margin...bleh
-        // Get the default screen for now to setup.  Need this in configuration
-        // will have to 'try' to layout using multiple windows
-        Rectangle r = getScreenBounds();
-        int margin = 50;
-        int width = (int) (r.getWidth() - (2 * margin));
-        int height = (int) (r.getHeight() - (2 * margin));
-        int x = margin;
-        int y = margin;
-        showFrame(x, y, width, height);
-    }
-
-    /**
-     * Creates a view component containing the specified text.
-     *
-     * @param text the text
-     * @return the view component
-     */
-    private static JComponent createViewComponent(String text) {
-        return new JScrollPane(new JTextArea());
-    }
-
-    /**
-     * Returns a dynamic view with specified id, reusing an existing view if
-     * possible.
-     *
-     * @param id the dynamic view id
-     * @return the dynamic view
-     */
-    private View getDynamicView(int id) {
-        View view = (View) dynamicViews.get(Integer.valueOf(id));
-
-        if (view == null) {
-            view = new DynamicView("Dynamic View " + id, null,
-                    createViewComponent("Dynamic View " + id), id);
-        }
-
-        return view;
-    }
-
-    /**
-     * Returns the next available dynamic view id.
-     *
-     * @return the next available dynamic view id
-     */
-    private int getDynamicViewId() {
-        int id = 0;
-
-        while (dynamicViews.containsKey(Integer.valueOf(id))) {
-            id++;
-        }
-
-        return id;
     }
 
     /**
@@ -725,22 +663,6 @@ public class InfonodeViews implements ViewMaker {
      */
     private void createRootWindow() {
 
-        // FIXME: don't get this yet really....
-        // The mixed view map makes it easy to mix static and dynamic views inside the same root window
-        MixedViewHandler handler = new MixedViewHandler(viewMap,
-                new ViewSerializer() {
-            @Override
-            public void writeView(View view,
-                    ObjectOutputStream out) throws IOException {
-                out.writeInt(((DynamicView) view).getId());
-            }
-
-            @Override
-            public View readView(ObjectInputStream in)
-                    throws IOException {
-                return getDynamicView(in.readInt());
-            }
-        });
         if (WorldWindDataView.USE_HEAVYWEIGHT) {
             // rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, handler, true);
             rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, true);
@@ -813,19 +735,13 @@ public class InfonodeViews implements ViewMaker {
             }
         });
 
-        // Create the views
-        Icon i = null;
-        View v;
-
         // FIXME: Should hunt by reflection, auto handle this...
         // For the moment creating ALL views...
         //  addViewByID("WorldWindView");
         getViewByID("NavView");
-
         // getViewByID("DebugView");
         getViewByID("CatalogView");
         getViewByID("SourcesView");
-
         getViewByID("DataFeatureView");
         getViewByID("FeaturesView");
 
@@ -860,8 +776,8 @@ public class InfonodeViews implements ViewMaker {
         // TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts, chart});
         TabWindow stuff = new TabWindow(new DockingWindow[]{sourceProducts});
         rootWindow.setWindow(
-                 new SplitWindow(true, 0.5f,
-                 new SplitWindow(false, 0.7f, chart, nav), stuff));
+                new SplitWindow(true, 0.5f,
+                new SplitWindow(false, 0.7f, chart, nav), stuff));
         stuff.setSelectedTab(0);
         //rootWindow.setWindow(new SplitWindow(false, 0.7f, features, chart));
 
@@ -871,47 +787,83 @@ public class InfonodeViews implements ViewMaker {
          * windowBar.getChildWindow(0).close(); } windowBar.addTab(layers);
          *
          */
+        // isn't the main window bound part of the default layout?
+        Rectangle r = getScreenBounds();
+        r.grow(-50, -50); // Margin
+        setMainWindowBounds(r);
     }
 
     /**
      * Initializes the frame and shows it.
      */
-    private void showFrame(int x, int y, int width, int height) {
+    private void createNewFrame() {
         //myRootFrame.getContentPane().add(createToolBar(), BorderLayout.NORTH);
-        myRootFrame = new JFrame(WINDOWTITLE);
+        myRootFrame = new JFrame();
         myRootFrame.getContentPane().add(rootWindow, BorderLayout.CENTER);
         myRootFrame.setJMenuBar(createMenuBar());
-        myRootFrame.setBounds(x, y, width, height);
-        myRootFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myRootFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        myRootFrame.addWindowListener(new WindowListener(){
 
-        // String currentTitle = w.getTitle();
-        String dir = DataManager.getInstance().getRootTempDir();
-        // String newTitle = currentTitle.replaceAll("tempdir", "["+dir+"]");
-        String newTitle = WINDOWTITLE + " " + dir;
-        myRootFrame.setTitle(newTitle);
-        myRootFrame.setVisible(true);
-        // testbinding();
+            @Override
+            public void windowOpened(WindowEvent e) {
+            }
 
+            @Override
+            public void windowClosing(WindowEvent e) {
+                doExit();
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+            }
+
+            @Override
+            public void windowIconified(WindowEvent e) {
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+            }
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+            }
+            
+        });
+        //   // String currentTitle = w.getTitle();
+        //   String dir = DataManager.getInstance().getRootTempDir();
+        //   // String newTitle = currentTitle.replaceAll("tempdir", "["+dir+"]");
+        setMainTitle(UNTITLED);
     }
 
-    private void setMainWindowBounds(int x, int y, int width, int height) {
-        myRootFrame.setVisible(true);
-
-        // Integrety check to the screen bounds....
+    public void pinToScreenBounds(Rectangle b) {
         Rectangle r = getScreenBounds();
-        if (x < r.x) {
-            x = r.x;
+
+        if (b.x < r.x) {
+            b.x = r.x;
         }
-        if (y < r.y) {
-            y = r.y;
+        if (b.y < r.y) {
+            b.y = r.y;
         }
-        if (width > r.width) {
-            width = r.width;
+        if (b.width > r.width) {
+            b.width = r.width;
         }
-        if (height > r.height) {
-            height = r.height;
+        if (b.height > r.height) {
+            b.height = r.height;
         }
-        myRootFrame.setBounds(x, y, width, height);
+    }
+
+    private void setMainWindowBounds(Rectangle b) {
+
+        pinToScreenBounds(b);
+
+        // Note: have to set initial bounds before visible for openGL
+        myRootFrame.setBounds(b);
+        myRootFrame.setVisible(true);
     }
 
     /**
@@ -1074,7 +1026,7 @@ public class InfonodeViews implements ViewMaker {
                 rootWindow.setWindow(stuff);
             }
             org.wdssii.xml.views.RootWindow rw = (org.wdssii.xml.views.RootWindow) (r);
-            setMainWindowBounds(rw.x, rw.y, rw.width, rw.height);
+            setMainWindowBounds(new Rectangle(rw.x, rw.y, rw.width, rw.height));
 
         } else if (r instanceof org.wdssii.xml.views.WindowBar) {
             dock = null;
@@ -1095,8 +1047,10 @@ public class InfonodeViews implements ViewMaker {
             org.wdssii.xml.views.FloatingWindow fw = (org.wdssii.xml.views.FloatingWindow) (r);
             // dock = new FloatingWindow(rootWindow, theList.get(0), new Point(10,10), new Dimension (100,100));
             LOG.debug("Floating window at " + fw.x + ", " + fw.y + ", " + fw.width + ", " + fw.height);
-            Point p = new Point(fw.x, fw.y);
-            Dimension d = new Dimension(fw.width, fw.height);
+            Rectangle b = new Rectangle(fw.x, fw.y, fw.width, fw.height);
+            pinToScreenBounds(b);
+            Point p = new Point(b.x, b.y);
+            Dimension d = new Dimension(b.width, b.height);
             DockingWindow l = theList.get(0);
             LOG.debug("Docking window part is " + l);
 
@@ -1388,17 +1342,83 @@ public class InfonodeViews implements ViewMaker {
         return barsMenu;
     }
 
+    /**
+     * FIXME: I should use the command model I set up for this...
+     *
+     * @return
+     */
     private JMenu createFileMenu() {
+
+        // The file menu
         JMenu menu = new JMenu("File");
         menu.setMnemonic('F');
 
-        JMenuItem eMenuItem = new JMenuItem("Exit");
+        JMenuItem eMenuItem;
+
+        /**
+         * The new menu
+         */
+        eMenuItem = new JMenuItem("New");
+        eMenuItem.setToolTipText("Create a new setup");
+        eMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                doNew();
+            }
+        });
+        menu.add(eMenuItem);
+        menu.addSeparator();
+
+        /**
+         * The new menu
+         */
+        eMenuItem = new JMenuItem("Open...");
+        eMenuItem.setToolTipText("Create a new setup");
+        eMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                doOpen();
+            }
+        });
+        menu.add(eMenuItem);
+        menu.addSeparator();
+
+        /**
+         * The recent documents menu
+         */
+        menu.add(OpenCommand.getRecentDocumentMenu());
+        menu.addSeparator();
+
+        eMenuItem = new JMenuItem("Save");
+        //eMenuItem.setMnemonic(KeyEvent.VK_C);
+        eMenuItem.setToolTipText("Save state of display, layout, sources to XML file");
+        eMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                doSave();
+            }
+        });
+        menu.add(eMenuItem);
+
+        eMenuItem = new JMenuItem("Save As...");
+        //eMenuItem.setMnemonic(KeyEvent.VK_C);
+        eMenuItem.setToolTipText("Save state of display, layout, sources to XML file...");
+        eMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                doSaveAs();
+            }
+        });
+        menu.add(eMenuItem);
+
+        menu.addSeparator();
+        eMenuItem = new JMenuItem("Exit");
         eMenuItem.setMnemonic(KeyEvent.VK_C);
         eMenuItem.setToolTipText("Exit application");
         eMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent event) {
-                System.exit(0);
+                doExit();
             }
         });
         menu.add(eMenuItem);
@@ -1586,5 +1606,35 @@ public class InfonodeViews implements ViewMaker {
         titleBarStyleProperties.getWindowBarProperties().getTabWindowProperties().getTabProperties().getHighlightedButtonProperties().getDockButtonProperties().setVisible(true);
 
         titleBarStyleProperties.getWindowBarProperties().getTabWindowProperties().getTabbedPanelProperties().setTabLayoutPolicy(TabLayoutPolicy.SCROLLING);
+    }
+
+    public void doNew() {
+        NewCommand c = new NewCommand();
+        c.setConfirmReport(true, true, rootWindow);
+        CommandManager.getInstance().executeCommand(c, true);
+    }
+
+    public void doOpen() {
+        OpenCommand c = new OpenCommand();
+        c.setConfirmReport(true, true, rootWindow);
+        CommandManager.getInstance().executeCommand(c, true);
+    }
+
+    public void doSave() {
+        SaveCommand c = new SaveCommand(false);
+        c.setConfirmReport(true, true, rootWindow);
+        CommandManager.getInstance().executeCommand(c, true);
+    }
+
+    public void doSaveAs() {
+        SaveCommand c = new SaveCommand(true);
+        c.setConfirmReport(true, true, rootWindow);
+        CommandManager.getInstance().executeCommand(c, true);
+    }
+
+    public void doExit() {
+        ExitCommand c = new ExitCommand();
+        c.setConfirmReport(true, true, rootWindow);
+        CommandManager.getInstance().executeCommand(c, true);
     }
 }

@@ -93,7 +93,6 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 
                 // FIXME: Realtime?
                 IndexSourceAddParams p = new IndexSourceAddParams(sourceName, url, false, true, myHistoryValue);		
-		p.rootWindow = null;		
 		myOwner.handledOKButton();
 
 		SourceAddCommand add = new SourceAddCommand(p);

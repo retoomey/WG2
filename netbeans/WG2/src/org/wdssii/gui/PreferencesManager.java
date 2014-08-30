@@ -8,7 +8,8 @@ import org.wdssii.core.Singleton;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.sources.SourceList;
 import org.wdssii.core.StringUtil;
-import org.wdssii.core.W2Config;
+import org.wdssii.gui.commands.OpenCommand;
+import org.wdssii.gui.views.ViewManager;
 import org.wdssii.xml.Util;
 import org.wdssii.xml.config.Source;
 import org.wdssii.xml.config.W2Pref;
@@ -30,9 +31,14 @@ public class PreferencesManager implements Singleton {
      */
     private W2Pref theW2Prefs = null;
     private PreferenceHandler myPrefs = null;
- // Don't let it be read while it's reading...
+    // Don't let it be read while it's reading...
     private final Object wdssiiReadLock = new Object();
     private Tag_setup theWdssiiXML;
+    /**
+     * Known URL location of preferences
+     */
+    private URL myURL = null;
+
     /**
      * Interface for a raw preference reader/writer
      */
@@ -113,27 +119,16 @@ public class PreferencesManager implements Singleton {
 
     @Override
     public void singletonManagerCallback() {
+        loadRecentDocuments();
         loadConfig();
     }
-    
-    public void readwdssiixml(){
-           try {
-            synchronized (wdssiiReadLock) {
-                URL u = W2Config.getURL("wdssii.xml");
-                theWdssiiXML = new Tag_setup();
-                theWdssiiXML.processAsRoot(u);
-            }
 
-        } catch (Exception e) {
-            //System.out.println("*********Exception reading setup configuration file:"+e.toString());
-        }
-    }
     public Tag_setup getSetupXML() {
         synchronized (wdssiiReadLock) {
             return theWdssiiXML;
         }
     }
-    
+
     public static void introduce(PreferenceHandler p) {
         if (instance == null) {
             LOG.debug("Preference Manager must be created by SingletonManager");
@@ -159,12 +154,19 @@ public class PreferencesManager implements Singleton {
     }
 
     /**
+     * This is one of the 'static' files that is not part of layout/sources,
+     * etc..
+     */
+    public void loadRecentDocuments() {
+        OpenCommand.loadDocumentList();
+    }
+
+    /**
      * Not sure where to put this. The global w2config.xml file
      */
     public void loadConfig() {
 
         String name = "wgpref.xml";
-
         try {
             W2Pref prefs = Util.load(name, W2Pref.class);
             theW2Prefs = prefs;
@@ -201,22 +203,79 @@ public class PreferencesManager implements Singleton {
         }
     }
 
-    public void saveConfig(URL aURL) {
-        if ((theW2Prefs != null)) {
-            theW2Prefs.sources = SourceList.theSources.getSourceXML();
-            String file = aURL.getFile();
-            Util.save(theW2Prefs, file, theW2Prefs.getClass());
-            /*SimpleSymbol test = new SimpleSymbol();      // is JAXB smart enough?  
-             Util.save(test, file, test.getClass());
+    public void createNewDocument() {
+        ViewManager.setNewLayout();
+        setDocumentURL(null);
+    }
 
-             try {
-             File f = new File(file);
-             URL u = f.toURI().toURL();
-             Symbol readback = Util.loadURL(u, Symbol.class);
-             LOG.debug("Class back is "+readback.getClass().getSimpleName());
-             } catch (Exception c) {
-             LOG.error("Error load back"+file+", "+c.toString());
-             }*/
+    public void openDocument(URL aURL) {
+        String name = aURL.getFile();
+        try {
+            W2Pref prefs = Util.load(aURL, W2Pref.class);
+            theW2Prefs = prefs;
+            if (prefs != null) {
+                LOG.info("Preferences loaded from " + name);
+            } else {
+                LOG.info("Couldn't find preference file " + name);
+            }
+        } catch (Exception c) {
+            LOG.error("Error loading preferences at " + name);
         }
+
+        // First go to the new layout....
+        ViewManager.setLayoutXML(theW2Prefs.rootwindow);
+
+        // Ok, try to load each source....
+        // We will have to remove sources not in the list, but want to keep 
+        // the old sources that 'match'.  This will prevent too much reconnection..
+        if ((theW2Prefs != null) && (theW2Prefs.sources != null)) {
+
+            for (Source s : theW2Prefs.sources.list) {
+                try {
+                    CommandManager c = CommandManager.getInstance();
+                    boolean connect = true;
+                    LOG.info("Adding start source " + s.sourcename + " " + s.url);
+                    // Old school...everything is an index in old w2config files.
+                    // Eventually we need different source types, such as the nasa wms source, which is not an IndexSource
+                    // This at least will read old files...
+                    s.url = StringUtil.convertToLabDomain(s.url);
+                    SourceAddCommand.IndexSourceAddParams p = new SourceAddCommand.IndexSourceAddParams(s.sourcename, s.url, false, connect, s.history);
+                    c.executeCommand(new SourceAddCommand(p), false);
+                } catch (Exception e) {
+                    // Recover
+                }
+            }
+        }
+        setDocumentURL(aURL);
+    }
+
+    public void saveAsDocument(URL aURL) {
+        if (aURL != null) {
+            if ((theW2Prefs != null)) {
+                theW2Prefs.sources = SourceList.theSources.getSourceXML();
+                theW2Prefs.rootwindow = ViewManager.getLayoutXML();
+
+                String file = aURL.getFile();
+                String error = Util.save(theW2Prefs, file, theW2Prefs.getClass());
+                if (error.isEmpty()) {
+                    setDocumentURL(aURL);
+                }
+            }
+        }
+    }
+
+    public void saveDocument() {
+        if (myURL != null) {
+            saveAsDocument(myURL);
+        }
+    }
+
+    public void setDocumentURL(URL aURL) {
+        myURL = aURL;
+        ViewManager.setConfigPath(myURL);
+    }
+
+    public URL getDocumentPath() {
+        return myURL;
     }
 }

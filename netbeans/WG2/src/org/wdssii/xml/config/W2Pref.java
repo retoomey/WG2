@@ -1,9 +1,8 @@
 package org.wdssii.xml.config;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.wdssii.xml.views.RootWindow;
 
 /**
  * Tag which has the following format:
@@ -13,6 +12,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  *  <w2pref>
  *    <sources>
  *    </sources>
+ *    <layout>
+ *    </layout>
  *  </w2pref>
  * }
  * </pre>
@@ -23,4 +24,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class W2Pref {
     @XmlElement(name = "sources")
     public Sources sources;
+    
+    @XmlElement(name = "layout")
+    public RootWindow rootwindow;
 }

@@ -1,10 +1,10 @@
 package org.wdssii.core;
 
-
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import javax.swing.JComponent;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
@@ -30,7 +30,41 @@ public abstract class WdssiiCommand {
      * will be a key --> value for this in parameters
      */
     public final static String option = "option";
+    
+    /**
+     * Setting in command to allow confirmation dialog
+     */
+    private boolean myUserConfirm = false;
+    
+    /** 
+     * Setting in command to allow report dialogs for errors/success
+     */
+    private boolean myUserReport = false;
+    
+    
+    private JComponent myRootComponent = null;
+    
+    /**
+     * Set if dialogs show up or not
+     */
+    public void setConfirmReport(boolean c, boolean r, JComponent root) {
+        myUserConfirm = c;
+        myUserReport = r;
+        myRootComponent = root;
+    }
 
+    public boolean getUserConfirm(){
+        return myUserConfirm;
+    }
+    
+    public boolean getUserReport(){
+        return myUserReport;
+    }
+    
+    public JComponent getRootComponent(){
+        return myRootComponent;
+    }
+    
     /**
      * Get the command options. For example, ProductFollowCommand might return
      * 'follow top', 'follow ktlx reflectivity' as options
@@ -112,9 +146,9 @@ public abstract class WdssiiCommand {
         myParameters = params;
         //if (params != null) {
         //    Set<String> keys = params.keySet();
-            // for (String s : keys) {
-            //     System.out.println("Got param: " + s + " which is " + params);
-            // }
+        // for (String s : keys) {
+        //     System.out.println("Got param: " + s + " which is " + params);
+        // }
         //}
     }
 

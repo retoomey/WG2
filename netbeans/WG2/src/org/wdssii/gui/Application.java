@@ -23,6 +23,7 @@ public class Application {
     public final static String NAME = "WDSSII GUI";
     public final static int MAJOR_VERSION = 2;
     public final static int MINOR_VERSION = 0;
+    public static final boolean USE_HEAVYWEIGHT_GL = false;
 
     public static String logmessage;
     

@@ -663,7 +663,7 @@ public class InfonodeViews implements ViewMaker {
      */
     private void createRootWindow() {
 
-        if (WorldWindDataView.USE_HEAVYWEIGHT) {
+        if (Application.USE_HEAVYWEIGHT_GL) {
             // rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, handler, true);
             rootWindow = DockingUtil.createHeavyweightSupportedRootWindow(viewMap, true);
 

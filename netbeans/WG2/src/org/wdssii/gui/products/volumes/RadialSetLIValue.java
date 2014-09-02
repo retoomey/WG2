@@ -16,117 +16,121 @@ import org.wdssii.gui.products.filters.DataFilter;
  */
 public class RadialSetLIValue extends VolumeValue {
 
-	@Override
-	public boolean getValueAt(Object myRadialLock, ArrayList<Product> p, Location loc,
-		ColorMap.ColorMapOutput output, DataFilter.DataValueRecord out,
-		FilterList list, boolean useFilters) {
+    @Override
+    public void prepForBatchValues() {
+    }
 
-		// Maybe this could be a filter in the color map...  You could clip anything by height heh heh..
-		// It would make sense for it to be a filter
-		if (loc.getHeightKms() < 0) {
-			output.setColor(255, 255, 255, 255);
-			//output.red = output.green = output.blue = output.alpha = 255;
-			output.filteredValue = 0.0f;
-			return false;
-		}
+    @Override
+    public boolean getValueAt(Object myRadialLock, ArrayList<Product> p, Location loc,
+            ColorMap.ColorMapOutput output, DataFilter.DataValueRecord out,
+            FilterList list, boolean useFilters) {
 
-		// output.location.init(lat, lon, heightM / 1000.0);
+        // Maybe this could be a filter in the color map...  You could clip anything by height heh heh..
+        // It would make sense for it to be a filter
+        if (loc.getHeightKms() < 0) {
+            output.setColor(255, 255, 255, 255);
+            //output.red = output.green = output.blue = output.alpha = 255;
+            output.filteredValue = 0.0f;
+            return false;
+        }
 
-		// Smooth in the vertical direction....?? how
-		// We would need a weight based on range
-		float v1 = DataType.MissingData;
-		float w1;
+        // output.location.init(lat, lon, heightM / 1000.0);
 
-		float D = .01f;
-		PPIRadialSet.PPIRadialSetQuery q = new PPIRadialSet.PPIRadialSetQuery();
-		q.inLocation = loc;
-		q.inNeedInterpolationWeight = true;
-		q.outDataValue = DataType.MissingData;
+        // Smooth in the vertical direction....?? how
+        // We would need a weight based on range
+        float v1 = DataType.MissingData;
+        float w1;
 
-		PPIRadialSet.SphericalLocation buffer = new PPIRadialSet.SphericalLocation();
+        float D = .01f;
+        PPIRadialSet.PPIRadialSetQuery q = new PPIRadialSet.PPIRadialSetQuery();
+        q.inLocation = loc;
+        q.inNeedInterpolationWeight = true;
+        q.outDataValue = DataType.MissingData;
 
-		// Poor man's vslice..just grab the first thing NOT missing lol...
-		// This is actually slowest when there isn't any data...
-		// Notice with 'overlap' the first radial dominates without any smoothing...
-		// FIXME: could binary search the radial volume I think...
-		int radialSetIndex = 0;
-		boolean first = true;
-		float oldWeight = 1.0f, oldValue = 0.0f;
+        PPIRadialSet.SphericalLocation buffer = new PPIRadialSet.SphericalLocation();
 
-		// Make sure the reading of data values is sync locked with updating in initProduct...
-		synchronized (myRadialLock) {
+        // Poor man's vslice..just grab the first thing NOT missing lol...
+        // This is actually slowest when there isn't any data...
+        // Notice with 'overlap' the first radial dominates without any smoothing...
+        // FIXME: could binary search the radial volume I think...
+        int radialSetIndex = 0;
+        boolean first = true;
+        float oldWeight = 1.0f, oldValue = 0.0f;
 
-			for (int i = 0; i < p.size(); i++) {
-				DataType dt = p.get(i).getRawDataType();
-				if (dt != null) {
-					PPIRadialSet r = (PPIRadialSet) (dt);
-					if (r != null) {
-						// First time, get the location in object spherical coordinates.  This doesn't
-						// change for any of the radials in the set.
-						if (first) {
-							r.locationToSphere(loc, buffer);
-							q.inSphere = buffer;
-							first = false;
-						}
-						r.queryData(q);
-						w1 = q.outDistanceHeight;
+        // Make sure the reading of data values is sync locked with updating in initProduct...
+        synchronized (myRadialLock) {
 
-						// Interpolate in true height...
-						// Since we go bottom up, we want the first beam we are UNDER
-						// The part above 0 is handled by i+1...
-						if (w1 <= 0) {
-							// If there's a radial under us....
-							// then use the weight/value of it....
-							if (i > 0) {
+            for (int i = 0; i < p.size(); i++) {
+                DataType dt = p.get(i).getRawDataType();
+                if (dt != null) {
+                    PPIRadialSet r = (PPIRadialSet) (dt);
+                    if (r != null) {
+                        // First time, get the location in object spherical coordinates.  This doesn't
+                        // change for any of the radials in the set.
+                        if (first) {
+                            r.locationToSphere(loc, buffer);
+                            q.inSphere = buffer;
+                            first = false;
+                        }
+                        r.queryData(q);
+                        w1 = q.outDistanceHeight;
 
-								DataType dt2 = p.get(i - 1).getRawDataType();
-								if (dt2 != null) {
-									PPIRadialSet r2 = (PPIRadialSet) (dt2);
-									if (r2 != null) {
-										float v2 = oldValue;
-										if (DataType.isRealDataValue(v2)) {
-											v1 = q.outDataValue;
-											float w2 = oldWeight;
+                        // Interpolate in true height...
+                        // Since we go bottom up, we want the first beam we are UNDER
+                        // The part above 0 is handled by i+1...
+                        if (w1 <= 0) {
+                            // If there's a radial under us....
+                            // then use the weight/value of it....
+                            if (i > 0) {
 
-											// Interpolation....
-											// Ok now we have 2 weights...
-											// and 2 values...
-											// This is R2 and R1 of the Binomail interpolation
-											//r1 = value,  r2 = v2;  
-											float totalWeight = Math.abs(w2) + Math.abs(w1);
-											float i1 = Math.abs(w2 / totalWeight) * v1;
-											float i2 = Math.abs(w1 / totalWeight) * v2;
+                                DataType dt2 = p.get(i - 1).getRawDataType();
+                                if (dt2 != null) {
+                                    PPIRadialSet r2 = (PPIRadialSet) (dt2);
+                                    if (r2 != null) {
+                                        float v2 = oldValue;
+                                        if (DataType.isRealDataValue(v2)) {
+                                            v1 = q.outDataValue;
+                                            float w2 = oldWeight;
 
-											//float vInterp = (Math.abs(w2/totalWeight)*q.outDataValue)+(Math.abs(weightAtValue/totalWeight)*v2); 
-											v1 = i1 + i2;
+                                            // Interpolation....
+                                            // Ok now we have 2 weights...
+                                            // and 2 values...
+                                            // This is R2 and R1 of the Binomail interpolation
+                                            //r1 = value,  r2 = v2;  
+                                            float totalWeight = Math.abs(w2) + Math.abs(w1);
+                                            float i1 = Math.abs(w2 / totalWeight) * v1;
+                                            float i2 = Math.abs(w1 / totalWeight) * v2;
 
-										}
-									}
-								}
-							}
+                                            //float vInterp = (Math.abs(w2/totalWeight)*q.outDataValue)+(Math.abs(weightAtValue/totalWeight)*v2); 
+                                            v1 = i1 + i2;
 
-							break;
+                                        }
+                                    }
+                                }
+                            }
 
-						}
-						oldValue = q.outDataValue;
-						oldWeight = q.outDistanceHeight;
-					}
-				}
-				radialSetIndex++;
-			}
-		}
-		q.inDataValue = v1;
-		q.outDataValue = v1;
-		q.outRadialSetNumber = radialSetIndex;
-		out.hWeight = q.outDistanceHeight;
-		list.fillColor(output, q, useFilters);
+                            break;
 
-		// Find a location value in our radial set collection...
-		return true;
-	}
+                        }
+                        oldValue = q.outDataValue;
+                        oldWeight = q.outDistanceHeight;
+                    }
+                }
+                radialSetIndex++;
+            }
+        }
+        q.inDataValue = v1;
+        q.outDataValue = v1;
+        q.outRadialSetNumber = radialSetIndex;
+        out.hWeight = q.outDistanceHeight;
+        list.fillColor(output, q, useFilters);
 
-	@Override
-	public String getName(){
-		return "Radial Linear Height Interpolation";
-	}
+        // Find a location value in our radial set collection...
+        return true;
+    }
+
+    @Override
+    public String getName() {
+        return "Radial Linear Height Interpolation";
+    }
 }

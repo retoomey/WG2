@@ -16,73 +16,78 @@ import org.wdssii.gui.products.filters.DataFilter;
  * @author Robert Toomey
  */
 public class RadialSetNormalValue extends VolumeValue {
+    
+   // private PPIRadialSet.SphericalLocation buffer;
+    
+    @Override
+    public void prepForBatchValues() {
+       //  buffer = new PPIRadialSet.SphericalLocation();
+    }
 
-	@Override
-	public boolean getValueAt(Object myRadialLock, ArrayList<Product> p, Location loc,
-		ColorMap.ColorMapOutput output, DataFilter.DataValueRecord out,
-		FilterList list, boolean useFilters) {
+    @Override
+    public boolean getValueAt(Object myRadialLock, ArrayList<Product> p, Location loc,
+            ColorMap.ColorMapOutput output, DataFilter.DataValueRecord out,
+            FilterList list, boolean useFilters) {
 
-		// Maybe this could be a filter in the color map...  You could clip anything by height heh heh..
-		// It would make sense for it to be a filter
-		if (loc.getHeightKms() < 0) {
-			output.setColor(255, 255, 255, 255);
-			//output.red = output.green = output.blue = output.alpha = 255;
-			output.filteredValue = 0.0f;
-			return false;
-		}
+        // Maybe this could be a filter in the color map...  You could clip anything by height heh heh..
+        // It would make sense for it to be a filter
+        if (loc.getHeightKms() < 0) {
+            output.setColor(255, 255, 255, 255);
+            //output.red = output.green = output.blue = output.alpha = 255;
+            output.filteredValue = 0.0f;
+            return false;
+        }
 
-		float v1 = DataType.MissingData;
-		PPIRadialSet.PPIRadialSetQuery q = new PPIRadialSet.PPIRadialSetQuery();
-		q.inLocation = loc;
-		q.outDataValue = DataType.MissingData;
-		PPIRadialSet.SphericalLocation buffer = new PPIRadialSet.SphericalLocation();
+        float v1 = DataType.MissingData;
+        PPIRadialSet.PPIRadialSetQuery q = new PPIRadialSet.PPIRadialSetQuery();
+        q.inLocation = loc;
+        q.outDataValue = DataType.MissingData;
+        PPIRadialSet.SphericalLocation buffer = new PPIRadialSet.SphericalLocation();
 
-		// Poor man's vslice..just grab the first thing NOT missing lol...
-		// This is actually slowest when there isn't any data...
-		// Notice with 'overlap' the first radial dominates without any smoothing...
-		// FIXME: could binary search the radial volume I think...
-		int radialSetIndex = 0;
-		boolean first = true;
+        // Poor man's vslice..just grab the first thing NOT missing lol...
+        // This is actually slowest when there isn't any data...
+        // Notice with 'overlap' the first radial dominates without any smoothing...
+        // FIXME: could binary search the radial volume I think...
+        int radialSetIndex = 0;
+        boolean first = true;
 
-		// Make sure the reading of data values is sync locked with updating in initProduct...
-		synchronized (myRadialLock) {
+        // Make sure the reading of data values is sync locked with updating in initProduct...
+        synchronized (myRadialLock) {
 
-			for (int i = 0; i < p.size(); i++) {
-				DataType dt = p.get(i).getRawDataType();
-				if (dt != null) {
-					PPIRadialSet r = (PPIRadialSet) (dt);
-					if (r != null) {
-						// First time, get the location in object spherical coordinates.  This doesn't
-						// change for any of the radials in the set.
-						if (first) {
-							r.locationToSphere(loc, buffer);
-							q.inSphere = buffer;
-							first = false;
-						}
-						r.queryData(q);
-						// Cheapest...first 'hit' gives us value
-						v1 = q.outDataValue;
-						if (DataType.isRealDataValue(v1)) {
-							break;
-						}
-					}
-				}
-				radialSetIndex++;
-			}
-		}
-		q.inDataValue = v1;
-		q.outDataValue = v1;
-		q.outRadialSetNumber = radialSetIndex;
-		out.hWeight = q.outDistanceHeight;
-		list.fillColor(output, q, useFilters);
+            for (int i = 0; i < p.size(); i++) {
+                DataType dt = p.get(i).getRawDataType();
+                if (dt != null) {
+                    PPIRadialSet r = (PPIRadialSet) (dt);
+                    // First time, get the location in object spherical coordinates.  This doesn't
+                    // change for any of the radials in the set.
+                    if (first) {
+                        r.locationToSphere(loc, buffer);
+                        q.inSphere = buffer;
+                        first = false;
+                    }
+                    r.queryData(q);
+                    // Cheapest...first 'hit' gives us value
+                    v1 = q.outDataValue;
+                    if (DataType.isRealDataValue(v1)) {
+                        break;
+                    }
+                }
+                radialSetIndex++;
+            }
+        }
+        q.inDataValue = v1;
+        q.outDataValue = v1;
+        q.outRadialSetNumber = radialSetIndex;
+        out.hWeight = q.outDistanceHeight;
+        list.fillColor(output, q, useFilters);
 
-		// Find a location value in our radial set collection...
-		return true;
+        // Find a location value in our radial set collection...
+        return true;
 
-	}
+    }
 
-	@Override
-	public String getName(){
-		return "Radial Beamwidth";
-	}
+    @Override
+    public String getName() {
+        return "Radial Beamwidth";
+    }
 }

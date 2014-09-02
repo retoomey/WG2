@@ -24,11 +24,11 @@ public class FeatureList {
     // private WorldWindView myWorldWindView;
     // FIXME: Charts becoming a more general DataView
     private ArrayList<WeakReference<DataView>> myDataViews;
-
     private FeaturePosition myFeaturePosition = null;
-    
+
     public static class FeaturePosition {
-        public FeaturePosition(float lat, float lon, float elev){
+
+        public FeaturePosition(float lat, float lon, float elev) {
             latDegrees = lat;
             lonDegrees = lon;
             elevKM = elev;
@@ -37,8 +37,10 @@ public class FeatureList {
         public final float lonDegrees;
         public final float elevKM;
     }
-    /** Set a shared tracking position for everything that uses this FeatureList.
-     FIXME: Might become a passed object later if needed
+
+    /**
+     * Set a shared tracking position for everything that uses this FeatureList.
+     * FIXME: Might become a passed object later if needed
      */
     public void setTrackingPosition(FeaturePosition p) {
         // ?? Do we need to keep the tracking position...
@@ -55,9 +57,10 @@ public class FeatureList {
         }
     }
 
-    public FeaturePosition getTrackingPosition(){
+    public FeaturePosition getTrackingPosition() {
         return myFeaturePosition;
     }
+
     /**
      * A simple filter to return boolean for mass actions such as deletion
      */
@@ -133,13 +136,13 @@ public class FeatureList {
                 DataView v = a.get();
                 if (v == null) {
                     cleanup.add(a);
-                    LOG.debug("**************ADD TO CLEANUP "+a);
+                    LOG.debug("**************ADD TO CLEANUP " + a);
                 }
             }
             myDataViews.removeAll(cleanup);
             if (myDataViews.size() == 0) {
                 myDataViews = null;
-                 LOG.debug("**************DATAVIEW NULL");
+                LOG.debug("**************DATAVIEW NULL");
             }
         }
     }
@@ -175,7 +178,7 @@ public class FeatureList {
     public void addViewComponent(String name, Object component) {
         cleanUpReferences();
         if (myDataViews != null) {
-           
+
             for (WeakReference<DataView> a : myDataViews) {
                 DataView v = a.get();
                 if (v != null) {
@@ -184,7 +187,7 @@ public class FeatureList {
             }
         }
     }
-    
+
     /**
      * Get the world wind view this feature list belongs too, if any. For now at
      * least we have to have one
@@ -222,18 +225,18 @@ public class FeatureList {
     /**
      * Remove a 3DRenderer from any feature
      */
-   /* public void remove3DRenderer(Feature3DRenderer r) {
-        if (r != null) {
-            synchronized (featureSync) {
-                Iterator<Feature> iter = myFeatures.iterator();
-                while (iter.hasNext()) {
-                    Feature f = iter.next();
-                    f.removeRenderer(r);
-                }
-            }
-        }
-    }
-*/
+    /* public void remove3DRenderer(Feature3DRenderer r) {
+     if (r != null) {
+     synchronized (featureSync) {
+     Iterator<Feature> iter = myFeatures.iterator();
+     while (iter.hasNext()) {
+     Feature f = iter.next();
+     f.removeRenderer(r);
+     }
+     }
+     }
+     }
+     */
     /**
      * Remove a Feature by object
      */
@@ -263,8 +266,6 @@ public class FeatureList {
                     // or the first of all features if group empty...
                     setSelected(newSelection);
                 }
-            } else {
-                LOG.error("Tried to delete a feature that is not deletable");
             }
         }
     }
@@ -404,7 +405,6 @@ public class FeatureList {
         }
         return first;
     }
-
 
     /**
      * Get all visible/onlymode features in a group. All that should be shown.

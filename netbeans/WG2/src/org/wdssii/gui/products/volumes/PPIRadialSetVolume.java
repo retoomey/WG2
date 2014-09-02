@@ -147,6 +147,18 @@ public class PPIRadialSetVolume extends IndexRecordVolume {
     }
     public static boolean myExperiment = false;
 
+      /** Prep before looping over getValueAt.  Allows classes to new objects, update, etc..just ONCE
+     * before generating slices, etc that are giant slow loops.
+     */
+    @Override
+    public void prepForValueAt(){
+        // Try to load all the radials just ONCE before massive getValueAt
+        synchronized (myRadialLock) {
+            for (Product r : myRadials) {
+                r.startLoading();
+            }
+        } 
+    }
     /**
      * Get filtered value of from a volume location, store into ColorMapOutput.
      * This function needs to be callable by multiple threads at once, example:
@@ -156,15 +168,19 @@ public class PPIRadialSetVolume extends IndexRecordVolume {
     @Override
     public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
             FilterList list, boolean useFilters, VolumeValue v) {
-        if (v == null) {
-            v = myVolumeValues.get(0);
-        }
+        //if (v == null) {
+        //    v = myVolumeValues.get(0);
+        //}
         // Bleh each time....could call a function before getValueAt
-        synchronized (myRadialLock) {
-            for (Product r : myRadials) {
-                r.startLoading();
-            }
-        }
+        //synchronized (myRadialLock) {
+        //    for (Product r : myRadials) {
+        //        r.startLoading();
+        //    }
+        //}
+        
+        // Bleh double jump every pixel of grid...could we call directly?
+        // Also, so many parameters to push each time that don't actually change I notice..
+        
         return v.getValueAt(myRadialLock, myRadials, loc, output, out, list, useFilters);
     }
 

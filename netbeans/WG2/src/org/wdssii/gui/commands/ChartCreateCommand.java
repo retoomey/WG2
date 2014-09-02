@@ -19,16 +19,17 @@ import org.wdssii.gui.swing.WdssiiCommandGUI;
 public class ChartCreateCommand extends ProductCommand {
 
     /**
-     * I 'should' remake the xml reading maybe...downside to xml reading is if file is
-     * missing everything breaks.  Downside here is can't add on the fly and
-     * will break if class is moved
+     * I 'should' remake the xml reading maybe...downside to xml reading is if
+     * file is missing everything breaks. Downside here is can't add on the fly
+     * and will break if class is moved
      */
     public final static String VIEW_WORLD_WIND = "org.wdssii.gui.worldwind.WorldWindDataView";
     public final static String VIEW_GEO = "org.wdssii.gui.charts.GeoToolDataView";
     public final static String VIEW_VSLICE = "org.wdssii.gui.worldwind.VSliceChart";
+    public final static String VIEW_VSLICE2 = "org.wdssii.gui.charts.VSliceChart";
     public final static String VIEW_2D_TRACK = "org.wdssii.gui.charts.Data2DTableChart";
     public final static String VIEW_READOUT_CHART = "org.wdssii.gui.charts.DataRangeValueChart";
-    
+
     /**
      * Interface for a view following the current list of products.
      */
@@ -53,6 +54,7 @@ public class ChartCreateCommand extends ProductCommand {
         theList.add(new CommandOption("Add Worldwind", VIEW_WORLD_WIND));
         // theList.add(new CommandOption("Add GeoToolDataView", VIEW_GEO));
         theList.add(new CommandOption("Add VSlice Chart", VIEW_VSLICE));
+        theList.add(new CommandOption("Add Alpha VSlice Chart Rewrite", VIEW_VSLICE2));
         theList.add(new CommandOption("Add 2D Tracking Table", VIEW_2D_TRACK));
         theList.add(new CommandOption("Add Data Readout Chart", VIEW_READOUT_CHART));
 

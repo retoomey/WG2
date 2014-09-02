@@ -31,6 +31,7 @@ import org.jfree.ui.RectangleInsets;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.CommandManager;
+import org.wdssii.core.StopWatch;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.LLD;
 import org.wdssii.gui.ProductManager;
@@ -70,11 +71,11 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     /**
      * The number of rows or altitudes of the VSlice
      */
-    public static final int myNumRows = 50;  //50
+    public static final int myNumRows = 100;  //50
     /**
      * The number of cols or change in Lat/Lon
      */
-    public static final int myNumCols = 100; //100
+    public static final int myNumCols = 200; //100
     /**
      * Holder for the slice GIS 'state'
      */
@@ -411,6 +412,8 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
          */
         public void updateAndDrawVSliceGrid(VolumeSliceInput subGrid, Graphics2D g2, Rectangle2D dataArea) {
 
+            StopWatch watch = new StopWatch();
+            watch.start();
             my2DSlice.setValid(false);  // Force new of data...bad...
             myInput = null;
             if (subGrid != null) {
@@ -448,11 +451,26 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
                         for (int r = 0; r < numOfRows; r++) {
                             atX = dataArea.getX();
                             for (int c = 0; c < numOfCols; c++) {
-                                g2.setColor(new Color(data[stepColor], data[stepColor + 1], data[stepColor + 2]));
+                                // g2.setColor(new Color(data[stepColor], data[stepColor + 1], data[stepColor + 2]));
+
+                                int pixel = data[stepColor];
+                                // Don't want bytes because bytes are signed, and there isn't space
+                                // so that a 1000 0000 is seen as -127 instead of 128
+                                int red = (pixel >>> 16) & 0xFF;
+                                int green = (pixel >>> 8) & 0xFF;
+                                int blue = (pixel & 0xFF);           // -128 WRONG, because byte is signed in the 8th bit..need more room
+                                g2.setColor(new Color(
+                                        red,
+                                        green,
+                                        blue));
+
+                                // g2.setColor(new Color(255,0,0));
+
                                 // +2 to cover the round off due to doubles
                                 g2.fillRect((int) atX, (int) atY, (int) stepX + 2, (int) stepY + 2);
 
-                                stepColor += 3;
+                                //stepColor += 3;
+                                stepColor += 1;
                                 atX += stepX;
                             }
                             atY += stepY;
@@ -469,6 +487,8 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
                     }
                 }
             }
+            watch.stop();
+            LOG.debug("FREECHART VSLICE RENDER TIME IS " + watch);
         }
 
         private void setLLHArea(LLHArea area) {

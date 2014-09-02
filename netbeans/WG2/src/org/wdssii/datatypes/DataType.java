@@ -26,7 +26,7 @@ public class DataType {
      * The origin location of the DataType, such as the radar center for
      * RadialSets
      */
-    protected Location originLocation;
+    protected final Location originLocation;
     /**
      * The start time of the data set
      */
@@ -228,10 +228,6 @@ public class DataType {
         }
     }
 
-    public DataType() {
-        // Empty datatype
-    }
-
     /**
      * Return a new query object. Use when the datatype is unknown
      */
@@ -248,10 +244,6 @@ public class DataType {
     @SuppressWarnings("unused")
     public boolean fromXML(XMLStreamReader p) throws XMLStreamException {
         return true;
-    }
-
-    public void setOriginLocation(Location l) {
-        originLocation = l;
     }
 
     /**
@@ -379,12 +371,6 @@ public class DataType {
         return loc;
     }
 
-    /**
-     * Set the origin of the data type
-     */
-    public void setLocation(Location l) {
-        this.originLocation = l;
-    }
 
     public String getTypeName() {
         return typeName;

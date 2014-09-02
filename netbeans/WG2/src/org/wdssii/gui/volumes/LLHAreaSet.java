@@ -214,7 +214,7 @@ public class LLHAreaSet extends LLHArea {
         //myCurrentGrid.topHeight = altitudes[1];
         List<LLD> list = this.getLocations();
         final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
-        LOG.debug("PICKING MODE DC IS "+dc.isPickingMode());
+        //LOG.debug("PICKING MODE DC IS "+dc.isPickingMode());
         GL gl = dc.getGL();
 
         if (drawStyle.equals("fill")) {
@@ -290,7 +290,7 @@ public class LLHAreaSet extends LLHArea {
             // Pass render to chart object....
             DataView c = get3DRendererChart();
             if (c != null) {
-                LOG.debug("Chart is "+c+"\n");
+                //LOG.debug("Chart is "+c+"\n");
                 // Ok if chart exists...use it to draw.....
 
                 // Shouldn't this code be in the renderer???

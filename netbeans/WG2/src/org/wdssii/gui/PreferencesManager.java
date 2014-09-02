@@ -8,7 +8,10 @@ import org.wdssii.core.Singleton;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.sources.SourceList;
 import org.wdssii.core.StringUtil;
+import org.wdssii.gui.commands.FeatureDeleteCommand.FeatureDeleteAllCommand;
 import org.wdssii.gui.commands.OpenCommand;
+import org.wdssii.gui.commands.SourceDeleteCommand;
+import org.wdssii.gui.commands.SourceDeleteCommand.SourceDeleteAllCommand;
 import org.wdssii.gui.views.ViewManager;
 import org.wdssii.xml.Util;
 import org.wdssii.xml.config.Source;
@@ -204,7 +207,16 @@ public class PreferencesManager implements Singleton {
     }
 
     public void createNewDocument() {
+
         ViewManager.setNewLayout();
+
+        // Remove all sources...
+        CommandManager c = CommandManager.getInstance();
+        SourceDeleteAllCommand dc = new SourceDeleteAllCommand();
+        c.executeCommand(dc, false);
+        FeatureDeleteAllCommand fc = new FeatureDeleteAllCommand();
+        c.executeCommand(fc, false);
+        
         setDocumentURL(null);
     }
 
@@ -225,14 +237,19 @@ public class PreferencesManager implements Singleton {
         // First go to the new layout....
         ViewManager.setLayoutXML(theW2Prefs.rootwindow);
 
-        // Ok, try to load each source....
-        // We will have to remove sources not in the list, but want to keep 
-        // the old sources that 'match'.  This will prevent too much reconnection..
+        // First remove all old sources from list
+        // Would love to be 'smart' and merge old and new sources, only
+        // remove sources that are not in new list, etc...maybe later
+        CommandManager c = CommandManager.getInstance();
+        SourceDeleteAllCommand dc = new SourceDeleteAllCommand();
+        c.executeCommand(dc, false);
+        FeatureDeleteAllCommand fc = new FeatureDeleteAllCommand();
+        c.executeCommand(fc, false);
+
         if ((theW2Prefs != null) && (theW2Prefs.sources != null)) {
 
             for (Source s : theW2Prefs.sources.list) {
                 try {
-                    CommandManager c = CommandManager.getInstance();
                     boolean connect = true;
                     LOG.info("Adding start source " + s.sourcename + " " + s.url);
                     // Old school...everything is an index in old w2config files.

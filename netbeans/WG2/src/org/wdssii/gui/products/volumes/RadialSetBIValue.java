@@ -16,6 +16,9 @@ import org.wdssii.gui.products.filters.DataFilter;
  */
 public class RadialSetBIValue extends VolumeValue {
 
+    @Override
+    public void prepForBatchValues() {
+    }
 	@Override
 	public boolean getValueAt(Object myRadialLock, ArrayList<Product> p, Location loc,
 		ColorMap.ColorMapOutput output, DataFilter.DataValueRecord out,
@@ -163,4 +166,5 @@ public class RadialSetBIValue extends VolumeValue {
 	public String getName(){
 		return "Radial Binomial Interpolation";
 	}
+
 }

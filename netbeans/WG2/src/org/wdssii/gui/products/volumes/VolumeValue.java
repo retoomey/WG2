@@ -15,11 +15,18 @@ import org.wdssii.gui.products.filters.DataFilter;
  */
 public abstract class VolumeValue {
 
-	/** Must return a value for a location */
-	public abstract boolean getValueAt(Object syncLock, ArrayList<Product> p, Location loc,
-		ColorMap.ColorMapOutput output, DataFilter.DataValueRecord out,
-		FilterList list, boolean useFilters);
+    /** Prep for batch values */
+    public abstract void prepForBatchValues();
 
-	/** Must return a 'name' of this, used by GUI for menu picking of this object */
-	public abstract String getName();
+    /**
+     * Must return a value for a location
+     */
+    public abstract boolean getValueAt(Object syncLock, ArrayList<Product> p, Location loc,
+            ColorMap.ColorMapOutput output, DataFilter.DataValueRecord out,
+            FilterList list, boolean useFilters);
+
+    /**
+     * Must return a 'name' of this, used by GUI for menu picking of this object
+     */
+    public abstract String getName();
 }

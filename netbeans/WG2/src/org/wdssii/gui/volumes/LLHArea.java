@@ -1,5 +1,7 @@
 package org.wdssii.gui.volumes;
 
+
+//Need to remove all the worldwind stuff, lol
 import gov.nasa.worldwind.Movable;
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVListImpl;
@@ -12,6 +14,7 @@ import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
 import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
 import gov.nasa.worldwind.util.GeometryBuilder;
 import gov.nasa.worldwind.util.Logging;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -654,18 +657,12 @@ public class LLHArea extends AVListImpl implements Movable {
         if (l.size() > segment + 1) {
             double[] altitudes = getAltitudes();
             ArrayList<LLD> list = getVSliceLocations(getLocations());
-            if (buffer != null) {
-                //buffer.set(rows, cols, list.get(0).latitude.degrees, list.get(0).longitude.degrees,
-                //        list.get(1).latitude.degrees, list.get(1).longitude.degrees,
-                //        altitudes[0], altitudes[1]);
+            if (buffer != null) {          
                 buffer.set(rows, cols, list.get(0).latDegrees(), list.get(0).lonDegrees(),
                         list.get(1).latDegrees(), list.get(1).latDegrees(),
                         altitudes[0], altitudes[1]);
                 return buffer;
-            } else {
-                //return new VolumeSliceInput(rows, cols, list.get(0).latitude.degrees, list.get(0).longitude.degrees,
-                //        list.get(1).latitude.degrees, list.get(1).longitude.degrees,
-                //        altitudes[0], altitudes[1]);
+            } else {             
                 return new VolumeSliceInput(rows, cols, list.get(0).latDegrees(), list.get(0).lonDegrees(),
                         list.get(1).latDegrees(), list.get(1).lonDegrees(),
                         altitudes[0], altitudes[1]);

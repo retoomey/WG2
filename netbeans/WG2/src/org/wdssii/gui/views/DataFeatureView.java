@@ -151,11 +151,11 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
     /**
      * The current chart itself, this changes as chart type is selected
      */
-    private JComponent myChartPanel = null;
+    private Component myChartPanel = null;
     /**
      * The current chart GUI controls, they change as chart type is selected
      */
-    private JComponent myCurrentChartControls = null;
+    private Component myCurrentChartControls = null;
     /**
      * The current choice in the drop down follow product menu
      */
@@ -371,11 +371,11 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
             }
 
             if (myChart != null) {
-                myChartPanel = (JComponent) myChart.getNewGUIForChart(myChartBox);
+                myChartPanel = (Component) myChart.getNewGUIForChart(myChartBox);
                 if (myChartPanel != null) {
                     myChartBox.add(myChartPanel);
                 }
-                myCurrentChartControls = (JComponent) myChart.getNewGUIBox(myChartGUIBox);
+                myCurrentChartControls = (Component) myChart.getNewGUIBox(myChartGUIBox);
                 if (myCurrentChartControls != null) {
                     myChartGUIBox.add(myCurrentChartControls);
                 }

@@ -25,6 +25,7 @@ import org.wdssii.gui.features.FeatureList;
  * @author Robert Toomey
  *
  */
+
 public class ChartViewJFreeChart extends DataView {
 
     private final static Logger LOG = LoggerFactory.getLogger(ChartViewJFreeChart.class);

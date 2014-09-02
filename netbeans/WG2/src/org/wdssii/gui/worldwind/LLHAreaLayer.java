@@ -479,7 +479,7 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 
         final GL gl = w.gl;
  final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
-        LOG.debug("MAIN PICKING MODE DC IS "+dc.isPickingMode());
+       // LOG.debug("MAIN PICKING MODE DC IS "+dc.isPickingMode());
         // If the outline and interior will be drawn, then draw the outline color, but do not affect the depth buffer
         // (outline pixels do not need the depth test). When the interior is drawn, it will draw on top of these
         // colors, and the outline will be visible behind the potentially transparent interior.

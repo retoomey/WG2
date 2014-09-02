@@ -9,11 +9,14 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import org.wdssii.core.StopWatch;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
 import org.wdssii.gui.products.*;
 import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * The ProductVolume handles the 'up', 'down' and 'base' controls in the display
@@ -24,6 +27,8 @@ import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
  * @author Robert Toomey
  */
 public class ProductVolume {
+
+    private final static Logger LOG = LoggerFactory.getLogger(ProductVolume.class);
 
     /**
      * A volume that returns blank data. This is what is filled in when there
@@ -85,6 +90,13 @@ public class ProductVolume {
         return null;
     }
 
+    /** Prep before looping over getValueAt.  Allows classes to new objects, update, etc..just ONCE
+     * before generating slices, etc that are giant slow loops.
+     */
+    public void prepForValueAt(){
+        
+    }
+    
     // filler function, will have to be more advanced..
     public boolean getValueAt(Location loc, ColorMapOutput output, DataValueRecord out,
             FilterList list, boolean useFilters, VolumeValue v) {
@@ -174,9 +186,7 @@ public class ProductVolume {
 
         Vec4 v;
         Location buffer = new Location(0, 0, 0);
-
-        // Globe globe = CommandManager.getInstance().getEarthBall().getWwd().getView().getGlobe();
-
+        pv.prepForValueAt();
         for (int row = 0; row < g.rows; row++) {
             currentLat = g.startLat;
             currentLon = g.startLon;
@@ -257,10 +267,10 @@ public class ProductVolume {
 
                 if (addBottomLeft) {
 
-                   // LatLon bottomLeft = new LatLon(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon));
+                    // LatLon bottomLeft = new LatLon(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon));
                     // v = g.computePoint(gb, bottomLeft.getLatitude(), bottomLeft.getLongitude(), (currentHeight - deltaHeight)*vert,
                     //         useTerrain);
-                   // v = gb.computePointFromPosition(bottomLeft.getLatitude(), bottomLeft.getLongitude(), (currentHeight - deltaHeight) * vert);
+                    // v = gb.computePointFromPosition(bottomLeft.getLatitude(), bottomLeft.getLongitude(), (currentHeight - deltaHeight) * vert);
                     v = gb.computePointFromPosition(Angle.fromDegrees(currentLat), Angle.fromDegrees(currentLon), (currentHeight - deltaHeight) * vert);
 
                     vertexBuffer.put((float) (v.x));
@@ -372,7 +382,8 @@ public class ProductVolume {
             FilterList list,
             boolean useFilters,
             VolumeValue volumevalue) {
-
+        StopWatch watch = new StopWatch();
+        watch.start();
         if (g == null) {
             return;
         }
@@ -385,13 +396,9 @@ public class ProductVolume {
         // Buffers are reused from our geometry object
         dest.setValid(false);
         dest.setDimensions(g.rows, g.cols);
-        int[] color2DVertices = dest.getColor2dFloatArray(3 * g.rows * g.cols);
+        int[] color2DVertices = dest.getColor2dFloatArray(g.rows * g.cols);
         float[] value2DVertices = dest.getValue2dFloatArray(g.rows * g.cols);
 
-        // double startHeight = g.topHeight;
-        // double deltaHeight = (g.topHeight - g.bottomHeight) / (1.0 * g.rows);
-        // double deltaLat = (g.endLat - g.startLat) / g.cols;
-        // double deltaLon = (g.endLon - g.startLon) / g.cols;
         final double startHeight = g.getStartHeight();
         final double deltaHeight = g.getDeltaHeight();
         final double deltaLat = g.getDeltaLat();
@@ -409,6 +416,9 @@ public class ProductVolume {
         boolean warning = false;
         String message = "";
         Location buffer = new Location(0, 0, 0);
+        
+        prepForValueAt();
+        
         for (int row = 0; row < g.rows; row++) {
             currentLat = g.startLat;
             currentLon = g.startLon;
@@ -416,18 +426,14 @@ public class ProductVolume {
                 // Add color for 2D table....
                 try {
                     buffer.init(currentLat, currentLon, currentHeight / 1000.0f);
-                    // getValueAt(currentLat, currentLon, currentHeight, data, rec, list, useFilters);
                     getValueAt(buffer, data, rec, list, useFilters, volumevalue);
                 } catch (Exception e) {
                     warning = true;
                     message = e.toString();
                     data.setColor(0, 0, 0, 255);
-                    //  data.red = data.green = data.blue = 0;
                     data.filteredValue = DataType.MissingData;
                 } finally {
-                    color2DVertices[cp2d++] = data.redI();
-                    color2DVertices[cp2d++] = data.greenI();
-                    color2DVertices[cp2d++] = data.blueI();
+                    color2DVertices[cp2d++] = (data.redI() << 16) + (data.greenI() << 8) + (data.blueI());
                     value2DVertices[cpv2d++] = data.filteredValue;
                 }
                 currentLat += deltaLat;
@@ -436,10 +442,12 @@ public class ProductVolume {
             currentHeight -= deltaHeight;
         }
         if (warning) {
-            System.out.println("Exception during 2D VSlice grid generation " + message);
+            LOG.error("Exception during 2D VSlice grid generation " + message);
         } else {
             dest.setValid(true);
         }
+        watch.stop();
+        LOG.debug("GEN ALG TIME " + watch);
     }
 
     // The regular volume status objects

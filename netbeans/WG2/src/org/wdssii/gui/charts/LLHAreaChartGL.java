@@ -1,23 +1,20 @@
 package org.wdssii.gui.charts;
 
-import org.wdssii.gui.worldwind.VSliceChart;
 import java.awt.geom.Rectangle2D;
-import org.jfree.chart.axis.ValueAxis;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.volumes.LLHAreaFeature;
 import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.volumes.LLHArea;
+import org.wdssii.gui.volumes.LLHAreaFeature;
 import org.wdssii.gui.volumes.LLHAreaSet;
 
 /**
- * Base chart for those using an LLHArea or set of points in the 3D world to
- * draw in the chart
- *
+ * Duplicates LLHAreaChart..  humm we need to redesign some of the hierarchy here
+ * 
  * @author Robert Toomey
  */
-public class LLHAreaChart extends ChartViewJFreeChart {
-
+public class LLHAreaChartGL extends DataView {
+    
     /**
      * The last GIS key of our LLHArea. If the physical area changes this key
      * does
@@ -60,7 +57,7 @@ public class LLHAreaChart extends ChartViewJFreeChart {
         // This has the effect of following the top selected vslice...
 
         LLHAreaSet slice = null;
-        LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new VSliceChart.VSliceFilter());
+        LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new VSliceFilter());
         if (f != null) {
             LLHArea area = f.getLLHArea();
             if (area instanceof LLHAreaSet) {
@@ -104,6 +101,7 @@ public class LLHAreaChart extends ChartViewJFreeChart {
      * 
      * Could put this in a plot class...
      */
+    /*
     public static VolumeSliceInput calculateSubGrid(LLHArea area, Rectangle2D dataArea,
             ValueAxis rangeAxis, ValueAxis heightAxis, int rows, int cols) {
         VolumeSliceInput output = null;
@@ -136,12 +134,12 @@ public class LLHAreaChart extends ChartViewJFreeChart {
                 // Maximum rows/col for speed?
                 // Doing 16:9 ratio.  This should at least be ignore when
                 // saving as an image in order to get the best detail.
-                //if (subGrid.rows > 150) {
-                //    subGrid.rows = 150;
-                //}
-                //if (subGrid.cols > 200) {
-                //    subGrid.cols = 200;
-                //}
+                if (subGrid.rows > 150) {
+                    subGrid.rows = 150;
+                }
+                if (subGrid.cols > 200) {
+                    subGrid.cols = 200;
+                }
 
                 // System.out.println("ROWS/COLS "+subGrid.rows+", "+subGrid.cols+
                 //       " {"+dataArea.getHeight()+","+dataArea.getWidth());
@@ -165,5 +163,10 @@ public class LLHAreaChart extends ChartViewJFreeChart {
             }
         }
         return output;
-    }
+    }*/
+    
+     @Override
+    public Object getNewGUIForChart(Object parent) {
+         return super.getNewGUIForChart(parent);
+     }
 }

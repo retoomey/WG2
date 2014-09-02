@@ -37,7 +37,7 @@ public class RadialSet extends DataType {
      * The array of Radial that we hold. These are in load order, not sorted in
      * any way.
      */
-    protected Radial[] radials;
+    protected final Radial[] radials;
     /**
      * Range to the first gate of the RadialSet in Kms
      */
@@ -46,6 +46,15 @@ public class RadialSet extends DataType {
      * The maximum number of gates of all Radial
      */
     private final int myMaxGateNumber;
+    /**
+     * Cached valued for location to sphere. These change when originLocation
+     * does
+     */
+    private final double rlx, rly, rlz;
+    private final double zvx, zvy, zvz;
+    private final double xvx, xvy, xvz;
+    private final double yvx, yvy, yvz;
+
 
     /**
      * Passed in by builder objects to use to initialize ourselves. This allows
@@ -85,6 +94,45 @@ public class RadialSet extends DataType {
         this.radials = m.radials;
         this.rangeToFirstGate = m.rangeToFirstGate;
         this.myMaxGateNumber = m.maxGateNumber;
+        
+        // This stuff doesn't change unless ORIGINLOCATION does.
+        // Made originLocation final, if changed need to call this when set
+
+        double ree = Location.EarthRadius + originLocation.getHeightKms(); // kms
+        double phi2 = originLocation.getLongitude() * Math.PI / 180.0; // radians();
+        double beta2 = originLocation.getLatitude() * Math.PI / 180.0; // .radians();
+
+        double cosBeta2 = Math.cos(beta2);
+        rlx = ree * Math.cos(phi2) * cosBeta2;
+        rly = ree * Math.sin(phi2) * cosBeta2;
+        rlz = ree * Math.sin(beta2);
+        //  double zvx, zvy, zvz;
+
+        double zvNorm = Math.sqrt(rlx * rlx + rly * rly + rlz * rlz);
+        if (zvNorm > 0) {
+            zvx = rlx / zvNorm;
+            zvy = rly / zvNorm;
+            zvz = rlz / zvNorm;
+        } else {
+            zvx = 0;
+            zvy = 0;
+            zvz = 0;
+        }
+        //double xvx, xvy, xvz;
+        double xvNorm = Math.sqrt(zvy * zvy + zvx * zvx);
+        if (xvNorm > 0) {
+            xvx = -zvy / xvNorm;
+            xvy = zvx / xvNorm;
+            xvz = 0; // 0/xvNorm;
+        } else {
+            xvx = 0;
+            xvy = 0;
+            xvz = 0;
+        }
+        //double yvx, yvy, yvz;
+        yvx = zvy * xvz - zvz * xvy;
+        yvy = zvz * xvx - zvx * xvz;
+        yvz = zvx * xvy - zvy * xvx;
     }
 
     /**
@@ -176,6 +224,11 @@ public class RadialSet extends DataType {
         return s;
     }
 
+    public final void updateCachedValues() {
+
+        
+    }
+
     /**
      * In volumes, a location is used to query multiple radial sets that share
      * the same center location, ux, uy, uz, etc. This takes a location in space
@@ -190,63 +243,28 @@ public class RadialSet extends DataType {
         // All the math expanded (avoids new allows some short cuts for speed)
         // Remember in a GUI volume render we typically call this in a monster loop
         // while the user is dragging so every ms counts...
-        double ree = Location.EarthRadius + originLocation.getHeightKms(); // kms
-        double phi2 = originLocation.getLongitude() * Math.PI / 180.0; // radians();
-        double beta2 = originLocation.getLatitude() * Math.PI / 180.0; // .radians();
-       
-        double cosBeta2 = Math.cos(beta2);
-        double rlx = ree * Math.cos(phi2) * cosBeta2;
-        double rly = ree * Math.sin(phi2) * cosBeta2;
-        double rlz = ree * Math.sin(beta2);
-        
-        double zvx, zvy, zvz;
-        double zvNorm = Math.sqrt(rlx * rlx + rly * rly + rlz * rlz);
-        if (zvNorm > 0) {
-            zvx = rlx/zvNorm;
-            zvy = rly/zvNorm;
-            zvz = rlz/zvNorm;
-        }else{
-            zvx = 0;
-            zvy = 0;
-            zvz = 0;
-        }
-        double xvx, xvy, xvz;
-        double xvNorm = Math.sqrt(zvy*zvy + zvx*zvx);
-        if (xvNorm > 0) {
-            xvx = -zvy/xvNorm;
-            xvy = zvx/xvNorm;
-            xvz = 0; // 0/xvNorm;
-        }else{
-            xvx = 0;
-            xvy = 0;
-            xvz = 0;
-        }
-        double yvx, yvy, yvz;
-        yvx = zvy * xvz - zvz * xvy;
-        yvy = zvz * xvx - zvx * xvz;
-        yvz = zvx * xvy - zvy * xvx;
-        
-        double r = Location.EarthRadius + l.getHeightKms(); // kms
-        double phi = l.getLongitude() * Math.PI / 180.0; // radians();
-        double beta = l.getLatitude() * Math.PI / 180.0; // .radians();
-        double cosBeta = Math.cos(beta);
 
-        double coneX = (r * Math.cos(phi) * cosBeta) - rlx; 
-        double coneY = (r * Math.sin(phi) * cosBeta) - rly;
-        double coneZ = (r * Math.sin(beta)) - rlz;
+        final double r = Location.EarthRadius + l.getHeightKms(); // kms
+        final double phi = l.getLongitude() * Math.PI / 180.0; // radians();
+        final double beta = l.getLatitude() * Math.PI / 180.0; // .radians();
+        final double cosBeta = Math.cos(beta);
 
-        double crossX = coneY * zvz - coneZ * zvy;
-        double crossY = coneZ * zvx - coneX * zvz;
-        double crossZ = coneX * zvy - coneY * zvx;
+        final double coneX = (r * Math.cos(phi) * cosBeta) - rlx;
+        final double coneY = (r * Math.sin(phi) * cosBeta) - rly;
+        final double coneZ = (r * Math.sin(beta)) - rlz;
+
+        final double crossX = coneY * zvz - coneZ * zvy;
+        final double crossY = coneZ * zvx - coneX * zvz;
+        final double crossZ = coneX * zvy - coneY * zvx;
 
         out.range = Math.sqrt(coneX * coneX + coneY * coneY + coneZ * coneZ);
 
-        double dotx = crossX * xvx + crossY * xvy + crossZ * xvz;
-        double doty = crossX * yvx + crossY * yvy + crossZ * yvz;
-        double az = (360.0 - (Math.toDegrees(Math.atan2(doty, dotx))));
+        final double dotx = crossX * xvx + crossY * xvy + crossZ * xvz;
+        final double doty = crossX * yvx + crossY * yvy + crossZ * yvz;
+        final double az = (360.0 - (Math.toDegrees(Math.atan2(doty, dotx))));
         out.azimuthDegs = Radial.normalizeDegrees((float) az);
 
-        double dotz = coneX * zvx + coneY * zvy + coneZ * zvz;
+        final double dotz = coneX * zvx + coneY * zvy + coneZ * zvz;
         out.elevDegs = Math.asin(dotz / out.range) * 180 / Math.PI;
     }
 

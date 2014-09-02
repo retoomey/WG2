@@ -10,6 +10,9 @@ package org.wdssii.gui.products;
  */
 public class VolumeSliceInput {
 
+    /** We will call set later... */
+    public VolumeSliceInput(){}
+    
     public VolumeSliceInput(int r, int c, double slat, double slon, double elat, double elon, double bh, double th) {
         rows = r;
         cols = c;

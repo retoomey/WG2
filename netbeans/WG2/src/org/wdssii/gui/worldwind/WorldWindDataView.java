@@ -38,6 +38,7 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.geom.Location;
+import org.wdssii.gui.Application;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.features.FeatureList;
@@ -59,7 +60,6 @@ import org.wdssii.gui.volumes.LLHAreaSetGUI;
 public class WorldWindDataView extends DataView {
 
     private final static Logger LOG = LoggerFactory.getLogger(WorldWindDataView.class);
-    public static final boolean USE_HEAVYWEIGHT = false;
     /**
      * The WorldWindow we contain. Eventually we might want multiple of these
      */
@@ -318,7 +318,7 @@ public class WorldWindDataView extends DataView {
 
         Model m = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
         // Model m2 = (Model) WorldWind.createConfigurationComponent(AVKey.MODEL_CLASS_NAME);
-        if (USE_HEAVYWEIGHT) {
+        if (Application.USE_HEAVYWEIGHT_GL) {
             if (first == null) {
                 w = new WorldWindowGLCanvas();
             } else {

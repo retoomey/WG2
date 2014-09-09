@@ -60,8 +60,8 @@ public class ChartSetTypeCommand extends WdssiiCommand {
         String choice = null;
         if (myTargetListener != null) {
             if (myTargetListener instanceof DataFeatureView) {
-                choice = ((DataFeatureView) myTargetListener).getCurrentChoice();
-            }
+              //  choice = ((DataFeatureView) myTargetListener).getCurrentChoice();
+            }//
         }
         if (choice == null) {
             choice = getFirstChartChoice();
@@ -123,7 +123,7 @@ public class ChartSetTypeCommand extends WdssiiCommand {
                 // Need the view in order to send the command...
                 if (myTargetListener != null) {
                     if (myTargetListener instanceof DataFeatureView) {
-                        ((DataFeatureView) myTargetListener).setCurrentChoice(value);
+                        ((DataFeatureView) myTargetListener).createChart(value);
                     }
                 }
             }

@@ -659,7 +659,7 @@ public class LLHArea extends AVListImpl implements Movable {
             ArrayList<LLD> list = getVSliceLocations(getLocations());
             if (buffer != null) {          
                 buffer.set(rows, cols, list.get(0).latDegrees(), list.get(0).lonDegrees(),
-                        list.get(1).latDegrees(), list.get(1).latDegrees(),
+                        list.get(1).latDegrees(), list.get(1).lonDegrees(),
                         altitudes[0], altitudes[1]);
                 return buffer;
             } else {             
@@ -685,7 +685,7 @@ public class LLHArea extends AVListImpl implements Movable {
             LLD l2 = input.get(1);
             LLD leftBottom, rightBottom;
            // if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
-             if (l1.latDegrees() < l2.lonDegrees()) {
+             if (l1.lonDegrees() < l2.lonDegrees()) {
                 leftBottom = l1;
                 rightBottom = l2;
             } else {

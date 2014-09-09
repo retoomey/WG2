@@ -1,20 +1,35 @@
 package org.wdssii.gui.charts;
 
-import java.awt.geom.Rectangle2D;
+import java.awt.Component;
+import java.awt.Container;
+import java.util.ArrayList;
+import javax.media.opengl.GLCanvas;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLJPanel;
+import javax.swing.JSlider;
+import org.wdssii.gui.Application;
+import org.wdssii.gui.commands.VolumeValueCommand.VolumeValueFollowerView;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.products.VolumeSliceInput;
+import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.products.volumes.VolumeValue;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaFeature;
 import org.wdssii.gui.volumes.LLHAreaSet;
 
 /**
- * Duplicates LLHAreaChart..  humm we need to redesign some of the hierarchy here
- * 
+ * Duplicates LLHAreaChart.. humm we need to redesign some of the hierarchy here
+ *
  * @author Robert Toomey
  */
-public class LLHAreaChartGL extends DataView {
-    
+public class LLHAreaChartGL extends DataView implements VolumeValueFollowerView {
+
+    public ProductVolume myVolume = null;
+    /**
+     * Keep volume value setting per chart
+     */
+    public String myCurrentVolumeValue = "";
+    private Component myComponent = null;
     /**
      * The last GIS key of our LLHArea. If the physical area changes this key
      * does
@@ -45,6 +60,41 @@ public class LLHAreaChartGL extends DataView {
             }
             return false;
         }
+    }
+
+    @Override
+    public void setCurrentVolumeValue(String changeTo) {
+        myCurrentVolumeValue = changeTo;
+        if (myVolume != null) {
+            updateChart(true); // Force update
+        }
+    }
+
+    @Override
+    public String getCurrentVolumeValue() {
+        if (myVolume != null) {
+            VolumeValue v = myVolume.getVolumeValue(myCurrentVolumeValue);
+            if (v != null) {
+                myCurrentVolumeValue = v.getName();
+            }
+            return myCurrentVolumeValue;
+        }
+        return "";
+    }
+
+    @Override
+    public java.util.List<String> getValueNameList() {
+
+        // We get this from the current volume...
+        java.util.List<String> s;
+        if (myVolume == null) {
+            s = new ArrayList<String>();
+            s.add("No volume data");
+        } else {
+            s = myVolume.getValueNameList();
+        }
+
+        return s;
     }
 
     /**
@@ -93,80 +143,59 @@ public class LLHAreaChartGL extends DataView {
         return myFullKey;
     }
 
-    /**
-     * Utility to calculate the zoomed sub grid of the current data area given. This is used
-     * by VSlice and Terrain to generate output graph. It is a 'sub grid'
-     * because it is the current zoom 'sub' part of the larger full grid made by
-     * the 2 end points of the slice.
-     * 
-     * Could put this in a plot class...
-     */
-    /*
-    public static VolumeSliceInput calculateSubGrid(LLHArea area, Rectangle2D dataArea,
-            ValueAxis rangeAxis, ValueAxis heightAxis, int rows, int cols) {
-        VolumeSliceInput output = null;
-        // Calculate the 'zoomed' lat/lon for our followed slice
-        if (area != null) {
-            VolumeSliceInput sourceGrid = area.getSegmentInfo(null, 0, rows, cols);
-            if (sourceGrid != null) {
-                VolumeSliceInput subGrid = new VolumeSliceInput(sourceGrid);
-
-                double bottomKms = heightAxis.getLowerBound() * 1000.0;
-                double topKms = heightAxis.getUpperBound() * 1000.0;
-                double leftKms = rangeAxis.getLowerBound() * 1000.0;
-                double rightKms = rangeAxis.getUpperBound() * 1000.0;
-
-                // modify the fullGrid to the 'zoomed' subview.  We can tell
-                // this by looking at the axis range and height.
-
-                // Zoom height is easy:
-                subGrid.bottomHeight = bottomKms;
-                subGrid.topHeight = topKms;
-
-                // Figure out number of rows/cols for a 'pixel' size
-                // Maximum resolution is 1 pixel per row/col..
-                // FIXME: maybe configurable if too 'slow' on a system
-                final double pixelR = 1.0f;
-                final double pixelC = 1.0f;
-                subGrid.rows = (int) (dataArea.getHeight() / pixelR);
-                subGrid.cols = (int) (dataArea.getWidth() / pixelC);
-
-                // Maximum rows/col for speed?
-                // Doing 16:9 ratio.  This should at least be ignore when
-                // saving as an image in order to get the best detail.
-                if (subGrid.rows > 150) {
-                    subGrid.rows = 150;
-                }
-                if (subGrid.cols > 200) {
-                    subGrid.cols = 200;
-                }
-
-                // System.out.println("ROWS/COLS "+subGrid.rows+", "+subGrid.cols+
-                //       " {"+dataArea.getHeight()+","+dataArea.getWidth());
-                // Range is harder....since this changes startlat/lon,
-                // and end lat/lon by a percentage of the range values...
-                // so range is assumed at '0--> R'
-                // We assume 'delta' change in lat/lon from start to end is linear based on
-                // the fullRange...
-                final double sLat = subGrid.startLat;
-                final double sLon = subGrid.startLon;
-                double fullRange = area.getRangeKms(0, 1);  // 100% say 100 KMS
-                double deltaLatPerKm = (subGrid.endLat - sLat) / fullRange;
-                double deltaLonPerKm = (subGrid.endLon - sLon) / fullRange;
-
-                // Now adjust the start/end lat/lon by percentage
-                subGrid.startLat = sLat + (leftKms * deltaLatPerKm);
-                subGrid.endLat = sLat + (rightKms * deltaLatPerKm);
-                subGrid.startLon = sLon + (leftKms * deltaLonPerKm);
-                subGrid.endLon = sLon + (rightKms * deltaLonPerKm);
-                output = subGrid;
-            }
+    public void repaintChart() {
+        if (myComponent != null) {
+            myComponent.repaint();
         }
-        return output;
-    }*/
-    
-     @Override
+    }
+
+    public GLEventListener getGLEventListener() {
+        return null;
+    }
+
+    public void setUpControls(Container parent) {
+        JSlider j = new JSlider(0, 10000, 10);
+        j.setPaintLabels(true);
+        j.setOrientation(JSlider.VERTICAL);
+        ((Container) parent).add(j, java.awt.BorderLayout.EAST);
+    }
+
+    /**
+     * Generate the Chart itself. Basically the stuff that will draw the chart
+     * in the composite
+     */
+    @Override
     public Object getNewGUIForChart(Object parent) {
-         return super.getNewGUIForChart(parent);
-     }
+
+        // Hack...
+        setUpControls((Container) parent);
+
+        boolean heavy = Application.USE_HEAVYWEIGHT_GL;
+
+        // Humm...let's try to use true and deal with the effects for now,
+        // need to check frame rate vs panel
+        heavy = false;
+
+        GLEventListener l = getGLEventListener();
+        if (heavy) {
+            GLCanvas glCanvas = new GLCanvas();
+            // GLCapabilities glcaps = new GLCapabilities();
+            // GLCanvas glcanvas =  jogl 2?
+            //        GLDrawableFactory.getFactory().createGLCanvas(glcaps);
+            if (l != null) {
+                glCanvas.addGLEventListener(l);
+            }
+            myComponent = glCanvas;
+            return glCanvas;
+
+        } else {
+            GLJPanel glPanel = new GLJPanel();
+            if (l != null) {
+                glPanel.addGLEventListener(l);
+            }
+            myComponent = glPanel;
+            return glPanel;
+
+        }
+    }
 }

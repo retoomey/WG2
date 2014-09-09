@@ -1,6 +1,5 @@
 package org.wdssii.gui.charts;
 
-import com.jidesoft.swing.RangeSlider;
 import java.awt.Container;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLEventListener;
@@ -18,19 +17,19 @@ import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
 /**
- * An attempt at a pure openGL chart. Need to try to get back the sweetnest of
- * the original WDSSII slice and cappi... Plus we need to build a more generic
- * library for future AWIPS2 I think...
- *
- * FIXME: Dispose texture on dispose?
+ * CAPPI is the horizontal vertical slice
  *
  * @author Robert Toomey
  */
-public class VSliceChart extends LLHAreaChartGL {
+public class CAPPIChart extends LLHAreaChartGL {
 
-    private final static Logger LOG = LoggerFactory.getLogger(VSliceChart.class);
+    private final static Logger LOG = LoggerFactory.getLogger(CAPPIChart.class);
     private final static int TEXTURE_TARGET = GL.GL_TEXTURE_2D;
-    private RangeSlider mySlider = null;
+    private JSlider mySlider = null;
+    /**
+     * Keep volume value setting per chart
+     */
+    // public String myCurrentVolumeValue = "";
     /**
      * The number of rows or altitudes of the VSlice
      */
@@ -48,7 +47,7 @@ public class VSliceChart extends LLHAreaChartGL {
     /**
      * The opengl draw listener
      */
-    private VSlice2DGLEventListener myGLListener = new VSlice2DGLEventListener();
+    private CAPPI2DGLEventListener myGLListener = new CAPPI2DGLEventListener();
 
     public GLEventListener getGLEventListener() {
         return myGLListener;
@@ -58,9 +57,9 @@ public class VSliceChart extends LLHAreaChartGL {
      * Static method to create, called by reflection. Humm couldn't we just call
      * basic constructor lol a method directly?
      */
-    public static VSliceChart create() {
+    public static CAPPIChart create() {
 
-        return new VSliceChart();
+        return new CAPPIChart();
 
     }
 
@@ -160,9 +159,7 @@ public class VSliceChart extends LLHAreaChartGL {
          * Add the slider keys
          */
         if (mySlider != null) {
-            key += mySlider.getLowValue();
-            key += ":";
-            key += mySlider.getHighValue();
+            key += mySlider.getValue();
         }
 
         boolean keyDifferent = false;
@@ -184,17 +181,16 @@ public class VSliceChart extends LLHAreaChartGL {
             myGLListener.setData(llhArea, volume, aList);
             myGLListener.setTitle(titleKey);
             if (mySlider != null) {
-                myGLListener.setTopMeters(mySlider.getHighValue());
-                myGLListener.setBottomMeters(mySlider.getLowValue());
+                myGLListener.setTopMeters(mySlider.getValue());
             }
-            myGLListener.updateBufferForTexture();  // Why do I have to call this?
+            myGLListener.updateBufferForTexture();
             repaintChart();
         }
     }
 
     @Override
     public void setUpControls(Container parent) {
-        RangeSlider j = new RangeSlider(0, 20000, 20, 15000);
+        JSlider j = new JSlider(0, 20000, 2000);
         j.setPaintLabels(true);
         j.setOrientation(JSlider.VERTICAL);
         ((Container) parent).add(j, java.awt.BorderLayout.EAST);

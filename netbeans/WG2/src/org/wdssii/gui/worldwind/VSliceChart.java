@@ -538,11 +538,6 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         return chart;
     }
 
-    @Override
-    public Object getNewGUIBox(Object parent) {
-        return null;
-    }
-
     public boolean haveData() {
         return ((myChartPanel != null) && (myPlot != null)
                 && myPlot.my2DSlice.isValid());

@@ -27,6 +27,7 @@ public class ChartCreateCommand extends ProductCommand {
     public final static String VIEW_GEO = "org.wdssii.gui.charts.GeoToolDataView";
     public final static String VIEW_VSLICE = "org.wdssii.gui.worldwind.VSliceChart";
     public final static String VIEW_VSLICE2 = "org.wdssii.gui.charts.VSliceChart";
+    public final static String VIEW_CAPPI = "org.wdssii.gui.charts.CAPPIChart";
     public final static String VIEW_2D_TRACK = "org.wdssii.gui.charts.Data2DTableChart";
     public final static String VIEW_READOUT_CHART = "org.wdssii.gui.charts.DataRangeValueChart";
 
@@ -55,6 +56,8 @@ public class ChartCreateCommand extends ProductCommand {
         // theList.add(new CommandOption("Add GeoToolDataView", VIEW_GEO));
         theList.add(new CommandOption("Add VSlice Chart", VIEW_VSLICE));
         theList.add(new CommandOption("Add Alpha VSlice Chart Rewrite", VIEW_VSLICE2));
+        theList.add(new CommandOption("Add Alpha CAPPI Chart ", VIEW_CAPPI));
+
         theList.add(new CommandOption("Add 2D Tracking Table", VIEW_2D_TRACK));
         theList.add(new CommandOption("Add Data Readout Chart", VIEW_READOUT_CHART));
 

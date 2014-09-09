@@ -80,16 +80,6 @@ public class DataView {
     }
 
     /**
-     * Generate the GUI controls for this chart, allowing more changes
-     */
-    public Object getNewGUIBox(Object parent) {
-        // FIXME: maybe some text? "Hey this isn't working?"
-        //Composite nothing = new Composite((Composite)parent, SWT.NONE);
-        //return nothing;
-        return null;
-    }
-
-    /**
      * Get extra menu items for the chart
      */
     public void addCustomTitleBarComponents(List<Object> addTo) {

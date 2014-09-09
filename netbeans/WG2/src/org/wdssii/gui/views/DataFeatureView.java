@@ -141,21 +141,13 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
     private JToggleButton jVirtualToggleButton;
     private String myCurrentChoice = null;
     /**
-     * The box for the chart. This is reused when chart changes
+     * The box for the chart.
      */
     private JComponent myChartBox = null;
-    /**
-     * The box for GUI controls. This is reused when chart changes
-     */
-    private JComponent myChartGUIBox = null;
     /**
      * The current chart itself, this changes as chart type is selected
      */
     private Component myChartPanel = null;
-    /**
-     * The current chart GUI controls, they change as chart type is selected
-     */
-    private Component myCurrentChartControls = null;
     /**
      * The current choice in the drop down follow product menu
      */
@@ -209,19 +201,8 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
 
     private void initComponents() {
 
-        myChartBox = new javax.swing.JPanel();
-        myChartGUIBox = new javax.swing.JPanel();
-
+        // Really should let subcomponent choose layout right?
         setLayout(new java.awt.BorderLayout());
-
-        //add(jToolBar1, java.awt.BorderLayout.NORTH);
-
-        myChartBox.setLayout(new java.awt.BorderLayout());
-        add(myChartBox, java.awt.BorderLayout.CENTER);
-
-        myChartGUIBox.setLayout(new java.awt.BorderLayout());
-        add(myChartGUIBox, java.awt.BorderLayout.SOUTH);
-
     }
 
     /**
@@ -277,67 +258,13 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
     }
 
     public void setCurrentChoice(String newChoice) {
-        createChart(newChoice);
+        myCurrentChoice = newChoice;
+        //createChart(newChoice);
     }
 
     public void createChart(String factoryChoice) {
         // If a different choice is picked...
         if ((myCurrentChoice == null) || (factoryChoice.compareTo(myCurrentChoice) != 0)) {
-
-            // Create object by name from XML..if possible
-           /* Tag_setup doc = SingletonManager.getInstance().getSetupXML();
-             if (doc != null) {
-             ArrayList<Tag_chart> list = doc.charts.charts;
-             if (list != null) {
-
-             DataView chart = null;
-
-             // Try to create chart using XML file....
-             for (Tag_chart c : list) {
-             if ((c.gName != null) && (c.gName.compareTo(factoryChoice) == 0)) {
-             Class<?> aClass = null;
-             try {
-             aClass = Class.forName("org.wdssii.gui.charts." + c.name + "Chart");
-             Method createMethod = aClass.getMethod("create" + c.name + "Chart", new Class[]{});
-             chart = (DataView) createMethod.invoke(null, new Object[]{});
-             LOG.debug("Generated chart by factory lookup " + c.gName + " to " + c.name);
-             //setChart(chart);
-             myCurrentChoice = c.gName;
-             } catch (Exception e) {
-             LOG.error("Couldn't create WdssiiChart by name '"
-             + c.name + "' because " + e.toString());
-             myCurrentChoice = "";
-             //  setChart(null);
-             }
-             }
-             }
-
-             // Try to create chart from pure class name...
-             // Not sure I really need an xml file for charts..could create a listing simply
-             // by jar hunting.  Only matters if we have plugins someday.
-             if (chart == null) {
-             try {
-             Class<?> aClass = null;
-             aClass = Class.forName(factoryChoice);
-             Method createMethod = aClass.getMethod("create", new Class[]{});
-             chart = (DataView) createMethod.invoke(null, new Object[]{});
-             LOG.debug("Generated chart by reflection " + factoryChoice);
-             //setChart(chart);
-             myCurrentChoice = factoryChoice;
-             } catch (Exception e) {
-             LOG.error("Couldn't create WdssiiChart by name '"
-             + factoryChoice + "' because " + e.toString());
-             setChart(null);
-             }
-
-             }
-             setChart(chart);
-             // bet I'm gonna get sync errors here....maybe not, we shouldn't
-             // be still reading in the xml by this time.  Could be though.
-
-             }
-             }
-             */
 
             // Try to create chart from pure class name...
             // Not sure I really need an xml file for charts..could create a listing simply
@@ -360,25 +287,10 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
 
             }
             setChart(chart);
-            // Dispose old chart and GUI
-            if (myChartPanel != null) {
-                myChartBox.remove(myChartPanel);
-                myChartPanel = null;
-            }
-            if (myCurrentChartControls != null) {
-                myChartGUIBox.remove(myChartPanel);
-                myCurrentChartControls = null;
-            }
 
             if (myChart != null) {
-                myChartPanel = (Component) myChart.getNewGUIForChart(myChartBox);
-                if (myChartPanel != null) {
-                    myChartBox.add(myChartPanel);
-                }
-                myCurrentChartControls = (Component) myChart.getNewGUIBox(myChartGUIBox);
-                if (myCurrentChartControls != null) {
-                    myChartGUIBox.add(myCurrentChartControls);
-                }
+                Component p = (Component) myChart.getNewGUIForChart(this);
+                add(p, java.awt.BorderLayout.CENTER);
             }
 
             updateGUI();
@@ -404,18 +316,10 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
 
     @Override
     public void updateInSwingThread(Object info) {
-        // if (myParent != null) {
-        //if (!myParent.isDisposed()){
         if (myChart != null) {
-            boolean force = false;
-            // If a feature setting changed, force update of chart
-            //if (info != null && info instanceof FeatureCommand){
-            //    force = true;
-            //}
+            boolean force = false;     
             myChart.updateChart(force);
         }
-        //}
-        // }
         if (myUseVirtualVolume) {
             setContentDescription("Virtual volume");
         } else {

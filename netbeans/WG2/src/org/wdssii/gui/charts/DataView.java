@@ -106,10 +106,9 @@ public class DataView {
         return myUseProductFilters;
     }
 
-    // All the 3D render stuff of the Chrt
-    // Render in 3D
-    public void drawChartInLLHArea(GLWorld w, List<LLD> locations, double[] altitudes, List<Boolean> edgeFlags) {
-
+    // Given a GLWorld object, render part of our chart stuff in it...
+    public void drawChartGLWorld(GLWorld w){
+        
     }
     
     public void updateOnMinTime(){}

@@ -10,18 +10,21 @@ import java.util.Set;
 
 import org.wdssii.index.HistoricalIndex.Direction;
 
-/** A circular buffer of records making up a (optional virtual) volume of IndexRecord
- * There is a current position in the volume, allowing navigation and peeking in an 'up' or 'down'
- * subtype direction.  Two static functions return a virtual or 'regular' VolumeRecord
+/**
+ * A circular buffer of records making up a (optional virtual) volume of
+ * IndexRecord There is a current position in the volume, allowing navigation
+ * and peeking in an 'up' or 'down' subtype direction. Two static functions
+ * return a virtual or 'regular' VolumeRecord
  *
- * Basically, given an index and a record, finds the set of records making up the volume
- * 
- * Implements Iterable, so you can access records easily this way:
- * for (IndexRecord r: myVolumeRecord)
- * 
- * The comparator passed into static functions allows you to control how volumes are
- * created/sorted.
- * 
+ * Basically, given an index and a record, finds the set of records making up
+ * the volume
+ *
+ * Implements Iterable, so you can access records easily this way: for
+ * (IndexRecord r: myVolumeRecord)
+ *
+ * The comparator passed into static functions allows you to control how volumes
+ * are created/sorted.
+ *
  * <code>
  *
  * VolumeRecord v = VolumeRecord.getVolumeRecord(index, aRecord, null);
@@ -29,31 +32,45 @@ import org.wdssii.index.HistoricalIndex.Direction;
  * 	// do something with this volume record
  * }
  * </code>
+ *
  * @author Robert Toomey
  */
 public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
 
-    /** The sorted list of IndexRecords in the volume */
+    /**
+     * The sorted list of IndexRecords in the volume
+     */
     protected ArrayList<IndexRecord> myRecordSet;
-    /** The marked record in the volume. This record is used
-     * as a relative navigation reference for peek/movement functions */
+    /**
+     * Maximum volume size
+     */
+    public static final int MAX_VOLUME = 150;
+    /**
+     * The marked record in the volume. This record is used as a relative
+     * navigation reference for peek/movement functions
+     */
     private IndexRecord myMarkedRecord;
-    /** The index integer location of the record used as the marker */
+    /**
+     * The index integer location of the record used as the marker
+     */
     private int myMarkedIndex;
-    /** The default comparator for records that allows a sorting of the records of a volume.
-     * Default is based on the order of the subtype strings.  You might want to have a different type
-     * of volume based on a different compare.
+    /**
+     * The default comparator for records that allows a sorting of the records
+     * of a volume. Default is based on the order of the subtype strings. You
+     * might want to have a different type of volume based on a different
+     * compare.
      */
     private static final Comparator<IndexRecord> defaultVolumeComparator = new Comparator<IndexRecord>() {
-
         @Override
         public int compare(IndexRecord arg0, IndexRecord arg1) {
             return (arg0.getSubType().compareTo(arg1.getSubType()));
         }
     };
 
-    /** Create a volume record. Normally you'd use one of the static functions in this class to create one
-     * 
+    /**
+     * Create a volume record. Normally you'd use one of the static functions in
+     * this class to create one
+     *
      * @param refRecords collection of records making up the volume
      * @param refMarked the marked record used for relative navigation
      */
@@ -70,7 +87,8 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
         // FIXME: marked record MUST be in the record set
     }
 
-    /** Snag the default comparator for IndexRecords.  It just checks the subtype.
+    /**
+     * Snag the default comparator for IndexRecords. It just checks the subtype.
      *
      * @return the default comparator
      */
@@ -80,6 +98,7 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
 
     /**
      * Get the volume size
+     *
      * @return the number of records in the volume
      */
     public int size() {
@@ -96,16 +115,18 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
         return myRecordSet.iterator();
     }
 
-    /** Get the index of the marked IndexRecord in the volume
-     * 
+    /**
+     * Get the index of the marked IndexRecord in the volume
+     *
      * @return index of the marked IndexRecord
      */
     public int getMarkedIndex() {
         return myMarkedIndex;
     }
 
-    /** Set the index of the marked IndexRecord in the volume 
-     * 
+    /**
+     * Set the index of the marked IndexRecord in the volume
+     *
      * @param mark ordered record number
      */
     public void setMarkedIndex(int mark) {
@@ -114,8 +135,9 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
         }
     }
 
-    /** The base record is the first in the set 
-     * 
+    /**
+     * The base record is the first in the set
+     *
      * @return the base subtype record of the volume
      */
     public IndexRecord getBaseRecord() {
@@ -124,6 +146,7 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
 
     /**
      * Get an IndexRecord out of the VolumeRecord at a given position
+     *
      * @param i index of the IndexRecord with circular rolling
      * @return the IndexRecord at index
      */
@@ -144,6 +167,7 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
 
     /**
      * Age test of two IndexRecord
+     *
      * @param a	first record
      * @param b second record
      * @return true is first is older than second
@@ -158,9 +182,10 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
         return older;
     }
 
-    /** Is the record in this volume with next subtype in the latest volume,
-     * or a previous one?  In the GUI this would be the pink/green button test for 
-     * the virtual buttons.
+    /**
+     * Is the record in this volume with next subtype in the latest volume, or a
+     * previous one? In the GUI this would be the pink/green button test for the
+     * virtual buttons.
      */
     public boolean upIsInLatestVolume() {
         // If record above is older than the base, it's not in latest
@@ -168,9 +193,10 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
         return (!isOlder(peekUp(), getBaseRecord()));
     }
 
-    /** Is the record in this volume with previous subtype in the latest volume,
-     * or a previous one?  In the GUI this would be the pink/green button test for 
-     * the virtual buttons.
+    /**
+     * Is the record in this volume with previous subtype in the latest volume,
+     * or a previous one? In the GUI this would be the pink/green button test
+     * for the virtual buttons.
      */
     public boolean downIsInLatestVolume() {
         // If record below is older than the base, it's not in latest
@@ -178,32 +204,37 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
         return (!isOlder(peekDown(), getBaseRecord()));
     }
 
-    /** Is the record that is lowest in the volume record in latest volume?
-     * In the GUI this would be the pink/green button test for the virtual
-     * 'base' button
+    /**
+     * Is the record that is lowest in the volume record in latest volume? In
+     * the GUI this would be the pink/green button test for the virtual 'base'
+     * button
      */
     public boolean baseIsInLatestVolume() {
         // Assuming base always newest record...
         return true;
     }
 
-    /** Peek 'up' a subtype from the current marked record (circular rolling)
-     * 
+    /**
+     * Peek 'up' a subtype from the current marked record (circular rolling)
+     *
      * @return the next subtype or lowest in volume on overflow
      */
     public IndexRecord peekUp() {
         return (getRecord(getMarkedIndex() + 1));
     }
 
-    /** Peek 'down' a subtype from the current marked record (circular rolling)
-     * 
+    /**
+     * Peek 'down' a subtype from the current marked record (circular rolling)
+     *
      * @return the previous subtype or highest in volume on underflow
      */
     public IndexRecord peekDown() {
         return (getRecord(getMarkedIndex() - 1));
     }
 
-    /** Create a VolumeRecord for a virtual volume 
+    /**
+     * Create a VolumeRecord for a virtual volume
+     *
      * @param index	the index record is part of
      * @param reference	the IndexRecord used to find the virtual volume for
      * @param compare	used to sort volume into logical order
@@ -258,7 +289,7 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
                     current = previous;
                     keepGoing = true;
                     safetyCounter++;
-                    if (safetyCounter > 50) {
+                    if (safetyCounter > MAX_VOLUME) {
                         keepGoing = false;
                     }
                 } else {
@@ -275,8 +306,9 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
         return volume;
     }
 
-    /** Get the standard volume for a given record
-     * 
+    /**
+     * Get the standard volume for a given record
+     *
      * @param index	the index record is part of
      * @param reference	the IndexRecord used to find the volume for
      * @param compare	the comparator for sorting/matching volume records
@@ -321,7 +353,7 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
                     current = previous;
                     keepGoing = true;
                     safetyCounter++;
-                    if (safetyCounter > 25) {
+                    if (safetyCounter > MAX_VOLUME) {
                         keepGoing = false;
                     }
                 } else {
@@ -341,7 +373,7 @@ public class VolumeRecord implements java.lang.Iterable<IndexRecord> {
                     current = next;
                     keepGoing = true;
                     safetyCounter++;
-                    if (safetyCounter > 25) {
+                    if (safetyCounter > MAX_VOLUME) {
                         keepGoing = false;
                     }
                 } else {

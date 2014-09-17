@@ -42,6 +42,9 @@ public class ProductMoveCommand extends ProductCommand {
 
     public static class ProductMovePreviousLowestSubType extends ProductMoveCommand {
 
+        // FIXME:  Humm...notice two completely different paths for
+        // getting the record to navigate to.  Needs a redesign I think
+        // The navigate() code is not the same at the getProductVolume
         @Override
         public boolean execute() {
 

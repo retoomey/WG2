@@ -47,6 +47,7 @@ public class LLHGLEventListener implements GLEventListener {
         // once as the name implies...so we lazy create stuff in the display method
         GL gl = gld.getGL();
         gl.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+        LOG.debug("******************OPENGL INIT CALLED");
     }
 
     public void setData(LLHArea llhArea, ProductVolume volume, FilterList list) {
@@ -77,8 +78,8 @@ public class LLHGLEventListener implements GLEventListener {
 
     @Override
     public void display(GLAutoDrawable glad) {
-        StopWatch watch = new StopWatch();
-        watch.start();
+     //   StopWatch watch = new StopWatch();
+    //    watch.start();
         int w = myNumCols;
         int h = myNumRows;
 
@@ -226,8 +227,8 @@ public class LLHGLEventListener implements GLEventListener {
             GLUtil.popOrtho2D(gl);
         }
         gl.glFlush();  // for the speed test
-        watch.stop();
-        LOG.debug("OPEN_GL_RENDERTIME IS " + watch);
+     //   watch.stop();
+     //   LOG.debug("OPEN_GL_RENDERTIME IS " + watch);
     }
 
     @Override

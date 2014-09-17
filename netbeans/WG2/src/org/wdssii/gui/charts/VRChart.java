@@ -1,37 +1,44 @@
 package org.wdssii.gui.charts;
 
-import com.jidesoft.swing.RangeSlider;
+import com.jidesoft.swing.JideToggleButton;
 import java.awt.Container;
+import java.util.List;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLEventListener;
+import javax.swing.Icon;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
+import static org.wdssii.gui.charts.VRChart.myNumCols;
+import static org.wdssii.gui.charts.VRChart.myNumRows;
+import static org.wdssii.gui.charts.LLHAreaChartGL.getGISLabel;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.products.volumes.ProductVolume;
+import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.volumes.LLHAreaSet;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
 /**
- * An attempt at a pure openGL chart. Need to try to get back the sweetnest of
- * the original WDSSII slice and cappi... Plus we need to build a more generic
- * library for future AWIPS2 I think...
- *
- * FIXME: Dispose texture on dispose?
+ * CAPPI is the horizontal vertical slice
  *
  * @author Robert Toomey
  */
-public class VSliceChart extends LLHAreaChartGL {
+public class VRChart extends LLHAreaChartGL {
 
-    private final static Logger LOG = LoggerFactory.getLogger(VSliceChart.class);
+    private final static Logger LOG = LoggerFactory.getLogger(VRChart.class);
     private final static int TEXTURE_TARGET = GL.GL_TEXTURE_2D;
-    private RangeSlider mySlider = null;
+    private JSlider mySlider = null;
+    private JSlider myXSlider = null;
+    private JSlider myYSlider = null;
+    /**
+     * Keep volume value setting per chart
+     */
+    // public String myCurrentVolumeValue = "";
     /**
      * The number of rows or altitudes of the VSlice
      */
@@ -49,7 +56,8 @@ public class VSliceChart extends LLHAreaChartGL {
     /**
      * The opengl draw listener
      */
-    private VSlice2DGLEventListener myGLListener = new VSlice2DGLEventListener();
+    private VRGLEventListener myGLListener = new VRGLEventListener();
+    private JideToggleButton myB1, myB2, myB3;
 
     public GLEventListener getGLEventListener() {
         return myGLListener;
@@ -59,18 +67,29 @@ public class VSliceChart extends LLHAreaChartGL {
      * Static method to create, called by reflection. Humm couldn't we just call
      * basic constructor lol a method directly?
      */
-    public static VSliceChart create() {
+    public static VRChart create() {
 
-        return new VSliceChart();
+        return new VRChart();
 
     }
 
     @Override
     public void updateChart(boolean force) {
-        //LOG.debug("***********************UPDATE CHART CALLED");
         // This is called a lot...during point drag, etc.  We should check to see
         // if anything has CHANGED that needs us to regenerate.
-
+// REGENERATE the slice....
+        // With texture, I think we can use it in the 3D window as well as the 2D,
+        // just have to generate the binding points for each...
+        // if (myGLListener != null) {
+        //     //myGLListener.setData(llhArea, volume, aList);
+        //myGLListener.setTitle(titleKey);
+        //     if (mySlider != null) {
+        //         myGLListener.setTopMeters(mySlider.getValue());
+        //     }
+        //     myGLListener.updateBufferForTexture();
+        //     repaintChart();
+        //     return;
+        // }
         // The LLHArea is the geometry in the 3d window we are
         // matching our coordinates to.  It can be valid without
         // any product/volume information.
@@ -81,6 +100,7 @@ public class VSliceChart extends LLHAreaChartGL {
             // clear us...
             myGLListener.setData(null, null, null);
             myGLListener.setTitle("No slice in 3d window");
+
             myGLListener.updateBufferForTexture();
             repaintChart();
             return;
@@ -161,11 +181,7 @@ public class VSliceChart extends LLHAreaChartGL {
          * Add the slider keys
          */
         if (mySlider != null) {
-            key += mySlider.getLowValue();
-            key += ":";
-            key += mySlider.getHighValue();
-            LOG.debug("---> LOW HIGH " + mySlider.getLowValue() + ", " + mySlider.getHighValue());
-
+            key += mySlider.getValue();
         }
 
         boolean keyDifferent = false;
@@ -187,33 +203,89 @@ public class VSliceChart extends LLHAreaChartGL {
             myGLListener.setData(llhArea, volume, aList);
             myGLListener.setTitle(titleKey);
             if (mySlider != null) {
-                myGLListener.setTopMeters(mySlider.getHighValue());
-                myGLListener.setBottomMeters(mySlider.getLowValue());
+                myGLListener.setTopMeters(mySlider.getValue());
+                myGLListener.setXYRotation(myXSlider.getValue(), myYSlider.getValue());
             }
-            myGLListener.updateBufferForTexture();  // Why do I have to call this?
+            if (myB3 != null) {
+                myGLListener.drawBox = myB1.isSelected();
+                myGLListener.drawCube = !myB2.isSelected();
+                myGLListener.drawSlices = myB2.isSelected();
+                myGLListener.drawClip = myB3.isSelected();
+            }
+            myGLListener.updateBufferForTexture();
             repaintChart();
         }
     }
 
     @Override
     public void setUpControls(Container parent) {
-        RangeSlider j = new RangeSlider(0, 20000, 20, 15000);
+        JSlider j = new JSlider(0, 20000, 2000);
         j.setPaintLabels(true);
         j.setOrientation(JSlider.VERTICAL);
         ((Container) parent).add(j, java.awt.BorderLayout.EAST);
         j.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                updateChart(false);
+                updateChart(true);
             }
         });
         mySlider = j;
+
+        j = new JSlider(0, 360, 0);
+        j.setPaintLabels(true);
+        j.setOrientation(JSlider.VERTICAL);
+        ((Container) parent).add(j, java.awt.BorderLayout.WEST);
+        j.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                updateChart(true);
+            }
+        });
+
+        myXSlider = j;
+
+        j = new JSlider(0, 360, 0);
+        j.setPaintLabels(true);
+        j.setOrientation(JSlider.HORIZONTAL);
+        ((Container) parent).add(j, java.awt.BorderLayout.SOUTH);
+        j.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                updateChart(true);
+            }
+        });
+
+        myYSlider = j;
     }
 
-    // Given a GLWorld object, render part of our chart stuff in it...
-    public void drawChartGLWorld(GLWorld w) {
-        // Tell our GLListener to draw the VSlice in GLWorld...
-        if (myGLListener != null) {
-            myGLListener.drawGLWorld(w);
-        }
+    /**
+     * Get extra menu items for the chart
+     */
+    public void addCustomTitleBarComponents(List<Object> addTo) {
+        Icon i = SwingIconFactory.getIconByName("stock-tool-move-16.png");
+        JideToggleButton b = new JideToggleButton(i);
+        b.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                updateChart(true);
+            }
+        });
+        myB1 = b;
+        addTo.add(b);
+        b = new JideToggleButton(i);
+        b.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                updateChart(true);
+            }
+        });
+        myB2 = b;
+
+        addTo.add(b);
+        b = new JideToggleButton(i);
+        b.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                updateChart(true);
+            }
+        });
+        myB3 = b;
+
+        addTo.add(b);
+
     }
 }

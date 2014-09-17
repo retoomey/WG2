@@ -50,7 +50,7 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
     /**
      * The root component we add new subviews to
      */
-    private RootContainer rootW;
+    public RootContainer rootW;
     /**
      * Each subview gets a unique counter in its title
      */
@@ -82,6 +82,10 @@ public abstract class WdssiiMDockedViewFactory extends WdssiiDockedViewFactory {
         return new WdssiiView(title + "s", i, c, l, "classkey");
     }
 
+    public void collapseLayout(){
+        ViewManager.collapseLayout(rootW);
+    }
+    
     /**
      * Return a MDockView that can give us global title components
      */

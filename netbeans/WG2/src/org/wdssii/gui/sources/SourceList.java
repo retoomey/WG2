@@ -201,8 +201,8 @@ public class SourceList {
 
     public org.wdssii.xml.config.Sources getSourceXML() {
         Sources sxml = new Sources();
-        for (Source s : mySources) {
-            sxml.addSource(s.getVisibleName(), s.getURLString(), 120);
+        for (Source s : mySources) {                 
+            sxml.addSource(s.getVisibleName(), s.getURLString(), s.getHistory());
         }
         return sxml;
     }

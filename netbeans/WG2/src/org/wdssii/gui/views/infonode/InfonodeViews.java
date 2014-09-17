@@ -51,17 +51,20 @@ import net.infonode.tabbedpanel.TabLayoutPolicy;
 import net.infonode.util.Direction;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.Application;
+import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.commands.ExitCommand;
 import org.wdssii.gui.commands.NewCommand;
 import org.wdssii.gui.commands.OpenCommand;
 import org.wdssii.gui.commands.SaveCommand;
+import org.wdssii.gui.views.DataFeatureView;
+import org.wdssii.gui.views.ViewManager;
 import org.wdssii.gui.views.ViewManager.RootContainer;
 import org.wdssii.gui.views.ViewManager.ViewMaker;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
 import org.wdssii.gui.views.WdssiiView;
+import org.wdssii.gui.views.WorldLayoutManager;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
-import org.wdssii.gui.worldwind.WorldWindDataView;
 
 /**
  * The main window layout using infonode
@@ -171,6 +174,77 @@ public class InfonodeViews implements ViewMaker {
         // String newTitle = currentTitle.replaceAll("tempdir", "["+dir+"]");
         // FIXME: shorten it to shortest path?
         myRootFrame.setTitle(s + " - " + WINDOWTITLE); //+ " " + dir)
+    }
+    public static boolean toggle = true;
+    public static Container test;
+
+    // Experimental collapse of layout for the RootContainer of the DataView only
+    // Biggest hack ever.  Hide all current windows, frames with data views in them,
+    // and stick everything into a single container with simple layout
+    @Override
+    public void collapseLayout(RootContainer rootW) {
+        if (rootW instanceof WRootWindow) {
+            WRootWindow r = (WRootWindow) (rootW);
+            toggle = !toggle;
+            r.setVisible(toggle);
+
+            // Hide all the floating window frames....
+            int current = r.getChildWindowCount();
+            List<FloatingWindow> list = new ArrayList<FloatingWindow>();
+            for (int i = 0; i < current; i++) {
+                DockingWindow win = r.getChildWindow(i);
+                if (win instanceof FloatingWindow) {
+                    list.add((FloatingWindow) (win));
+                }
+            }
+            for (FloatingWindow f : list) {
+                Container cc = f.getTopLevelAncestor();  // The frame window
+                cc.setVisible(toggle);
+            }
+
+            // Make panel just for simple layout....
+            if (toggle == false) {
+                if (test == null) {
+                    test = new JPanel();
+                    ;
+                    // test.setBackground(Color.GREEN);
+                    test.setLayout(new WorldLayoutManager());
+
+                }
+            }
+
+            // The crappy thing about java layout is that it stores parents
+            // in the tree, so when we 'add' a component it wipes the original
+            // parent.
+            DockingWindow dw = getViewByID(ViewManager.DATA_VIEW_NAME);
+            if (toggle) {
+                dw.remove(test);
+                dw.add(r);
+                test.removeAll();
+                for (WdssiiView z : r.theList) {
+                    //z.setOldParent(z.parent);
+                    // Ok I don't want to really add...just have layout manager that is smart enough to layout 
+                    // without the children...hummm
+                    z.getOldParent().add(z.component); /// Bllllleh....
+                    z.getOldParent().validate();
+                }
+                dw.validate();
+            } else {
+                dw.remove(r);
+                dw.add(test);
+                // Sync lock probably  (snag the components for each view)
+                for (WdssiiView z : r.theList) {
+                    //z.setOldParent(z.parent);
+                    // Ok I don't want to really add...just have layout manager that is smart enough to layout 
+                    // without the children...hummm
+                    z.saveOldParent();
+                    test.add(z.component);  // kills the old 'parent' which is bad for us.
+                }
+
+                dw.validate();
+            }
+
+        }
     }
 
     public static class IView extends View {
@@ -369,6 +443,11 @@ public class InfonodeViews implements ViewMaker {
         }
     }
 
+    @Override
+    public DataFeatureView getDataFeatureView() {
+        return DataFeatureView.myTopDataView; // bleh.  rewrite coming
+    }
+
     private View getViewByID(String shortName) {
         WdssiiDockedViewFactory f = getFactoryFor(shortName);
         View v = null;
@@ -413,16 +492,29 @@ public class InfonodeViews implements ViewMaker {
             // 1.  All closed, so null --> create a new tabwindow
             // 2.  Dragged into split window...
             // 3.  TabWindow already...
+
+            // Add new windows as tabs...or split instead
+            boolean tabMode = false;
             if (base == null) {
                 TabWindow theTab = new TabWindow(theView);
                 setWindow(theTab);
             } else {
                 if (base instanceof TabWindow) {
                     TabWindow theTab = (TabWindow) (base);
-                    theTab.addTab(theView);
+                    if ((tabMode) || (theTab.getChildWindowCount() == 0)){
+                        theTab.addTab(theView);
+                    } else {
+                        SplitWindow theSplit = new SplitWindow(true, 0.5f, base, theView);
+                        setWindow(theSplit);
+                    }
                 } else if (base instanceof SplitWindow) {
-                    TabWindow theTab = new TabWindow(new DockingWindow[]{theView, base});
-                    setWindow(theTab);
+                    if (tabMode) {
+                        TabWindow theTab = new TabWindow(new DockingWindow[]{theView, base});
+                        setWindow(theTab);
+                    } else {
+                        SplitWindow theSplit = new SplitWindow(true, 0.5f, base, theView);
+                        setWindow(theSplit);
+                    }
                 } else {
                     LOG.error("Unknown window type...We should handle this type (FIXME)");
                 }
@@ -458,6 +550,9 @@ public class InfonodeViews implements ViewMaker {
 
         @Override
         public void addControls(List<Object> addTo) {
+
+            // FIXME: Should be a command, right?  What will this do?
+
             // The product follow menu
             //Icon link = SwingIconFactory.getIconByName("plus.png");
             JideSplitButton b = new JideSplitButton("");
@@ -742,7 +837,7 @@ public class InfonodeViews implements ViewMaker {
         // getViewByID("DebugView");
         getViewByID("CatalogView");
         getViewByID("SourcesView");
-        getViewByID("DataFeatureView");
+        getViewByID(ViewManager.DATA_VIEW_NAME);
         getViewByID("FeaturesView");
 
         // Add a mouse button listener that closes a window when it's clicked with the middle mouse button.
@@ -763,7 +858,7 @@ public class InfonodeViews implements ViewMaker {
         DockingWindow catalog = getViewByID("CatalogView");
         DockingWindow sources = getViewByID("SourcesView");
         DockingWindow nav = getViewByID("NavView");
-        DockingWindow chart = getViewByID("DataFeatureView");
+        DockingWindow chart = getViewByID(ViewManager.DATA_VIEW_NAME);
         //DockingWindow debug = getViewByID("DebugView");
         DockingWindow features = getViewByID("FeaturesView");
 
@@ -802,8 +897,7 @@ public class InfonodeViews implements ViewMaker {
         myRootFrame.getContentPane().add(rootWindow, BorderLayout.CENTER);
         myRootFrame.setJMenuBar(createMenuBar());
         myRootFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        myRootFrame.addWindowListener(new WindowListener(){
-
+        myRootFrame.addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {
             }
@@ -832,7 +926,6 @@ public class InfonodeViews implements ViewMaker {
             @Override
             public void windowDeactivated(WindowEvent e) {
             }
-            
         });
         //   // String currentTitle = w.getTitle();
         //   String dir = DataManager.getInstance().getRootTempDir();

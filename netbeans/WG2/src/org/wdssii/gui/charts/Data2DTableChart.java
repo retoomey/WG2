@@ -1,9 +1,6 @@
 package org.wdssii.gui.charts;
 
-import org.wdssii.gui.worldwind.WorldWindDataView;
 import com.jidesoft.swing.JideButton;
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.globes.ElevationModel;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,12 +20,14 @@ import javax.swing.filechooser.FileFilter;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.jfree.chart.axis.ValueAxis;
+import org.wdssii.core.CommandManager;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.geom.LLD;
 import org.wdssii.geom.Location;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.commands.FeatureCreateCommand;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.volumes.LLHAreaFeature;
@@ -109,55 +108,6 @@ public class Data2DTableChart extends DataView {
     }
 
     /**
-     * Readout XYZDataset is a JFreeChart dataset where we sample the product
-     * value along the range.
-     *
-     * Would be nice to enhance for some feedback on how close we are to the
-     * true readout 'point'
-     */
-    public static class ReadoutXYZDataset extends DynamicXYZDataset {
-
-        public ReadoutXYZDataset() {
-            super("Readout", 201);
-        }
-        /*
-         * Resample data depending on zoom
-         * level. This is called with the current lat/lon of the chart
-         * so that the terrain can be resampled by zoom
-         */
-
-        public void syncToRange(ValueAxis x,
-                double startLat,
-                double startLon,
-                double endLat,
-                double endLon) {
-
-            // Clear range
-            clearRange();
-
-            // Sample and fill in with new values
-           // WorldWindView eb = FeatureList.theFeatures.getWWView();
-           // Globe globe = eb.getWwd().getModel().getGlobe();
-           // ElevationModel m = globe.getElevationModel();
-            
-            ElevationModel m = WorldWindDataView.getElevationModel();
-            int size = getSampleSize();
-            double deltaLat = (endLat - startLat) / (size - 1);
-            double deltaLon = (endLon - startLon) / (size - 1);
-            double lat = startLat;
-            double lon = startLon;
-            for (int i = 0; i < size; i++) {
-                setSample(i, m.getElevation(Angle.fromDegrees(lat), Angle.fromDegrees(lon)) / 1000.0d);
-                lat += deltaLat;
-                lon += deltaLon;
-            }
-
-            // Set to new range
-            setRange(x.getRange());
-        }
-    }
-
-    /**
      * Set the key of the product to follow Should be called only within GUI
      * thread
      */
@@ -198,15 +148,15 @@ public class Data2DTableChart extends DataView {
         mySelectButton = second;
 
         /* Don't need?  Not 100% sure yet
-        JButton export = new JButton("Export INP...");
-        export.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                jExportINPActionPerformed(e);
-            }
-        });
-        bar.add(export);
-        */
+         JButton export = new JButton("Export INP...");
+         export.addActionListener(new ActionListener() {
+         @Override
+         public void actionPerformed(ActionEvent e) {
+         jExportINPActionPerformed(e);
+         }
+         });
+         bar.add(export);
+         */
 
         JButton export2 = new JButton("Export CSV...");
         export2.addActionListener(new ActionListener() {
@@ -259,7 +209,7 @@ public class Data2DTableChart extends DataView {
 
     private void updateDataTable() {
         if (myPanel != null) {  // GUI might not exist yet
-           // LOG.debug("UPDATE TABLE CALLED....");
+            // LOG.debug("UPDATE TABLE CALLED....");
             Product2DTable newTable;
             Product2DTable oldTable = myTable;
 
@@ -306,12 +256,12 @@ public class Data2DTableChart extends DataView {
             // Always register..bleh..this is because you can add a stick without changing table..
             // bleh...guess it's cheap enough to do for now
             // Ok we need 'Table Features' that are linked to data tables... FIXME
-          // GOOP  FeatureList.theFeatures.remove3DRenderer(oldTable);
+            // GOOP  FeatureList.theFeatures.remove3DRenderer(oldTable);
             LLHAreaFeature s = getTrackFeature();
             if (s != null) {
-             // GOOP  s.addRenderer(newTable);
-                LOG.debug("Added table to tracking feature "+newTable);
-            }else{
+                // GOOP  s.addRenderer(newTable);
+                LOG.debug("Added table to tracking feature " + newTable);
+            } else {
                 LOG.debug("Tracking feature was null");
             }
 
@@ -333,11 +283,15 @@ public class Data2DTableChart extends DataView {
     public LLHAreaFeature getTrackFeature() {
         // -------------------------------------------------------------------------
         // Snag the top stick for the moment
-        LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new StickFilter());
-        if (f != null) {
-            return f;
+        LLHAreaFeature f = null;
+        f = FeatureList.theFeatures.getTopMatch(new StickFilter());
+        if (f == null) {
+            // Do ahead and try to make one...
+            FeatureCreateCommand doit = new FeatureCreateCommand("Set", Integer.valueOf(1));
+            CommandManager.getInstance().executeCommand(doit, true);
+            f = FeatureList.theFeatures.getTopMatch(new StickFilter());
         }
-        return null;
+        return f;
     }
 
     /**
@@ -456,6 +410,13 @@ public class Data2DTableChart extends DataView {
             if (myTable != null) {
                 myTable.exportToURL(aURL, "INP");
             }
+        }
+    }
+
+    @Override
+    public void drawChartGLWorld(GLWorld w) {
+        if (myTable != null) {
+            myTable.draw(w, null);
         }
     }
 }

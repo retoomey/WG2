@@ -100,6 +100,11 @@ public class Source {
         myURL = u;
     }
 
+    // Default history is zero.  Source doesn't keep anything
+    public int getHistory() {
+        return 0;
+    }
+
     public static class defaultGUI implements SourceGUI {
 
         @Override

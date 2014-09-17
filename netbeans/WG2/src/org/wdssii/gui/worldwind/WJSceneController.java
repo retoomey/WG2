@@ -1,6 +1,8 @@
 package org.wdssii.gui.worldwind;
 
 import org.wdssii.gui.features.Feature3DRenderer;
+import org.wdssii.gui.views.DataFeatureView;
+import org.wdssii.gui.views.ViewManager;
 import gov.nasa.worldwind.BasicSceneController;
 import gov.nasa.worldwind.pick.PickedObjectList;
 import gov.nasa.worldwind.render.DrawContext;
@@ -35,12 +37,11 @@ public class WJSceneController extends BasicSceneController {
     private WorldWindDataView myWorld;
     public static final String WORLDWIND = "WW";
     public static final String WW_RENDERERS = "org.wdssii.gui.worldwind";
-    
+
     /**
      * Cache renderers
      */
     //private TreeMap<Object, ArrayList<FeatureRenderer>> myMap = new TreeMap<Object, ArrayList<FeatureRenderer>>();
-
     public void setLLHAreaLayer(LLHAreaLayer layer) {
         myLLHAreaLayer = layer;
     }
@@ -115,6 +116,9 @@ public class WJSceneController extends BasicSceneController {
 
             //LOG.debug("RENDERED " + counter + " ordered");
 
+            // First attempt draw the DataViews
+            DataFeatureView.drawViewsInWindow(w);
+
         } catch (Throwable e) {
             LOG.error("Exception during render " + e.toString());
         }
@@ -148,8 +152,8 @@ public class WJSceneController extends BasicSceneController {
         while (iter.hasNext()) {
             Feature f = iter.next();
             FeatureMemento m = f.getMemento();
-            
-          //  ArrayList<FeatureRenderer> theList = myMap.get(f);
+
+            //  ArrayList<FeatureRenderer> theList = myMap.get(f);
             ArrayList<FeatureRenderer> theList = f.getRendererList(WORLDWIND, WW_RENDERERS);
             if (theList != null) {
                 for (FeatureRenderer fr : theList) {
@@ -207,7 +211,7 @@ public class WJSceneController extends BasicSceneController {
             // f.pick(w, p);
 
             FeatureMemento m = f.getMemento();
-           // ArrayList<FeatureRenderer> theList = myMap.get(f);
+            // ArrayList<FeatureRenderer> theList = myMap.get(f);
             ArrayList<FeatureRenderer> theList = f.getRendererList(WORLDWIND, WW_RENDERERS);
             if (theList != null) {
                 for (FeatureRenderer fr : theList) {

@@ -102,6 +102,11 @@ public class IndexSource extends Source implements HistoryListener {
     }
 
     @Override
+    public int getHistory() {
+        return myHistory;
+    }
+    
+    @Override
     public synchronized boolean isConnecting() {
         return myConnecting;
     }

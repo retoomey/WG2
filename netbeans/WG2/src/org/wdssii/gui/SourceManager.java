@@ -47,10 +47,10 @@ public class SourceManager implements Singleton {
         try {
             Index.setGUIMode(true);
             instance = new SourceManager();
-            CommandManager c = CommandManager.getInstance();
-            boolean connect = true;
-            IndexSourceAddParams p = new IndexSourceAddParams("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml", false, connect, HistoricalIndex.HISTORY_ARCHIVE);
-            c.executeCommand(new SourceAddCommand(p), false);
+           // CommandManager c = CommandManager.getInstance();
+           // boolean connect = true;
+           // IndexSourceAddParams p = new IndexSourceAddParams("KTLX-ARCHIVE", "http://tensor.protect.nssl/data/KTLX-large/radar_data.xml", false, connect, HistoricalIndex.HISTORY_ARCHIVE);
+           // c.executeCommand(new SourceAddCommand(p), false);
         } catch (Exception e) {
             // Recover
         }

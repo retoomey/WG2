@@ -9,12 +9,14 @@ import javax.swing.*;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.CommandManager;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.commands.ChartCreateCommand.ChartFollowerView;
 import org.wdssii.gui.commands.ProductFollowCommand.ProductFollowerView;
 import org.wdssii.gui.commands.ProductToggleFilterCommand.ProductFilterFollowerView;
+import org.wdssii.gui.commands.TestLayoutCommand.TestLayoutView;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
@@ -23,6 +25,8 @@ import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
  * The Chart view interface lets us wrap around an RCP view or netbean view
  * without being coupled to those libraries
  *
+ * The whole recursive factory/class thing is confusing.  Rewrite this to be a simple single class
+ * 
  * @author Robert Toomey
  *
  */
@@ -34,6 +38,7 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
     // See CommandManager execute and gui updating for how this works
     // Default for any product commands....
     // FIXME: probably should update on ANY data command...
+    public static DataFeatureView myTopDataView;
 
     public void ProductCommandUpdate(ProductCommand command) {
         updateGUI(command); // load, delete, etc..
@@ -96,10 +101,23 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
         removeSubView(this);
     }
 
+    public static void drawViewsInWindow(GLWorld w){
+        // Confusing because it's recursive for no reason
+          for (DataFeatureView c : theSubViews) {
+            c.drawViewsGL(w);
+          }
+    }
+    
+    public void drawViewsGL(GLWorld w){
+        if (myChart != null){
+                myChart.drawChartGLWorld(w);
+          }
+    }
+    
     /**
      * Our factory, called by reflection to populate menus, etc...
      */
-    public static class Factory extends WdssiiMDockedViewFactory implements CommandListener, ChartFollowerView {
+    public static class Factory extends WdssiiMDockedViewFactory implements CommandListener, TestLayoutView, ChartFollowerView {
 
         public static DataFeatureView container;
         private String myCurrentChartChoice = ChartSetTypeCommand.getFirstChartChoice();
@@ -130,12 +148,25 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
         @Override
         public void addCreationButton(List<Object> addTo) {
             addTo.add(ChartCreateCommand.getDropButton(this));
+          //  addTo.add(TestLayoutCommand.getDropButton(this));
         }
 
         @Override
         public void addChart(String name) {
             myCurrentChartChoice = name;
             addNewSubView();
+        }
+
+        @Override
+        public void doTestLayout(String name) {
+            if (name.equals("simple")) {
+                // Ok here we do the simple layout attempt...purge all sub containers...
+                // We're just a child.  We need the window manager at a higher level...
+             
+                LOG.debug("********************Got the command !!!!");
+                ViewManager.collapseLayout(rootW);
+
+            }
         }
     }
     private JToggleButton jVirtualToggleButton;
@@ -317,7 +348,7 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
     @Override
     public void updateInSwingThread(Object info) {
         if (myChart != null) {
-            boolean force = false;     
+            boolean force = false;
             myChart.updateChart(force);
         }
         if (myUseVirtualVolume) {

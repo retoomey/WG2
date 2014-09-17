@@ -152,7 +152,7 @@ public class Feature implements Mementor {
         // Worldwind id is WW
         // Geotools will be GT
         // Awiips will be AW2
-        String make = packageName + "." +id+className;
+        String make = packageName + "." + id + className;
         try {
             aClass = Class.forName(make);
             Constructor<?> c = aClass.getConstructor();

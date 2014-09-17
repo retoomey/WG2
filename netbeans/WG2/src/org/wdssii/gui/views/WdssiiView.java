@@ -1,6 +1,7 @@
 package org.wdssii.gui.views;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.util.List;
 import javax.swing.Icon;
 
@@ -13,7 +14,9 @@ public class WdssiiView {
 
     private Icon icon;
     private String title;
-    private Component component;
+    public Component component;
+    public Container oldParent;
+    
     private List<Object> windowTitleItems = null;
     private String key;
     
@@ -49,5 +52,15 @@ public class WdssiiView {
 
     public void setKey(String shortName) {
         key = shortName;
+    }
+
+    public void saveOldParent() {
+       if (component != null){
+           oldParent = component.getParent();
+       }
+    }
+    
+    public Container getOldParent(){
+        return oldParent;
     }
 }

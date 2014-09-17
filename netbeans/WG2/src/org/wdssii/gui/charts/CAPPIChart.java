@@ -65,7 +65,7 @@ public class CAPPIChart extends LLHAreaChartGL {
 
     @Override
     public void updateChart(boolean force) {
-        LOG.debug("***********************UPDATE CHART CALLED");
+        //LOG.debug("***********************UPDATE CHART CALLED");
         // This is called a lot...during point drag, etc.  We should check to see
         // if anything has CHANGED that needs us to regenerate.
 
@@ -196,7 +196,9 @@ public class CAPPIChart extends LLHAreaChartGL {
         ((Container) parent).add(j, java.awt.BorderLayout.EAST);
         j.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                updateChart(true);
+                int a = 1;
+                a = 2;
+                updateChart(false);
             }
         });
         mySlider = j;

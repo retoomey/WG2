@@ -7,7 +7,9 @@ import javax.media.opengl.GLCanvas;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLJPanel;
 import javax.swing.JSlider;
+import org.wdssii.core.CommandManager;
 import org.wdssii.gui.Application;
+import org.wdssii.gui.commands.FeatureCreateCommand;
 import org.wdssii.gui.commands.VolumeValueCommand.VolumeValueFollowerView;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
@@ -108,6 +110,12 @@ public class LLHAreaChartGL extends DataView implements VolumeValueFollowerView 
 
         LLHAreaSet slice = null;
         LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new VSliceFilter());
+         if (f == null) {
+            // Do ahead and try to make one...
+            FeatureCreateCommand doit = new FeatureCreateCommand("Set", Integer.valueOf(2));
+            CommandManager.getInstance().executeCommand(doit, true);
+            f = FeatureList.theFeatures.getTopMatch(new VSliceFilter());
+        }
         if (f != null) {
             LLHArea area = f.getLLHArea();
             if (area instanceof LLHAreaSet) {
@@ -198,4 +206,5 @@ public class LLHAreaChartGL extends DataView implements VolumeValueFollowerView 
 
         }
     }
+    
 }

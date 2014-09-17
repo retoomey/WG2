@@ -299,7 +299,8 @@ public class LLHAreaSet extends LLHArea {
                 gl.glEnable(GL.GL_CULL_FACE);
                 gl.glFrontFace(GL.GL_CCW);
 
-                c.drawChartInLLHArea(w, locations, altitudes, edgeFlags);
+                // Charts should pull their information to keep decoupled
+               // c.drawChartInLLHArea(w, locations, altitudes, edgeFlags);
                 //this.drawVSlice(dc, locations, edgeFlags);
 
                 gl.glPopAttrib();

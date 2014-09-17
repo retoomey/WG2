@@ -828,7 +828,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     // It actually makes sense for the 3D stuff to be within the chart as well...
     // This allows different charts to draw in 3D differently...
     // Render in 3D
-    @Override
+  /*  @Override
     // All the 3D render stuff of the Chrt
     // Render in 3D
     public void drawChartInLLHArea(GLWorld w, java.util.List<LLD> locations, double[] altitudes, java.util.List<Boolean> edgeFlags) {
@@ -840,7 +840,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
 
             myRenderer.drawVSlice(w, geom);
         }
-    }
+    }*/
 
     protected void orderLocations(java.util.List<LLD> input) {
         // VSlice only.  Two locations, the points on the bottom. 

@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.net.URL;
 import java.util.List;
 import javax.swing.Icon;
+import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
 import org.wdssii.xml.views.RootWindow;
 
@@ -17,18 +18,21 @@ import org.wdssii.xml.views.RootWindow;
  */
 public class ViewManager {
 
+    public final static String DATA_VIEW_NAME = "DataFeatureView";
+    
     /**
      * Holder the class doing the work here
      */
     public static ViewMaker myWorker = null;
-    
+    private static DataFeatureView myDataFeatureView;
+
     public static void setConfigPath(URL aURL) {
-       if (myWorker != null){
-           myWorker.setConfigPath(aURL);
-       }
+        if (myWorker != null) {
+            myWorker.setConfigPath(aURL);
+        }
     }
 
-    public static interface RootContainer {
+ public static interface RootContainer {
 
         public void addWdssiiView(WdssiiView w, MDockView md);
 
@@ -54,24 +58,34 @@ public class ViewManager {
          */
         public void wrapWdssiiViewWithGUI(WdssiiView wv);
 
-        /** 
-         * 
+        /**
+         *
          * @return layout xml JAXB node
          */
         public RootWindow getLayoutXML();
 
-        /** Set layout to that from XML, if possible */
+        /**
+         * Set layout to that from XML, if possible
+         */
         public void setLayoutXML(RootWindow r);
-        
-        /** Set a new layout state */
+
+        /**
+         * Set a new layout state
+         */
         public void setNewLayout();
-        
-        /** Set the URL path of this document */
+
+        /**
+         * Set the URL path of this document
+         */
         public void setConfigPath(URL aURL);
+
+        public void collapseLayout(RootContainer rootW);
+
         /**
          * Add a WdssiiView to a given root container
          */
         // public void addWdssiiViewToRootContainer(RootContainer c, WdssiiView wv, MDockView m);
+        public DataFeatureView getDataFeatureView();
     }
 
     public void setViewMaker(ViewMaker worker) {
@@ -109,21 +123,38 @@ public class ViewManager {
 
     public static RootWindow getLayoutXML() {
         RootWindow xml = null;
-        if (myWorker != null){
+        if (myWorker != null) {
             xml = myWorker.getLayoutXML();
         }
         return xml;
     }
-    
-     public static void setLayoutXML(RootWindow r) {
-        if (myWorker != null){
+
+    public static void setLayoutXML(RootWindow r) {
+        if (myWorker != null) {
             myWorker.setLayoutXML(r);
         }
     }
-     
-     public static void setNewLayout() {
-        if (myWorker != null){
+
+    public static void setNewLayout() {
+        if (myWorker != null) {
             myWorker.setNewLayout();
         }
     }
+
+    public static void collapseLayout(RootContainer rootW) {
+        if (myWorker != null) {
+            myWorker.collapseLayout(rootW);
+        }
+    }
+    
+    public static  DataFeatureView getDataView() {
+        if (myDataFeatureView == null){
+        if (myWorker != null){
+            myDataFeatureView = myWorker.getDataFeatureView();
+        }
+        }
+        return myDataFeatureView;
+    }
+
+   
 }

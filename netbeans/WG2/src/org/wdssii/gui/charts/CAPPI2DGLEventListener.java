@@ -21,8 +21,12 @@ import org.wdssii.log.LoggerFactory;
 public class CAPPI2DGLEventListener extends LLHGLEventListener {
 
     private final static Logger LOG = LoggerFactory.getLogger(CAPPI2DGLEventListener.class);
-   
+    private int myBottomM = 0;
     private int myTopM = 2000;
+
+    public void setBottomMeters(int b) {
+        myBottomM = b;
+    }
 
     public void setTopMeters(int t) {
         myTopM = t;
@@ -32,8 +36,8 @@ public class CAPPI2DGLEventListener extends LLHGLEventListener {
         final int total = myNumCols * myNumRows;
         final boolean useFilters = false;
 
-        StopWatch watch = new StopWatch();
-        watch.start();
+        //StopWatch watch = new StopWatch();
+        //watch.start();
         ByteBuffer buffer;
         if (myBuffer != null) {  // FIXME: AND THE SIZE WE NEED
             buffer = myBuffer;  // AT THE MOMENT ASSUMING NEVER CHANGES
@@ -80,9 +84,9 @@ public class CAPPI2DGLEventListener extends LLHGLEventListener {
                 startLon = sourceGrid.endLon;
             }
 
-           // final double startHeight = sourceGrid.getStartHeight();
+            // final double startHeight = sourceGrid.getStartHeight();
             final double startHeight = myTopM;
-           // final double deltaHeight = sourceGrid.getDeltaHeight();
+            // final double deltaHeight = sourceGrid.getDeltaHeight();
             final double deltaLat = (endLat - startLat) / sourceGrid.rows;
             final double deltaLon = (endLon - startLon) / sourceGrid.cols;
 
@@ -162,7 +166,7 @@ public class CAPPI2DGLEventListener extends LLHGLEventListener {
         }
         buffer.flip();
         myBuffer = buffer;
-        watch.stop();
-        LOG.debug("VSlice GENERATION TIME IS " + watch);
+        //watch.stop();
+        //LOG.debug("VSlice GENERATION TIME IS " + watch);
     }
 }

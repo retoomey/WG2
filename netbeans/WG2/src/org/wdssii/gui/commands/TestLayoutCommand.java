@@ -1,5 +1,12 @@
 package org.wdssii.gui.commands;
 
+/**
+ *  Testing a multi-layout for dataviews, that allows us to use the 
+ * power of custom layout, with the power of minimal power layouts..
+ * 
+ * @author Robert Toomey
+ */
+
 import com.jidesoft.swing.JideMenu;
 import com.jidesoft.swing.JideSplitButton;
 import java.util.*;
@@ -7,40 +14,28 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import org.wdssii.core.CommandListener;
+import org.wdssii.core.WdssiiCommand;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.swing.WdssiiCommandGUI;
 
 /**
- * Command to create a chart
+ * Command to change layouts in the data view..
  *
  * @author Robert Toomey
  *
  */
-public class ChartCreateCommand extends ProductCommand {
+public class TestLayoutCommand extends WdssiiCommand {
 
-    /**
-     * I 'should' remake the xml reading maybe...downside to xml reading is if
-     * file is missing everything breaks. Downside here is can't add on the fly
-     * and will break if class is moved
-     */
-    public final static String VIEW_WORLD_WIND = "org.wdssii.gui.worldwind.WorldWindDataView";
-    public final static String VIEW_GEO = "org.wdssii.gui.charts.GeoToolDataView";
-    public final static String VIEW_VSLICE = "org.wdssii.gui.worldwind.VSliceChart";
-    public final static String VIEW_VSLICE2 = "org.wdssii.gui.charts.VSliceChart";
-    public final static String VIEW_CAPPI = "org.wdssii.gui.charts.CAPPIChart";
-    public final static String VIEW_ISO = "org.wdssii.gui.charts.VRChart";
-    public final static String VIEW_2D_TRACK = "org.wdssii.gui.charts.Data2DTableChart";
-    public final static String VIEW_READOUT_CHART = "org.wdssii.gui.charts.DataRangeValueChart";
 
     /**
      * Interface for a view following the current list of products.
      */
-    public static interface ChartFollowerView extends CommandListener {
+    public static interface TestLayoutView extends CommandListener {
 
         /**
          * Set the product you are following to this key (can include top)
          */
-        void addChart(String name);
+        void doTestLayout(String name);
     }
 
     /**
@@ -48,31 +43,13 @@ public class ChartCreateCommand extends ProductCommand {
      * order
      */
     @Override
-    public ArrayList<CommandOption> getCommandOptions() {
-        ArrayList<CommandOption> theList = new ArrayList<CommandOption>();
+    public ArrayList<WdssiiCommand.CommandOption> getCommandOptions() {
+        ArrayList<WdssiiCommand.CommandOption> theList = new ArrayList<WdssiiCommand.CommandOption>();
 
         // I wouldn't do this normally, do for now at least we have a short list
         // that shouldn't change much
-        theList.add(new CommandOption("Add 2D Tracking Table", VIEW_2D_TRACK));
-        theList.add(new CommandOption("Add Data Readout Chart", VIEW_READOUT_CHART));
-        theList.add(new CommandOption("", ""));
-
-        theList.add(new CommandOption("Add Worldwind", VIEW_WORLD_WIND));
-
-        theList.add(new CommandOption("", ""));
-
-        theList.add(new CommandOption("Add VSlice Chart", VIEW_VSLICE));
-        theList.add(new CommandOption("Add ALPHA OpenGL VSlice", VIEW_VSLICE2));
-        theList.add(new CommandOption("Add ALPHA OpenGL CAPPI", VIEW_CAPPI));
-        theList.add(new CommandOption("Add ALPHA OpenGL ISO ", VIEW_ISO));
-        theList.add(new CommandOption("", ""));
-
-        theList.add(new CommandOption("Add ALPHA GeoTool View", VIEW_GEO));
-
-
-
-
-
+        theList.add(new WdssiiCommand.CommandOption("Toggle simple/advanced layout", "simple"));
+       
         return theList;
     }
 
@@ -100,13 +77,13 @@ public class ChartCreateCommand extends ProductCommand {
             if (value != null) {
                 // Need the view in order to send the command...
                 if (myTargetListener != null) {
-                    if (myTargetListener instanceof ChartFollowerView) {
-                        ((ChartFollowerView) myTargetListener).addChart(value);
+                    if (myTargetListener instanceof TestLayoutView) {
+                        ((TestLayoutView) myTargetListener).doTestLayout(value);
                     }
                 }
             }
         } else {
-            System.out.println("ChartCreateCommand needs main option to tell what to create");
+            System.out.println("TestLayoutViewView needs main option to tell what to create");
         }
         return true;
     }
@@ -116,16 +93,16 @@ public class ChartCreateCommand extends ProductCommand {
      */
     public static JComponent getDropButton(CommandListener l) {
         // The product follow menu
-        Icon link = SwingIconFactory.getIconByName("plus.png");
+        Icon link = SwingIconFactory.getIconByName("eye.png");
         final CommandListener target = l;
         JideSplitButton b = new JideSplitButton("");
         b.setIcon(link);
         b.setAlwaysDropdown(true);
-        b.setToolTipText("Choose chart to create");
+        b.setToolTipText("Testing layout stuff...");
         b.setPopupMenuCustomizer(new JideMenu.PopupMenuCustomizer() {
             @Override
             public void customize(JPopupMenu menu) {
-                ChartCreateCommand f = new ChartCreateCommand();
+                TestLayoutCommand f = new TestLayoutCommand();
                 f.setTargetListener(target);
                 WdssiiCommandGUI.fillMenuFor(menu, f);
             }

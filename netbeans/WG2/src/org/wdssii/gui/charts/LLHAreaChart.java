@@ -2,6 +2,8 @@ package org.wdssii.gui.charts;
 
 import java.awt.geom.Rectangle2D;
 import org.jfree.chart.axis.ValueAxis;
+import org.wdssii.core.CommandManager;
+import org.wdssii.gui.commands.FeatureCreateCommand;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.volumes.LLHAreaFeature;
@@ -59,7 +61,13 @@ public class LLHAreaChart extends ChartViewJFreeChart {
         // This has the effect of following the top selected vslice...
 
         LLHAreaSet slice = null;
-        LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new VSliceChart.VSliceFilter());
+        LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new VSliceFilter());
+         if (f == null) {
+            // Do ahead and try to make one...
+            FeatureCreateCommand doit = new FeatureCreateCommand("Set", Integer.valueOf(2));
+            CommandManager.getInstance().executeCommand(doit, true);
+            f = FeatureList.theFeatures.getTopMatch(new VSliceFilter());
+        }
         if (f != null) {
             LLHArea area = f.getLLHArea();
             if (area instanceof LLHAreaSet) {

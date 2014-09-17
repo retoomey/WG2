@@ -671,7 +671,7 @@ public class SimpleTable extends JLabel
     }
     // FIXME: this mouse stuff 'may' move out, since we have several
     // different table types ...
-    private ToolbarMode myMode = ToolbarMode.SELECT; 
+    private ToolbarMode myMode = ToolbarMode.SELECT;
 
     public enum ToolbarMode {
 
@@ -709,6 +709,18 @@ public class SimpleTable extends JLabel
                         // This is the same as a drag from the start cell...
                         // End cell should always be the dragged cell
                         endCell = newCell;
+                    }
+                    if (e.isControlDown() && (myModel.valid(startCell))) {
+                        // Single click with cntl will do a mirror box around
+                        // original point..
+                        if (startCell == endCell) {
+                            int deltaX = newCell.x - startCell.x;
+                            int deltaY = newCell.y - startCell.y;
+                            startCell.x -= deltaX;
+                            startCell.y -= deltaY;
+                            endCell = newCell;
+                        }
+
                     } else {
                         // Select single cell
                         endCell = newCell;
@@ -741,9 +753,13 @@ public class SimpleTable extends JLabel
             if (myModel != null) {
                 Point track = new Point(-1, -1);
                 if (myModel.hitTest(e.getX(), e.getY(), track)) {
-                    // End cell should always be the dragged cell
-                    endCell = track;
-                    myModel.selectRange(startCell.x, startCell.y, endCell.x, endCell.y);
+                    if (e.isControlDown()) {
+                        // Do nothing, only the single click works
+                    } else {
+                        // End cell should always be the dragged cell
+                        endCell = track;
+                        myModel.selectRange(startCell.x, startCell.y, endCell.x, endCell.y);
+                    }
                 }
             }
         }

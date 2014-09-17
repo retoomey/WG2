@@ -169,41 +169,7 @@ public class PreferencesManager implements Singleton {
      */
     public void loadConfig() {
 
-        String name = "wgpref.xml";
-        try {
-            W2Pref prefs = Util.load(name, W2Pref.class);
-            theW2Prefs = prefs;
-            if (prefs != null) {
-                LOG.info("Preferences loaded from " + name);
-            } else {
-                LOG.info("Couldn't find preference file " + name);
-            }
-        } catch (Exception c) {
-            LOG.error("Error loading preferences at " + name);
-        }
-
-        // Ok, try to load each initial source....
-        // not sure where this belongs quite yet...
-        // We really should make a dialog of something here I think....
-        if ((theW2Prefs != null) && (theW2Prefs.sources != null)) {
-
-            for (Source s : theW2Prefs.sources.list) {
-                try {
-                    CommandManager c = CommandManager.getInstance();
-                    boolean connect = true;
-                    LOG.info("Adding start source " + s.sourcename + " " + s.url);
-                    // Old school...everything is an index in old w2config files.
-                    // Eventually we need different source types, such as the nasa wms source, which is not an IndexSource
-                    // This at least will read old files...
-                    s.url = StringUtil.convertToLabDomain(s.url);
-                    SourceAddCommand.IndexSourceAddParams p = new SourceAddCommand.IndexSourceAddParams(s.sourcename, s.url, false, connect, s.history);
-                    c.executeCommand(new SourceAddCommand(p), false);
-                } catch (Exception e) {
-                    // Recover
-                }
-            }
-
-        }
+       // String name = "wgpref.xml";
     }
 
     public void createNewDocument() {

@@ -1,4 +1,4 @@
-package org.wdssii.gui.sources;
+package org.wdssii.gui.worldwind;
 
 import java.awt.Component;
 import java.awt.event.*;
@@ -11,8 +11,9 @@ import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.FeatureCommand;
+import org.wdssii.gui.sources.SourceGUI;
 import org.wdssii.gui.worldwind.WorldwindStockFeature;
-import org.wdssii.gui.sources.WMSSource.LayerInfo;
+import org.wdssii.gui.worldwind.WMSSource.LayerInfo;
 import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;

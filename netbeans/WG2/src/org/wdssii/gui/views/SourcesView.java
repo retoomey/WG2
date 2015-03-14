@@ -6,7 +6,12 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -14,6 +19,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import net.miginfocom.layout.CC;
@@ -22,6 +28,7 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.CommandManager;
+import org.wdssii.datatypes.builders.ConradSA2;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.sources.Source;
@@ -99,6 +106,15 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addSourceFromDialog(evt);
+            }
+        });
+        b1.add(item);
+
+        item = new JMenuItem("EXPERIMENTAL: Add File...");
+        item.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addFileFromDialog(evt);
             }
         });
         b1.add(item);
@@ -352,14 +368,14 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
             @Override
             public void handleClick(Object stuff, int orgRow, int orgColumn) {
 
-               /* if (stuff instanceof SourceListTableData) {
-                    SourceListTableData entry = (SourceListTableData) (stuff);
+                /* if (stuff instanceof SourceListTableData) {
+                 SourceListTableData entry = (SourceListTableData) (stuff);
 
-                    switch (orgColumn) {
-                        default:
-                            break;
-                    }
-                }*/
+                 switch (orgColumn) {
+                 default:
+                 break;
+                 }
+                 }*/
             }
 
             @Override
@@ -516,7 +532,7 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
         jInfoLabel = new JLabel("---");
         return jObjectScrollPane;
     }
-    
+
     private void addSourceFromDialog(java.awt.event.ActionEvent evt) {
         // Open dialog for single file adding.....
 
@@ -524,6 +540,35 @@ public class SourcesView extends JThreadPanel implements SDockView, CommandListe
         // CommandManager.getInstance().executeCommand(doit, true);
         //FeatureList.theFeatures.addFeature(new LLHAreaFeature(0));
         doSingleProductOpenDialog();
+    }
+
+    private void addFileFromDialog(java.awt.event.ActionEvent evt) {
+        // Open dialog for single file adding.....
+
+        // FeatureCreateCommand doit = new FeatureCreateCommand("VSlice");
+        // CommandManager.getInstance().executeCommand(doit, true);
+        //FeatureList.theFeatures.addFeature(new LLHAreaFeature(0));
+        Component something = SwingUtilities.getRoot(this);
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                "test data", "bin");
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showOpenDialog(something);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            System.out.println("You chose to open this file: "
+                    + chooser.getSelectedFile().getName());
+
+            // Need object/factory that recognizes the 'type' of file,
+            // and then gets the info out of it to populate index records...
+            // this can be from file name, etc...rules could be user 
+            // choosen even...
+            // Ok...we need to create an index record for this file, so that
+            // then it can be 'loaded'...
+            // This will become a org.wdssii.datatypes.builders.cinradsa2
+            File f = chooser.getSelectedFile();
+            ConradSA2 c = new ConradSA2();
+            c.readData(f);
+        }
     }
 
     private void exportSourceFromDialog(java.awt.event.ActionEvent evt) {

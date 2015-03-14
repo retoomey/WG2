@@ -201,7 +201,9 @@ public class PreferencesManager implements Singleton {
         }
 
         // First go to the new layout....
-        ViewManager.setLayoutXML(theW2Prefs.rootwindow);
+        if (theW2Prefs != null){
+            ViewManager.setLayoutXML(theW2Prefs.rootwindow);
+        }
 
         // First remove all old sources from list
         // Would love to be 'smart' and merge old and new sources, only

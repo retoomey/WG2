@@ -1,4 +1,4 @@
-package org.wdssii.gui.sources;
+package org.wdssii.gui.worldwind;
 
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.avlist.AVKey;
@@ -20,7 +20,10 @@ import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.GUIPlugInPanel;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.worldwind.WorldwindStockFeature;
+import org.wdssii.gui.sources.IndexSourceParamsGUI;
+import org.wdssii.gui.sources.Source;
+import org.wdssii.gui.sources.SourceFactory;
+import org.wdssii.gui.sources.SourceGUI;
 import org.wdssii.gui.views.SourcesURLLoadDialog;
 import org.wdssii.index.IndexFactory;
 

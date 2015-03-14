@@ -8,12 +8,13 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.CommandManager;
+import org.wdssii.core.ReflectionUtil;
 import org.wdssii.gui.swing.JThreadPanel;
 
 /**
  *
- * CatalogView contains different catalogs, or lists of sources/features
- * that can be added to the display
+ * CatalogView contains different catalogs, or lists of sources/features that
+ * can be added to the display
  *
  * @author Robert Toomey
  *
@@ -21,9 +22,8 @@ import org.wdssii.gui.swing.JThreadPanel;
 public class CatalogView extends JThreadPanel implements CommandListener {
 
     private final static Logger LOG = LoggerFactory.getLogger(CatalogView.class);
-
     private javax.swing.JTabbedPane jRootTab;
-    
+
     /**
      * Our factory, called by reflection to populate menus, etc...
      */
@@ -38,7 +38,7 @@ public class CatalogView extends JThreadPanel implements CommandListener {
             return new CatalogView();
         }
     }
-  
+
     @Override
     public void updateInSwingThread(Object info) {
         // We don't update externally..only from clicked buttons, etc..
@@ -47,7 +47,7 @@ public class CatalogView extends JThreadPanel implements CommandListener {
 
     public CatalogView() {
 
-        initComponents();    
+        initComponents();
 
         CommandManager.getInstance().addListener("Catalog", this);
     }
@@ -58,8 +58,18 @@ public class CatalogView extends JThreadPanel implements CommandListener {
         // setLayout(new MigLayout("fill", "", ""));
         setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
         jRootTab = new javax.swing.JTabbedPane();
-        add(jRootTab, new CC().growX().growY());     
-        jRootTab.addTab("WDSS2", new WdssiiCatalog());  
-        jRootTab.addTab("WMS", new WMSCatalog());
+        add(jRootTab, new CC().growX().growY());
+
+        // Add each class by reflection.  Eventually need to get this list
+        // from somewhere...
+        addNamedComponent("WDSS2", "org.wdssii.gui.views.WdssiiCatalog");
+        addNamedComponent("WMS", "org.wdssii.gui.worldwind.WMSCatalog");
+    }
+
+    private void addNamedComponent(String tabName, String name) {
+        Component w = ReflectionUtil.optionalCreate(name, Component.class);
+        if (w != null) {
+            jRootTab.addTab(tabName, w);
+        }
     }
 }

@@ -25,7 +25,7 @@ public class Application {
     public final static int MINOR_VERSION = 0;
     public static final boolean USE_HEAVYWEIGHT_GL = false;
 
-    public static String logmessage;
+    public final static String logmessage;
     
     static {
         // Initialize our logging to Sf4j.  Explicitly calling classes by full name

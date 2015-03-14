@@ -123,15 +123,18 @@ public class ViewHolder extends AbstractViewMap {
     }
 
     public void addView(int paramInt, View paramView) {
-        addView(new Integer(paramInt), paramView);
+        //addView(new Integer(paramInt), paramView);
+        addView(Integer.valueOf(paramInt), paramView);
     }
 
     public void removeView(int paramInt) {
-        removeView(new Integer(paramInt));
+        //removeView(new Integer(paramInt));
+        removeView(Integer.valueOf(paramInt));
     }
 
     public View getView(int paramInt) {
-        return getView(new Integer(paramInt));
+        //return getView(new Integer(paramInt));
+        return getView(Integer.valueOf(paramInt));
     }
 
     @Override
@@ -143,6 +146,7 @@ public class ViewHolder extends AbstractViewMap {
     @Override
     protected Object readViewId(ObjectInputStream paramObjectInputStream)
             throws IOException {
-        return new Integer(paramObjectInputStream.readInt());
+        //return new Integer(paramObjectInputStream.readInt());
+        return Integer.valueOf(paramObjectInputStream.readInt());
     }
 }

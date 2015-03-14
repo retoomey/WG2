@@ -1,8 +1,6 @@
 package org.wdssii.datatypes;
 
-import java.net.URL;
 import org.wdssii.geom.Location;
-import org.wdssii.geom.GridVisibleArea;
 
 /** The table 2D interface allows DataType to implement an 'excel' spreadsheet-like 2D table.
  * This is a different 'view' of the data.  The GUI uses this class to display an actual table.

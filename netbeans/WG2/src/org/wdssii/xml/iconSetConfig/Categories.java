@@ -141,7 +141,7 @@ public class Categories {
         int item = 0;
 
         for (Category c : list) {
-            if (c.value == key) {
+            if (c.value.equals(key)) {
                 list.remove(item);
                 return true;
             }

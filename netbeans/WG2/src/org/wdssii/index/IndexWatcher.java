@@ -116,12 +116,12 @@ public class IndexWatcher implements HistoryListener {
     }
 
     /** Directly set the index we use */
-    public void setIndex(HistoricalIndex i){
+    public synchronized void setIndex(HistoricalIndex i){
         myIndex = i;
     }
     
     /** Return current historical index, only valid on proper connection */
-    public HistoricalIndex getIndex() {
+    public synchronized HistoricalIndex getIndex() {
         // Assume index not ready for use if we're still connecting...
         if (myConnecting || !myConnected) {
             return null;
@@ -129,7 +129,7 @@ public class IndexWatcher implements HistoryListener {
         return myIndex; // CAN be null on failure or not connected
     }
 
-    public boolean wasLastReadSuccessful() {
+    public synchronized boolean wasLastReadSuccessful() {
         if (myIndex != null) {
             myLastReadSuccess = myIndex.getIndex().getLastReadSuccess();
         }

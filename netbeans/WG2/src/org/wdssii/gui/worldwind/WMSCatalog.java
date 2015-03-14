@@ -1,4 +1,4 @@
-package org.wdssii.gui.views;
+package org.wdssii.gui.worldwind;
 
 import java.awt.Component;
 import java.awt.event.KeyEvent;
@@ -18,9 +18,9 @@ import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.SourceAddCommand;
-import org.wdssii.gui.commands.SourceAddCommand.WMSSourceAddParams;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
+import org.wdssii.gui.worldwind.WMSSourceAddParams;
 
 /**
  * WMS Catalog has a list of Web Map Service providers

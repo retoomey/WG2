@@ -1077,10 +1077,11 @@ public class InfonodeViews implements ViewMaker {
      */
     public void dumpChildren(DockingWindow r, int level) {
         int win = r.getChildWindowCount();
-        String space = "";
+        StringBuffer buf = new StringBuffer();
         for (int s = 0; s < level; s++) {
-            space += " ";
+             buf.append(" ");
         }
+        String space = buf.toString();
         for (int i = 0; i < win; i++) {
             DockingWindow subWindow = r.getChildWindow(i);
 

@@ -17,12 +17,6 @@ import org.wdssii.gui.charts.DataView;
 public class FeatureList {
 
     private final static Logger LOG = LoggerFactory.getLogger(FeatureList.class);
-    /**
-     * Every FeatureList can have a world wind earthball view. This might become
-     * more general later and become a list.
-     */
-    // private WorldWindView myWorldWindView;
-    // FIXME: Charts becoming a more general DataView
     private ArrayList<WeakReference<DataView>> myDataViews;
     private FeaturePosition myFeaturePosition = null;
 
@@ -120,14 +114,6 @@ public class FeatureList {
         myDataViews.add(new WeakReference<DataView>(v));
     }
 
-    /*public void setWorldWindView(WorldWindView v) {
-     myWorldWindView = v;
-     // LayerList ll = v.getLayerList();
-     // LegendFeature legend = LegendFeature.createLegend(this, ll);
-     // addFeature(legend);
-     // WorldwindStockFeature ww = WorldwindStockFeature.grabsAllLayers(this, ll);
-     // addFeature(ww);
-     }*/
     private void cleanUpReferences() {
         if (myDataViews != null) {
             ArrayList<WeakReference<DataView>> cleanup = new ArrayList<WeakReference<DataView>>();

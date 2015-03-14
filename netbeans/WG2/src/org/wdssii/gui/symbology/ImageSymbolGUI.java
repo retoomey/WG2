@@ -60,8 +60,8 @@ public class ImageSymbolGUI extends PointSymbolGUI {
         @Override
         public void setMemento(Memento m) {
             super.setMemento(m);
-            if (m instanceof ImageSymbolMemento) {
-            }
+       //     if (m instanceof ImageSymbolMemento) {
+       //     }
         }
 
         @Override

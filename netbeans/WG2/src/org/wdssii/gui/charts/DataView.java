@@ -4,7 +4,6 @@ import java.util.List;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.gui.GLWorld;
-import org.wdssii.geom.LLD;
 import org.wdssii.gui.commands.ProductFollowCommand;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeaturePosition;

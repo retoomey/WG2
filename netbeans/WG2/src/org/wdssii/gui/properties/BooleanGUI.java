@@ -52,7 +52,8 @@ public class BooleanGUI extends PropertyGUI {
         JComponent j = (JComponent) evt.getSource();
         if (j instanceof JCheckBox) {
             JCheckBox b = (JCheckBox) (j);
-            Memento m = f.getNewMemento();
+            //Memento m = f.getNewMemento();
+            Memento m = f.getUpdateMemento(); // blank memento
             m.setProperty(property, b.isSelected());
             f.propertySetByGUI(property, m);
         }

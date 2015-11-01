@@ -77,11 +77,9 @@ public class MementoString extends Memento<String> {
         // FIXME: check class?
         Memento.Property f = myProperties.get(key);
         if (f == null) {
-            // You need to call initProperty on the memento before setting
-            LOG.error("Tried to set uninitialized property: " + key);
+            LOG.error("Creating new property: " + key);
+            myProperties.put(key, new Memento.Property(stuff, true));
         } else {
-            // FIXME: Might be able to modify the original, this makes
-            // a copy...
             myProperties.put(key, new Memento.Property(stuff, true));
         }
     }

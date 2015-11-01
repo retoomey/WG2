@@ -1,28 +1,30 @@
 package org.wdssii.gui.worldwind;
 
-import org.wdssii.gui.features.Feature3DRenderer;
-import org.wdssii.gui.views.DataFeatureView;
-import org.wdssii.gui.views.ViewManager;
-import gov.nasa.worldwind.BasicSceneController;
-import gov.nasa.worldwind.pick.PickedObjectList;
-import gov.nasa.worldwind.render.DrawContext;
-import gov.nasa.worldwind.render.OrderedRenderable;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
+
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.FeatureRenderer;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.features.LegendFeature;
 import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.features.PolarGridFeature;
 import org.wdssii.gui.products.ProductFeature;
+import org.wdssii.gui.views.DataFeatureView;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
+
+import gov.nasa.worldwind.BasicSceneController;
+import gov.nasa.worldwind.pick.PickedObjectList;
+import gov.nasa.worldwind.render.DrawContext;
+import gov.nasa.worldwind.render.OrderedRenderable;
 
 /*
  * @author Robert Toomey
@@ -96,7 +98,9 @@ public class WJSceneController extends BasicSceneController {
             renderFeatureGroup(w, MapFeature.MapGroup);
             renderFeatureGroup(w, PolarGridFeature.PolarGridGroup);
             renderFeatureGroup(w, LegendFeature.LegendGroup);
-
+           
+            // Render the LLHRenderer stuff...
+            renderFeatureGroup(w, LLHAreaFeature.LLHAreaGroup);
             // Draw the deferred/ordered surface renderables.
             // This is all the 2d stuff on top...
             // We do our icons ourselves now

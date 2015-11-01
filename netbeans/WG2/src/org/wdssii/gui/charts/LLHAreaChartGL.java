@@ -13,10 +13,10 @@ import org.wdssii.gui.commands.FeatureCreateCommand;
 import org.wdssii.gui.commands.VolumeValueCommand.VolumeValueFollowerView;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.products.volumes.VolumeValue;
 import org.wdssii.gui.volumes.LLHArea;
-import org.wdssii.gui.volumes.LLHAreaFeature;
 import org.wdssii.gui.volumes.LLHAreaSet;
 
 /**

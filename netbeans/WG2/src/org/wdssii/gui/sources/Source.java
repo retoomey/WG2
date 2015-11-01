@@ -3,6 +3,8 @@ package org.wdssii.gui.sources;
 import java.net.URL;
 import javax.swing.JComponent;
 
+import org.wdssii.properties.Memento;
+
 /**
  * A 'source' is a loadable source of data for the display The hierarchy here is
  * similar to features, we have a list of stuff and then a GUI for each type.
@@ -117,6 +119,17 @@ public class Source {
             //source.add(t, java.awt.BorderLayout.CENTER);
             //source.doLayout();
         }
+        
+        @Override
+        public void updateGUI(Memento m) {
+            // Set the layout and add our controls
+            // source.setLayout(new java.awt.BorderLayout());
+            //JTextField t = new JTextField();
+            //t.setText("No controls for this object");
+            //t.setEditable(false);
+            //source.add(t, java.awt.BorderLayout.CENTER);
+            //source.doLayout();
+        }  
 
         @Override
         public void activateGUI(JComponent parent) {

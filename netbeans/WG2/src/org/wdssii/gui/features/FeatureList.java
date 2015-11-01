@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+import org.wdssii.properties.Memento;
 import org.wdssii.gui.charts.DataView;
 
 /**
@@ -147,6 +148,7 @@ public class FeatureList {
             }
         }
     }
+     
 
     public void repaintViews() {
         cleanUpReferences();
@@ -175,16 +177,12 @@ public class FeatureList {
     }
 
     /**
-     * Get the world wind view this feature list belongs too, if any. For now at
-     * least we have to have one
+     * Update our memento to match the contents of given memento
      */
-    // public WorldWindView getWWView() {
-    //     return myWorldWindView;
-    // }
-    public void setMemento(String key, FeatureMemento m) {
+    public void updateMemento(String key, Memento m) {
         Feature f = getFeature(key);
         if (f != null) {
-            f.setMemento(m);
+            f.updateMemento(m);
         }
     }
 

@@ -81,13 +81,13 @@ public final class NavView extends JThreadPanel implements CommandListener {
         WdssiiCommand w = null;
 
         // Update the navigation button array
-        ArrayList<ProductFeature> l = getProductFeatures();
+        ArrayList<ProductFeature> l = ProductManager.getInstance().getSortedProductFeatures();
         ProductFeature top =
                 (ProductFeature) FeatureList.theFeatures.getSelected(ProductFeature.ProductGroup);
 
         updateContentDescription(l, top);
         updateNavButtons(l, top);
-        updateProductList(w);
+        updateProductList(l, w);
     }
 
     /**
@@ -574,7 +574,7 @@ public final class NavView extends JThreadPanel implements CommandListener {
     /**
      * Get our product handler list. For now at least, this is global
      */
-    private ArrayList<ProductFeature> getProductFeatures() {
+    /*private ArrayList<ProductFeature> getProductFeatures() {
 
         List<ProductFeature> forg = ProductManager.getInstance().getProductFeatures();
         ArrayList<ProductFeature> f = new ArrayList<ProductFeature>(forg);
@@ -588,14 +588,15 @@ public final class NavView extends JThreadPanel implements CommandListener {
             }
         });
         return f;
-    }
+    }*/
 
     /**
      * Regenerate the list of products in the navigator
      */
-    private void updateProductList(WdssiiCommand command) {
+    private void updateProductList(ArrayList<ProductFeature> p, WdssiiCommand command) {
 
-        ArrayList<ProductFeature> p = getProductFeatures();
+        //ArrayList<ProductFeature> p = 
+        //		ProductManager.getInstance().getSortedProductFeatures();
 
         if (p != null) {
             ArrayList<ProductsTableData> sortedList;

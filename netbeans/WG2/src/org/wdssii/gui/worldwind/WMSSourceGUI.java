@@ -9,6 +9,7 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+import org.wdssii.properties.Memento;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.FeatureCommand;
 import org.wdssii.gui.sources.SourceGUI;
@@ -111,6 +112,12 @@ public class WMSSourceGUI extends javax.swing.JPanel implements SourceGUI {
      */
     @Override
     public void updateGUI() {
+        // Selection changed to us...fill the list...
+        updateTables();
+    }
+    
+    @Override
+    public void updateGUI(Memento m) {
         // Selection changed to us...fill the list...
         updateTables();
     }

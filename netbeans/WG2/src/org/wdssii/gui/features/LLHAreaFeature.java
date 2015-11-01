@@ -1,12 +1,14 @@
-package org.wdssii.gui.volumes;
+package org.wdssii.gui.features;
 
+import java.util.ArrayList;
 import java.util.TreeMap;
+
+import org.wdssii.gui.volumes.LLHArea;
+import org.wdssii.gui.volumes.LLHAreaFactory;
+import org.wdssii.gui.volumes.LLHAreaSetFactory;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
-import org.wdssii.gui.features.Feature;
-import org.wdssii.gui.features.FeatureGUI;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.properties.Memento;
 
 /**
  * A LLHArea feature draws a 3D shape in the window that can be used by charts
@@ -53,7 +55,8 @@ public class LLHAreaFeature extends Feature {
                 // there are two worlds?
                 
                 //FIXME: MULTIVIEW
-                success = myFactory.create(null, this, theData, info);
+                //success = myFactory.create(null, this, theData, info);
+                success = myFactory.create(this, theData, info);
                 if (success) {
                     myLLHArea = (LLHArea) theData.created;
                     setVisible(true);
@@ -79,30 +82,30 @@ public class LLHAreaFeature extends Feature {
                 return super.getNewMemento();
             }
 	}
-    @Override
-    public void setMemento(FeatureMemento m) {
-        super.setMemento(m);
+   @Override //superclass should handle this...  This breaks points completely if removed.  Wow.
+    public void updateMemento(Memento m) {
+        super.updateMemento(m);
         if (myLLHArea != null) {
             myLLHArea.setFromMemento(m);
         }
     }
-
-    /**
-     * Get the world we use. Currently only one earthball. This should probably
-     * come from 'above' somehow. Should a feature know the FeatureList it is
-     * in?
-     */
-  //  private WorldWindow getWorld() {
-  //      WorldWindow world = null;
-
-  //      WorldWindView v = list().getWWView();
-  //      if (v != null) {
-  //          world = v.getWwd();
-  //      }
-
-  //      return world;
-  //  }
-
+ 
+    @Override
+    public void addNewRendererItem(ArrayList<FeatureRenderer> list, String id, String packageName, String className) {
+        FeatureRenderer r = createRenderer(id, packageName, className);
+        if (r != null){
+            r.initToFeature(this);   // Why not the default????
+            list.add(r);
+        }
+    }
+    
+    @Override
+    public ArrayList<FeatureRenderer> getNewRendererList(String type, String packageName) {
+    	ArrayList<FeatureRenderer> list = new ArrayList<FeatureRenderer>();
+        addNewRendererItem(list, type, packageName, "LLHPolygonRenderer");    
+        return list;
+    }
+    
     public LLHArea getLLHArea() {
         return myLLHArea;
     }
@@ -112,6 +115,8 @@ public class LLHAreaFeature extends Feature {
      */
     @Override
     public FeatureGUI createNewControls() {
+        //LOG.error("IN create new controls");
+
         if (myFactory != null) {
             return myFactory.createGUI(this, myLLHArea);
         } else {

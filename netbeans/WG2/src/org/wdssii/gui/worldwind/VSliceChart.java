@@ -1,22 +1,18 @@
 package org.wdssii.gui.worldwind;
 
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Matrix;
-import gov.nasa.worldwind.geom.Position;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.ElevationModel;
-import gov.nasa.worldwind.globes.Globe;
-import gov.nasa.worldwind.render.DrawContext;
-import gov.nasa.worldwind.util.GeometryBuilder;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Arrays;
-import javax.media.opengl.GL;
+
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JToggleButton;
+
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
@@ -28,33 +24,38 @@ import org.jfree.data.Range;
 import org.jfree.ui.HorizontalAlignment;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.core.StopWatch;
-import org.wdssii.gui.GLWorld;
-import org.wdssii.geom.LLD;
+import org.wdssii.geom.LLD_X;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.DynamicXYZDataset;
 import org.wdssii.gui.charts.LLHAreaChart;
-import org.wdssii.gui.commands.FeatureCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand;
 import org.wdssii.gui.commands.VolumeSetTypeCommand.VolumeTypeFollowerView;
 import org.wdssii.gui.commands.VolumeValueCommand;
 import org.wdssii.gui.commands.VolumeValueCommand.VolumeValueFollowerView;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeaturePosition;
-import org.wdssii.gui.products.*;
+import org.wdssii.gui.products.FilterList;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.ProductFeature;
+import org.wdssii.gui.products.VolumeSlice2DOutput;
+import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.products.volumes.VolumeValue;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSet;
-import org.wdssii.gui.volumes.VSliceRenderer;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
+
+import gov.nasa.worldwind.geom.Angle;
+import gov.nasa.worldwind.globes.ElevationModel;
 
 /**
- * Chart that draws a dynamic grid sampled from a product volume in both a
- * JFreeChart and a 3D opengl window
+ * Chart that draws a dynamic grid sampled from a product volume in a
+ * JFreeChart.  Deprecating since JFreeChart is (not by it's fault) slower than
+ * rendering native openGL.
  */
 public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView, VolumeTypeFollowerView {
 
@@ -82,18 +83,9 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     private VolumeSliceInput myCurrentGrid =
             new VolumeSliceInput(myNumRows, myNumCols, 0, 0,
             0, 0, 0, 50);
-    private LLD myLeftLocation;
-    private LLD myRightLocation;
-    /**
-     * How many times to 'split' the raw fill or outline of slice. This isn't
-     * the same as the vslice resolution.
-     */
-    private int subdivisions = 4;  // power of 2 breakdown of side..
-    private VSliceRenderer myRenderer = new VSliceRenderer();
-    private ProductVolume myVolumeProduct = null;
-    private VolumeSlice3DOutput myGeometry = new VolumeSlice3DOutput();
-    private String myCacheKey = "";
-    private GeometryBuilder geometryBuilder = new GeometryBuilder();
+    private LLD_X myLeftLocation;
+    private LLD_X myRightLocation;
+ 
     private int myMouseX = -1;
     private int myMouseY = -1;
 
@@ -732,31 +724,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         vToggle.setToggleState(selected);
         CommandManager.getInstance().executeCommand(vToggle, true);
     }
-
-    // --------------------------------------------------------------------
-    // Start 3D stuff...
-    //
-    /**
-     * Cache key represented by the vslice we're looking at. When this changes,
-     * we know we need to render a new vslice. Takes into account the size/shape
-     * of vslice, the volume, and the filters
-     *
-     * @return
-     *
-     * This is the current key used to tell if the 3D slice in the earth view
-     * needs to be remade or not.....
-     */
-    private String getNewCacheKey(java.util.List<LLD> locations) {
-
-        // FIXME: this is wrong....should be the filters for the product we are following....this
-        // is the top product.....
-        FilterList f = ProductManager.getInstance().getFilterList(get3DProductToFollow());
-
-        // Add the key of the current filter list...
-        String newKey = getKey(locations, get3DProductToFollow(), getUseVirtualVolume(), f, true);
-        return newKey;
-    }
-
+  
     /**
      * Get a volume key for this slice, either virtual or nonvirtual volume
      */
@@ -777,7 +745,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
      * @param useFilters
      * @return
      */
-    public String getKey(java.util.List<LLD> locations, String follow, boolean virtual, FilterList list, boolean useFilters) {
+    public String getKey(java.util.List<LLD_X> locations, String follow, boolean virtual, FilterList list, boolean useFilters) {
         // Start with GIS location key
         String newKey = getGISKey(locations);
 
@@ -796,12 +764,12 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     /**
      * Get a key that represents the GIS location of this slice
      */
-    public String getGISKey(java.util.List<LLD> locations) {
+    public String getGISKey(java.util.List<LLD_X> locations) {
         // Add location and altitude...
         //java.util.List<LatLon> locations = getLocationList();
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < locations.size(); i++) {
-            LLD l = locations.get(i);
+            LLD_X l = locations.get(i);
             buf.append(l.latDegrees());
             buf.append(':');
             buf.append(l.lonDegrees());
@@ -814,40 +782,12 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         return newKey;
     }
 
-    /**
-     * The product to follow in 3D...this is the 3D part of the slice
-     */
-    private String get3DProductToFollow() {
-
-        /**
-         * We want 3D part to always follow the selected top product
-         */
-        return ProductManager.TOP_PRODUCT;
-    }
-
-    // It actually makes sense for the 3D stuff to be within the chart as well...
-    // This allows different charts to draw in 3D differently...
-    // Render in 3D
-  /*  @Override
-    // All the 3D render stuff of the Chrt
-    // Render in 3D
-    public void drawChartInLLHArea(GLWorld w, java.util.List<LLD> locations, double[] altitudes, java.util.List<Boolean> edgeFlags) {
-        if (locations.size() > 1) {
-            ArrayList<LLD> ordered = updateCurrentGrid(locations);
-            myCurrentGrid.bottomHeight = altitudes[0];
-            myCurrentGrid.topHeight = altitudes[1];
-            VolumeSlice3DOutput geom = this.getVSliceGeometry(w, ordered, edgeFlags);
-
-            myRenderer.drawVSlice(w, geom);
-        }
-    }*/
-
-    protected void orderLocations(java.util.List<LLD> input) {
+    protected void orderLocations(java.util.List<LLD_X> input) {
         // VSlice only.  Two locations, the points on the bottom. 
         // Make sure the east one is right of the west one...
-        LLD l1 = input.get(0);
-        LLD l2 = input.get(1);
-        LLD leftBottom, rightBottom;
+        LLD_X l1 = input.get(0);
+        LLD_X l2 = input.get(1);
+        LLD_X leftBottom, rightBottom;
         if (l1.lonDegrees() < l2.lonDegrees()) {
             leftBottom = l1;
             rightBottom = l2;
@@ -862,7 +802,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
     /**
      * Update the current grid that is the GIS location of the slice
      */
-    public ArrayList<LLD> updateCurrentGrid(java.util.List<LLD> locations) {
+    public ArrayList<LLD_X> updateCurrentGrid(java.util.List<LLD_X> locations) {
 
         // Generate the 3D VSlice in the window, and the 2D slice for charting...
         orderLocations(locations);
@@ -875,312 +815,10 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         myCurrentGrid.startLon = startLon;
         myCurrentGrid.endLat = endLat;
         myCurrentGrid.endLon = endLon;
-        ArrayList<LLD> orderedList = new ArrayList<LLD>();
+        ArrayList<LLD_X> orderedList = new ArrayList<LLD_X>();
         orderedList.add(myLeftLocation);
         orderedList.add(myRightLocation);
         return orderedList;
-    }
-
-    /**
-     * This gets the special fill-in geometry for the vslice, a multi-set of
-     * triangles with data value colors.
-     *
-     * @author Robert Toomey
-     *
-     * @return
-     */
-    private VolumeSlice3DOutput getVSliceGeometry(GLWorld w, java.util.List<LLD> locations, java.util.List<Boolean> edgeFlags) {
-        String newKey = getNewCacheKey(locations);
-        // Add exaggeration to cache key so changing exaggeration will redraw it
-        newKey += w.getVerticalExaggeration();
-        if (newKey.compareTo(myCacheKey) == 0) {
-            return myGeometry;
-        }
-
-        // System.out.println("_------------>>> REGENERATE VSLICE!!!");
-        myCacheKey = newKey;
-        myGeometry.setHaveVSliceData(false);
-        this.makeVSlice(w, locations, edgeFlags, myGeometry);
-
-        // Fire changed event?  Is this enough?
-        CommandManager.getInstance().executeCommand(new FeatureCommand(), true);
-        return myGeometry;
-    }
-
-    protected GeometryBuilder getGeometryBuilder() {
-        return this.geometryBuilder;
-    }
-
-    protected int computeCartesianPolygon(GLWorld w, java.util.List<? extends LLD> locations, java.util.List<Boolean> edgeFlags,
-            Vec4[] points, Boolean[] edgeFlagArray, Matrix[] transform) {
-        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
-
-        Globe globe = dc.getGlobe();
-
-        // Allocate space to hold the list of locations and location vertices.
-        int locationCount = locations.size();
-
-        // Compute the cartesian points for each location.
-        for (int i = 0; i < locationCount; i++) {
-            LLD ll = locations.get(i);
-            points[i] = globe.computePointFromPosition(Angle.fromDegrees(ll.latDegrees()), Angle.fromDegrees(ll.lonDegrees()), 0.0);
-
-            if (edgeFlagArray != null) {
-                edgeFlagArray[i] = (edgeFlags != null) ? edgeFlags.get(i) : true;
-            }
-        }
-
-        // Compute the average of the cartesian points.
-        Vec4 centerPoint = Vec4.computeAveragePoint(Arrays.asList(points));
-
-        // Test whether the polygon is closed. If it is not closed, repeat the first vertex.
-        if (!points[0].equals(points[locationCount - 1])) {
-            points[locationCount] = points[0];
-            if (edgeFlagArray != null) {
-                edgeFlagArray[locationCount] = edgeFlagArray[0];
-            }
-
-            locationCount++;
-        }
-
-        // Compute a transform that will map the cartesian points to a local coordinate system centered at the average
-        // of the points and oriented with the globe surface.
-        Position centerPos = globe.computePositionFromPoint(centerPoint);
-        Matrix tx = globe.computeModelCoordinateOriginTransform(centerPos);
-        Matrix txInv = tx.getInverse();
-        // Map the cartesian points to a local coordinate space.
-        for (int i = 0; i < locationCount; i++) {
-            points[i] = points[i].transformBy4(txInv);
-        }
-
-        transform[0] = tx;
-
-        return locationCount;
-    }
-
-    private void makeSectionOutlineIndices(int subdivisions, int vertexPos, int indexPos, int[] indices,
-            boolean beginEdgeFlag, boolean endEdgeFlag) {
-        GeometryBuilder gb = this.getGeometryBuilder();
-        int count = gb.getSubdivisionPointsVertexCount(subdivisions);
-
-        int index = indexPos;
-        int pos, nextPos;
-
-        if (beginEdgeFlag) {
-            pos = vertexPos;
-            indices[index++] = pos;
-            indices[index++] = pos + 1;
-        }
-
-        for (int i = 0; i < count - 1; i++) {
-            pos = vertexPos + 2 * i;
-            nextPos = vertexPos + 2 * (i + 1);
-            indices[index++] = pos;
-            indices[index++] = nextPos;
-            indices[index++] = pos + 1;
-            indices[index++] = nextPos + 1;
-        }
-
-        if (endEdgeFlag) {
-            pos = vertexPos + 2 * (count - 1);
-            indices[index++] = pos;
-            indices[index] = pos + 1;
-        }
-    }
-
-    private int getEdgeFillIndexCount(int count, int subdivisions) {
-        return (count - 1) * this.getSectionFillIndexCount(subdivisions);
-    }
-
-    private int getEdgeOutlineIndexCount(int count, int subdivisions, Boolean[] edgeFlags) {
-        int sum = 0;
-        for (int i = 0; i < count - 1; i++) {
-            sum += this.getSectionOutlineIndexCount(subdivisions, edgeFlags[i], edgeFlags[i + 1]);
-        }
-
-        return sum;
-    }
-
-    private int getEdgeVertexCount(int count, int subdivisions) {
-        return (count - 1) * this.getSectionVertexCount(subdivisions);
-    }
-
-    private int getSectionVertexCount(int subdivisions) {
-        GeometryBuilder gb = this.getGeometryBuilder();
-        return 2 * gb.getSubdivisionPointsVertexCount(subdivisions);
-    }
-
-    private int getSectionFillIndexCount(int subdivisions) {
-        GeometryBuilder gb = this.getGeometryBuilder();
-        return 6 * (gb.getSubdivisionPointsVertexCount(subdivisions) - 1);
-    }
-
-    private int getSectionOutlineIndexCount(int subdivisions, boolean beginEdgeFlag, boolean endEdgeFlag) {
-        GeometryBuilder gb = this.getGeometryBuilder();
-        int count = 4 * (gb.getSubdivisionPointsVertexCount(subdivisions) - 1);
-        if (beginEdgeFlag) {
-            count += 2;
-        }
-        if (endEdgeFlag) {
-            count += 2;
-        }
-
-        return count;
-    }
-
-    private void makeVSlice(GLWorld w, java.util.List<LLD> locations, java.util.List<Boolean> edgeFlags,
-            VolumeSlice3DOutput dest) {
-        if (locations.isEmpty()) {
-            return;
-        }
-        final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
-
-        // For dynamic sizing outlines...I might need this code for 'smart' legend over vslice, so
-        // I'm leaving it here for the moment --Robert Toomey
-        GeometryBuilder gb = this.getGeometryBuilder();
-
-        Vec4[] polyPoints = new Vec4[locations.size() + 1];
-        Boolean[] polyEdgeFlags = new Boolean[locations.size() + 1];
-        Matrix[] polyTransform = new Matrix[1];
-        int polyCount = this.computeCartesianPolygon(w, locations, edgeFlags, polyPoints, polyEdgeFlags,
-                polyTransform);
-
-        // Copy from polyVertices into polyPoints?  why???
-        float[] polyVertices = new float[3 * polyCount];
-        for (int i = 0; i < polyCount; i++) {
-            int index = 3 * i;
-            polyVertices[index] = (float) polyPoints[i].x;
-            polyVertices[index + 1] = (float) polyPoints[i].y;
-            polyVertices[index + 2] = (float) polyPoints[i].z;
-        }
-
-        int fillIndexCount = 0;
-        int outlineIndexCount = 0;
-        int vertexCount = 0;
-
-        // GeometryBuilder.IndexedTriangleArray ita = null;
-        fillIndexCount += this.getEdgeFillIndexCount(polyCount, subdivisions);
-        outlineIndexCount += this.getEdgeOutlineIndexCount(polyCount, subdivisions, polyEdgeFlags);
-        vertexCount += this.getEdgeVertexCount(polyCount, subdivisions);
-
-        int[] fillIndices = new int[fillIndexCount];
-        int[] outlineIndices = new int[outlineIndexCount];
-        float[] vertices = new float[3 * vertexCount];
-
-        int fillIndexPos = 0;
-        int outlineIndexPos = 0;
-        int vertexPos = 0;
-
-        // make edge
-        gb.setOrientation(GeometryBuilder.OUTSIDE);
-
-        int sectionFillIndexCount = this.getSectionFillIndexCount(subdivisions);
-        int sectionVertexCount = this.getSectionVertexCount(subdivisions);
-
-        for (int i = 0; i < polyCount - 1; i++) {
-            boolean beginEdgeFlag = polyEdgeFlags[i];
-            boolean endEdgeFlag = polyEdgeFlags[i + 1];
-
-            // Make section fill indices....
-            int count = gb.getSubdivisionPointsVertexCount(subdivisions);
-
-            int index = fillIndexPos;
-            int pos, nextPos;
-            for (int fill = 0; fill < count - 1; fill++) {
-                pos = vertexPos + 2 * fill;
-                nextPos = vertexPos + 2 * (fill + 1);
-                fillIndices[index++] = pos + 1;
-                fillIndices[index++] = pos;
-                fillIndices[index++] = nextPos + 1;
-                fillIndices[index++] = nextPos + 1;
-                fillIndices[index++] = pos;
-                fillIndices[index++] = nextPos;
-            }
-            // End Make section fill indices     
-
-            // Make the fill vertices
-            int numPoints = gb.getSubdivisionPointsVertexCount(subdivisions);
-
-            Globe globe = dc.getGlobe();
-            int index1 = 3 * i;
-            int index2 = 3 * (i + 1);
-
-            float[] locationVerts = new float[3 * numPoints];
-            gb.makeSubdivisionPoints(
-                    polyVertices[index1], polyVertices[index1 + 1], polyVertices[index1 + 2],
-                    polyVertices[index2], polyVertices[index2 + 1], polyVertices[index2 + 2],
-                    subdivisions, locationVerts);
-            double altitudes[] = new double[2];
-            altitudes[0] = myCurrentGrid.bottomHeight;
-            altitudes[1] = myCurrentGrid.topHeight;
-            double vert = w.getVerticalExaggeration();
-            for (int p = 0; p < numPoints; p++) {
-                int pindex = 3 * p;
-                Vec4 vec = new Vec4(locationVerts[pindex], locationVerts[pindex + 1], locationVerts[pindex + 2]);
-                vec = vec.transformBy4(polyTransform[0]);
-                Position pos2 = globe.computePositionFromPoint(vec);
-
-                for (int j = 0; j < 2; j++) {
-                    // vec = this.computePointFromPosition(dc, pos2.getLatitude(), pos2.getLongitude(), altitudes[j],
-                    //        terrainConformant[j]);
-                    vec = globe.computePointFromPosition(pos2.getLatitude(), pos2.getLongitude(), altitudes[j] * vert);
-
-                    pindex = 2 * p + j;
-                    pindex = 3 * (vertexPos + pindex);
-                    vertices[pindex] = (float) (vec.x);
-                    vertices[pindex + 1] = (float) (vec.y);
-                    vertices[pindex + 2] = (float) (vec.z);
-
-                }
-
-            }
-            // end make section vertices
-
-            // Outline the polys..this is lines from one to the other...
-            this.makeSectionOutlineIndices(subdivisions, vertexPos, outlineIndexPos, outlineIndices,
-                    beginEdgeFlag, endEdgeFlag);
-
-
-            // Due we need normals for a vslice?  Probably not..we don't really want data colors changing since
-            // it's a key.  Now with isosurfaces we might...
-            //    gb.makeIndexedTriangleArrayNormals(fillIndexPos, sectionFillIndexCount, fillIndices,
-            //        vertexPos, sectionVertexCount, vertices, normals);
-
-            fillIndexPos += sectionFillIndexCount;
-            outlineIndexPos += this.getSectionOutlineIndexCount(subdivisions, beginEdgeFlag, endEdgeFlag);
-            vertexPos += sectionVertexCount;
-        }
-
-        // end make edge
-
-        dest.getFillIndexGeometry().setElementData(GL.GL_TRIANGLES, fillIndexCount, fillIndices);
-        dest.getOutlineIndexGeometry().setElementData(GL.GL_LINES, outlineIndexCount, outlineIndices);
-        dest.getVertexGeometry().setVertexData(vertexCount, vertices);
-        //  dest.getVertexGeometry().setNormalData(vertexCount, normals);
-
-        // Volume VSlice color generation....
-        ProductVolume volume = ProductManager.getCurrentVolumeProduct(get3DProductToFollow(), getUseVirtualVolume());
-        myVolumeProduct = volume;
-
-        // Get the filter list and the record object
-        FilterList aList = null;
-        ProductFeature pf = ProductManager.getInstance().getTopProductFeature();
-        if (pf != null) {
-            aList = pf.getFList();
-        }
-
-        if (aList == null) {
-            return;
-        }
-        aList.prepForVolume(volume);
-
-        // Generate the 3D VSlice in the window, and the 2D slice for charting...
-        myCurrentGrid.set(myNumRows, myNumCols, myCurrentGrid.startLat, myCurrentGrid.startLon,
-                myCurrentGrid.endLat, myCurrentGrid.endLon,
-                myCurrentGrid.bottomHeight, myCurrentGrid.topHeight);
-        // Let the volume generate the 3D slice output
-        // FIXME: Need to be able to change volumevalue
-        myVolumeProduct.generateSlice3D(myCurrentGrid, dest, dc.getGlobe(), aList, true, w.getVerticalExaggeration(), null);
     }
 
     @Override

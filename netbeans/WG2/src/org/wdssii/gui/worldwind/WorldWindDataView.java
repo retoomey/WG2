@@ -8,6 +8,7 @@ import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.awt.WorldWindowGLJPanel;
+import gov.nasa.worldwind.event.InputHandler;
 import gov.nasa.worldwind.event.PositionEvent;
 import gov.nasa.worldwind.event.PositionListener;
 import gov.nasa.worldwind.event.RenderingEvent;
@@ -42,12 +43,12 @@ import org.wdssii.gui.Application;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaSetGUI;
 import org.wdssii.gui.features.FeatureList.FeaturePosition;
 import org.wdssii.gui.features.LegendFeature;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.renderers.ProductRenderer;
 import org.wdssii.gui.volumes.LLHAreaController;
-import org.wdssii.gui.volumes.LLHAreaSetGUI;
 
 /**
  * Experimental. As I move towards multiwindow looks like stuff will be moving
@@ -283,6 +284,11 @@ public class WorldWindDataView extends DataView {
         // Controller adds listeners to world which keeps reference
         LLHAreaController c = new LLHAreaController(myWorld, myVolumeLayer);
         myLLHAreaController = c;
+        InputHandler h = myWorld.getInputHandler();
+        h.addKeyListener(c);
+        h.addMouseListener(c);
+        h.addMouseMotionListener(c);
+        
         // FIXME: really control of these points should be in the feature
         // not within the world ball, since we might add different viewers
         LLHAreaSetGUI.setLLHAreaController(c);

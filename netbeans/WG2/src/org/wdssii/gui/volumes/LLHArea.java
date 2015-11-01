@@ -3,7 +3,6 @@ package org.wdssii.gui.volumes;
 
 //Need to remove all the worldwind stuff, lol
 import gov.nasa.worldwind.Movable;
-import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.AVListImpl;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
@@ -12,8 +11,7 @@ import gov.nasa.worldwind.render.Renderable;
 import gov.nasa.worldwind.render.airspaces.Airspace;
 import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
 import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
-import gov.nasa.worldwind.util.GeometryBuilder;
-import gov.nasa.worldwind.util.Logging;
+//import gov.nasa.worldwind.util.GeometryBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,11 +19,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.wdssii.gui.GLWorld;
-import org.wdssii.geom.LLD;
+import org.wdssii.geom.LLD_X;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.worldwind.GLWorldWW;
+import org.wdssii.properties.Memento;
+import org.wdssii.properties.MementoString;
 
 /**
  * A root class for all of our volumes. Common functionality will go here.
@@ -137,19 +139,23 @@ public class LLHArea extends AVListImpl implements Movable {
     private AirspaceAttributes attributes;
     protected double lowerAltitude = 0.0;
     protected double upperAltitude = 1.0;
-    private LLD groundReference;
-    // Geometry computation and rendering support.
-    private GeometryBuilder geometryBuilder = new GeometryBuilder();
+    private LLD_X groundReference;
+
     /**
      * The list of locations that make us up
      */
-    private List<LLD> locations = new ArrayList<LLD>();
+    private List<LLD_X> locations = new ArrayList<LLD_X>();
 
     public LLHArea(LLHAreaFeature f) {
-        this(new BasicAirspaceAttributes());
+       this(new BasicAirspaceAttributes());
         myFeature = f;
     }
+    
+    private LLHArea(AirspaceAttributes attributes) {
 
+        this.attributes = attributes;
+    }
+    
     public LLHAreaFeature getFeature() {
         return myFeature;
     }
@@ -161,24 +167,34 @@ public class LLHArea extends AVListImpl implements Movable {
         return new LLHAreaMemento(this);
     }
 
+    
+    public void setVisOnly(Memento<?> m){
+    	
+    	if (m instanceof MementoString){
+    		MementoString s = (MementoString)(m);
+    		Boolean b = (Boolean) s.getPropertyValue(FeatureMemento.VISIBLE);
+        	if (b != null){ visible = b;}
+        	b = (Boolean) s.getPropertyValue(FeatureMemento.ONLY);
+        	if (b != null){ only = b; }
+    	}
+    }
+      
+    public void setAltitudes(Memento<?> m){
+    	if (m instanceof LLHAreaMemento){
+    		LLHAreaMemento l = (LLHAreaMemento)(m);
+            if (l.useMaxHeight) {
+                setAltitudes(lowerAltitude, l.maxHeight);
+            }
+            if (l.useMinHeight) {
+                setAltitudes(l.minHeight, upperAltitude);
+            }
+    	}
+    }
     /**
      * Called by the Feature to change us
      */
-    public void setFromMemento(FeatureMemento f) {
-        visible = (Boolean) f.getPropertyValue(FeatureMemento.VISIBLE);
-        only = (Boolean) f.getPropertyValue(FeatureMemento.ONLY);
-        if (f instanceof LLHAreaMemento) {
-            setFromMemento((LLHAreaMemento) (f));
-        }
-    }
-
-    protected void setFromMemento(LLHAreaMemento l) {
-        if (l.useMaxHeight) {
-            setAltitudes(lowerAltitude, l.maxHeight);
-        }
-        if (l.useMinHeight) {
-            setAltitudes(l.minHeight, upperAltitude);
-        }
+    public void setFromMemento(Memento<?> m) {
+    	setVisOnly(m);
     }
 
     // Airspaces perform about 5% better if their extent is cached, so do that here.
@@ -202,15 +218,7 @@ public class LLHArea extends AVListImpl implements Movable {
     }
     protected HashMap<Globe, ExtentInfo> extents = new HashMap<Globe, ExtentInfo>(2); // usually only 1, but few at most
 
-    private LLHArea(AirspaceAttributes attributes) {
-        if (attributes == null) {
-            String message = "nullValue.AirspaceAttributesIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
 
-        this.attributes = attributes;
-    }
 
     /**
      * Get the range between two given index points. This is not cumulative
@@ -259,16 +267,21 @@ public class LLHArea extends AVListImpl implements Movable {
         return 0;
     }
 
-    public ArrayList<LLD> getArrayListCopyOfLocations() {
-        ArrayList<LLD> newList = new ArrayList<LLD>();
-        for (LLD l : locations) {
+    // More ww strangeness, 'have' to copy or the dragging stuff breaks like mad.
+    // FIXME: really need to make our own
+    public ArrayList<LLD_X> getArrayListCopyOfLocations() {
+        ArrayList<LLD_X> newList = new ArrayList<LLD_X>();
+        for (LLD_X l : locations) {
             //newList.add(new LatLon(l.getLatitude(), l.getLongitude()));
-            newList.add(new LLD(l));
+        	LLD_X t = new LLD_X(l);
+        	t.setPolygon(l.getPolygon());
+        	t.setNote(l.getNote());
+            newList.add(t);
         }
         return newList;
     }
 
-    public List<LLD> getLocations() {
+    public List<LLD_X> getLocations() {
         return Collections.unmodifiableList(this.locations);
     }
 
@@ -277,12 +290,6 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     public void setAttributes(AirspaceAttributes attributes) {
-        if (attributes == null) {
-            String message = "nullValue.AirspaceAttributesIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         this.attributes = attributes;
     }
 
@@ -310,11 +317,11 @@ public class LLHArea extends AVListImpl implements Movable {
         this.setAltitudes(altitude, altitude);
     }
 
-    public LLD getGroundReference() {
+    public LLD_X getGroundReference() {
         return this.groundReference;
     }
 
-    public void setGroundReference(LLD groundReference) {
+    public void setGroundReference(LLD_X groundReference) {
         this.groundReference = groundReference;
     }
 
@@ -342,12 +349,6 @@ public class LLHArea extends AVListImpl implements Movable {
     }
 
     public void renderGeometry(GLWorld w, String drawStyle) {
-        if (drawStyle == null) {
-            String message = Logging.getMessage("nullValue.StringIsNull");
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
         this.doRenderGeometry(w, drawStyle);
     }
 
@@ -374,32 +375,49 @@ public class LLHArea extends AVListImpl implements Movable {
         // Update all locations...
 
         int count = this.locations.size();
-        LLD[] newLocations = new LLD[count];
+        LLD_X[] newLocations = new LLD_X[count];
         for (int i = 0; i < count; i++) {
-            LLD lld = this.locations.get(i);
+            LLD_X lld = this.locations.get(i);
             LatLon ll = new LatLon(Angle.fromDegrees(lld.latDegrees()), Angle.fromDegrees(lld.lonDegrees()));
             double distance = LatLon.greatCircleDistance(oldRef, ll).radians;
             double azimuth = LatLon.greatCircleAzimuth(oldRef, ll).radians;
             //newLocations[i] = LatLon.greatCircleEndPosition(newRef, azimuth, distance);
             LatLon newLoc = LatLon.greatCircleEndPosition(newRef, azimuth, distance);
-            newLocations[i] = new LLD(newLoc.latitude.degrees, newLoc.longitude.degrees);
+            newLocations[i] = new LLD_X(newLoc.latitude.degrees, newLoc.longitude.degrees);
         }
         this.setLocations(Arrays.asList(newLocations));
     }
 
-    public void setLocations(Iterable<? extends LLD> locations) {
+    public void setLocations(Iterable<? extends LLD_X> locations) {
         this.locations.clear();
         this.addLocations(locations);
     }
     
-
-    protected List<LLD> getLocationList() {
+	public void selectLocation(int x, boolean forceOne) {
+		for (int i = 0; i < locations.size(); i++) {
+			LLD_X l = locations.get(i);
+			if (i == x) {
+				l.setSelected(true);
+			} else if (forceOne) {
+				l.setSelected(false);
+			}
+		}
+	}
+	
+	public LLD_X getFirstSelected(){
+		for(LLD_X l:locations){
+			if (l.getSelected()){ return l; }
+		}
+		return null;
+	}
+    
+    protected List<LLD_X> getLocationList() {
         return this.locations;
     }
 
-    protected void addLocations(Iterable<? extends LLD> newLocations) {
+    protected void addLocations(Iterable<? extends LLD_X> newLocations) {
         if (newLocations != null) {
-            for (LLD ll : newLocations) {
+            for (LLD_X ll : newLocations) {
                 if (ll != null) {
                     this.locations.add(ll);
                 }
@@ -412,13 +430,13 @@ public class LLHArea extends AVListImpl implements Movable {
     public void updateCurrentGrid() {
     }
 
-    protected Position computeReferencePosition(List<? extends LLD> locations, double[] altitudes) {
+    protected Position computeReferencePosition(List<? extends LLD_X> locations, double[] altitudes) {
         int count = locations.size();
         if (count == 0) {
             return null;
         }
 
-        LLD ll;
+        LLD_X ll;
         if (count < 3) {
             ll = locations.get(0);
         } else {
@@ -446,26 +464,9 @@ public class LLHArea extends AVListImpl implements Movable {
         this.doRenderGeometry(w, drawStyle, getLocationList(), null);
     }
 
-    protected void doRenderGeometry(GLWorld w, String drawStyle, List<LLD> locations, List<Boolean> edgeFlags) {
+    protected void doRenderGeometry(GLWorld w, String drawStyle, List<LLD_X> locations, List<Boolean> edgeFlags) {
     }
 
-    protected GeometryBuilder getGeometryBuilder() {
-        return this.geometryBuilder;
-    }
-
-    protected void setGeometryBuilder(GeometryBuilder gb) {
-        if (gb == null) {
-            String message = "nullValue.GeometryBuilderIsNull";
-            Logging.logger().severe(message);
-            throw new IllegalArgumentException(message);
-        }
-
-        this.geometryBuilder = gb;
-    }
-
-    // protected void doRender(DrawContext dc) {
-    //    renderer.renderNow(dc, Arrays.asList(this));
-    //}
     protected void doRenderExtent(GLWorld w) {
         Extent extent = this.getExtent(w);
         if (extent != null && extent instanceof Renderable) {
@@ -474,7 +475,7 @@ public class LLHArea extends AVListImpl implements Movable {
         }
     }
 
-    protected Cylinder computeBoundingCylinder(DrawContext dc, Iterable<? extends LLD> locations) {
+    protected Cylinder computeBoundingCylinder(DrawContext dc, Iterable<? extends LLD_X> locations) {
         Globe globe = dc.getGlobe();
         double verticalExaggeration = dc.getVerticalExaggeration();
         double[] altitudes = this.getAltitudes();
@@ -482,7 +483,7 @@ public class LLHArea extends AVListImpl implements Movable {
         // Get the points corresponding to the given locations at the lower and upper altitudes.
         ArrayList<Vec4> points = new ArrayList<Vec4>();
         for (int a = 0; a < 2; a++) {
-            for (LLD ll : locations) {
+            for (LLD_X ll : locations) {
                 //points.add(globe.computePointFromPosition(ll.getLatitude(), ll.getLongitude(),
                 //        verticalExaggeration * altitudes[a]));
                 points.add(globe.computePointFromPosition(Angle.fromDegrees(ll.latDegrees()),Angle.fromDegrees(ll.lonDegrees()),
@@ -613,15 +614,22 @@ public class LLHArea extends AVListImpl implements Movable {
     /**
      * Get the current control points for this area
      */
-    public ArrayList<LLHAreaControlPoint> getControlPoints(DrawContext dc) {
+    
+    public ArrayList<LLHAreaControlPoint> getControlPoints(GLWorld w) {
         ArrayList<LLHAreaControlPoint> points = new ArrayList<LLHAreaControlPoint>();
-        int numLocations = getLocations().size();
-
-        for (int locationIndex = 0; locationIndex < numLocations; locationIndex++) {
-            addPolygonControlPoint(points, dc, locationIndex, 0);
-            // Add the upper altitude control points.
-            addPolygonControlPoint(points, dc, locationIndex, 1);
+        List<LLD_X> l = getLocations();
+        int numLocations = l.size();
+        int count = 0;
+        for (LLD_X x: l){
+        	addPolygonControlPoint(points, w, count++, 0, x);
         }
+       // for (int locationIndex = 0; locationIndex < numLocations; locationIndex++) {
+        	
+        	// Just add the bottom control point for now...
+       //     addPolygonControlPoint(points, dc, locationIndex, 0);
+            // Add the upper altitude control points.
+            //addPolygonControlPoint(points, dc, locationIndex, 1);
+        //}
         return points;
 
     }
@@ -629,23 +637,20 @@ public class LLHArea extends AVListImpl implements Movable {
     /**
      * Add a control point
      */
-    protected void addPolygonControlPoint(ArrayList<LLHAreaControlPoint> list, DrawContext dc, int locationIndex, int altitudeIndex) {
-        LLD location = getLocations().get(locationIndex);
+    protected void addPolygonControlPoint(ArrayList<LLHAreaControlPoint> list, GLWorld w, int locationIndex, int altitudeIndex, LLD_X location) {
         double altitude = getAltitudes()[altitudeIndex];
-
-        double vert = dc.getVerticalExaggeration();
-        //Vec4 point = dc.getGlobe().computePointFromPosition(location.getLatitude(), location.getLongitude(), altitude * vert);
-        Vec4 point = dc.getGlobe().computePointFromPosition( Angle.fromDegrees(location.latDegrees()),Angle.fromDegrees(location.lonDegrees()), altitude * vert);
-       
+        double vert = w.getVerticalExaggeration();          
+        V3 p = w.projectLLH(location.latDegrees(), location.lonDegrees(), altitude*vert);
+        
         LLHAreaControlPoint controlPoint =
-                new LLHAreaControlPoint(this, locationIndex, altitudeIndex, point);
+                new LLHAreaControlPoint(locationIndex, p, location);
         list.add(controlPoint);
     }
 
     /**
      * The default location for a newly created LLHArea
      */
-    protected List<LLD> getDefaultLocations(WorldWindow wwd, Object params) {
+    protected List<LLD_X> getDefaultLocations(Object params) {
         return null;
     }
 
@@ -653,10 +658,10 @@ public class LLHArea extends AVListImpl implements Movable {
      * Return info for a segment Not sure where to put this function
      */
     public VolumeSliceInput getSegmentInfo(VolumeSliceInput buffer, int segment, int rows, int cols) {
-        java.util.List<LLD> l = getLocations();
+        java.util.List<LLD_X> l = getLocations();
         if (l.size() > segment + 1) {
             double[] altitudes = getAltitudes();
-            ArrayList<LLD> list = getVSliceLocations(getLocations());
+            ArrayList<LLD_X> list = getVSliceLocations(getLocations());
             if (buffer != null) {          
                 buffer.set(rows, cols, list.get(0).latDegrees(), list.get(0).lonDegrees(),
                         list.get(1).latDegrees(), list.get(1).lonDegrees(),
@@ -676,14 +681,14 @@ public class LLHArea extends AVListImpl implements Movable {
      * Given a lat lon list, return vslice order Not sure where to put this
      * function
      */
-    protected static ArrayList<LLD> getVSliceLocations(java.util.List<LLD> input) {
+    protected static ArrayList<LLD_X> getVSliceLocations(java.util.List<LLD_X> input) {
 
-        ArrayList<LLD> out = null;
+        ArrayList<LLD_X> out = null;
         if (input.size() > 1) {
-            out = new ArrayList<LLD>();
-            LLD l1 = input.get(0);
-            LLD l2 = input.get(1);
-            LLD leftBottom, rightBottom;
+            out = new ArrayList<LLD_X>();
+            LLD_X l1 = input.get(0);
+            LLD_X l2 = input.get(1);
+            LLD_X leftBottom, rightBottom;
            // if (l1.getLongitude().getDegrees() < l2.getLongitude().getDegrees()) {
              if (l1.lonDegrees() < l2.lonDegrees()) {
                 leftBottom = l1;

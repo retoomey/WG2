@@ -76,6 +76,25 @@ public class ProductManager implements Singleton {
         List<ProductFeature> forg = flist.getFeatureGroup(ProductFeature.class);
         return forg;
     }
+    
+    /**
+     * Get a sorted product feature list.  Used by NavView
+     */
+    public ArrayList<ProductFeature> getSortedProductFeatures() {
+
+        List<ProductFeature> forg = ProductManager.getInstance().getProductFeatures();
+        ArrayList<ProductFeature> f = new ArrayList<ProductFeature>(forg);
+        // Sort a copy of this list....might be better to keep a sorted list within
+        // the FeatureList...we'll see how much this gets 'hit'
+        Collections.sort(f,
+                new Comparator<ProductFeature>() {
+            @Override
+            public int compare(ProductFeature o1, ProductFeature o2) {
+                return (o1.getKey().compareTo(o2.getKey()));
+            }
+        });
+        return f;
+    }
 
     public FeatureList getFeatureList() {
         return FeatureList.theFeatures;

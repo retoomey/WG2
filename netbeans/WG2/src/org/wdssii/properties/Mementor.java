@@ -16,6 +16,9 @@ public interface Mementor {
 	 */
 	public Memento getNewMemento();
 
+	/** Create a blank memento for updating...*/
+	public Memento getUpdateMemento();
+	
 	/**
 	 * Get the current settings. This is used to read a property
 	 */

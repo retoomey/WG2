@@ -351,7 +351,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
             @Override
             public void handleClick(Object stuff, int orgRow, int orgColumn) {
-                LOG.debug("Clicking here " + stuff + ", " + orgRow);
+               // LOG.debug("Clicking here " + stuff + ", " + orgRow);
 
                 if (stuff instanceof FeatureListTableData) {
                     FeatureListTableData entry = (FeatureListTableData) (stuff);
@@ -428,7 +428,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             FeatureSelectCommand c = (FeatureSelectCommand) (info);
             changeSelection = true;
             fromSelect = c.getFeature();
-            LOG.debug("******SELECTCOMMAND " + fromSelect);
+            //LOG.debug("******SELECTCOMMAND " + fromSelect);
 
         }
         final FeatureList flist = FeatureList.theFeatures;

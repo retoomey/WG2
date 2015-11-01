@@ -1,10 +1,7 @@
 package org.wdssii.gui.volumes;
 
 import gov.nasa.worldwind.WorldWindow;
-import gov.nasa.worldwind.event.InputHandler;
 import gov.nasa.worldwind.geom.Position;
-import gov.nasa.worldwind.pick.PickedObject;
-import gov.nasa.worldwind.pick.PickedObjectList;
 import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.event.*;
@@ -13,9 +10,11 @@ import java.util.Iterator;
 import java.util.List;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
-import org.wdssii.geom.LLD;
+import org.wdssii.geom.LLD_X;
+import org.wdssii.gui.Picker;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 
 /**
@@ -43,9 +42,11 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
     private LLHAreaControlPoint activeControlPoint;
     private DFAMode myDFAState = DFAMode.NO_ACTION;
     private Position origin;
-    private ArrayList<LLD> originList;
+    private ArrayList<LLD_X> originList;
     private boolean consumeMouseClick;
 
+    private boolean shiftDown = false;
+    
     // Current action we are doing with mouse
     public enum ActionMode {
 
@@ -100,26 +101,6 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         this.wwd = w;
         this.volumeLayer = volume;
         //this.setupActionCursorMap();
-       // InputHandler h = this.wwd.getInputHandler();
-        setupListeners();
-    }
-
-    public final void setupListeners() {
-        if (this.wwd != null) {
-            InputHandler h = this.wwd.getInputHandler();
-            h.addKeyListener(this);
-            h.addMouseListener(this);
-            h.addMouseMotionListener(this);
-        }
-    }
-
-    public final void removeListeners() {
-        if (this.wwd != null) {
-            InputHandler h = this.wwd.getInputHandler();
-            h.removeKeyListener(this);
-            h.removeMouseListener(this);
-            h.removeMouseMotionListener(this);
-        }
     }
 
     /**
@@ -168,7 +149,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         this.activeLLHArea = airspace;
     }
 
-    protected void setOrigin(Position p, ArrayList<LLD> l) {
+    protected void setOrigin(Position p, ArrayList<LLD_X> l) {
         this.origin = p;
         this.originList = l;
     }
@@ -177,7 +158,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         return this.origin;
     }
 
-    protected ArrayList<LLD> getOriginList() {
+    protected ArrayList<LLD_X> getOriginList() {
         return this.originList;
     }
 
@@ -222,8 +203,33 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
     }
 
     private pickedInfo getTopPickedObject() {
+    	
+    	Picker p = volumeLayer.getControlPointRenderer().getPicker();
+    	
         pickedInfo i = new pickedInfo();
+        if (p != null){
+         ArrayList<Object> list = p.getPicked();
+         for (Object o:list){
+        	 
+        	 // Get first LLHAreaFeature clicked...
+             if (i.pickedArea == null) {
+                 LLHAreaFeature l = asLLHAreaFeature(o);
+                 if (l != null) {
+                     i.pickedArea = l;
+                 }
+             }
+             
+             // Get first control point clicked
+        	 LLHAreaControlPoint point = asLLHAreaControlPoint(o);
+             if (point != null) {
+                 i.pickedPoint = point;
+             }
+         }
+        }
+        
 
+        /*// FIXME: Reimplement with OUR pick system...just need objects returned is all...
+        // Where to STORE this list?  
         PickedObjectList pickedObjects = this.getWorldWindow().getObjectsAtCurrentPosition();
         if (pickedObjects != null) {
             for (PickedObject p : pickedObjects) {
@@ -236,6 +242,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
                     }
                 }
                 // Get first control point clicked
+                
                 if (i.pickedPoint == null) {
                     LLHAreaControlPoint point = asLLHAreaControlPoint(o);
                     if (point != null) {
@@ -244,6 +251,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
                 }
             }
         }
+        */
         return i;
     }
 
@@ -329,6 +337,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 
         if (myMode == ToolbarMode.ADD_REMOVE) {
             if (b1) {
+            	shiftDown = shift;
                 if (shift) {
                     processDFA(e.getPoint(), DFAAction.DELETE_CONTROL_POINT);
                 } else {
@@ -401,7 +410,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
         processDFA(e.getPoint(), DFAAction.DRAGGING);
         // Anything but NO_ACTION state on drag is consumed...
         if (myDFAState != DFAMode.NO_ACTION) {
-            LOG.debug("Mouse drag consume.. " + myDFAState);
+           // LOG.debug("Mouse drag consume.. " + myDFAState);
             e.consume();
         }
     }
@@ -548,22 +557,29 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
     /**
      * From DFA state, create a new control point and make it active
      */
-    protected void createNewPoint(DFAState d) {
+    protected void createNewPoint(DFAState d, boolean shiftDown) {
         //LOG.debug("Create point called");
         // Don't add on top of an existing point...
         if (d.pickedPoint == null) {
-            d.pickedPoint = d.l.addControlPoint(d.w, d.l.getAirspace(), d.at);
+            d.pickedPoint = d.l.addControlPoint(d.w, d.l.getAirspace(), d.at, shiftDown);
         }
         d.w.redraw();
 
     }
 
-    protected void deletePoint(DFAState d) {
-        if (d.pickedPoint != null) {
-            d.l.doRemoveControlPoint(d.pickedPoint);
-        }
-        d.w.redraw();
-    }
+   // protected void deletePoint(DFAState d) {
+   //     if (d.pickedPoint != null) {
+   //         d.l.doRemoveControlPoint(d.pickedPoint);
+   //     }
+    //    d.w.redraw();
+   // }
+    
+   // protected void selectPoint(DFAState d){
+   // 	if (d.pickedPoint != null){
+   // 		d.l.doSelectControlPoint(d.pickedPoint);
+   // 	}
+   // 	d.w.redraw(); // needed or not?
+    //}
 
     /**
      * Handle all mouse action with a DFA state machine
@@ -576,13 +592,13 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
                 if (d.m == DFAAction.CREATE_CONTROL_POINT) {
                     LLHAreaControlPoint selected;
                     if (d.pickedPoint == null) {
-                        selected = d.l.addControlPoint(d.w, d.l.getAirspace(), d.at);
+                        selected = d.l.addControlPoint(d.w, d.l.getAirspace(), d.at, shiftDown);
                         consumeMouseClick = true;
-                        setActiveControlPoint(selected);
                     } else {
                         selected = d.pickedPoint;
                     }
                     setActiveControlPoint(selected);
+                    d.l.doSelectControlPoint(d.pickedPoint);
                     myDFAState = DFAMode.DRAGGING_CONTROL_POINT;
                 } else if (d.m == DFAAction.DELETE_CONTROL_POINT) {
                     d.l.doRemoveControlPoint(d.pickedPoint);
@@ -594,6 +610,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
                     // Look for control point first, then area....
                     if (d.pickedPoint != null) {
                         setActiveControlPoint(d.pickedPoint);
+                        d.l.doSelectControlPoint(d.pickedPoint);
                         d.activePoint = d.pickedPoint;
                         myDFAState = DFAMode.DRAGGING_CONTROL_POINT;
                     } else if (d.pickedArea != null) {

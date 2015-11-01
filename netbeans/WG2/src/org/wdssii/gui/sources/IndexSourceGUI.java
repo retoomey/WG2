@@ -13,6 +13,7 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+import org.wdssii.properties.Memento;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.ProductLoadCommand;
@@ -296,7 +297,13 @@ public class IndexSourceGUI extends javax.swing.JPanel implements SourceGUI {
 
         updateTables();
     }
+    @Override
+    public void updateGUI(Memento m) {
+        // Selection changed to us...fill the products list...
 
+        updateTables();
+    }
+    
     //private JScrollPane myScrollPane;
     @Override
     public void activateGUI(JComponent parent) {

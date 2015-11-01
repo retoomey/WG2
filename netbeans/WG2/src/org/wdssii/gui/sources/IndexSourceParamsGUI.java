@@ -9,6 +9,7 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+import org.wdssii.properties.Memento;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.GUIPlugInPanel;
 import org.wdssii.gui.commands.SourceAddCommand;
@@ -40,6 +41,10 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 	public void updateGUI() {
 	}
 
+	@Override
+	public void updateGUI(Memento m) {
+	}
+	
 	@Override
 	public void activateGUI(JComponent parent) {
 		parent.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));

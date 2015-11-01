@@ -10,7 +10,10 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import org.wdssii.core.StopWatch;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.GLUtil;
+import org.wdssii.gui.GLWorld;
+
 import static org.wdssii.gui.charts.VSliceChart.myNumCols;
 import static org.wdssii.gui.charts.VSliceChart.myNumRows;
 import org.wdssii.gui.products.FilterList;
@@ -30,6 +33,7 @@ public class LLHGLEventListener implements GLEventListener {
     private final static Logger LOG = LoggerFactory.getLogger(LLHGLEventListener.class);
     protected final static int TEXTURE_TARGET = GL.GL_TEXTURE_2D;
     protected int texture = -1;
+    protected int texture3d = -1;
     protected ByteBuffer myBuffer = null;
     protected String myCurrentVolumeValueName;
     protected VolumeSlice2DOutput my2DSlice = new VolumeSlice2DOutput();
@@ -243,5 +247,8 @@ public class LLHGLEventListener implements GLEventListener {
 
     public void setLLHLabel(String t) {
         myLLHLabel = t;
+    }
+    
+    public void drawGLWorld(GLWorld w) {
     }
 }

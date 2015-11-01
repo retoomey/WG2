@@ -1,5 +1,6 @@
 package org.wdssii.properties;
 
+import org.wdssii.gui.volumes.LLHAreaSet.LLHAreaSetMemento;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
@@ -13,6 +14,8 @@ public abstract class Memento<K> {
 
 	private final static Logger LOG = LoggerFactory.getLogger(Memento.class);
 
+	private Object eventSource = null;
+	
         /** A memento propery */
 	public static class Property {
 
@@ -52,6 +55,34 @@ public abstract class Memento<K> {
 	public Memento(Memento m) {
 	}
  
+	public void setEventSource(Object o){
+		eventSource = o;
+	}
+	
+	public Object getEventSource(){
+		return eventSource;
+	}
+	
+	/** Lookup a string, modify and return only if not-null,
+	 * otherwise leave the default.  We can't pass by reference
+	 * in java, so original is passed in.
+	 */
+	public String getString(K key, String defValue){
+		String v = getPropertyValue(key);
+		if (v != null) {
+			return v;
+		}
+		return defValue;
+	}
+	
+	public Integer getInteger(K key, Integer defValue){
+		Integer v = getPropertyValue(key);
+		if (v != null) {
+			return v;
+		}
+		return defValue;
+	}
+	
 	/**
 	 * Sync to another memento by only copying what is wanted to be changed.
 	 *

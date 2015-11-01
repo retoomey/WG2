@@ -2,6 +2,8 @@ package org.wdssii.gui;
 
 import javax.swing.JComponent;
 
+import org.wdssii.properties.Memento;
+
 /**
  * GUI Plug In Panel.
  * Basically I have lists of stuff in the display, when you list on a list item,
@@ -17,6 +19,9 @@ public interface GUIPlugInPanel {
      */
     public void updateGUI();
 
+    /** Update GUI to given memento changes */
+    public void updateGUI(Memento m);
+    
     /**
      * Activate the GUI into the given container
      */

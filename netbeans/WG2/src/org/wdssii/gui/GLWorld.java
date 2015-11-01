@@ -54,4 +54,7 @@ public abstract class GLWorld {
     
     /** Get the multiplier in the vertical direction */
     public abstract double getVerticalExaggeration();
+    
+    /** Is this point in the view frustrum? Can be used for software clipping */
+    public abstract boolean inView(V3 a3D);
 }

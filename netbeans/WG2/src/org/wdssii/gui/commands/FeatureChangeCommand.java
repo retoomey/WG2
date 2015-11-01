@@ -2,6 +2,7 @@ package org.wdssii.gui.commands;
 
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+import org.wdssii.properties.Memento;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
@@ -19,25 +20,25 @@ public class FeatureChangeCommand extends FeatureCommand {
      * The key of the Feature we will set visible for
      */
     protected String myFeatureKey;
-    public FeatureMemento myChange;
+    public Memento myChange;
     private boolean initialized = false;
 
     public FeatureChangeCommand() {
     }
 
-    public FeatureChangeCommand(String llhAreaKey, FeatureMemento change) {
-        myFeatureKey = llhAreaKey;
+    public FeatureChangeCommand(String key, Memento change) {
+        myFeatureKey = key;
         myChange = change;
         initialized = true;
     }
 
-    public FeatureChangeCommand(Feature f, FeatureMemento change) {
+    public FeatureChangeCommand(Feature f, Memento change) {
         myFeatureKey = f.getKey();
         myChange = change;
         initialized = true;
     }
     
-    public void set(String key, FeatureMemento change){
+    public void set(String key, Memento change){
         myFeatureKey = key;
         myChange = change;
         initialized = true;
@@ -47,9 +48,10 @@ public class FeatureChangeCommand extends FeatureCommand {
     public boolean execute() {
         // Eventually theFeatures will be per world ball....
         if (initialized) {
-            FeatureList.theFeatures.setMemento(myFeatureKey, myChange);
-            FeatureList.theFeatures.updateOnMinTime();
+        	// Send the property changes...
+            FeatureList.theFeatures.updateMemento(myFeatureKey, myChange);
+
         }
-        return true;
+        return true; // GUI update (bleh full refresh)  
     }
 }

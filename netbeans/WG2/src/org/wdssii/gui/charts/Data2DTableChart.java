@@ -23,14 +23,14 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.core.CommandManager;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
-import org.wdssii.geom.LLD;
+import org.wdssii.geom.LLD_X;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.commands.FeatureCreateCommand;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.volumes.LLHAreaFeature;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.Product2DTable;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.SimpleTable.ToolbarMode;
@@ -302,10 +302,10 @@ public class Data2DTableChart extends DataView {
         LLHAreaSet stick = getTrackStick();
         if (stick != null) {
             // FIXME: would be nice to have a Position ability
-            List<LLD> list = stick.getLocations();
+            List<LLD_X> list = stick.getLocations();
             double[] alts = stick.getAltitudes();
             if (!list.isEmpty()) {
-                LLD l = list.get(0);
+                LLD_X l = list.get(0);
                 double a = alts[0]; // assuming correct
                 L = new Location(l.latDegrees(), l.lonDegrees(), a);
             }

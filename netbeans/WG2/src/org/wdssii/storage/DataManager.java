@@ -301,7 +301,7 @@ public class DataManager implements LRUCacheListener<DataNode> {
             boolean success = ((theTile != null) && (theTile.loadNodeIntoRAM()));
             if (success) {
                 // theTile.setCacheKey() constructor
-                LOG.debug("Tile RAM Loaded: " + theTile.getCacheKey() + " read: " + success);
+                //LOG.debug("Tile RAM Loaded: " + theTile.getCacheKey() + " read: " + success);
                 myRAMCache.put(key, theTile);
                 // CommandManager.getInstance().cacheManagerNotify();
             } else {

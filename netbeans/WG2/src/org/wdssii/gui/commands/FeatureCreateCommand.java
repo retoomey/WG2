@@ -1,7 +1,7 @@
 package org.wdssii.gui.commands;
 
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.volumes.LLHAreaFeature;
+import org.wdssii.gui.features.LLHAreaFeature;
 
 /**
  * Create a new feature in a feature list

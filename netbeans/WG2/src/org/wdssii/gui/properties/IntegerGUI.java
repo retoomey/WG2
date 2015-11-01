@@ -82,7 +82,8 @@ public class IntegerGUI extends PropertyGUI {
         JComponent j = (JComponent) evt.getSource();
         if (j instanceof JSpinner) {
             JSpinner s = (JSpinner) (j);
-            Memento m = f.getNewMemento();
+            //Memento m = f.getNewMemento();
+            Memento m = f.getUpdateMemento(); // blank memento
             m.setProperty(property, (Integer) s.getValue());
             f.propertySetByGUI(property, m);
         }

@@ -6,7 +6,7 @@ import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.FeatureCreateCommand;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.volumes.LLHAreaFeature;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.gui.volumes.LLHAreaSet;

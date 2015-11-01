@@ -88,7 +88,8 @@ public class W2Config {
                 // For the moment ignore stuff within jar, since it
                 // requires a different connection I think
                 if (!bUrls.startsWith("jar")) {
-                    bUrls = bUrls.replaceFirst("/build/classes/org/wdssii", "/w2config");
+                    bUrls = bUrls.replaceFirst("/build/classes/org/wdssii", "/w2config");   // Netbeans checkout path
+                    bUrls = bUrls.replaceFirst("/bin/org/wdssii", "/netbeans/WG2/w2config"); // Eclipse checkout path
                     bUrl = new URL(bUrls);
                     // if this is a good url, it's working...so add it..
                     addPattern(bUrl.toString() + "/{1}");

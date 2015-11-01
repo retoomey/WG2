@@ -65,6 +65,11 @@ public class SwingGUIPlugInPanel extends JPanel implements GUIPlugInPanel {
     public void updateGUI() {
     }
 
+    /** Only update items from given memento */
+    @Override
+    public void updateGUI(Memento m) {
+    }
+    
     @Override
     public void activateGUI(JComponent parent) {
         if (myRoot != null) {

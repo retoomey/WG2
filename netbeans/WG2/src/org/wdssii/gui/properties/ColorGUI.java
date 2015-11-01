@@ -60,7 +60,8 @@ public class ColorGUI extends PropertyGUI {
                 j.getBackground());
         b.setBackground(aLineColor);
         if (aLineColor != null) {
-            Memento m = f.getNewMemento();
+            //Memento m = f.getNewMemento();
+            Memento m = f.getUpdateMemento(); // blank memento
             m.setProperty(property, aLineColor);
             f.propertySetByGUI(property, m);
         }

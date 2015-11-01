@@ -345,8 +345,10 @@ public class WdssiiCatalog extends JPanel implements CONUSJPanelListener {
             }
         });
 
+       // jBookmarkComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[]{
+        //            "http://tensor.protect.nssl/rindexv2.xml", "file:/D:/testing2.xml", myDebugList}));
         jBookmarkComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[]{
-                    "http://tensor.protect.nssl/rindexv2.xml", "file:/D:/testing2.xml", myDebugList}));
+                myDebugList, "http://tensor.protect.nssl/rindexv2.xml", "file:/D:/testing2.xml"}));
         jSourceListTable.setRowSorter(myModel.getGroupModelSorter());
 
         CONUSJPanel ipanel = new CONUSJPanel();

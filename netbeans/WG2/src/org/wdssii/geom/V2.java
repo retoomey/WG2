@@ -18,4 +18,12 @@ public class V2 {
         x = (float) xi;
         y = (float) yi;
     }
+    
+    public V2 offset(float dx, float dy){
+    	return new V2(x+dx, y+dy);
+    }
+    
+    public V2 offset(double dx, double dy){
+    	return new V2(x+dx, y+dy);
+    }
 }

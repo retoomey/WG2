@@ -54,7 +54,8 @@ public class ComboStringGUI extends PropertyGUI {
                         public void actionPerformed(java.awt.event.ActionEvent evt) {
                             JMenuItem item = (JMenuItem) evt.getSource();
                             String setting = item.getText();
-                            Memento m = myF.getNewMemento();
+                            //Memento m = myF.getNewMemento();
+                            Memento m = myF.getUpdateMemento();
                             m.setProperty(myP, setting);
                             myF.propertySetByGUI(myP, m);
                            // button.setText(setting);  set in update

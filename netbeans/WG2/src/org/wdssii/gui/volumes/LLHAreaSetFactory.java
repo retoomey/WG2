@@ -1,9 +1,10 @@
 package org.wdssii.gui.volumes;
 
-import gov.nasa.worldwind.WorldWindow;
-import gov.nasa.worldwind.avlist.AVKey;
+//import gov.nasa.worldwind.avlist.AVKey;
 import org.wdssii.gui.features.Feature.FeatureTableInfo;
 import org.wdssii.gui.features.FeatureGUI;
+import org.wdssii.gui.features.LLHAreaFeature;
+import org.wdssii.gui.features.LLHAreaSetGUI;
 
 /** Factory which creates a 'slice'.  Two lat/lon points and a fixed height range between them*/
 public class LLHAreaSetFactory extends LLHAreaFactory {
@@ -17,7 +18,7 @@ public class LLHAreaSetFactory extends LLHAreaFactory {
     }
 
     @Override
-    public boolean create(WorldWindow wwd, LLHAreaFeature f, FeatureTableInfo data, Object params) {
+    public boolean create(LLHAreaFeature f, FeatureTableInfo data, Object params) {
 
         boolean success = true;
 
@@ -29,10 +30,12 @@ public class LLHAreaSetFactory extends LLHAreaFactory {
         data.visible = true;
 
         LLHAreaSet poly = new LLHAreaSet(f);       
-        poly.setAttributes(getDefaultAttributes());
-        poly.setValue(AVKey.DISPLAY_NAME, name);
+       // poly.setAttributes(getDefaultAttributes());
+    //    poly.setValue(AVKey.DISPLAY_NAME, name);
         poly.setAltitudes(0.0,  LLHArea.DEFAULT_HEIGHT_METERS);
-        poly.setLocations(poly.getDefaultLocations(wwd, params));
+       // poly.setLocations(poly.getDefaultLocations(wwd, params));
+        poly.setLocations(poly.getDefaultLocations(params));
+
         data.created = poly;
 
         setName(name);

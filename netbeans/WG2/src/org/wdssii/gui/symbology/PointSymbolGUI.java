@@ -2,6 +2,7 @@ package org.wdssii.gui.symbology;
 
 import org.wdssii.gui.properties.IntegerGUI;
 import org.wdssii.properties.Memento;
+import org.wdssii.properties.MementoString;
 import org.wdssii.properties.Mementor;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
@@ -79,7 +80,13 @@ public abstract class PointSymbolGUI extends SymbolGUI {
             PointSymbolMemento m = new PointSymbolMemento((PointSymbolMemento) getMemento());
             return m;
         }
-
+        
+        @Override
+        public Memento getUpdateMemento() {
+            // Get brand new mementor with default settings
+           return new MementoString();
+        }
+        
         public void setMemento(Memento m) {
             if (m instanceof PointSymbolMemento) {
                 m.setProperty(PointSymbolMemento.SIZE, mySymbol.pointsize);

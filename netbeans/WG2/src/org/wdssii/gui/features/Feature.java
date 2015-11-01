@@ -7,9 +7,11 @@ import java.util.TreeMap;
 import javax.swing.JComponent;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+import org.jfree.util.Log;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.properties.Memento;
+import org.wdssii.properties.MementoString;
 import org.wdssii.properties.Mementor;
 
 /**
@@ -51,6 +53,7 @@ public class Feature implements Mementor {
      */
     private final FeatureList myFeatureList;
     private FeatureMemento mySettings = new FeatureMemento();
+    
     /**
      * What is our name?
      */
@@ -132,7 +135,7 @@ public class Feature implements Mementor {
         }
         ArrayList<FeatureRenderer> stuff = myRenderers.get(id);
         if (stuff == null) {
-            stuff = getNewRendererList(id, packageName);
+        	stuff = getNewRendererList(id, packageName);
             storeRendererList(id, stuff);
         }
         return stuff;
@@ -182,9 +185,12 @@ public class Feature implements Mementor {
         return myFeatureGroup;
     }
 
-    public void setMemento(FeatureMemento m) {
+    public void updateMemento(Memento m) {
         if (m != null) {
             mySettings.syncToMemento(m);
+            if (myControls != null){
+            	myControls.updateGUI(m);
+            }
         }
     }
 
@@ -201,11 +207,16 @@ public class Feature implements Mementor {
      */
     @Override
     public void propertySetByGUI(Object name, Memento m) {
-        FeatureMemento fm = (FeatureMemento) (m); // Check it
-        FeatureChangeCommand c = new FeatureChangeCommand(this, fm);
+        FeatureChangeCommand c = new FeatureChangeCommand(this, m);
         CommandManager.getInstance().executeCommand(c, true);
     }
 
+    /** Experiment.  Memento with only update fields in it. */
+    @Override
+    public MementoString getUpdateMemento(){
+    	return new MementoString();
+    }
+    
     /**
      * Get a new memento copy of our settings. This is for modifying and sending
      * back to us to change a setting

@@ -6,6 +6,8 @@ import javax.media.opengl.GLEventListener;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
@@ -202,5 +204,13 @@ public class CAPPIChart extends LLHAreaChartGL {
             }
         });
         mySlider = j;
+    }
+    
+    // Given a GLWorld object, render part of our chart stuff in it...
+    public void drawChartGLWorld(GLWorld w) {
+        // Tell our GLListener to draw the VSlice in GLWorld...
+        if (myGLListener != null) {
+            myGLListener.drawGLWorld(w);
+        }
     }
 }

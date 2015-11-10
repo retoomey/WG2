@@ -8,7 +8,6 @@
 	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-api-10.2.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-coverage-10.2.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-data-10.2.jar"/>
-	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-epsg-hsql-10.2.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-grid-10.2.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-main-10.2.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-metadata-10.2.jar"/>

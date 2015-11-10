@@ -77,7 +77,7 @@ public class MementoString extends MementoTree<String> {
     	String key = (String)(okey);
     	Property f = myProperties.get(key);
         if (f == null) {
-            LOG.error("Creating new property: " + key);
+            //LOG.error("Creating new property: " + key);
             myProperties.put(key, new Property(stuff, true));
         } else {
             myProperties.put(key, new Property(stuff, true));

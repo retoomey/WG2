@@ -1,15 +1,12 @@
 package org.wdssii.gui.renderers;
 
-import org.wdssii.gui.features.Feature3DRenderer;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Polygon;
 import java.awt.Color;
 import java.awt.Point;
 import java.io.IOException;
 import java.nio.FloatBuffer;
+
 import javax.media.opengl.GL;
+
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -23,22 +20,26 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.WdssiiJob;
-import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
-import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
-import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.V3;
+import org.wdssii.gui.GLUtil;
+import org.wdssii.gui.GLWorld;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.features.MapFeature.MapMemento;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
-import org.wdssii.gui.GLUtil;
-import org.wdssii.gui.features.Feature;
-import org.wdssii.gui.features.MapFeature;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Polygon;
 
 /**
  *
@@ -323,7 +324,7 @@ public class MapRenderer extends Feature3DRenderer {
 
             if (isCreated() && (polygonData != null)) {
                 final GL gl = w.gl;
-                Color line = m.getPropertyValue(MapMemento.LINE_COLOR);
+                Color line = m.get(MapMemento.LINE_COLOR, Color.WHITE);
                 final float r = line.getRed() / 255.0f;
                 final float g = line.getGreen() / 255.0f;
                 final float b = line.getBlue() / 255.0f;
@@ -354,7 +355,7 @@ public class MapRenderer extends Feature3DRenderer {
                         attribsPushed = true;
                         FloatBuffer z = polygonData.getRawBuffer();
                         gl.glColor4f(r, g, b, a);
-                        Integer t = m.getPropertyValue(MapMemento.LINE_THICKNESS);
+                        Integer t = m.get(MapMemento.LINE_THICKNESS, 1);
                         gl.glLineWidth(t);
                         GLUtil.renderArrays(w.gl, z, myOffsets, GL.GL_LINE_LOOP);
 

@@ -47,8 +47,7 @@ public class WorldWindLayerRenderer extends Feature3DRenderer {
     //    return myLayer;
     // }
     public boolean isVisible(FeatureMemento m) {
-        Boolean on = m.getPropertyValue(myVisibleToken);
-        return ((on != null) && on);
+    	return m.get(myVisibleToken, true);
     }
 
     private void renderaction(GLWorld w, FeatureMemento m, int type, Object o) {

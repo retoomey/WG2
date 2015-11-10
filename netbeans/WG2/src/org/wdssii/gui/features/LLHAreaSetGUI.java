@@ -55,7 +55,6 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-
 import org.wdssii.core.CommandManager;
 import org.wdssii.geom.LLD_X;
 import org.wdssii.gui.ProductManager;
@@ -79,7 +78,6 @@ import org.wdssii.gui.volumes.LLHAreaSet.LLHAreaSetMemento;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.properties.Memento;
-import org.wdssii.properties.MementoString;
 import org.wdssii.xml.PointSet;
 import org.wdssii.xml.Util;
 
@@ -653,14 +651,9 @@ public class LLHAreaSetGUI extends FeatureGUI {
 			int i = 0;
 			int counter = 1;
 			LLHAreaSetMemento m = myLLHAreaSet.getMemento();
-			Integer h = ((Integer) m.getPropertyValue(LLHAreaSetMemento.TOP_HEIGHT));
-			if (h == null) {
-				h = 0;
-			}
-			Integer b = ((Integer) m.getPropertyValue(LLHAreaSetMemento.BOTTOM_HEIGHT));
-			if (b == null) {
-				b = 0;
-			}
+			Integer h = m.get(LLHAreaSetMemento.TOP_HEIGHT, 0);
+			Integer b = m.get(LLHAreaSetMemento.BOTTOM_HEIGHT, 0);
+
 			for (LLD_X l : list) {
 				double latitude = l.latDegrees();
 				double longitude = l.lonDegrees();
@@ -986,16 +979,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
 		boolean fromGUI = false;
 		if (info != null) {
 			fromGUI = info.getEventSource() == this.myStringGUI;
-
-			editNote = (String) (info.getPropertyValue(LLHAreaSetMemento.NOTE));
-
-			if (editNote != null) {
-				// myLLHAreaSet.currentPolygonNumber = d.polygon;
-				// myLLHAreaSet.currentNote = editNote;
-				// LOG.info("Text came back as "+editNote);
-			} else {
-				// LOG.info("Text was null");
-			}
+			info.get(LLHAreaSetMemento.NOTE, editNote);
 		}
 
 		// Set the top product info. This isn't really the 'table' though...

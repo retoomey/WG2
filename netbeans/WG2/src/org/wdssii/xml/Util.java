@@ -233,7 +233,7 @@ public class Util {
      *
      * TopNode test = loadJAXB("test.xml", TopNode.class);
      */
-    public static <T> T loadURL(URL aURL, Class topClass) {
+    public static <T> T loadURL(URL aURL, Class<?> topClass) {
         T top = null;
 
         try {
@@ -286,7 +286,7 @@ public class Util {
      *
      * TopNode test = loadJAXB("test.xml", TopNode.class);
      */
-    public static <T> T load(String urlString, Class topClass) {
+    public static <T> T load(String urlString, Class<?> topClass) {
         T top = null;
         URL aURL;
         try {
@@ -304,7 +304,7 @@ public class Util {
     /**
      * Load from a URL the given class
      */
-    public static <T> T load(URL aURL, Class topClass) {
+    public static <T> T load(URL aURL, Class<?> topClass) {
         T top = null;
         if (aURL != null) {
             try {
@@ -316,7 +316,7 @@ public class Util {
         return top;
     }
 
-    public static <T> String save(T root, String urlString, Class topClass) {
+    public static <T> String save(T root, String urlString, Class<?> topClass) {
         try {
 
             File file = new File(urlString);
@@ -336,7 +336,7 @@ public class Util {
 
     }
 
-    public static <T> String save(T root, URL fileURL, Class topClass) {
+    public static <T> String save(T root, URL fileURL, Class<?> topClass) {
         return Util.save(root, fileURL.getFile(), topClass); 
     }
 }

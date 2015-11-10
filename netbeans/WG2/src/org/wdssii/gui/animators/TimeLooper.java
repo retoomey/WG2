@@ -61,19 +61,19 @@ public class TimeLooper extends Animator {
 			LoopMemento m = (LoopMemento) f.getMemento();
 
 			// First dwell, Last dwell, dwell..
-			Integer d = (Integer) m.getPropertyValue(LoopMemento.FRAME_TIME_MS);
-			myDwellMS = d;
-			Integer fd = (Integer) m.getPropertyValue(LoopMemento.FIRST_DWELL_SECS);
+			myDwellMS = m.get(LoopMemento.FRAME_TIME_MS, myDwellMS);
+			
+			Integer fd = m.get(LoopMemento.FIRST_DWELL_SECS, 1);
 			myFirstDwellMS = myDwellMS+(fd*1000);
-			Integer ld = (Integer) m.getPropertyValue(LoopMemento.LAST_DWELL_SECS);
+			
+			Integer ld = m.get(LoopMemento.LAST_DWELL_SECS, 0);
 			myLastDwellMS = myDwellMS+(ld*1000);
 
 			// Num frames...
-			Integer nf = (Integer) m.getPropertyValue(LoopMemento.NUM_OF_FRAMES);
-			myMaxFrames = nf;
+			myMaxFrames = m.get(LoopMemento.NUM_OF_FRAMES, myMaxFrames);
 
 			// ROCK Setting
-			Boolean r = (Boolean) m.getPropertyValue(LoopMemento.ROCK_LOOP);
+			Boolean r = m.get(LoopMemento.ROCK_LOOP, false);
 			if (r) {
 				myDirection = ROCK_LOOP;
 			} else {

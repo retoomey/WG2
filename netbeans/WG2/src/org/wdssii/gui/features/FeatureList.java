@@ -1,11 +1,18 @@
 package org.wdssii.gui.features;
 
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.TreeMap;
+
+import org.wdssii.gui.charts.DataView;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.properties.Memento;
-import org.wdssii.gui.charts.DataView;
 
 /**
  * FeatureList holds a list of the features of a particular window It will
@@ -87,10 +94,10 @@ public class FeatureList {
     protected Date mySimulationTime = new Date();
 
     static {
-        Feature testOne = new MapFeature(theFeatures, "shapefiles/usa/ok/okcnty.shp");
-        theFeatures.addFeature(testOne);
-        Feature testTwo = new MapFeature(theFeatures, "shapefiles/usa/tx/txcnty.shp");
-        theFeatures.addFeature(testTwo);
+       // Feature testOne = new MapFeature(theFeatures, "shapefiles/usa/ok/okcnty.shp");
+       // theFeatures.addFeature(testOne);
+       // Feature testTwo = new MapFeature(theFeatures, "shapefiles/usa/tx/txcnty.shp");
+       // theFeatures.addFeature(testTwo);
         Feature loop = new LoopFeature(theFeatures);
         theFeatures.addFeature(loop);
     }
@@ -361,7 +368,7 @@ public class FeatureList {
         return Collections.unmodifiableList(myFeatures);
     }
 
-    public Feature getFirstFeature(Class c) {
+    public Feature getFirstFeature(Class<?> c) {
         Feature first = null;
         synchronized (featureSync) {
             Iterator<Feature> i = myFeatures.iterator();
@@ -420,7 +427,7 @@ public class FeatureList {
         return holder;
     }
 
-    public <T> ArrayList<T> getFeatureGroup(Class c) {
+    public <T> ArrayList<T> getFeatureGroup(Class<?> c) {
         ArrayList<T> holder = new ArrayList<T>();
         synchronized (featureSync) {
             Iterator<Feature> iter = myFeatures.iterator();

@@ -153,6 +153,7 @@ public class CategoryUniqueValues extends SymbologyGUI implements SymbolPanelLis
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 removeAllCategories();
+
             }
         });
         myRemoveAll = rAll;
@@ -341,7 +342,7 @@ public class CategoryUniqueValues extends SymbologyGUI implements SymbolPanelLis
         }
 
         @Override
-        public Class getColumnClass(int column) {
+        public Class<?> getColumnClass(int column) {
             if (column == 0) {
                 return Symbol.class;
             } else {

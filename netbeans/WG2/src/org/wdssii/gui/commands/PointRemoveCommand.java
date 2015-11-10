@@ -37,8 +37,8 @@ public class PointRemoveCommand extends PointCommand {
 		// Create a list copy without the point.
 		FeatureMemento m = set().getMemento(); // vs getNewMemento as in gui
 												// control...hummm
-		@SuppressWarnings("unchecked")
-		ArrayList<LLD_X> list = ((ArrayList<LLD_X>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+		ArrayList<LLD_X> list = null;
+		list = m.get(LLHAreaSet.LLHAreaSetMemento.POINTS, list);
 		if (list != null) {
 
 			// Delete any matching our polygon value....

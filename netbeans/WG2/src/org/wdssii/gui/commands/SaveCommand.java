@@ -3,10 +3,11 @@ package org.wdssii.gui.commands;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import javax.swing.JFileChooser;
-import static javax.swing.JFileChooser.SAVE_DIALOG;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
+
 import org.wdssii.core.WdssiiCommand;
 import org.wdssii.gui.PreferencesManager;
 

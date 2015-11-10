@@ -14,7 +14,7 @@ public class Slf4jLogger implements org.wdssii.log.Logger {
      */
     private org.slf4j.Logger log;
 
-    public Slf4jLogger(Class aClass) {
+    public Slf4jLogger(Class<?> aClass) {
         log = LoggerFactory.getLogger(aClass);
     }
 

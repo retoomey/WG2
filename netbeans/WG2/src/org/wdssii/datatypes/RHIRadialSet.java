@@ -1,13 +1,12 @@
 package org.wdssii.datatypes;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+
+import org.wdssii.geom.Location;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
-import org.wdssii.geom.GridVisibleArea;
-import org.wdssii.geom.Location;
 
 /**
  * This is a RadialSet which handles RHI, or Range Height Indicator radial sets,

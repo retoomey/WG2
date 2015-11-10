@@ -14,7 +14,6 @@ import org.wdssii.gui.views.DataFeatureView;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.properties.Memento;
-import org.wdssii.properties.MementoString;
 
 /**
  * A collection of editable points in a line. Constant or increasing time. This
@@ -95,43 +94,40 @@ public class LLHAreaSet extends LLHArea {
 	}
 
 	@Override
-	public void setFromMemento(Memento<?> m) {
-		if (m instanceof MementoString) {
-			MementoString l = (MementoString) (m);
+	public void setFromMemento(Memento m) {
 
-			setVisOnly(l);
-			Integer v = ((Integer) l.getPropertyValue(LLHAreaSetMemento.TOP_HEIGHT));
-			if (v != null) {
-				if (m instanceof LLHAreaMemento) {
-					LLHAreaMemento cc = (LLHAreaMemento) (m);
-					cc.setMaxHeight(v.intValue());
-					currentHeightMeters = (int) cc.getMaxHeight();
-				}
-			}
-			v = ((Integer) l.getPropertyValue(LLHAreaSetMemento.BOTTOM_HEIGHT));
-			if (v != null) {
-				if (m instanceof LLHAreaMemento) {
-					LLHAreaMemento cc = (LLHAreaMemento) (m);
-					cc.setMinHeight(v.intValue());
-					currentBottomMeters = (int) cc.getMinHeight();
-				}
-			}
-			currentPolygonNumber = l.getInteger(LLHAreaSetMemento.POLYGON, currentPolygonNumber);
-			currentNote = l.getString(LLHAreaSetMemento.NOTE, currentNote);
-			currentAuto = l.getString(LLHAreaSetMemento.AUTO, currentAuto);
-			currentFile = l.getString(LLHAreaSetMemento.FILE, currentFile);
-			myNumRows = l.getInteger(LLHAreaSetMemento.GRID_ROWS, myNumRows);
-			myNumCols = l.getInteger(LLHAreaSetMemento.GRID_COLS, myNumCols);
-			myChartKey = l.getString(LLHAreaSetMemento.RENDERER, myChartKey);
-
-			setAltitudes(l);
-
-			@SuppressWarnings("unchecked")
-			ArrayList<LLD_X> list = ((ArrayList<LLD_X>) l.getPropertyValue(LLHAreaSetMemento.POINTS));
-			if (list != null) {
-				this.setLocations(list);
+		setVisOnly(m);
+		
+		// FIXME: Not liking this code here:
+		Integer v = ((Integer) m.getPropertyValue(LLHAreaSetMemento.TOP_HEIGHT));
+		if (v != null) {
+			if (m instanceof LLHAreaMemento) {
+				LLHAreaMemento cc = (LLHAreaMemento) (m);
+				cc.setMaxHeight(v.intValue());
+				currentHeightMeters = (int) cc.getMaxHeight();
 			}
 		}
+		v = ((Integer) m.getPropertyValue(LLHAreaSetMemento.BOTTOM_HEIGHT));
+		if (v != null) {
+			if (m instanceof LLHAreaMemento) {
+				LLHAreaMemento cc = (LLHAreaMemento) (m);
+				cc.setMinHeight(v.intValue());
+				currentBottomMeters = (int) cc.getMinHeight();
+			}
+		}
+		currentPolygonNumber = m.get(LLHAreaSetMemento.POLYGON, currentPolygonNumber);
+		currentNote = m.get(LLHAreaSetMemento.NOTE, currentNote);
+		currentAuto = m.get(LLHAreaSetMemento.AUTO, currentAuto);
+		currentFile = m.get(LLHAreaSetMemento.FILE, currentFile);
+		myNumRows = m.get(LLHAreaSetMemento.GRID_ROWS, myNumRows);
+		myNumCols = m.get(LLHAreaSetMemento.GRID_COLS, myNumCols);
+		myChartKey = m.get(LLHAreaSetMemento.RENDERER, myChartKey);
+
+		setAltitudes(m);
+
+		ArrayList<LLD_X> list = null;
+		list = m.get(LLHAreaSetMemento.POINTS, list);
+		this.setLocations(list);
 	}
 
 	/**

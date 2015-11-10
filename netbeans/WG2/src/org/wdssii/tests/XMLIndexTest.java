@@ -4,14 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 import org.wdssii.index.HistoricalIndex;
-import org.wdssii.index.IndexRecord;
 
 import junit.framework.TestCase;
 

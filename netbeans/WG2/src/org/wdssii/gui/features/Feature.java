@@ -4,12 +4,13 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
+
 import javax.swing.JComponent;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
-import org.jfree.util.Log;
+
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.commands.FeatureChangeCommand;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.MementoString;
 import org.wdssii.properties.Mementor;
@@ -241,14 +242,14 @@ public class Feature implements Mementor {
      * Get visible state
      */
     public Boolean getVisible() {
-        return mySettings.getPropertyValue(FeatureMemento.VISIBLE);
+        return mySettings.get(FeatureMemento.VISIBLE, true);
     }
 
     /**
      * Get if can be deleted from FeatureList
      */
     public Boolean getDeletable() {
-        return mySettings.getPropertyValue(FeatureMemento.CAN_DELETE);
+        return mySettings.get(FeatureMemento.CAN_DELETE, false);
     }
 
     /**
@@ -269,7 +270,7 @@ public class Feature implements Mementor {
      * Get visible state
      */
     public Boolean getOnlyMode() {
-        return mySettings.getPropertyValue(FeatureMemento.ONLY);
+        return mySettings.get(FeatureMemento.ONLY, false);
     }
 
     /**

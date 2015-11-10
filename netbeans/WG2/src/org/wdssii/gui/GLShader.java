@@ -8,14 +8,13 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.IntBuffer;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
 
 import javax.media.opengl.GL;
-import org.wdssii.core.W2Config;
 
-import org.wdssii.gui.util.FileUtil;
+import org.wdssii.core.W2Config;
 import org.wdssii.gui.volumes.IsoBox;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * The class for loading/attaching/building shader programs into the display.

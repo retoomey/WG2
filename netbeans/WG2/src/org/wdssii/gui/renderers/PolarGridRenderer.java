@@ -1,7 +1,5 @@
 package org.wdssii.gui.renderers;
 
-import org.wdssii.gui.features.Feature3DRenderer;
-import com.sun.opengl.util.j2d.TextRenderer;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
@@ -9,37 +7,40 @@ import java.awt.geom.Rectangle2D;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import javax.media.opengl.GL;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
+
 import org.wdssii.core.WdssiiJob;
-import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
-import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.PPIRadialSet;
+import org.wdssii.datatypes.RadialUtil;
 import org.wdssii.geom.Location;
+import org.wdssii.geom.V2;
+import org.wdssii.geom.V3;
+import org.wdssii.gui.GLUtil;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.PolarGridFeature.PolarGridMemento;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.storage.GrowList;
-import org.wdssii.gui.GLUtil;
-import org.wdssii.datatypes.RadialUtil;
-import org.wdssii.gui.GLWorld;
-import org.wdssii.geom.V2;
-import org.wdssii.geom.V3;
+
+import com.sun.opengl.util.j2d.TextRenderer;
 
 /**
  *
  * @author Robert Toomey
  *
- * Render a PolarGrid, a collection of ranged circles around a center point
- * FIXME: worried about polygonData lock being possibly called out of order from
- * workerlock...hummm..check this.
+ *         Render a PolarGrid, a collection of ranged circles around a center
+ *         point FIXME: worried about polygonData lock being possibly called out
+ *         of order from workerlock...hummm..check this.
  *
  */
 public class PolarGridRenderer extends Feature3DRenderer {
@@ -52,8 +53,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 	/**
 	 * Offset array, one per Polygon
 	 *
-	 * I'm allowing appending to this object by one thread while reading
-	 * from another.
+	 * I'm allowing appending to this object by one thread while reading from
+	 * another.
 	 */
 	private GrowList<Integer> myOffsets;
 	/**
@@ -69,6 +70,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 
 	public PolarGridRenderer() {
 	}
+
 	/**
 	 * The worker job if we are threading
 	 */
@@ -122,32 +124,30 @@ public class PolarGridRenderer extends Feature3DRenderer {
 		/**
 		 * Do the work of generating the OpenGL stuff
 		 */
-		public WdssiiJobStatus create(GLWorld w, PolarGridMemento p,
-			PolarGridRenderer r, WdssiiJobMonitor monitor) {
+		public WdssiiJobStatus create(GLWorld w, PolarGridMemento p, PolarGridRenderer r, WdssiiJobMonitor monitor) {
 
 			int idx = 0;
 
-			//	int myMaxR = 500; // firstgate+(numgates*gatewidth)....for a radialset
-			int range = (Integer) p.getPropertyValue(PolarGridMemento.RING_RANGE);
-			int ringApart = range / 1000;
-			//		int numCircles;
-			int numCircles = (Integer) p.getPropertyValue(PolarGridMemento.RING_COUNT);
+			Integer range = p.get(PolarGridMemento.RING_RANGE, 1000);
+			Integer numCircles = p.get(PolarGridMemento.RING_COUNT, 20);
+			float ringApart = range / 1000.0f;
+
 			LOG.debug("CREATING with number of rings..." + numCircles);
 			if (numCircles < 1) {
 				numCircles = 1;
 			} // HAVE to have at least one
 
-			V2 center = p.getPropertyValue(PolarGridMemento.CENTER);
-			Location ourCenter = new Location(center.x,
-				center.y, 0);
+		    V2 center = null;
+		    center = p.get(PolarGridMemento.CENTER, center);
+			Location ourCenter = new Location(center.x, center.y, 0);
 			LOG.debug("Center is at " + ourCenter);
 
-//			if (ringApart > myMaxR) {
-//				numCircles = 1;
-//			} else {
-//				numCircles = (int) (0.5 + ((float) myMaxR) / ringApart);
-//			}
-			double elev = (Double) p.getPropertyValue(PolarGridMemento.ELEV_DEGREES);
+			// if (ringApart > myMaxR) {
+			// numCircles = 1;
+			// } else {
+			// numCircles = (int) (0.5 + ((float) myMaxR) / ringApart);
+			// }
+			Double elev = p.get(PolarGridMemento.ELEV_DEGREES, 50.0d);
 			final double sinElevAngle = Math.sin(Math.toRadians(elev));
 			final double cosElevAngle = Math.cos(Math.toRadians(elev));
 			final int numSegments = 10;
@@ -167,15 +167,17 @@ public class PolarGridRenderer extends Feature3DRenderer {
 
 			// Allocate memory...
 			Array1D<Float> workPolygons = new Array1DfloatAsNodes(
-				(numCircles * (numSegs + 1) * 3) // Number of circle points
-				+ (numSpokes * (numCircles + 1) * 3), // Number of spoke points
-				0.0f);
+					(numCircles * (numSegs + 1) * 3) // Number of circle points
+							+ (numSpokes * (numCircles + 1) * 3), // Number of
+																	// spoke
+																	// points
+					0.0f);
 			GrowList<Integer> workOffsets = new GrowList<Integer>();
 			GrowList<V3> workLabelPoints = new GrowList<V3>();
 			GrowList<String> workLabelStrings = new GrowList<String>();
-			workOffsets.add(0);  // Just one for now
+			workOffsets.add(0); // Just one for now
 
-			int rangeKMS = ringApart;
+			float rangeKMS = ringApart;
 
 			// -----------------------------------------------------------------------
 			// Ring pass...
@@ -184,15 +186,9 @@ public class PolarGridRenderer extends Feature3DRenderer {
 				for (int d = 0; d <= maxDegree; d += degStep) {
 					double sinAzimuthRAD = Math.sin(Math.toRadians(d));
 					double cosAzimuthRAD = Math.cos(Math.toRadians(d));
-					RadialUtil.getAzRanElLocation(l, ourCenter,
-						sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
-						sinElevAngle, cosElevAngle);
-					//Vec4 point = myGlobe.computePointFromPosition(
-					//	Angle.fromDegrees(l.getLatitude()),
-					//	Angle.fromDegrees(l.getLongitude()),
-				//		l.getHeightKms() * 1000.0);
-                                        
-                                        V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms()*1000.0);
+					RadialUtil.getAzRanElLocation(l, ourCenter, sinAzimuthRAD, cosAzimuthRAD, rangeKMS, sinElevAngle,
+							cosElevAngle);
+					V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms() * 1000.0);
 					workPolygons.set(idx++, (float) point.x);
 					workPolygons.set(idx++, (float) point.y);
 					workPolygons.set(idx++, (float) point.z);
@@ -202,40 +198,41 @@ public class PolarGridRenderer extends Feature3DRenderer {
 				// Update our renderer once a ring...abort if we're stale
 				if (!r.updateData(this, workOffsets, workPolygons, workLabelPoints, workLabelStrings, false)) {
 					return WdssiiJobStatus.OK_STATUS;
-				};
+				}
+				;
 			}
 
 			// -----------------------------------------------------------------------
 			// Spoke pass...
 
 			// Calculate the absolute center, shared by each spoke....
-			//Vec4 cpoint = myGlobe.computePointFromPosition(
-			//	Angle.fromDegrees(ourCenter.getLatitude()),
-			//	Angle.fromDegrees(ourCenter.getLongitude()),
-			//	ourCenter.getHeightKms() * 1000.0);
-                        
-                        V3 cpoint = w.projectLLH(ourCenter.getLatitude(), ourCenter.getLongitude(), ourCenter.getHeightKms()*1000.0);
+			// Vec4 cpoint = myGlobe.computePointFromPosition(
+			// Angle.fromDegrees(ourCenter.getLatitude()),
+			// Angle.fromDegrees(ourCenter.getLongitude()),
+			// ourCenter.getHeightKms() * 1000.0);
+
+			V3 cpoint = w.projectLLH(ourCenter.getLatitude(), ourCenter.getLongitude(),
+					ourCenter.getHeightKms() * 1000.0);
 			// For each step in spoke degrees....
 			int spokeAngle = 0;
 			for (int d = 0; d < numSpokes; d += 1) {
 				double sinAzimuthRAD = Math.sin(Math.toRadians(spokeAngle));
 				double cosAzimuthRAD = Math.cos(Math.toRadians(spokeAngle));
 
-				// Add center... note we have to have at least ONE circle 
+				// Add center... note we have to have at least ONE circle
 				// to complete the linestrip
 				workPolygons.set(idx++, (float) cpoint.x);
 				workPolygons.set(idx++, (float) cpoint.y);
 				workPolygons.set(idx++, (float) cpoint.z);
 				rangeKMS = ringApart;
 				for (int c = 0; c < numCircles; c++) {
-					RadialUtil.getAzRanElLocation(l, ourCenter,
-						sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
-						sinElevAngle, cosElevAngle);
-					//Vec4 point = myGlobe.computePointFromPosition(
-					//	Angle.fromDegrees(l.getLatitude()),
-					//	Angle.fromDegrees(l.getLongitude()),
-					//	l.getHeightKms() * 1000.0);
-                                        V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms()*1000.0);
+					RadialUtil.getAzRanElLocation(l, ourCenter, sinAzimuthRAD, cosAzimuthRAD, rangeKMS, sinElevAngle,
+							cosElevAngle);
+					// Vec4 point = myGlobe.computePointFromPosition(
+					// Angle.fromDegrees(l.getLatitude()),
+					// Angle.fromDegrees(l.getLongitude()),
+					// l.getHeightKms() * 1000.0);
+					V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms() * 1000.0);
 					workPolygons.set(idx++, (float) point.x);
 					workPolygons.set(idx++, (float) point.y);
 					workPolygons.set(idx++, (float) point.z);
@@ -251,27 +248,24 @@ public class PolarGridRenderer extends Feature3DRenderer {
 
 			// -----------------------------------------------------------------------
 			// Label pass
-			// Draw priority with our rectangles is outside first 
+			// Draw priority with our rectangles is outside first
 			rangeKMS = ringApart;
 			for (int c = numCircles; c > 0; c--) {
 				double sinAzimuthRAD = Math.sin(Math.toRadians(labelDegree));
 				double cosAzimuthRAD = Math.cos(Math.toRadians(labelDegree));
-				RadialUtil.getAzRanElLocation(l, ourCenter,
-					sinAzimuthRAD, cosAzimuthRAD, rangeKMS,
-					sinElevAngle, cosElevAngle);
-				//Vec4 point = myGlobe.computePointFromPosition(
-				//	Angle.fromDegrees(l.getLatitude()),
-				//	Angle.fromDegrees(l.getLongitude()),
-				//	l.getHeightKms() * 1000.0);
-                                V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms()*1000.0);
+				RadialUtil.getAzRanElLocation(l, ourCenter, sinAzimuthRAD, cosAzimuthRAD, rangeKMS, sinElevAngle,
+						cosElevAngle);
 
-				// Add STRING first, draw thread will use size of points to render,
+				V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms() * 1000.0);
+
+				// Add STRING first, draw thread will use size of points to
+				// render,
 				// so we need to make sure string is available
-				workLabelStrings.add(String.format("%d Km", rangeKMS));
+				// FIXME: need more intelligent labeling for low values...
+				workLabelStrings.add(String.format("%d Km", (int)(rangeKMS)));
 				workLabelPoints.add(point);
 				rangeKMS += ringApart;
 			}
-
 
 			// Final update...
 			r.updateData(this, workOffsets, workPolygons, workLabelPoints, workLabelStrings, true);
@@ -280,8 +274,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 	}
 
 	/**
-	 * Tell if this changes requires a new background job. Some changes,
-	 * like line thickness are done by the renderer on the fly
+	 * Tell if this changes requires a new background job. Some changes, like
+	 * line thickness are done by the renderer on the fly
 	 */
 	public boolean changeNeedsUpdate(PolarGridMemento new1, PolarGridMemento old) {
 		boolean needsUpdate = false;
@@ -289,19 +283,20 @@ public class PolarGridRenderer extends Feature3DRenderer {
 			return true;
 		}
 		// If rings change we need a new worker...
-		int newRing = (Integer) new1.getPropertyValue(PolarGridMemento.RING_COUNT);
-		int oldRing = (Integer) old.getPropertyValue(PolarGridMemento.RING_COUNT);
+		Integer newRing = new1.get(PolarGridMemento.RING_COUNT, 20);
+		Integer oldRing = old.get(PolarGridMemento.RING_COUNT, 20);
 		if (newRing != oldRing) {
 			needsUpdate = true;
 		}
-		int newRange = (Integer) new1.getPropertyValue(PolarGridMemento.RING_RANGE);
-		int oldRange = (Integer) old.getPropertyValue(PolarGridMemento.RING_RANGE);
+		Integer newRange = new1.get(PolarGridMemento.RING_RANGE, 1000);
+		Integer oldRange = old.get(PolarGridMemento.RING_RANGE, 1000);
 		if (newRange != oldRange) {
 			needsUpdate = true;
 		}
 
-		// Follow the top selected RadialSet product.  Could make this a setting
-		// If following top, we should hide our visibility when there isn't a top
+		// Follow the top selected RadialSet product. Could make this a setting
+		// If following top, we should hide our visibility when there isn't a
+		// top
 		// selected RadialSet...
 		String useKey = ProductManager.TOP_PRODUCT;
 		ProductFeature tph = ProductManager.getInstance().getProductFeature(useKey);
@@ -316,7 +311,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 					double latDegs = l.getLatitude();
 					double lonDegs = l.getLongitude();
 					// Why am I mixing worldwind LatLon with wdssii location?
-					V2 ll = old.getPropertyValue(PolarGridMemento.CENTER);
+					V2 ll = null;
+					ll = old.get(PolarGridMemento.CENTER, ll);
 					double latOldDegs = ll.x;
 					double lonOldDegs = ll.y;
 
@@ -326,7 +322,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 						new1.setProperty(PolarGridMemento.CENTER, aLatLon);
 					}
 
-					Double oldElev = old.getPropertyValue(PolarGridMemento.ELEV_DEGREES);
+					Double oldElev = old.get(PolarGridMemento.ELEV_DEGREES, 50.0d);
 					double newElev = radial.getFixedAngleDegs();
 					if (oldElev != newElev) {
 						needsUpdate = true;
@@ -339,9 +335,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 	}
 
 	/**
-	 * Draw the product in the current dc. FIXME: Shared code with map
-	 * renderer right now.....do we merge some of these classes or make util
-	 * functions?
+	 * Draw the product in the current dc. FIXME: Shared code with map renderer
+	 * right now.....do we merge some of these classes or make util functions?
 	 */
 	@Override
 	public void draw(GLWorld w, FeatureMemento mf) {
@@ -367,7 +362,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 		synchronized (drawLock) {
 			if (isCreated() && (polygonData != null)) {
 				final GL gl = w.gl;
-				Color line = (Color) m.getPropertyValue(PolarGridMemento.LINE_COLOR);
+				Color line = m.get(PolarGridMemento.LINE_COLOR, Color.WHITE);
 				final float r = line.getRed() / 255.0f;
 				final float g = line.getGreen() / 255.0f;
 				final float b = line.getBlue() / 255.0f;
@@ -378,20 +373,16 @@ public class PolarGridRenderer extends Feature3DRenderer {
 					Object lock1 = polygonData.getBufferLock();
 					synchronized (lock1) {
 
-						gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT
-							| GL.GL_COLOR_BUFFER_BIT
-							| GL.GL_ENABLE_BIT
-							| GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT
-							| GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT
-							| GL.GL_LINE_BIT);
+						gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT | GL.GL_COLOR_BUFFER_BIT
+								| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
+								| GL.GL_CURRENT_BIT | GL.GL_LINE_BIT);
 						attribsPushed = true;
 
 						gl.glDisable(GL.GL_LIGHTING);
 						gl.glDisable(GL.GL_TEXTURE_2D);
 						gl.glDisable(GL.GL_DEPTH_TEST);
 						gl.glShadeModel(GL.GL_FLAT);
-						gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT
-							| GL.GL_CLIENT_PIXEL_STORE_BIT);
+						gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT | GL.GL_CLIENT_PIXEL_STORE_BIT);
 						gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 						// gl.glEnableClientState(GL.GL_COLOR_ARRAY);
 
@@ -404,7 +395,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 						statePushed = true;
 						FloatBuffer z = polygonData.getRawBuffer();
 						gl.glColor4f(r, g, b, a);
-						Integer t = m.getPropertyValue(PolarGridMemento.LINE_THICKNESS);
+						Integer t = m.get(PolarGridMemento.LINE_THICKNESS, 1);
 						gl.glLineWidth(t);
 						GLUtil.renderArrays(w.gl, z, myOffsets, GL.GL_LINE_STRIP);
 
@@ -424,24 +415,22 @@ public class PolarGridRenderer extends Feature3DRenderer {
 				if (aText == null) {
 					aText = new TextRenderer(font, true, true);
 				}
-				//Globe myGlobe = dc.getGlobe();
+				// Globe myGlobe = dc.getGlobe();
 				Rectangle2DIntersector i = new Rectangle2DIntersector();
 				// Get the iterator for the object updated LAST
 				Iterator<V3> points = myLabelPoints.iterator();
 				Iterator<String> strings = myLabelStrings.iterator();
-				//final View myView = dc.getView();
-
+				// final View myView = dc.getView();
 
 				GLUtil.pushOrtho2D(w);
 				aText.begin3DRendering();
 				while (strings.hasNext()) {
 					final V3 v = points.next();
 					final String l = strings.next();
-					//final V2 s = myView.project(v);
-                                        final V2 s =  w.project(v);
+					// final V2 s = myView.project(v);
+					final V2 s = w.project(v);
 					Rectangle2D bounds = aText.getBounds(l);
-					bounds.setRect(bounds.getX() + s.x, bounds.getY() + s.y,
-						bounds.getWidth(), bounds.getHeight());
+					bounds.setRect(bounds.getX() + s.x, bounds.getY() + s.y, bounds.getWidth(), bounds.getHeight());
 					if (!i.intersectsAdd(bounds)) {
 						GLUtil.cheezyOutline(aText, l, Color.WHITE, Color.BLACK, (int) s.x, (int) s.y);
 					}
@@ -453,8 +442,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 	}
 
 	/**
-	 * Simple rectangle collection intersection. Not optimized, this could
-	 * be better with an interval binary search tree....
+	 * Simple rectangle collection intersection. Not optimized, this could be
+	 * better with an interval binary search tree....
 	 */
 	public static class Rectangle2DIntersector {
 
@@ -465,7 +454,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 		 */
 		public boolean intersectsAdd(Rectangle2D newOne) {
 			boolean hits = false;
-			for (Rectangle2D r : myRects) {  // O(N)
+			for (Rectangle2D r : myRects) { // O(N)
 				if (r.intersects(newOne)) {
 					hits = true;
 					break;
@@ -487,16 +476,16 @@ public class PolarGridRenderer extends Feature3DRenderer {
 
 	/**
 	 * Update our data to the data of a worker. Note because of threads for
-	 * brief time periods more than one worker might be going. (Fast
-	 * changing of settings). The worker will stop on false
+	 * brief time periods more than one worker might be going. (Fast changing of
+	 * settings). The worker will stop on false
 	 */
 	public boolean updateData(BackgroundPolarGridMaker worker, GrowList<Integer> off, Array1D<Float> poly,
-		GrowList<V3> points, GrowList<String> labels, boolean done) {
+			GrowList<V3> points, GrowList<String> labels, boolean done) {
 
-		// WorkerLock --> drawLock.  Never switch order
+		// WorkerLock --> drawLock. Never switch order
 		boolean keepWorking;
 		synchronized (workerLock) {
-			// See if worker changed..if so 
+			// See if worker changed..if so
 			if (worker == myWorker) {
 
 				synchronized (drawLock) {

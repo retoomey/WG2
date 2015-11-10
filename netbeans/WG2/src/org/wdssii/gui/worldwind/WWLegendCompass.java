@@ -20,7 +20,7 @@ public class WWLegendCompass extends WorldWindLayerRenderer {
 
     @Override
     public void draw(GLWorld w, FeatureMemento m) {
-        Boolean on = m.getPropertyValue(LegendFeature.LegendMemento.SHOWCOMPASS);
+    	Boolean on = m.get(LegendFeature.LegendMemento.SHOWCOMPASS, true);
         if (on) {
             //String path = SwingIconFactory.getIconPath("compass.png");
             //myCompass.setIconFilePath(path);

@@ -2,16 +2,17 @@ package org.wdssii.gui.commands;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
+
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.PreferencesManager;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
 import org.wdssii.gui.sources.IndexSource;
 import org.wdssii.gui.sources.Source;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * Add a new source (and then spawn a connect to it)

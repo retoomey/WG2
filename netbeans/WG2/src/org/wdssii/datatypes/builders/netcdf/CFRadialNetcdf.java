@@ -167,7 +167,7 @@ public class CFRadialNetcdf extends DataTypeNetcdf {
         // float  4 byte, floating point
         // double 8 byte, floating point
         // float value = (integer value)*scale_factor + add_offset;
-        Class c = gate_values.getElementType();
+        Class<?> c = gate_values.getElementType();
         int t = 0;
         if (c == short.class){
             t = 1;

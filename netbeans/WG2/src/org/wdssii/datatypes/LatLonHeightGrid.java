@@ -4,10 +4,9 @@
  */
 package org.wdssii.datatypes;
 
-import java.net.URL;
 import java.util.ArrayList;
+
 import org.wdssii.geom.Location;
-import org.wdssii.geom.GridVisibleArea;
 import org.wdssii.storage.Array3D;
 
 /**

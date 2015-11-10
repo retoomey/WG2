@@ -25,7 +25,7 @@ public final class SymbologyFactory {
     /**
      * A list of classes matching the Symbology array
      */
-    private static final Class theEditors[] = {
+    private static final Class<?> theEditors[] = {
         SingleSymbol.class,
         CategoryUniqueValues.class
     };

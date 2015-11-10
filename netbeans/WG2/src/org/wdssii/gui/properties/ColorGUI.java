@@ -7,6 +7,7 @@ import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 
@@ -22,7 +23,7 @@ public class ColorGUI extends PropertyGUI {
         super(f, property);
         // Create colored button...
         JButton b = new JButton("     ");
-        b.setBackground((Color) f.getMemento().getPropertyValue(property));
+        b.setBackground(f.getMemento().get(property, b.getBackground()));
         myBackground = b;
         
         // Humm is this ok?
@@ -44,7 +45,7 @@ public class ColorGUI extends PropertyGUI {
 
     @Override
     public void update(Memento use) {
-        value.setBackground((Color) use.getPropertyValue(property));
+        value.setBackground((Color) use.get(property, value.getBackground()));
     }
 
     /**

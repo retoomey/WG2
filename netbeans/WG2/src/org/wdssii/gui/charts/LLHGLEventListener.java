@@ -1,21 +1,20 @@
 package org.wdssii.gui.charts;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import static org.wdssii.gui.charts.VSliceChart.myNumCols;
+import static org.wdssii.gui.charts.VSliceChart.myNumRows;
+
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
-import org.wdssii.core.StopWatch;
-import org.wdssii.geom.V3;
+
 import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.GLWorld;
-
-import static org.wdssii.gui.charts.VSliceChart.myNumCols;
-import static org.wdssii.gui.charts.VSliceChart.myNumRows;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.VolumeSlice2DOutput;
 import org.wdssii.gui.products.VolumeSliceInput;
@@ -23,6 +22,8 @@ import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+
+import com.sun.opengl.util.j2d.TextRenderer;
 
 /**
  *

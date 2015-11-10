@@ -1,11 +1,10 @@
 package org.wdssii.gui.commands;
 
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.properties.Memento;
-import org.wdssii.gui.features.Feature;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.FeatureMemento;
 
 /**
  * FeatureChangeCommand sent when a stock feature setting is changed in the

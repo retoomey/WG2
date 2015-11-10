@@ -813,8 +813,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 													// control...hummm
 			// currently copying all points into 'points'
 			ArrayList<LLD_X> newList = new ArrayList<LLD_X>();
-			@SuppressWarnings("unchecked")
-			ArrayList<LLD_X> list = ((ArrayList<LLD_X>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+			ArrayList<LLD_X> list = null;
+			list = m.get(LLHAreaSet.LLHAreaSetMemento.POINTS, list);
 			for (LLD_X l : list) {
 				LLD_X copy = new LLD_X(l);
 				newList.add(copy);
@@ -917,8 +917,8 @@ public class LLHAreaLayer extends AbstractLayer implements WWCategoryLayer {
 			FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui
 													// control...hummm
 			// currently copying all points into 'points'
-			@SuppressWarnings("unchecked")
-			ArrayList<LLD_X> list = ((ArrayList<LLD_X>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+			ArrayList<LLD_X> list = null;
+			list = m.get(LLHAreaSet.LLHAreaSetMemento.POINTS, list);
 			if (list != null) {
 
 				// Delta from original point to current point...

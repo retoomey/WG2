@@ -6,6 +6,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 
@@ -31,18 +32,9 @@ public class IntegerGUI extends PropertyGUI {
         JSpinner s = new JSpinner();
         int vin = min;
 
-        Memento m = f.getMemento();
-        try {
-
-            Integer v = ((Integer) m.getPropertyValue(property));
-            if (v != null) {
-                vin = v.intValue();
-            }
-        } catch (Exception e) {
-            int a = 1;
-            Object something = m.getPropertyValue(property);
-        }
-
+        Integer v = f.getMemento().get(property, vin);
+        vin = v.intValue();
+      
         vin = Math.max(Math.min(max, vin), min);
         SpinnerNumberModel model = new SpinnerNumberModel(
                 vin, //initial value
@@ -71,7 +63,7 @@ public class IntegerGUI extends PropertyGUI {
     @Override
     public void update(Memento use) {
         JSpinner v = (JSpinner) (value);
-        v.setValue(use.getPropertyValue(property));
+        v.setValue(use.get(property, 0));
     }
 
     /**

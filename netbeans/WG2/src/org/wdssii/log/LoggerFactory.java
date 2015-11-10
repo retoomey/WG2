@@ -17,7 +17,7 @@ public class LoggerFactory {
     /**
      * Get the logger from factory
      */
-    public static Logger getLogger(Class aClass) {
+    public static Logger getLogger(Class<?> aClass) {
         if (theFactory != null) {
             return theFactory.getLoggerImpl(aClass);
         } else {
@@ -36,7 +36,7 @@ public class LoggerFactory {
     /**
      * Kinda abstract, but not since we allow null logging above
      */
-    public Logger getLoggerImpl(Class aClass) {
+    public Logger getLoggerImpl(Class<?> aClass) {
         return null;
     }
 

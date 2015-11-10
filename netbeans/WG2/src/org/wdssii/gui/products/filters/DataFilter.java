@@ -3,9 +3,7 @@ package org.wdssii.gui.products.filters;
 import java.util.ArrayList;
 
 import org.wdssii.datatypes.DataType.DataTypeQuery;
-import org.wdssii.core.CommandManager;
 import org.wdssii.gui.GUISetting;
-import org.wdssii.gui.commands.ProductChangeCommand;
 import org.wdssii.gui.products.volumes.ProductVolume;
 
 /**

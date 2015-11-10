@@ -1,8 +1,5 @@
 package org.wdssii.gui.views.infonode;
 
-import com.jidesoft.swing.JideMenu;
-import com.jidesoft.swing.JideSplitButton;
-import org.wdssii.gui.views.WdssiiDockedViewFactory;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -27,19 +24,71 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import javax.swing.*;
+
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
-import net.infonode.docking.*;
+
+import org.wdssii.core.CommandManager;
+import org.wdssii.gui.Application;
+import org.wdssii.gui.commands.ExitCommand;
+import org.wdssii.gui.commands.NewCommand;
+import org.wdssii.gui.commands.OpenCommand;
+import org.wdssii.gui.commands.SaveCommand;
+import org.wdssii.gui.views.DataFeatureView;
+import org.wdssii.gui.views.ViewManager;
+import org.wdssii.gui.views.ViewManager.RootContainer;
+import org.wdssii.gui.views.ViewManager.ViewMaker;
+import org.wdssii.gui.views.WdssiiDockedViewFactory;
+import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
+import org.wdssii.gui.views.WdssiiView;
+import org.wdssii.gui.views.WorldLayoutManager;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
+
+import com.jidesoft.swing.JideMenu;
+import com.jidesoft.swing.JideSplitButton;
+
+import net.infonode.docking.DockingWindow;
+import net.infonode.docking.DockingWindowAdapter;
+import net.infonode.docking.FloatingWindow;
+import net.infonode.docking.OperationAbortedException;
+import net.infonode.docking.RootWindow;
+import net.infonode.docking.SplitWindow;
+import net.infonode.docking.TabWindow;
+import net.infonode.docking.View;
+import net.infonode.docking.ViewSerializer;
+import net.infonode.docking.WindowBar;
 import net.infonode.docking.mouse.DockingWindowActionMouseButtonListener;
 import net.infonode.docking.properties.DockingWindowProperties;
 import net.infonode.docking.properties.RootWindowProperties;
 import net.infonode.docking.properties.ViewProperties;
 import net.infonode.docking.properties.ViewTitleBarProperties;
-import net.infonode.docking.theme.*;
+import net.infonode.docking.theme.BlueHighlightDockingTheme;
+import net.infonode.docking.theme.ClassicDockingTheme;
+import net.infonode.docking.theme.DefaultDockingTheme;
+import net.infonode.docking.theme.DockingWindowsTheme;
+import net.infonode.docking.theme.GradientDockingTheme;
+import net.infonode.docking.theme.LookAndFeelDockingTheme;
+import net.infonode.docking.theme.ShapedGradientDockingTheme;
+import net.infonode.docking.theme.SlimFlatDockingTheme;
+import net.infonode.docking.theme.SoftBlueIceDockingTheme;
 import net.infonode.docking.util.DockingUtil;
 import net.infonode.docking.util.MixedViewHandler;
 import net.infonode.docking.util.ViewMap;
@@ -49,22 +98,6 @@ import net.infonode.gui.laf.InfoNodeLookAndFeelTheme;
 import net.infonode.tabbedpanel.TabAreaVisiblePolicy;
 import net.infonode.tabbedpanel.TabLayoutPolicy;
 import net.infonode.util.Direction;
-import org.wdssii.core.CommandManager;
-import org.wdssii.gui.Application;
-import org.wdssii.gui.charts.DataView;
-import org.wdssii.gui.commands.ExitCommand;
-import org.wdssii.gui.commands.NewCommand;
-import org.wdssii.gui.commands.OpenCommand;
-import org.wdssii.gui.commands.SaveCommand;
-import org.wdssii.gui.views.DataFeatureView;
-import org.wdssii.gui.views.ViewManager;
-import org.wdssii.gui.views.ViewManager.RootContainer;
-import org.wdssii.gui.views.ViewManager.ViewMaker;
-import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
-import org.wdssii.gui.views.WdssiiView;
-import org.wdssii.gui.views.WorldLayoutManager;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
 
 /**
  * The main window layout using infonode
@@ -980,69 +1013,6 @@ public class InfonodeViews implements ViewMaker {
     }
 
     /**
-     * Creates the menu where layout can be saved/loaded and a frame shown with
-     * Java pseudo-like code over the current layout in the root window.
-     *
-     * @return the layout menu
-     */
-    /*
-     * private JMenu createLayoutMenu() { JMenu layoutMenu = new
-     * JMenu("Layout");
-     *
-     * layoutMenu.add("Default Layout").addActionListener( new ActionListener()
-     * {
-     *
-     * public void actionPerformed(ActionEvent e) { setDefaultLayout(); } });
-     *
-     * layoutMenu.addSeparator();
-     *
-     * for (int i = 0; i < layouts.length; i++) { final int j = i;
-     *
-     * layoutMenu.add("Save Layout " + i).addActionListener( new
-     * ActionListener() {
-     *
-     * public void actionPerformed(ActionEvent e) { try { // Save the layout in
-     * a byte array ByteArrayOutputStream bos = new ByteArrayOutputStream();
-     * ObjectOutputStream out = new ObjectOutputStream( bos);
-     * rootWindow.write(out, false); out.close(); layouts[j] =
-     * bos.toByteArray(); } catch (IOException e1) { throw new
-     * RuntimeException(e1); } } }); }
-     *
-     * layoutMenu.addSeparator();
-     *
-     * for (int i = 0; i < layouts.length; i++) { final int j = i;
-     *
-     * layoutMenu.add("Load Layout " + j).addActionListener( new
-     * ActionListener() {
-     *
-     * public void actionPerformed(ActionEvent e) {
-     * SwingUtilities.invokeLater(new Runnable() {
-     *
-     * public void run() { if (layouts[j] != null) { try { // Load the layout
-     * from a byte array ObjectInputStream in = new ObjectInputStream( new
-     * ByteArrayInputStream( layouts[j])); rootWindow.read(in, true);
-     * in.close(); } catch (IOException e1) { throw new RuntimeException( e1); }
-     * } } }); } }); }
-     *
-     * layoutMenu.addSeparator();
-     *
-     * layoutMenu.add("Show Window Layout Frame").addActionListener( new
-     * ActionListener() {
-     *
-     * public void actionPerformed(ActionEvent e) {
-     * DeveloperUtil.createWindowLayoutFrame( "Root Window Layout as Java
-     * Pseudo-like Code", rootWindow).setVisible(true); } }); return layoutMenu;
-     * }
-     */
-    private static void setTitleBarMode(boolean flag) {
-        if (flag) {
-//			properties.addSuperObject(titleBarStyleProperties);
-        } else {
-//			properties.removeSuperObject(titleBarStyleProperties);
-        }
-    }
-
-    /**
      * Creates the menu where the theme can be changed.
      *
      * @return the theme menu
@@ -1402,11 +1372,6 @@ public class InfonodeViews implements ViewMaker {
             // Freeze tab reordering inside tabbed panel
             properties.getTabWindowProperties().getTabbedPanelProperties().setTabReorderEnabled(!freeze);
         }
-    }
-
-    private JToolBar createWindowToolbar() {
-        JToolBar bar = new JToolBar();
-        return bar;
     }
 
     /**

@@ -1,7 +1,11 @@
 package org.wdssii.gui.views;
 
 import java.awt.Component;
-import java.awt.event.*;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -10,25 +14,26 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableRowSorter;
-import net.miginfocom.layout.CC;
-import net.miginfocom.swing.MigLayout;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
-import org.wdssii.gui.RadarInfo;
-import org.wdssii.xml.SourceBookmarks;
-import org.wdssii.xml.SourceBookmarks.BookmarkURLData;
-import org.wdssii.xml.SourceBookmarks.BookmarkURLSource;
-import org.wdssii.datatypes.builders.Builder.BuilderFileInfo;
+
 import org.wdssii.core.CommandManager;
+import org.wdssii.core.StringUtil;
+import org.wdssii.datatypes.builders.Builder.BuilderFileInfo;
+import org.wdssii.gui.RadarInfo;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
 import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;
@@ -38,7 +43,14 @@ import org.wdssii.gui.swing.CONUSJPanel;
 import org.wdssii.gui.swing.CONUSJPanel.CONUSJPanelListener;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
-import org.wdssii.core.StringUtil;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
+import org.wdssii.xml.SourceBookmarks;
+import org.wdssii.xml.SourceBookmarks.BookmarkURLData;
+import org.wdssii.xml.SourceBookmarks.BookmarkURLSource;
+
+import net.miginfocom.layout.CC;
+import net.miginfocom.swing.MigLayout;
 
 /**
  *

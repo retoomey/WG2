@@ -1,29 +1,41 @@
 package org.wdssii.gui.views;
 
-import org.wdssii.core.CommandListener;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import javax.swing.*;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTable;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import net.miginfocom.layout.CC;
-import net.miginfocom.layout.LC;
-import net.miginfocom.swing.MigLayout;
+
+import org.wdssii.core.CommandListener;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.commands.*;
+import org.wdssii.gui.commands.CacheClearCommand;
+import org.wdssii.gui.commands.CacheCommand;
+import org.wdssii.gui.commands.CacheSetSizeCommand;
+import org.wdssii.gui.commands.ProductCommand;
+import org.wdssii.gui.commands.SourceCommand;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.swing.JThreadPanel;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.storage.DataManager;
+
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
 
 public class CacheView extends JThreadPanel implements CommandListener {
 

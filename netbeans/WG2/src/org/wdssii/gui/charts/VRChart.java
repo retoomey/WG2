@@ -1,18 +1,16 @@
 package org.wdssii.gui.charts;
 
-import com.jidesoft.swing.JideToggleButton;
 import java.awt.Container;
 import java.util.List;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GLEventListener;
 import javax.swing.Icon;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
 import org.wdssii.gui.ProductManager;
-import static org.wdssii.gui.charts.VRChart.myNumCols;
-import static org.wdssii.gui.charts.VRChart.myNumRows;
-import static org.wdssii.gui.charts.LLHAreaChartGL.getGISLabel;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
@@ -22,6 +20,8 @@ import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.volumes.LLHAreaSet;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+
+import com.jidesoft.swing.JideToggleButton;
 
 /**
  * CAPPI is the horizontal vertical slice

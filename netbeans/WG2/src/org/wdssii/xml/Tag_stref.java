@@ -1,10 +1,11 @@
 package org.wdssii.xml;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+
 import org.wdssii.geom.Location;
 
 /**

@@ -30,8 +30,7 @@ public class StringGUI extends PropertyGUI {
         myTextField = b;
         myButton = bt;
         
-        b.setText((String)f.getMemento().getPropertyValue(property));
-                
+        b.setText(f.getMemento().get(property, "?"));       
         b.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -54,7 +53,7 @@ public class StringGUI extends PropertyGUI {
     @Override
     public void update(Memento use) {
     	JTextField v = (JTextField) (value);
-    	v.setText((String)use.getPropertyValue(property));
+    	v.setText(use.get(property, "?"));
     }
 
     /**

@@ -1,7 +1,5 @@
 package org.wdssii.gui.worldwind;
 
-import org.wdssii.gui.features.Feature3DRenderer;
-import gov.nasa.worldwind.layers.Layer;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -9,23 +7,25 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
-import javax.swing.*;
+
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
-import net.miginfocom.layout.CC;
-import net.miginfocom.layout.LC;
-import net.miginfocom.swing.MigLayout;
-import org.wdssii.core.CommandManager;
-import org.wdssii.gui.commands.FeatureChangeCommand;
+
 import org.wdssii.gui.features.FeatureGUI;
-import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.worldwind.WorldwindStockFeature.WorldwindStockMemento;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.TableUtil;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
-import org.wdssii.gui.worldwind.WWCategoryLayer;
+
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
 
 /**
  * LegendGUI handles gui controls for colorkey

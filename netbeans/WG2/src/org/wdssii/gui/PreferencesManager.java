@@ -1,18 +1,18 @@
 package org.wdssii.gui;
 
 import java.net.URL;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
+
 import org.wdssii.core.CommandManager;
 import org.wdssii.core.Singleton;
-import org.wdssii.gui.commands.SourceAddCommand;
-import org.wdssii.gui.sources.SourceList;
 import org.wdssii.core.StringUtil;
 import org.wdssii.gui.commands.FeatureDeleteCommand.FeatureDeleteAllCommand;
 import org.wdssii.gui.commands.OpenCommand;
-import org.wdssii.gui.commands.SourceDeleteCommand;
+import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.commands.SourceDeleteCommand.SourceDeleteAllCommand;
+import org.wdssii.gui.sources.SourceList;
 import org.wdssii.gui.views.ViewManager;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.xml.Util;
 import org.wdssii.xml.config.Source;
 import org.wdssii.xml.config.W2Pref;

@@ -507,7 +507,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		
 		// Pass in viewport to avoid getting width from context, since it
 		// could be wrong for lightweight
-		Boolean on = m.getPropertyValue(LegendMemento.SHOWLABELS);
+		Boolean on = m.get(LegendMemento.SHOWLABELS, true);
 		setLabels(on);
 		paintToOpenGL(w.gl, w.width, w.height, 1.0f);
 	}

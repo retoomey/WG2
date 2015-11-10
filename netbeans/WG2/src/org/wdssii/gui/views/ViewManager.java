@@ -4,8 +4,9 @@ import java.awt.Component;
 import java.awt.Container;
 import java.net.URL;
 import java.util.List;
+
 import javax.swing.Icon;
-import org.wdssii.gui.charts.DataView;
+
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
 import org.wdssii.xml.views.RootWindow;
 

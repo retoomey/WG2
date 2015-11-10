@@ -12,13 +12,13 @@ import org.wdssii.log.LoggerFactory;
  *
  * @author Robert Toomey
  */
-public class MementoString extends Memento<String> {
+public class MementoString extends MementoTree<String> {
 
     private final static Logger LOG = LoggerFactory.getLogger(MementoString.class);
     /**
      * Our set of feature properties
      */
-    private TreeMap<String, Memento.Property> myProperties = new TreeMap<String, Memento.Property>();
+    private TreeMap<String, Property> myProperties = new TreeMap<String, Property>();
 
     public MementoString() {
     }
@@ -35,9 +35,9 @@ public class MementoString extends Memento<String> {
         if (o instanceof MementoString) {
             MementoString other = (MementoString) (o);
             // Set the other momento fields to any in ours that are used
-            Set<Entry<String, Memento.Property>> entries = other.myProperties.entrySet();
-            for (Entry<String, Memento.Property> e : entries) {
-                Memento.Property v = e.getValue();
+            Set<Entry<String, Property>> entries = other.myProperties.entrySet();
+            for (Entry<String, Property> e : entries) {
+            	Property v = e.getValue();
                 if (v.use) {
                     this.initProperty(e.getKey(), e.getValue().value);
                 }
@@ -49,9 +49,9 @@ public class MementoString extends Memento<String> {
         if (o instanceof MementoString) {
             MementoString other = (MementoString) (o);
             // Set the other momento fields to any in ours that are used
-            Set<Entry<String, Memento.Property>> entries = other.myProperties.entrySet();
-            for (Entry<String, Memento.Property> e : entries) {
-                Memento.Property v = e.getValue();
+            Set<Entry<String, Property>> entries = other.myProperties.entrySet();
+            for (Entry<String, Property> e : entries) {
+            	Property v = e.getValue();
                 this.initProperty(e.getKey(), e.getValue().value);
             }
         }
@@ -69,29 +69,30 @@ public class MementoString extends Memento<String> {
 
     @Override
     public void initProperty(String key, Object stuff) {
-        myProperties.put(key, new Memento.Property(stuff));
+        myProperties.put(key, new Property(stuff));
     }
 
     @Override
-    public void setProperty(String key, Object stuff) {
-        // FIXME: check class?
-        Memento.Property f = myProperties.get(key);
+    public void setProperty(Object okey, Object stuff) {
+    	String key = (String)(okey);
+    	Property f = myProperties.get(key);
         if (f == null) {
             LOG.error("Creating new property: " + key);
-            myProperties.put(key, new Memento.Property(stuff, true));
+            myProperties.put(key, new Property(stuff, true));
         } else {
-            myProperties.put(key, new Memento.Property(stuff, true));
+            myProperties.put(key, new Property(stuff, true));
         }
     }
 
     @Override
-    public Memento.Property getProperty(String key) {
+    public Property getProperty(String key) {
         return myProperties.get(key);
     }
 
     @Override
-    public <T extends Object> T getPropertyValue(String key) {
-        Memento.Property f = myProperties.get(key);
+    public <T extends Object> T getPropertyValue(Object okey) {
+    	String key = (String)(okey);
+    	Property f = myProperties.get(key);
         if (f != null) {
             T r;
             try {

@@ -21,7 +21,7 @@ public class Slf4jLoggerFactory extends LoggerFactory {
         firstMessage = checkForLogback();
     }
     
-    public Logger getLoggerImpl(Class aClass) {
+    public Logger getLoggerImpl(Class<?> aClass) {
         return new Slf4jLogger(aClass);
     }
     

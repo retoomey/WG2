@@ -170,7 +170,6 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 					FloatBuffer z = workPolygons.getRawBuffer();
 					//gl.glColor4f(r, g, b, a);
 					gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-					//Integer t = m.getPropertyValue(PolarGridMemento.LINE_THICKNESS);
 					gl.glLineWidth(2.0f);
 					//GLUtil.renderArrays(w.gl, z, workOffsets, GL.GL_LINE_STRIP);
 					GLUtil.renderArrays(w.gl, z, workOffsets, GL.GL_LINE_LOOP);

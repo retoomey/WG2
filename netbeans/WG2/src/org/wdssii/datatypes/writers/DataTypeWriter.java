@@ -1,13 +1,13 @@
 package org.wdssii.datatypes.writers;
 
 import java.net.URL;
-import org.wdssii.geom.GridVisibleArea;
+
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.core.WdssiiJob.WdssiiSameThreadJobMonitor;
 import org.wdssii.datatypes.DataType;
-import org.wdssii.gui.products.ProductFeatureGUI;
+import org.wdssii.geom.GridVisibleArea;
 
 /**
  * Base class of all DataType writers

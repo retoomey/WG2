@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 
@@ -19,7 +20,7 @@ public class BooleanGUI extends PropertyGUI {
         super(f, property);
         // Create checked button...
         JCheckBox b = new JCheckBox();
-        b.setSelected((Boolean) f.getMemento().getPropertyValue(property));
+        b.setSelected(f.getMemento().get(property, false));
 
         // Humm is this ok?
         final JComponent myRoot = dialogRoot;
@@ -40,7 +41,7 @@ public class BooleanGUI extends PropertyGUI {
     @Override
     public void update(Memento use) {
         JCheckBox v = (JCheckBox) (value);
-        v.setSelected((Boolean) use.getPropertyValue(property));
+        v.setSelected((Boolean) use.get(property, false));
     }
 
     /**

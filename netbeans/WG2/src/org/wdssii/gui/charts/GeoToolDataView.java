@@ -149,8 +149,8 @@ public class GeoToolDataView extends DataView {
                         // For the moment just trying to get it to work
                         // Bleh we only handle line maps at moment....so much work to do 
                         MapFeature.MapMemento mm = (MapFeature.MapMemento) (mf.getMemento());
-                        Color line = mm.getPropertyValue(MapFeature.MapMemento.LINE_COLOR);
-                        Integer t = mm.getPropertyValue(MapFeature.MapMemento.LINE_THICKNESS);
+                        Color line = mm.get(MapFeature.MapMemento.LINE_COLOR, Color.WHITE);
+                        Integer t = mm.get(MapFeature.MapMemento.LINE_THICKNESS, 1);
                         // Style style = SLD.createSimpleStyle(s.getSchema(), line);
                         Style style = SLD.createLineStyle(line, t);
                         Layer layer = new FeatureLayer(s, style);

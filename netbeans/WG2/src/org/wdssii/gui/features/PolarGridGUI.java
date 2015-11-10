@@ -52,7 +52,7 @@ public class PolarGridGUI extends FeatureGUI {
 
         // Create rings 
         add(new IntegerGUI(myFeature, PolarGridMemento.RING_COUNT, "Number of Rings", this,
-                1, 20, 1, ""));
+                1, 100, 1, ""));
         // Create range
         add(new IntegerGUI(myFeature, PolarGridMemento.RING_RANGE, "Range per ring", this,
                 1, 50000, 10, "Meters"));

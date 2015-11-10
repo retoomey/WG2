@@ -1,15 +1,22 @@
 package org.wdssii.gui.worldwind;
 
-import gov.nasa.worldwind.*;
-import gov.nasa.worldwind.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import net.miginfocom.layout.LC;
-import net.miginfocom.swing.MigLayout;
+import java.awt.Color;
+import java.awt.event.ActionListener;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
+
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeaturePosition;
 import org.wdssii.gui.products.readouts.ProductReadout;
+
+import gov.nasa.worldwind.View;
+import gov.nasa.worldwind.WorldWind;
+import gov.nasa.worldwind.WorldWindow;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
 
 /**
  * @author Robert Toomey

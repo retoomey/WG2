@@ -1,16 +1,14 @@
 package org.wdssii.datatypes;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
 
 import org.wdssii.geom.Location;
-import org.wdssii.geom.GridVisibleArea;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * @author lakshman

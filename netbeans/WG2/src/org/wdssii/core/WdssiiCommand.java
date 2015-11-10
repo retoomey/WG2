@@ -2,9 +2,10 @@ package org.wdssii.core;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
+
 import javax.swing.JComponent;
+
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 

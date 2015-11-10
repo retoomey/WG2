@@ -11,20 +11,20 @@ import org.wdssii.log.LoggerFactory;
  *
  * @author Robert Toomey
  */
-public class MementoInteger extends Memento<Integer> {
+public class MementoInteger extends MementoTree<Integer> {
 
     private final static Logger LOG = LoggerFactory.getLogger(MementoInteger.class);
     /**
      * Our list of properties
      */
-    public ArrayList<Memento.Property> myProperties;
+    public ArrayList<Property> myProperties;
 
     public MementoInteger(int size) {
-        myProperties = new ArrayList<Memento.Property>(size);
+        myProperties = new ArrayList<Property>(size);
     }
 
     public MementoInteger() {
-        myProperties = new ArrayList<Memento.Property>();
+        myProperties = new ArrayList<Property>();
     }
 
     /**
@@ -41,7 +41,7 @@ public class MementoInteger extends Memento<Integer> {
 
             int length = mi.myProperties.size();
             for (int i = 0; i < length; i++) {
-                Memento.Property v = mi.getProperty(i);
+            	Property v = mi.getProperty(i);
                 if (v.use) {
                     this.initProperty(i, v.value);
                 }
@@ -68,9 +68,9 @@ public class MementoInteger extends Memento<Integer> {
         if (other instanceof MementoInteger) {
             MementoInteger mi = (MementoInteger) (other);
             int length = mi.myProperties.size();
-            myProperties = new ArrayList<Memento.Property>(length);
+            myProperties = new ArrayList<Property>(length);
             for (int i = 0; i < length; i++) {
-                Memento.Property v = mi.getProperty(i);
+            	Property v = mi.getProperty(i);
                 this.initProperty(i, v.value);
             }
         }
@@ -99,31 +99,32 @@ public class MementoInteger extends Memento<Integer> {
         if (key >= myProperties.size()) {
             ensureSize(myProperties, key+1);
         }
-        myProperties.set(key, new Memento.Property(stuff));
+        myProperties.set(key, new Property(stuff));
     }
 
     @Override
-    public void setProperty(Integer key, Object stuff) {
-        // FIXME: check class?
-        Memento.Property f = myProperties.get(key);
+    public void setProperty(Object okey, Object stuff) {
+    	Integer key = (Integer)(okey);
+    	Property f = myProperties.get(key);
         if (f == null) {
             // You need to call initProperty on the memento before setting
             LOG.error("Tried to set uninitialized property: " + key);
         } else {
             // FIXME: Might be able to modify the original, this makes
             // a copy...
-            myProperties.set(key, new Memento.Property(stuff, true));
+            myProperties.set(key, new Property(stuff, true));
         }
     }
 
     @Override
-    public Memento.Property getProperty(Integer key) {
+    public Property getProperty(Integer key) {
         return myProperties.get(key);
     }
 
     @Override
-    public <T extends Object> T getPropertyValue(Integer key) {
-        Memento.Property f = myProperties.get(key);
+    public <T extends Object> T getPropertyValue(Object okey) {
+    	Integer key = (Integer)(okey);
+    	Property f = myProperties.get(key);
         if (f != null) {
             T r;
             try {

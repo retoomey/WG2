@@ -10,7 +10,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import org.wdssii.gui.features.LLHAreaSetGUI;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.properties.Memento;
@@ -30,7 +29,7 @@ public class DirectoryGUI extends PropertyGUI {
 
 		// Create textbox/ label or what...
 		JTextField b = new JTextField(50);
-		b.setText((String)f.getMemento().getPropertyValue(property));
+		b.setText(f.getMemento().get(property, ""));
 		b.setEditable(false);
 		b.setAutoscrolls(false);
 		myTextField = b;
@@ -61,8 +60,8 @@ public class DirectoryGUI extends PropertyGUI {
 		String dir = "";
 		String file = "";
 		
-		dir = use.getString(property, dir);
-		file = use.getString(myFileProperty, file);
+		dir = use.get(property, dir);
+		file = use.get(myFileProperty, file);
 		setText(dir, file);
 	}
 	

@@ -7,6 +7,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 
@@ -71,8 +72,7 @@ public class ComboStringGUI extends PropertyGUI {
 
     @Override
     public void update(Memento use) {
-        //value.setBackground((Color) use.getPropertyValue(property));
         JideSplitButton button = (JideSplitButton) (value);
-        button.setText((String) use.getPropertyValue(property));
+        button.setText(use.get(property, "?"));
     }
 }

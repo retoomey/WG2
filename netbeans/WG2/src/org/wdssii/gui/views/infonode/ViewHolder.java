@@ -24,7 +24,7 @@ public class ViewHolder extends AbstractViewMap {
     private final static Logger LOG = LoggerFactory.getLogger(ViewHolder.class);
 
     private HashMap viewMap = new HashMap();
-    private ArrayList views = new ArrayList(20);
+    private ArrayList<View> views = new ArrayList<View>(20);
 
     @Override
     public int getViewCount() {
@@ -38,7 +38,7 @@ public class ViewHolder extends AbstractViewMap {
 
     @Override
     public ViewFactory[] getViewFactories() {
-        ArrayList localArrayList = new ArrayList();
+        ArrayList<ViewFactory> localArrayList = new ArrayList<ViewFactory>();
         for (int i = 0; i < this.views.size(); i++) {
             View localView = (View) this.views.get(i);
             if (localView.getRootWindow() == null) {

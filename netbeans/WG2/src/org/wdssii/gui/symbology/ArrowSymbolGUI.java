@@ -7,8 +7,6 @@ import net.miginfocom.swing.MigLayout;
 import org.wdssii.gui.properties.BooleanGUI;
 import org.wdssii.gui.properties.ColorGUI;
 import org.wdssii.gui.properties.IntegerGUI;
-import org.wdssii.gui.symbology.PointSymbolGUI.PointSymbolMemento;
-import org.wdssii.gui.symbology.PointSymbolGUI.PointSymbolMementor;
 import org.wdssii.properties.Memento;
 import org.wdssii.properties.Mementor;
 import org.wdssii.xml.iconSetConfig.ArrowSymbol;
@@ -71,30 +69,12 @@ public class ArrowSymbolGUI extends PointSymbolGUI {
                 ArrowSymbolMemento m = (ArrowSymbolMemento) (m2);
 
                 // Directly modify the ArrowSymbol object
-                Integer v = ((Integer) m.getPropertyValue(ArrowSymbolMemento.WIDTH));
-                if (v != null) {
-                    mySymbol.width = v.intValue();
-                }
-                v = ((Integer) m.getPropertyValue(ArrowSymbolMemento.TAIL));
-                if (v != null) {
-                    mySymbol.taillength = v.intValue();
-                }
-                v = ((Integer) m.getPropertyValue(ArrowSymbolMemento.TAILW));
-                if (v != null) {
-                    mySymbol.tailthick = v.intValue();
-                }
-                Color c = (Color) m.getPropertyValue(ArrowSymbolMemento.COLOR);
-                if (c != null) {
-                    mySymbol.color = c;
-                }
-                Boolean f = (Boolean) m.getPropertyValue(ArrowSymbolMemento.USEOUTLINE);
-                if (f != null) {
-                    mySymbol.useOutline = f;
-                }
-                c = (Color) m.getPropertyValue(ArrowSymbolMemento.OCOLOR);
-                if (c != null) {
-                    mySymbol.ocolor = c;
-                }
+                mySymbol.width = m.get(ArrowSymbolMemento.WIDTH, 20);
+                mySymbol.taillength = m.get(ArrowSymbolMemento.TAIL, 15);
+                mySymbol.tailthick = m.get(ArrowSymbolMemento.TAILW, 4);
+                mySymbol.color = m.get(ArrowSymbolMemento.COLOR, Color.BLUE);
+                mySymbol.useOutline = m.get(ArrowSymbolMemento.USEOUTLINE, true);
+                mySymbol.ocolor = m.get(ArrowSymbolMemento.OCOLOR, Color.BLACK);
             }
             super.propertySetByGUI(name, m2);
 

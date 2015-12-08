@@ -1,19 +1,17 @@
 package org.wdssii.gui.products.volumes;
 
-// I want to remove these dependencies
-import org.wdssii.core.ProductButtonStatus;
-import gov.nasa.worldwind.geom.Angle;
-import gov.nasa.worldwind.geom.Vec4;
-import gov.nasa.worldwind.globes.Globe;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.wdssii.core.ProductButtonStatus;
 import org.wdssii.core.StopWatch;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
-import org.wdssii.gui.products.*;
+import org.wdssii.gui.products.FilterList;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.products.VolumeSlice2DOutput;
+import org.wdssii.gui.products.VolumeSliceInput;
 import org.wdssii.gui.products.filters.DataFilter.DataValueRecord;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
@@ -147,12 +145,14 @@ public class ProductVolume {
      * Generate a 3D slice of this volume's data. Putting it here because things
      * like windfield will probably want a different way of generating.
      */
-    public static void generateVSlice(
+    /** Keeping older vslice code for reference for now, but I want less worldwind dependency...
+     
+    private static void generateVSlice(
             VolumeSliceInput g, // All input data for creating slice
             VolumeSlice3DOutput dest, // output object, subclasses can override to add different data
             Globe gb, // Nasa globe for projection... not sure I want to directly depend on this class.
             FilterList list,
-            boolean useFilters, // ArrayList<DataFilter> list /* Data filter list to use*/)
+            boolean useFilters, // ArrayList<DataFilter> list )
             double vert,
             DataValueRecord rec,
             ProductVolume pv,
@@ -343,26 +343,23 @@ public class ProductVolume {
         dest.setHaveVSliceData(true);
     }
 
-    public static void generateNASlice3D(
+    private static void generateNASlice3D(
             VolumeSliceInput g, // All input data for creating slice
             VolumeSlice3DOutput dest, // output object, subclasses can override to add different data
             Globe gb, // Nasa globe for projection... not sure I want to directly depend on this class.
             FilterList list,
-            boolean useFilters, // ArrayList<DataFilter> list /* Data filter list to use*/)
+            boolean useFilters, // ArrayList<DataFilter> list )
             double vert) {
         generateVSlice(g, dest, gb, list, useFilters, vert, null, nullVolume, null);
     }
 
-    /**
-     * Generate a 3D slice of this volume's data. Putting it here because things
-     * like windfield will probably want a different way of generating.
-     */
-    public void generateSlice3D(
+ 
+    private void generateSlice3D(
             VolumeSliceInput g, // All input data for creating slice
             VolumeSlice3DOutput dest, // output object, subclasses can override to add different data
             Globe gb, // Nasa globe for projection... not sure I want to directly depend on this class.
             FilterList list,
-            boolean useFilters, // ArrayList<DataFilter> list /* Data filter list to use*/)
+            boolean useFilters, // ArrayList<DataFilter> list )
             double vert,
             VolumeValue volumevalue) {
 
@@ -372,7 +369,7 @@ public class ProductVolume {
 
         generateVSlice(g, dest, gb, list, useFilters, vert, rec, this, volumevalue);
     }
-
+*/
     /**
      * Generate a 2D slice. Differs from 3D in info...
      */

@@ -1,4 +1,4 @@
-package org.wdssii.gui.volumes;
+package org.wdssii.gui.renderers;
 
 import java.awt.Color;
 import java.nio.ByteBuffer;

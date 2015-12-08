@@ -37,21 +37,26 @@ public class WJSceneController extends BasicSceneController {
     private final static Logger LOG = LoggerFactory.getLogger(WJSceneController.class);
     private LLHAreaLayer myLLHAreaLayer;
     private WorldWindDataView myWorld;
+    private DrawContext theContext;
+    private GLWorldWW myGLWorld;
+    
     public static final String WORLDWIND = "WW";
     public static final String WW_RENDERERS = "org.wdssii.gui.worldwind";
 
-    /**
-     * Cache renderers
-     */
-    //private TreeMap<Object, ArrayList<FeatureRenderer>> myMap = new TreeMap<Object, ArrayList<FeatureRenderer>>();
-    public void setLLHAreaLayer(LLHAreaLayer layer) {
-        myLLHAreaLayer = layer;
+    /** Since worldwind requires controller by XML reflection, initial extra stuff here */
+    public void setRequiredInfo(WorldWindDataView w, LLHAreaLayer layer){
+       myWorld = w;
+       myLLHAreaLayer = layer;
     }
-
-    public void setWorld(WorldWindDataView w) {
-        myWorld = w;
+    
+    public GLWorld setupGLWorld(DrawContext dc){
+    	if (dc != theContext){
+    		 myGLWorld  = new GLWorldWW(dc, myWorld);
+    		 myWorld.setGLWorld(myGLWorld); // so LLHController can call get
+    	}
+    	return myGLWorld;
     }
-
+    
     @Override
     public PickedObjectList getPickedObjectList() {
         PickedObjectList l = super.getPickedObjectList();
@@ -66,7 +71,7 @@ public class WJSceneController extends BasicSceneController {
 
         // Make sure orderedRenderables added properly
         FeatureList f = ProductManager.getInstance().getFeatureList();
-        GLWorldWW w = new GLWorldWW(dc, myWorld);
+        GLWorld w = setupGLWorld(dc);
         preRenderFeatureGroup(w, LegendFeature.LegendGroup);
         preRenderFeatureGroup(w, WorldwindStockFeature.Group);
 
@@ -77,7 +82,7 @@ public class WJSceneController extends BasicSceneController {
     @Override
     protected void draw(DrawContext dc) {
         try {
-            GLWorldWW w = new GLWorldWW(dc, myWorld);
+        	GLWorld w = setupGLWorld(dc);
             FeatureList f = ProductManager.getInstance().getFeatureList();
 
             // Worldwind basemaps
@@ -86,26 +91,22 @@ public class WJSceneController extends BasicSceneController {
             // Products
             renderFeatureGroup(w, ProductFeature.ProductGroup);
 
-            // 3d layer
+            // Render the LLHRenderer stuff...
+            renderFeatureGroup(w, LLHAreaFeature.LLHAreaGroup);
             if (myLLHAreaLayer != null) {
-                dc.setCurrentLayer(myLLHAreaLayer);
-                myLLHAreaLayer.render(dc);
+            	myLLHAreaLayer.draw(w);
             }
-            dc.setCurrentLayer(null);
-
+            
             // Have to draw last, so that stipple works 'behind' product...
             // It's 'behind' but actually renders on top..lol
             renderFeatureGroup(w, MapFeature.MapGroup);
             renderFeatureGroup(w, PolarGridFeature.PolarGridGroup);
             renderFeatureGroup(w, LegendFeature.LegendGroup);
            
-            // Render the LLHRenderer stuff...
-            renderFeatureGroup(w, LLHAreaFeature.LLHAreaGroup);
             // Draw the deferred/ordered surface renderables.
             // This is all the 2d stuff on top...
             // We do our icons ourselves now
             // this.drawOrderedSurfaceRenderables(dc);
-
 
             // Draw the deferred/ordered renderables.
             dc.setOrderedRenderingMode(true);
@@ -135,13 +136,17 @@ public class WJSceneController extends BasicSceneController {
         FeatureList f = ProductManager.getInstance().getFeatureList();
         GLWorldWW w = new GLWorldWW(dc, myWorld);
         pickFeatureGroup(w, dc.getPickPoint(), LegendFeature.LegendGroup);
-        // 3d layer
+       
+        
+        // 3d layer (should be 3d group right? */
         if (myLLHAreaLayer != null) {
-            if (myLLHAreaLayer.isPickEnabled()) {
-                dc.setCurrentLayer(myLLHAreaLayer);
-                myLLHAreaLayer.pick(dc, dc.getPickPoint());
-            }
+           
+                //dc.setCurrentLayer(myLLHAreaLayer);
+               // myLLHAreaLayer.pick(dc, dc.getPickPoint());
+                myLLHAreaLayer.pick(w, pickPoint);
+            
         }
+        
         dc.setCurrentLayer(null);
     }
 

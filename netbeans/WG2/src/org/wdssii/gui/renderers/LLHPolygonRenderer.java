@@ -37,16 +37,11 @@ import com.sun.opengl.util.j2d.TextRenderer;
 public class LLHPolygonRenderer extends Feature3DRenderer {
 
 	private final static Logger LOG = LoggerFactory.getLogger(LLHPolygonRenderer.class);
-	/**
-	 * Lock for changing offsets/polygonData
-	 */
-	//private final Object drawLock = new Object(); // Lock 2 (second)
 
 	private LLHAreaFeature myFeature = null;
 
 	public LLHPolygonRenderer() {
 	}
-
 
 	@Override
 	public void pick(GLWorld w, Point p, FeatureMemento m) {
@@ -73,6 +68,7 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 
 		//LLHAreaMemento llm = (LLHAreaMemento)(mf);
 		if (myFeature != null){
+			
 			LLHArea a = myFeature.getLLHArea();
 			List<LLD_X> list = a.getLocations();
 

@@ -9,7 +9,7 @@ package org.wdssii.geom;
 public class LLD_X { //extends LLD {
 
 	private int polygon=1;
-	private String note;
+	private String note="";
 	private boolean selected = false;
 	public  float x;
 	public  float y;

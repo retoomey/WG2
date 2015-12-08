@@ -58,7 +58,7 @@ public class LLHAreaSet extends LLHArea {
 			initProperty(TOP_HEIGHT, 10000);
 			initProperty(BOTTOM_HEIGHT, 0);
 			initProperty(POLYGON, 0);
-			initProperty(NOTE, "");
+			initProperty(NOTE, "xxx");
 			initProperty(AUTO, "");
 			initProperty(FILE, "");
 			initProperty(GRID_ROWS, 50);
@@ -95,7 +95,6 @@ public class LLHAreaSet extends LLHArea {
 
 	@Override
 	public void setFromMemento(Memento m) {
-
 		setVisOnly(m);
 		
 		// FIXME: Not liking this code here:
@@ -125,9 +124,18 @@ public class LLHAreaSet extends LLHArea {
 
 		setAltitudes(m);
 
-		ArrayList<LLD_X> list = null;
-		list = m.get(LLHAreaSetMemento.POINTS, list);
-		this.setLocations(list);
+		// Whoops this caused a bug.  We get partial mementos now so
+		// if the list is not in the properties, we don't want to set to null
+		// it's different from others because we're copying the list
+		//ArrayList<LLD_X> list = null;  This overwrites if points is missing in update.
+		//list = m.get(LLHAreaSetMemento.POINTS, list);
+		//this.setLocations(list);
+		
+		// Make sure and only change iff there is a NEW list...
+		ArrayList<LLD_X> list = m.getPropertyValue(LLHAreaSetMemento.POINTS);
+		if (list != null){
+			this.setLocations(list);
+		}
 	}
 
 	/**

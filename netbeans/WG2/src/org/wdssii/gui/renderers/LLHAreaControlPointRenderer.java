@@ -1,4 +1,4 @@
-package org.wdssii.gui.volumes;
+package org.wdssii.gui.renderers;
 
 import java.awt.Color;
 import java.awt.Point;
@@ -10,6 +10,7 @@ import org.wdssii.geom.V2;
 import org.wdssii.geom.V3;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.Picker;
+import org.wdssii.gui.volumes.LLHAreaControlPoint;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
@@ -69,22 +70,12 @@ public class LLHAreaControlPointRenderer {
 	}
     
 	public void pick(GLWorld w, Iterable<? extends LLHAreaControlPoint> controlPoints, Point pickPoint) {
-		//GLWorldWW w2 = (GLWorldWW)(w);
-		
-	/*	Worldwind picker library.  Can't use this in AWIPS2 GLWorld...
-	 
-	    this.pickSupport.clearPickList();
-		this.draw(w, controlPoints);
-		this.pickSupport.resolvePick(w2.getDC(), pickPoint, layer);  // Must write to layer.  Bad design...
-		this.pickSupport.clearPickList(); // to ensure entries can be garbage collected
-	*/	
 		Picker p = new ourGLPicker(w, this, controlPoints);  // Use colors.  Rectangle method should be replaceable here eventually...
 		p.begin();
 		p.pick(pickPoint.x, pickPoint.y);  // Find objects at the point, add to list...
 		p.end();
 		
-		pp = p;  // Save to replace now, class is finished writing internally.
-		
+		pp = p;  // Save to replace now, class is finished writing internally.	
 	}
 
 	protected void drawControlPoint(GLWorld w, LLHAreaControlPoint controlPoint, boolean pick) {
@@ -99,14 +90,6 @@ public class LLHAreaControlPointRenderer {
 		//int i = controlPoint.getAltitudeIndex();
 		int i = 0;
 		if (i == 0){ // bottom points only...
-			/*Vec4 a2d = dc.getView().project(point);
-		GL gl = dc.getGL();
-		GLUtil.pushOrtho2D(gl, dc.getView().getViewport().width, dc.getView().getViewport().height); // Bleh need viewport from GLWorld.  
-        gl.glTranslated(a2d.x, a2d.y, 0);
-		controlPoint.render(dc.getGL());
-        gl.glTranslated(-a2d.x, -a2d.y, 0);
-        GLUtil.popOrtho2D(gl);
-			 */
 			boolean selected = false;
 			LLD_X x = controlPoint.getLocation();
 			if (x != null){

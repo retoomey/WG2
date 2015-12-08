@@ -1,6 +1,5 @@
 package org.wdssii.gui.volumes;
 
-//import gov.nasa.worldwind.avlist.AVKey;
 import org.wdssii.gui.features.Feature.FeatureTableInfo;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.LLHAreaFeature;

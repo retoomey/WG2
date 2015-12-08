@@ -40,6 +40,7 @@ import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.geom.Location;
 import org.wdssii.gui.Application;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.features.FeatureList;
@@ -65,6 +66,11 @@ public class WorldWindDataView extends DataView {
      * The WorldWindow we contain. Eventually we might want multiple of these
      */
     private WorldWindow myWorld;
+    
+    /** The GLWorld that we use.  It comes from the scene controller because
+     * worldwind keeps the drawcontext inside that */
+    private GLWorld myGLWorld;
+    
     /**
      * The Readout
      */
@@ -125,6 +131,14 @@ public class WorldWindDataView extends DataView {
 
     }
 
+    public void setGLWorld(GLWorld g){
+    	myGLWorld = g;
+    }
+    
+    public GLWorld getGLWorld(){
+    	return myGLWorld;
+    }
+    
     public void addLegendFeature() {
 
         LayerList ll = myWorld.getModel().getLayers();
@@ -272,17 +286,16 @@ public class WorldWindDataView extends DataView {
 
         // 3D Object layer for slices, etc.
         myVolumeLayer = new LLHAreaLayer();
-        myVolumeLayer.setName("3D Objects");
+       // myVolumeLayer.setName("3D Objects");
 
         // Give the 3D layer to our special scene controller...
         SceneController scene = myWorld.getSceneController();
         if (scene instanceof WJSceneController) {
             WJSceneController w = (WJSceneController) (scene);
-            w.setWorld(this);
-            w.setLLHAreaLayer(myVolumeLayer);
+            w.setRequiredInfo(this, myVolumeLayer);
         }
         // Controller adds listeners to world which keeps reference
-        LLHAreaController c = new LLHAreaController(myWorld, myVolumeLayer);
+        LLHAreaController c = new LLHAreaController(this,  myVolumeLayer);
         myLLHAreaController = c;
         InputHandler h = myWorld.getInputHandler();
         h.addKeyListener(c);

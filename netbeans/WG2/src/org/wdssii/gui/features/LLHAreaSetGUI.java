@@ -979,7 +979,7 @@ public class LLHAreaSetGUI extends FeatureGUI {
 		boolean fromGUI = false;
 		if (info != null) {
 			fromGUI = info.getEventSource() == this.myStringGUI;
-			info.get(LLHAreaSetMemento.NOTE, editNote);
+			editNote = info.get(LLHAreaSetMemento.NOTE, editNote);
 		}
 
 		// Set the top product info. This isn't really the 'table' though...

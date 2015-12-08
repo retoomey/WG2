@@ -1,21 +1,7 @@
 package org.wdssii.gui.volumes;
 
-//Need to remove all the worldwind stuff, lol
-import gov.nasa.worldwind.Movable;
-import gov.nasa.worldwind.avlist.AVListImpl;
-import gov.nasa.worldwind.geom.*;
-import gov.nasa.worldwind.globes.Globe;
-import gov.nasa.worldwind.render.DrawContext;
-import gov.nasa.worldwind.render.Renderable;
-import gov.nasa.worldwind.render.airspaces.Airspace;
-import gov.nasa.worldwind.render.airspaces.AirspaceAttributes;
-import gov.nasa.worldwind.render.airspaces.BasicAirspaceAttributes;
-//import gov.nasa.worldwind.util.GeometryBuilder;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.LLD_X;
@@ -24,7 +10,6 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.products.VolumeSliceInput;
-import org.wdssii.gui.worldwind.GLWorldWW;
 import org.wdssii.properties.Memento;
 
 /**
@@ -33,8 +18,7 @@ import org.wdssii.properties.Memento;
  * @author Robert Toomey
  *
  */
-public class LLHArea extends AVListImpl implements Movable {
-
+public class LLHArea {
 	/**
 	 * Default LLHArea height in meters
 	 */
@@ -135,7 +119,6 @@ public class LLHArea extends AVListImpl implements Movable {
 	protected boolean myUseVirtualVolume = false;
 	protected static final String SUBDIVISIONS = "Subdivisions";
 	protected static final String VERTICAL_EXAGGERATION = "VerticalExaggeration";
-	private AirspaceAttributes attributes;
 	protected double lowerAltitude = 0.0;
 	protected double upperAltitude = 1.0;
 	private LLD_X groundReference;
@@ -146,13 +129,8 @@ public class LLHArea extends AVListImpl implements Movable {
 	private List<LLD_X> locations = new ArrayList<LLD_X>();
 
 	public LLHArea(LLHAreaFeature f) {
-		this(new BasicAirspaceAttributes());
+		// this(new BasicAirspaceAttributes());
 		myFeature = f;
-	}
-
-	private LLHArea(AirspaceAttributes attributes) {
-
-		this.attributes = attributes;
 	}
 
 	public LLHAreaFeature getFeature() {
@@ -189,36 +167,6 @@ public class LLHArea extends AVListImpl implements Movable {
 	public void setFromMemento(Memento m) {
 		setVisOnly(m);
 	}
-
-	// Airspaces perform about 5% better if their extent is cached, so do that
-	// here.
-	protected static class ExtentInfo {
-		// The extent depends on the state of the globe used to compute it, and
-		// the vertical exaggeration.
-
-		protected Extent extent;
-		protected double verticalExaggeration;
-		protected Object globeStateKey;
-
-		public ExtentInfo(Extent extent, DrawContext dc) {
-			this.extent = extent;
-			this.verticalExaggeration = dc.getVerticalExaggeration();
-			this.globeStateKey = dc.getGlobe().getStateKey(dc);
-		}
-
-		protected boolean isValid(DrawContext dc) {
-			return this.verticalExaggeration == dc.getVerticalExaggeration()
-					&& globeStateKey.equals(dc.getGlobe().getStateKey(dc));
-		}
-	}
-
-	protected HashMap<Globe, ExtentInfo> extents = new HashMap<Globe, ExtentInfo>(2); // usually
-																						// only
-																						// 1,
-																						// but
-																						// few
-																						// at
-																						// most
 
 	/**
 	 * Get the range between two given index points. This is not cumulative
@@ -282,14 +230,6 @@ public class LLHArea extends AVListImpl implements Movable {
 		return Collections.unmodifiableList(this.locations);
 	}
 
-	public AirspaceAttributes getAttributes() {
-		return this.attributes;
-	}
-
-	public void setAttributes(AirspaceAttributes attributes) {
-		this.attributes = attributes;
-	}
-
 	public double[] getAltitudes() {
 		double[] array = new double[2];
 		array[0] = this.lowerAltitude;
@@ -307,7 +247,7 @@ public class LLHArea extends AVListImpl implements Movable {
 	public void setAltitudes(double lowerAltitude, double upperAltitude) {
 		this.lowerAltitude = lowerAltitude;
 		this.upperAltitude = upperAltitude;
-		this.setExtentOutOfDate();
+		// this.setExtentOutOfDate();
 	}
 
 	public void setAltitude(double altitude) {
@@ -323,70 +263,44 @@ public class LLHArea extends AVListImpl implements Movable {
 	}
 
 	public boolean isAirspaceVisible(GLWorld w) {
-		Extent extent = this.getExtent(w);
-		final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
-		return extent != null && extent.intersects(dc.getView().getFrustumInModelCoordinates());
-	}
-
-	public Extent getExtent(GLWorld w) {
-		final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
-
-		ExtentInfo extentInfo = this.extents.get(dc.getGlobe());
-		if (extentInfo != null && extentInfo.isValid(dc)) {
-			return extentInfo.extent;
-		}
-
-		extentInfo = new ExtentInfo(this.doComputeExtent(dc), dc);
-		this.extents.put(dc.getGlobe(), extentInfo);
-		return extentInfo.extent;
-	}
-
-	protected void setExtentOutOfDate() {
-		this.extents.clear(); // Doesn't hurt to remove all cached extents
-								// because re-creation is cheap
+		// Not bothering to clip it. Noones gonna be drawing vslices all over
+		// the earth at the
+		// same time..I think...lol. Well, at least not the weather people here.
+		// I can write a better clip method later if needed
+		return true;
 	}
 
 	public void renderGeometry(GLWorld w, String drawStyle) {
 		this.doRenderGeometry(w, drawStyle);
 	}
 
-	public void renderExtent(GLWorld w) {
-		this.doRenderExtent(w);
-	}
-
-	@Override
-	public void move(Position position) {
-		this.moveTo(this.getReferencePosition().add(position));
-	}
-
-	@Override
-	public void moveTo(Position position) {
-		Position oldRef = this.getReferencePosition();
-		this.doMoveTo(oldRef, position);
-	}
-
-	protected void doMoveTo(Position oldRef, Position newRef) {
-		double[] altitudes = this.getAltitudes();
-		double elevDelta = newRef.getElevation() - oldRef.getElevation();
-		this.setAltitudes(altitudes[0] + elevDelta, altitudes[1] + elevDelta);
-
-		// Update all locations...
-
-		int count = this.locations.size();
-		LLD_X[] newLocations = new LLD_X[count];
-		for (int i = 0; i < count; i++) {
-			LLD_X lld = this.locations.get(i);
-			LatLon ll = new LatLon(Angle.fromDegrees(lld.latDegrees()), Angle.fromDegrees(lld.lonDegrees()));
-			double distance = LatLon.greatCircleDistance(oldRef, ll).radians;
-			double azimuth = LatLon.greatCircleAzimuth(oldRef, ll).radians;
-			// newLocations[i] = LatLon.greatCircleEndPosition(newRef, azimuth,
-			// distance);
-			LatLon newLoc = LatLon.greatCircleEndPosition(newRef, azimuth, distance);
-			newLocations[i] = new LLD_X(newLoc.latitude.degrees, newLoc.longitude.degrees);
-		}
-		this.setLocations(Arrays.asList(newLocations));
-	}
-
+	/*
+	 * @Override public void move(Position position) {
+	 * this.moveTo(this.getReferencePosition().add(position)); }
+	 * 
+	 * @Override public void moveTo(Position position) { Position oldRef =
+	 * this.getReferencePosition(); this.doMoveTo(oldRef, position); }
+	 * 
+	 * protected void doMoveTo(Position oldRef, Position newRef) { double[]
+	 * altitudes = this.getAltitudes(); double elevDelta = newRef.getElevation()
+	 * - oldRef.getElevation(); this.setAltitudes(altitudes[0] + elevDelta,
+	 * altitudes[1] + elevDelta);
+	 * 
+	 * // Update all locations...
+	 * 
+	 * int count = this.locations.size(); LLD_X[] newLocations = new
+	 * LLD_X[count]; for (int i = 0; i < count; i++) { LLD_X lld =
+	 * this.locations.get(i); LatLon ll = new
+	 * LatLon(Angle.fromDegrees(lld.latDegrees()),
+	 * Angle.fromDegrees(lld.lonDegrees())); double distance =
+	 * LatLon.greatCircleDistance(oldRef, ll).radians; double azimuth =
+	 * LatLon.greatCircleAzimuth(oldRef, ll).radians; // newLocations[i] =
+	 * LatLon.greatCircleEndPosition(newRef, azimuth, // distance); LatLon
+	 * newLoc = LatLon.greatCircleEndPosition(newRef, azimuth, distance);
+	 * newLocations[i] = new LLD_X(newLoc.latitude.degrees,
+	 * newLoc.longitude.degrees); }
+	 * this.setLocations(Arrays.asList(newLocations)); }
+	 */
 	public void setLocations(Iterable<? extends LLD_X> locations) {
 		this.locations.clear();
 		this.addLocations(locations);
@@ -425,13 +339,16 @@ public class LLHArea extends AVListImpl implements Movable {
 			}
 		}
 		updateCurrentGrid();
-		this.setExtentOutOfDate();
 	}
 
 	public void updateCurrentGrid() {
 	}
 
-	protected Position computeReferencePosition(List<? extends LLD_X> locations, double[] altitudes) {
+	public V3 getReferencePosition() {
+		return this.computeReferencePosition(this.locations, this.getAltitudes());
+	}
+
+	protected V3 computeReferencePosition(List<? extends LLD_X> locations, double[] altitudes) {
 		int count = locations.size();
 		if (count == 0) {
 			return null;
@@ -444,22 +361,7 @@ public class LLHArea extends AVListImpl implements Movable {
 			ll = locations.get(count / 2);
 		}
 
-		LatLon newOne = new LatLon(Angle.fromDegrees(ll.latDegrees()), Angle.fromDegrees(ll.lonDegrees()));
-		return new Position(newOne, altitudes[0]);
-	}
-
-	// **************************************************************//
-	// ******************** Geometry Rendering ********************//
-	// **************************************************************//
-	// TODO: utility method for transforming list of LatLons into equivalent
-	// list comparable of crossing the dateline
-	// (a) for computing a bounding sector, then bounding cylinder
-	// (b) for computing tessellations of the list as 2D points
-	// These lists of LatLons (Polygon) need to be capable of passing over
-	// (a) the dateline
-	// (b) either pole
-	protected Extent doComputeExtent(DrawContext dc) {
-		return this.computeBoundingCylinder(dc, this.locations);
+		return new V3(ll.latDegrees(), ll.lonDegrees(), altitudes[0]);
 	}
 
 	protected void doRenderGeometry(GLWorld w, String drawStyle) {
@@ -467,131 +369,6 @@ public class LLHArea extends AVListImpl implements Movable {
 	}
 
 	protected void doRenderGeometry(GLWorld w, String drawStyle, List<LLD_X> locations, List<Boolean> edgeFlags) {
-	}
-
-	protected void doRenderExtent(GLWorld w) {
-		Extent extent = this.getExtent(w);
-		if (extent != null && extent instanceof Renderable) {
-			final DrawContext dc = ((GLWorldWW) (w)).getDC(); // hack
-			((Renderable) extent).render(dc);
-		}
-	}
-
-	protected Cylinder computeBoundingCylinder(DrawContext dc, Iterable<? extends LLD_X> locations) {
-		Globe globe = dc.getGlobe();
-		double verticalExaggeration = dc.getVerticalExaggeration();
-		double[] altitudes = this.getAltitudes();
-
-		// Get the points corresponding to the given locations at the lower and
-		// upper altitudes.
-		ArrayList<Vec4> points = new ArrayList<Vec4>();
-		for (int a = 0; a < 2; a++) {
-			for (LLD_X ll : locations) {
-				// points.add(globe.computePointFromPosition(ll.getLatitude(),
-				// ll.getLongitude(),
-				// verticalExaggeration * altitudes[a]));
-				points.add(globe.computePointFromPosition(Angle.fromDegrees(ll.latDegrees()),
-						Angle.fromDegrees(ll.lonDegrees()), verticalExaggeration * altitudes[a]));
-			}
-		}
-		if (points.isEmpty()) {
-			return null;
-		}
-
-		// Compute the average point.
-		Vec4 centerPoint = Vec4.computeAveragePoint(points);
-		if (centerPoint == null) {
-			return null;
-		}
-
-		// Get the center point and the lower and upper altitudes.
-		LatLon centerLocation = globe.computePositionFromPoint(centerPoint);
-		points.add(globe.computePointFromPosition(centerLocation.getLatitude(), centerLocation.getLongitude(),
-				verticalExaggeration * altitudes[0]));
-		points.add(globe.computePointFromPosition(centerLocation.getLatitude(), centerLocation.getLongitude(),
-				verticalExaggeration * altitudes[1]));
-
-		// Compute the surface normal at the center point. This will be the axis
-		// or up direction of the extent.
-		Vec4 axis = globe.computeSurfaceNormalAtPoint(centerPoint);
-
-		// Compute the extrema parallel and perpendicular projections of each
-		// point on the axis.
-		double min_parallel = 0.0;
-		double max_parallel = 0.0;
-		double max_perp = 0.0;
-		for (Vec4 vec : points) {
-			Vec4 p = vec.subtract3(centerPoint);
-			double parallel_proj = p.dot3(axis);
-			Vec4 parallel = axis.multiply3(parallel_proj);
-			Vec4 perpendicular = p.subtract3(parallel);
-			double perpendicular_proj = perpendicular.getLength3();
-
-			if (parallel_proj < min_parallel) {
-				min_parallel = parallel_proj;
-			} else if (parallel_proj > max_parallel) {
-				max_parallel = parallel_proj;
-			}
-
-			if (perpendicular_proj > max_perp) {
-				max_perp = perpendicular_proj;
-			}
-		}
-
-		// The bottom and top of the cylinder are the extrema parallel
-		// projections from the center point along the axis.
-		Vec4 bottomPoint = axis.multiply3(min_parallel).add3(centerPoint);
-		Vec4 topPoint = axis.multiply3(max_parallel).add3(centerPoint);
-		// The radius of the cylinder is the extrama perpendicular projection.
-		double radius = max_perp;
-
-		return new Cylinder(bottomPoint, topPoint, radius);
-	}
-
-	protected Extent computeBoundingExtent(DrawContext dc, Iterable<? extends Airspace> airspaces) {
-		Vec4 center = null;
-		double radius = 0;
-		int count = 0;
-
-		// Add the center point of all airspace extents. This is the first step
-		// in computing the mean center point.
-		for (Airspace airspace : airspaces) {
-			Extent extent = airspace.getExtent(dc);
-			if (extent != null) {
-				center = (center != null) ? extent.getCenter().add3(center) : extent.getCenter();
-				count++;
-			}
-		}
-
-		// If there's no mean center point, then we cannot compute an enclosing
-		// extent, so just return null.
-		if (center == null) {
-			return null;
-		}
-
-		// Divide by the number of contributing extents to compute the mean
-		// center point.
-		center = center.divide3(count);
-
-		// Compute the maximum distance from the mean center point to the
-		// outermost point on an airspace extent. This
-		// will be the radius of the enclosing extent.
-		for (Airspace airspace : airspaces) {
-			Extent extent = airspace.getExtent(dc);
-			if (extent != null) {
-				double distance = extent.getCenter().distanceTo3(center) + extent.getRadius();
-				if (radius < distance) {
-					radius = distance;
-				}
-			}
-		}
-
-		return new Sphere(center, radius);
-	}
-
-	@Override
-	public Position getReferencePosition() {
-		return this.computeReferencePosition(this.locations, this.getAltitudes());
 	}
 
 	/**
@@ -629,7 +406,7 @@ public class LLHArea extends AVListImpl implements Movable {
 	public ArrayList<LLHAreaControlPoint> getControlPoints(GLWorld w) {
 		ArrayList<LLHAreaControlPoint> points = new ArrayList<LLHAreaControlPoint>();
 		List<LLD_X> l = getLocations();
-		int numLocations = l.size();
+		// int numLocations = l.size();
 		int count = 0;
 		for (LLD_X x : l) {
 			addPolygonControlPoint(points, w, count++, 0, x);
@@ -699,8 +476,6 @@ public class LLHArea extends AVListImpl implements Movable {
 			LLD_X l1 = input.get(0);
 			LLD_X l2 = input.get(1);
 			LLD_X leftBottom, rightBottom;
-			// if (l1.getLongitude().getDegrees() <
-			// l2.getLongitude().getDegrees()) {
 			if (l1.lonDegrees() < l2.lonDegrees()) {
 				leftBottom = l1;
 				rightBottom = l2;

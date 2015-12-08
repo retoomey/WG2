@@ -1,6 +1,5 @@
 package org.wdssii.gui.products;
 
-import gov.nasa.worldwind.render.airspaces.Geometry;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -14,13 +13,13 @@ import com.sun.opengl.util.BufferUtil;
  */
 public class VolumeSlice3DOutput {
 
-    private Geometry fillIndexGeometry;
-    private Geometry outlineIndexGeometry;
-    private Geometry vertexGeometry;
-    private Geometry vsliceColorGeometry;   // color vertices
-    private Geometry vsliceFillIndex;       // indices for fill
-    private Geometry vsliceVertexGeometry;  // position vertices
-    public Geometry.CacheKey cacheKey;
+   // private Geometry fillIndexGeometry;
+   // private Geometry outlineIndexGeometry;
+   // private Geometry vertexGeometry;
+   // private Geometry vsliceColorGeometry;   // color vertices
+   // private Geometry vsliceFillIndex;       // indices for fill
+   // private Geometry vsliceVertexGeometry;  // position vertices
+   // public Geometry.CacheKey cacheKey;
     private boolean haveVSliceData = false;
     
     final int SIZE_OF_COLOR = 3; // 3 floats for a color
@@ -73,14 +72,15 @@ public class VolumeSlice3DOutput {
     }
 
     public VolumeSlice3DOutput() {
-        this.fillIndexGeometry = new Geometry();
-        this.outlineIndexGeometry = new Geometry();
-        this.vertexGeometry = new Geometry();
-        this.vsliceColorGeometry = new Geometry();
-        this.vsliceVertexGeometry = new Geometry();
-        this.vsliceFillIndex = new Geometry();
+      //  this.fillIndexGeometry = new Geometry();
+      //  this.outlineIndexGeometry = new Geometry();
+      //  this.vertexGeometry = new Geometry();
+       // this.vsliceColorGeometry = new Geometry();
+      //  this.vsliceVertexGeometry = new Geometry();
+       // this.vsliceFillIndex = new Geometry();
     }
 
+    /*
     public Geometry getFillIndexGeometry() {
         return this.fillIndexGeometry;
     }
@@ -100,7 +100,7 @@ public class VolumeSlice3DOutput {
     public Geometry getVSliceFillIndexGeometry() {
         return this.vsliceFillIndex;
     }
-
+*/
     public void setHaveVSliceData(boolean flag){
         this.haveVSliceData = flag;
     }
@@ -111,12 +111,12 @@ public class VolumeSlice3DOutput {
     // @Override
     public long getSizeInBytes() {
         long sizeInBytes = 0L;
-        sizeInBytes += (this.fillIndexGeometry != null) ? this.fillIndexGeometry.getSizeInBytes() : 0L;
-        sizeInBytes += (this.outlineIndexGeometry != null) ? this.outlineIndexGeometry.getSizeInBytes() : 0L;
-        sizeInBytes += (this.vertexGeometry != null) ? this.vertexGeometry.getSizeInBytes() : 0L;
-        sizeInBytes += (this.vsliceColorGeometry != null) ? this.vsliceColorGeometry.getSizeInBytes() : 0L;
-        sizeInBytes += (this.vsliceVertexGeometry != null) ? this.vsliceVertexGeometry.getSizeInBytes() : 0L;
-        sizeInBytes += (this.vsliceFillIndex != null) ? this.vsliceFillIndex.getSizeInBytes() : 0L;
+      //  sizeInBytes += (this.fillIndexGeometry != null) ? this.fillIndexGeometry.getSizeInBytes() : 0L;
+      //  sizeInBytes += (this.outlineIndexGeometry != null) ? this.outlineIndexGeometry.getSizeInBytes() : 0L;
+      //  sizeInBytes += (this.vertexGeometry != null) ? this.vertexGeometry.getSizeInBytes() : 0L;
+      //  sizeInBytes += (this.vsliceColorGeometry != null) ? this.vsliceColorGeometry.getSizeInBytes() : 0L;
+      //  sizeInBytes += (this.vsliceVertexGeometry != null) ? this.vsliceVertexGeometry.getSizeInBytes() : 0L;
+      //  sizeInBytes += (this.vsliceFillIndex != null) ? this.vsliceFillIndex.getSizeInBytes() : 0L;
 
         return sizeInBytes;
     }

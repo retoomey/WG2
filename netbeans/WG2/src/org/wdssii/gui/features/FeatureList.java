@@ -302,6 +302,14 @@ public class FeatureList {
         return have;
     }
 
+    public boolean isSelected(Feature f){
+    	boolean selected = false;
+    	if (f == getSelected(f.getFeatureGroup())){
+    		selected = true;
+    	}
+    	return selected;
+    }
+    
     /**
      * Set the selected Feature for the group that it is in. For example, you
      * can set the selected 'map' or '3d object' separately.

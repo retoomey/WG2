@@ -308,70 +308,70 @@ public class WdssiiCatalog extends JPanel implements CONUSJPanelListener {
 
         createIndexLoadPanel();
 
-        myModel = new WdssiiCatalog.BookmarkURLDataTableModel();
-        jSourceListTable = new javax.swing.JTable();
-        jSourceListTable.setModel(myModel);
-
-        jSourceListTable.setFillsViewportHeight(true);
-        jSourceListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        jSourceTableScrollPane.setViewportView(jSourceListTable);
-
-        WdssiiCatalog.BookmarkTableCellRenderer p = new WdssiiCatalog.BookmarkTableCellRenderer();
-        jSourceListTable.setDefaultRenderer(BookmarkURLSource.class, p);
-        jSourceListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                jSourceListTableValueChanged(e);
-            }
-        });
-
-        jSourceListTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-
-                /**
-                 * On double click, try to add the source
-                 */
-                if (e.getClickCount() == 2) {
-                    addNewSourceFromFields(true, true);
-                }
-            }
-        });
-        jSourceListTable.addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-            }
-
-            @Override
-            public void keyPressed(KeyEvent e) {
-                /**
-                 * Have to do enter pressed to snag before the table scroll
-                 */
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    addNewSourceFromFields(true, true);
-                }
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {
-            }
-        });
-
-       // jBookmarkComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[]{
-        //            "http://tensor.protect.nssl/rindexv2.xml", "file:/D:/testing2.xml", myDebugList}));
-        jBookmarkComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[]{
-                myDebugList, "http://tensor.protect.nssl/rindexv2.xml", "file:/D:/testing2.xml"}));
-        jSourceListTable.setRowSorter(myModel.getGroupModelSorter());
-
+//        myModel = new WdssiiCatalog.BookmarkURLDataTableModel();
+//        jSourceListTable = new javax.swing.JTable();
+//        jSourceListTable.setModel(myModel);
+//
+//        jSourceListTable.setFillsViewportHeight(true);
+//        jSourceListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//        jSourceTableScrollPane.setViewportView(jSourceListTable);
+//
+//        WdssiiCatalog.BookmarkTableCellRenderer p = new WdssiiCatalog.BookmarkTableCellRenderer();
+//        jSourceListTable.setDefaultRenderer(BookmarkURLSource.class, p);
+//        jSourceListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+//            @Override
+//            public void valueChanged(ListSelectionEvent e) {
+//                jSourceListTableValueChanged(e);
+//            }
+//        });
+//
+//        jSourceListTable.addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//
+//                /**
+//                 * On double click, try to add the source
+//                 */
+//                if (e.getClickCount() == 2) {
+//                    addNewSourceFromFields(true, true);
+//                }
+//            }
+//        });
+//        jSourceListTable.addKeyListener(new KeyListener() {
+//            @Override
+//            public void keyTyped(KeyEvent e) {
+//            }
+//
+//            @Override
+//            public void keyPressed(KeyEvent e) {
+//                /**
+//                 * Have to do enter pressed to snag before the table scroll
+//                 */
+//                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+//                    addNewSourceFromFields(true, true);
+//                }
+//            }
+//
+//            @Override
+//            public void keyReleased(KeyEvent e) {
+//            }
+//        });
+//
+//       // jBookmarkComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[]{
+//        //            "http://tensor.protect.nssl/rindexv2.xml", "file:/D:/testing2.xml", myDebugList}));
+//        jBookmarkComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[]{
+//                myDebugList, "http://tensor.protect.nssl/rindexv2.xml", "file:/D:/testing2.xml"}));
+//        jSourceListTable.setRowSorter(myModel.getGroupModelSorter());
+//
         CONUSJPanel ipanel = new CONUSJPanel();
         myCONUSPanel = ipanel;
         javax.swing.JScrollPane holder = new javax.swing.JScrollPane();
         holder.setViewportView(ipanel);
-        jBookTabPane.addTab("CONUS", null, holder, "stuff");
-        myCONUSPanel.addCONUSJPanelListener(this);
-
-        updateListToCurrent();
-        updateCurrentRadarInfo();
+//        jBookTabPane.addTab("CONUS", null, holder, "stuff");
+//        myCONUSPanel.addCONUSJPanelListener(this);
+//
+//        updateListToCurrent();
+//        updateCurrentRadarInfo();
     }
 
     private void createIndexLoadPanel() {

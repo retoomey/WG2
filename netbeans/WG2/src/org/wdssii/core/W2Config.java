@@ -103,8 +103,6 @@ public class W2Config {
         if (useWeb) {
             // Attempt to get data from web located w2config locations.  We have
             // a cvs repository, also added stuff to the google project page.
-            addPattern("http://tensor.protect.nssl/cgi-bin/viewcvs.cgi/cvs/w2/w2config/{1}?view=co");
-            addPattern("http://wg2.googlecode.com/hg/netbeans/WG2/w2config/{1}");
         }
     }
 

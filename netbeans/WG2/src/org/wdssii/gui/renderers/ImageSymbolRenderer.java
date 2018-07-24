@@ -1,16 +1,19 @@
 package org.wdssii.gui.renderers;
 
-import com.sun.opengl.util.BufferUtil;
+//import com.sun.opengl.util.BufferUtil;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.swing.Icon;
 import org.wdssii.gui.swing.SwingIconFactory;  // Temp
 import org.wdssii.xml.iconSetConfig.ImageSymbol;
 import org.wdssii.xml.iconSetConfig.Symbol;
+
+import com.jogamp.common.nio.Buffers;
 
 /**
  * Draws an image centered at point... This loads an Icon using Java, then
@@ -45,7 +48,9 @@ public class ImageSymbolRenderer extends SymbolRenderer {
         }
     }
 
-    public void setUpTexture(GL gl) {
+    public void setUpTexture(GL glold) {
+    	final GL2 gl = glold.getGL().getGL2();
+
         // stupid slow, get it to work..
         // Need the icon first...
         if (texture < 0) {
@@ -69,7 +74,9 @@ public class ImageSymbolRenderer extends SymbolRenderer {
                 Graphics g = bi.createGraphics();
                 myIcon.paintIcon(null, g, 0, 0);
 
-                ByteBuffer buffer = BufferUtil.newByteBuffer(w * h * 4);
+               // ByteBuffer buffer = BufferUtil.newByteBuffer(w * h * 4);
+                ByteBuffer buffer = Buffers.newDirectByteBuffer(w * h * 4);
+
                 for (int y = h - 1; y >= 0; y--) {
                     for (int x = 0; x < w; x++) {
                         buffer.put((byte) 0);
@@ -108,7 +115,7 @@ public class ImageSymbolRenderer extends SymbolRenderer {
                 gl.glBindTexture(TEXTURE_TARGET, texture);
 
                 // Reset any unpack values...
-                gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0);
+                gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
                 gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
 
                 // No mipmapping, regular linear
@@ -129,7 +136,8 @@ public class ImageSymbolRenderer extends SymbolRenderer {
     }
 
     @Override
-    public void render(GL gl) {
+    public void render(GL glold) {
+    	final GL2 gl = glold.getGL().getGL2();
 
         setUpTexture(gl);
 
@@ -143,7 +151,7 @@ public class ImageSymbolRenderer extends SymbolRenderer {
 
             gl.glBindTexture(TEXTURE_TARGET, texture);
 
-            gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0);
+            gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
             gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
 
             // No mipmapping, regular linear
@@ -167,7 +175,7 @@ public class ImageSymbolRenderer extends SymbolRenderer {
             gl.glTranslatef(-w2, -h2, 0f); // Center icon 
 
             gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);  // Color affects texture
-            gl.glBegin(GL.GL_QUADS);
+            gl.glBegin(GL2.GL_QUADS);
             gl.glTexCoord2f(0f, 0f);
             gl.glVertex2f(0, 0);
 

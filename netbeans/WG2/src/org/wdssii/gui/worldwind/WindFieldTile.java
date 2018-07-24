@@ -14,6 +14,7 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
@@ -295,29 +296,32 @@ public class WindFieldTile extends WWTileRenderer.Tile {
      * @param dc
      * @return
      */
-    public static boolean beginBatch1(GL gl) {
+    public static boolean beginBatch1(GL glold) {
+    	final GL2 gl = glold.getGL().getGL2();
 
         // Set up
-        gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT
+        gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL2.GL_LIGHTING_BIT
                 | GL.GL_COLOR_BUFFER_BIT
-                | GL.GL_ENABLE_BIT // FIXME: too many attributes
-                | GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT
-                | GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT);
+                | GL2.GL_ENABLE_BIT // FIXME: too many attributes
+                | GL2.GL_TEXTURE_BIT | GL2.GL_TRANSFORM_BIT
+                | GL2.GL_VIEWPORT_BIT | GL2.GL_CURRENT_BIT);
 
-        gl.glDisable(GL.GL_LIGHTING);
+        gl.glDisable(GL2.GL_LIGHTING);
         gl.glDisable(GL.GL_TEXTURE_2D); // no textures
         gl.glDisable(GL.GL_DEPTH_TEST);
-        gl.glShadeModel(GL.GL_FLAT); // FIXME: push attrib
-        gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT
-                | GL.GL_CLIENT_PIXEL_STORE_BIT);
-        gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
-        gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+        gl.glShadeModel(GL2.GL_FLAT); // FIXME: push attrib
+        gl.glPushClientAttrib(GL2.GL_CLIENT_VERTEX_ARRAY_BIT
+                | GL2.GL_CLIENT_PIXEL_STORE_BIT);
+        gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
+        gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
         gl.glLineWidth(2.0f);
 
         return true;
     }
 
-    public static void endBatch1(GL gl) {
+    public static void endBatch1(GL glold) {
+    	final GL2 gl = glold.getGL().getGL2();
+
         gl.glLineWidth(1.0f);
         gl.glPopClientAttrib();
         gl.glPopAttrib();
@@ -343,7 +347,9 @@ public class WindFieldTile extends WWTileRenderer.Tile {
     public void drawTile(DrawContext dc, Product windfield, boolean readoutMode) {
 
         if (tileCreated) {
-            GL gl = dc.getGL();
+            GL glold = dc.getGL();
+        	final GL2 gl = glold.getGL2();
+
             try {
                 Object lock1 = verts.getBufferLock();
                 Object lock2 = colors.getBufferLock();

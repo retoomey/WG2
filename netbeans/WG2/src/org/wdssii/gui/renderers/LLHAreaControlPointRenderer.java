@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Point;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 import org.wdssii.geom.LLD_X;
 import org.wdssii.geom.V2;
@@ -47,7 +48,9 @@ public class LLHAreaControlPointRenderer {
 				// Render each of the control points for picking though....
 				for (LLHAreaControlPoint p : myC) {
 					Color c = getUniqueColor();
-					gl.glColor3ub((byte) c.getRed(), (byte) c.getGreen(), (byte) c.getBlue());
+                	final GL2 gln = gl.getGL().getGL2();
+
+					gln.glColor3ub((byte) c.getRed(), (byte) c.getGreen(), (byte) c.getBlue());
 					myR.drawControlPoint(world, p, true);
 					addCandidate(c, p);
 				}
@@ -85,7 +88,8 @@ public class LLHAreaControlPointRenderer {
 		if (!w.inView(aV3)){
 			return;
 		}
-		GL gl = w.gl;
+		GL glold = w.gl;
+    	final GL2 gl = glold.getGL().getGL2();
 
 		//int i = controlPoint.getAltitudeIndex();
 		int i = 0;
@@ -104,20 +108,20 @@ public class LLHAreaControlPointRenderer {
 			int aViewWidth = w.width;
 			int aViewHeight = w.height;
 
-			gl.glDisable(GL.GL_LIGHTING);
+			gl.glDisable(GL2.GL_LIGHTING);
 			gl.glDisable(GL.GL_DEPTH_TEST);
 			gl.glDisable(GL.GL_TEXTURE_2D); // no textures
-			gl.glMatrixMode(GL.GL_PROJECTION);
+			gl.glMatrixMode(GL2.GL_PROJECTION);
 			gl.glPushMatrix();
 			gl.glLoadIdentity();
 			gl.glOrtho(0, aViewWidth, 0, aViewHeight, -1, 1);  // TopLeft
-			gl.glMatrixMode(GL.GL_MODELVIEW);
+			gl.glMatrixMode(GL2.GL_MODELVIEW);
 			gl.glPushMatrix();
 			gl.glLoadIdentity();
 
 			if (pick) {
 				// Draw the pick box area
-				gl.glBegin(GL.GL_QUADS);
+				gl.glBegin(GL2.GL_QUADS);
 				gl.glVertex2d(p.x - z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y + z);
@@ -126,7 +130,7 @@ public class LLHAreaControlPointRenderer {
 			} else {
 
 				gl.glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
-				gl.glBegin(GL.GL_QUADS);
+				gl.glBegin(GL2.GL_QUADS);
 				gl.glVertex2d(p.x - z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y + z);
@@ -134,7 +138,7 @@ public class LLHAreaControlPointRenderer {
 				gl.glEnd();
 				z--;
 				gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-				gl.glBegin(GL.GL_QUADS);
+				gl.glBegin(GL2.GL_QUADS);
 				gl.glVertex2d(p.x - z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y + z);
@@ -149,7 +153,7 @@ public class LLHAreaControlPointRenderer {
 				}else{
 					gl.glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
 				}
-				gl.glBegin(GL.GL_QUADS);
+				gl.glBegin(GL2.GL_QUADS);
 				gl.glVertex2d(p.x - z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y + z);
@@ -157,9 +161,9 @@ public class LLHAreaControlPointRenderer {
 				gl.glEnd();            			
 			}
 
-			gl.glMatrixMode(GL.GL_PROJECTION);
+			gl.glMatrixMode(GL2.GL_PROJECTION);
 			gl.glPopMatrix();
-			gl.glMatrixMode(GL.GL_MODELVIEW);
+			gl.glMatrixMode(GL2.GL_MODELVIEW);
 			gl.glPopMatrix();
 		}
 	}

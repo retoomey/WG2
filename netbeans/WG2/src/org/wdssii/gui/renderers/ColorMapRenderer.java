@@ -1,7 +1,7 @@
 package org.wdssii.gui.renderers;
 
 import org.wdssii.gui.features.Feature3DRenderer;
-import com.sun.opengl.util.j2d.TextRenderer;
+//import com.sun.opengl.util.j2d.TextRenderer;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
@@ -9,8 +9,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+
+import com.jogamp.opengl.util.awt.TextRenderer;
+
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.ColorMap.ColorMapOutput;
@@ -184,7 +189,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 	private static class drawer {
 
 		Graphics2D g;
-		GL gl;
+		GL2 gl;
 		float opacity;
 		TextRenderer glText;
 		int viewWidth;
@@ -203,7 +208,9 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		}
 
 		public drawer(GL aGL, int vw, int vh, float o) {
-			gl = aGL; // or subclass...
+			//gl = aGL; // or subclass...
+        	gl = aGL.getGL().getGL2();
+
 			opacity = o;
 			viewWidth = vw;
 			viewHeight = vh;
@@ -239,6 +246,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 			} else {
 				// Erase square of colormap
 				final double uy = viewHeight - y;
+
 				gl.glColor4ub((byte) backColor.getRed(), //FIXME
 					(byte) backColor.getGreen(), (byte) backColor.getBlue(),
 					(byte) (backColor.getAlpha() * opacity));
@@ -249,7 +257,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		public void startBins() {
 			if (g != null) {
 			} else {
-				gl.glBegin(GL.GL_QUADS);
+				gl.glBegin(GL2.GL_QUADS);
 			}
 		}
 

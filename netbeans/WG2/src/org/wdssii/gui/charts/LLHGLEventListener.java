@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 
@@ -23,7 +24,7 @@ import org.wdssii.gui.volumes.LLHArea;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 
 /**
  *
@@ -93,7 +94,8 @@ public class LLHGLEventListener implements GLEventListener {
         // of texture points to 'stretch' it accurately... 'or' we use quads for
         // complete accuracy, but lose any texture quick abilities like smoothing...
 
-        GL gl = glad.getGL();
+        GL glold = glad.getGL();
+        final GL2 gl = glold.getGL2();
         final int ww = glad.getWidth();
         final int wh = glad.getHeight();
 
@@ -123,7 +125,7 @@ public class LLHGLEventListener implements GLEventListener {
 
             gl.glBindTexture(TEXTURE_TARGET, texture);
 
-            gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0);
+            gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
             gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
 
             // No mipmapping, regular linear
@@ -157,7 +159,7 @@ public class LLHGLEventListener implements GLEventListener {
 
             // Draw the texture to the 2D area it displayed in *********************************
             // Flip the Y, since opengl upsidedown...
-            gl.glBegin(GL.GL_QUADS);
+            gl.glBegin(GL2.GL_QUADS);
             gl.glTexCoord2f(0f, 0f);
             gl.glVertex2f(ml, wh - mt);
 
@@ -180,7 +182,7 @@ public class LLHGLEventListener implements GLEventListener {
                 // than erase entire square due to opengl pixel fill rate
                 gl.glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 
-                gl.glBegin(GL.GL_QUADS);
+                gl.glBegin(GL2.GL_QUADS);
                 // Left bar
                 gl.glVertex2f(0, 0);
                 gl.glVertex2f(0, wh);
@@ -241,7 +243,6 @@ public class LLHGLEventListener implements GLEventListener {
         //LOG.debug("reshape called ");
     }
 
-    @Override
     public void displayChanged(GLAutoDrawable glad, boolean bln, boolean bln1) {
         // LOG.debug("display changed called ");
     }
@@ -252,4 +253,10 @@ public class LLHGLEventListener implements GLEventListener {
     
     public void drawGLWorld(GLWorld w) {
     }
+
+	@Override
+	public void dispose(GLAutoDrawable arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 }

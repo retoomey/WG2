@@ -7,6 +7,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.xml.iconSetConfig.PolygonSymbol;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
@@ -40,7 +42,8 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
      * Square -- polygon(gl, polyRadius, 45,4); Diamond -- polygon(gl,
      * polyRadius, 0,4); GL_POLYGON (inside), GL_LINE_LOOP (outline)
      */
-    public static void polygon(GL gl, double radius, double phase, int points) {
+    public static void polygon(GL glold, double radius, double phase, int points) {
+    	final GL2 gl = glold.getGL().getGL2();
         final double m = 2.0 * Math.PI / points;
         final double pr = Math.toRadians(phase);
         double angle = pr;  // Start angle
@@ -74,9 +77,10 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
      *
      */
     @Override
-    public void render(GL gl) {
+    public void render(GL glold) {
 
         final double polyRadius = s.pointsize / 2.0;
+    	final GL2 gl = glold.getGL().getGL2();
 
         // Translate icon.   (this could be done outside for speed)
         gl.glTranslatef((float) s.xoffset, (float) s.yoffset, 0);
@@ -86,7 +90,7 @@ public class PolygonSymbolRenderer extends SymbolRenderer {
          */
         gl.glColor4f(s.color.getRed() / 255.0f, s.color.getGreen() / 255.0f,
                 s.color.getBlue() / 255.0f, s.color.getAlpha() / 255.0f);
-        gl.glBegin(GL.GL_POLYGON);
+        gl.glBegin(GL2.GL_POLYGON);
         polygon(gl, polyRadius, s.phaseangle, s.numpoints);
         gl.glEnd();
 

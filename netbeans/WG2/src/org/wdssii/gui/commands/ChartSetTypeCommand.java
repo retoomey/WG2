@@ -106,7 +106,8 @@ public class ChartSetTypeCommand extends WdssiiCommand {
         } catch (java.lang.NullPointerException e) {
             // it's ok, just means missing xml in chain...	
         }
-        defaultName = ChartCreateCommand.VIEW_WORLD_WIND;
+        //defaultName = ChartCreateCommand.VIEW_WORLD_WIND;
+        defaultName = ChartCreateCommand.VIEW_W2;
         return defaultName;
     }
 

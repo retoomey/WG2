@@ -2,6 +2,8 @@ package org.wdssii.gui.renderers;
 
 import org.wdssii.gui.features.Feature3DRenderer;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
@@ -132,9 +134,10 @@ public abstract class ProductRenderer extends Feature3DRenderer {
             }  // Not a table
 
            // Globe myGlobe = dc.getGlobe();
-            final GL gl = w.gl;
+            final GL glold = w.gl;
+        	final GL2 gl = glold.getGL().getGL2();
 
-            gl.glPushAttrib(GL.GL_LINE_BIT);
+            gl.glPushAttrib(GL2.GL_LINE_BIT);
             gl.glLineWidth(3);
             gl.glColor4d(1d, 1d, 1d, 1d);
             Location location;

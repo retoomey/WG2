@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.swing.Icon;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
@@ -39,12 +40,13 @@ public abstract class SymbolRenderer implements Icon {
     }
     
     /** Rectangle used for our merging count algorithm */
-    public void renderSymbolRectangle(GL gl, SymbolRectangle r){
+    public void renderSymbolRectangle(GL glold, SymbolRectangle r){
          Color c = getMergedBorderColor();
-         
+     	 final GL2 gl = glold.getGL().getGL2();
+
          gl.glLineWidth(3);
          gl.glColor4f(c.getRed()/255.0f, c.getGreen()/255.0f, c.getBlue()/255.0f, .80f);
-         gl.glEnable(GL.GL_LINE_STIPPLE);
+         gl.glEnable(GL2.GL_LINE_STIPPLE);
          gl.glLineStipple(1, (short) 0xAAAA);
          gl.glBegin(GL.GL_LINE_LOOP);
          gl.glVertex2d(r.x, r.y);
@@ -52,7 +54,7 @@ public abstract class SymbolRenderer implements Icon {
          gl.glVertex2d(r.x2, r.y2);
          gl.glVertex2d(r.x2, r.y);
          gl.glEnd();
-         gl.glDisable(GL.GL_LINE_STIPPLE);
+         gl.glDisable(GL2.GL_LINE_STIPPLE);
          gl.glLineWidth(1);
     }
     
@@ -63,15 +65,17 @@ public abstract class SymbolRenderer implements Icon {
         if (DEBUG_BOX) {
             double p = getPointSize() / 2.0;
             double radius = Math.sqrt(2*p*p);
-            gl.glLineWidth(1);
+        	final GL2 gl2 = gl.getGL().getGL2();
+
+            gl2.glLineWidth(1);
             if (COLOR1){
-            gl.glColor4f(1, 0, 0, 1);
+            gl2.glColor4f(1, 0, 0, 1);
             }else{
-                gl.glColor4f(0,1,0,1);
+                gl2.glColor4f(0,1,0,1);
             }
-            gl.glBegin(GL.GL_LINE_LOOP);
+            gl2.glBegin(GL.GL_LINE_LOOP);
             PolygonSymbolRenderer.polygon(gl, radius, 45.0, 4);
-            gl.glEnd();
+            gl2.glEnd();
         }
     }
 

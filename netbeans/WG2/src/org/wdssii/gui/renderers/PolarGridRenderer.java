@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 import org.wdssii.core.WdssiiJob;
 import org.wdssii.datatypes.DataType;
@@ -32,7 +33,7 @@ import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.storage.GrowList;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 
 /**
  *
@@ -361,7 +362,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 
 		synchronized (drawLock) {
 			if (isCreated() && (polygonData != null)) {
-				final GL gl = w.gl;
+		        final GL glold = w.gl;
+		    	final GL2 gl = glold.getGL().getGL2();
 				Color line = m.get(PolarGridMemento.LINE_COLOR, Color.WHITE);
 				final float r = line.getRed() / 255.0f;
 				final float g = line.getGreen() / 255.0f;
@@ -373,17 +375,17 @@ public class PolarGridRenderer extends Feature3DRenderer {
 					Object lock1 = polygonData.getBufferLock();
 					synchronized (lock1) {
 
-						gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT | GL.GL_COLOR_BUFFER_BIT
-								| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
-								| GL.GL_CURRENT_BIT | GL.GL_LINE_BIT);
+						gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL2.GL_LIGHTING_BIT | GL.GL_COLOR_BUFFER_BIT
+								| GL2.GL_ENABLE_BIT | GL2.GL_TEXTURE_BIT | GL2.GL_TRANSFORM_BIT | GL2.GL_VIEWPORT_BIT
+								| GL2.GL_CURRENT_BIT | GL2.GL_LINE_BIT);
 						attribsPushed = true;
 
-						gl.glDisable(GL.GL_LIGHTING);
+						gl.glDisable(GL2.GL_LIGHTING);
 						gl.glDisable(GL.GL_TEXTURE_2D);
 						gl.glDisable(GL.GL_DEPTH_TEST);
-						gl.glShadeModel(GL.GL_FLAT);
-						gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT | GL.GL_CLIENT_PIXEL_STORE_BIT);
-						gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+						gl.glShadeModel(GL2.GL_FLAT);
+						gl.glPushClientAttrib(GL2.GL_CLIENT_VERTEX_ARRAY_BIT | GL2.GL_CLIENT_PIXEL_STORE_BIT);
+						gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
 						// gl.glEnableClientState(GL.GL_COLOR_ARRAY);
 
 						// Smooth?

@@ -7,6 +7,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.xml.iconSetConfig.StarSymbol;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
@@ -47,7 +49,9 @@ public class StarSymbolRenderer extends SymbolRenderer {
     /**
      * Cross -- star(gl, polyRadius, 0,4); GL_LINES
      */
-    public static void star(GL gl, double radius, double phase, int points) {
+    public static void star(GL glold, double radius, double phase, int points) {
+    	final GL2 gl = glold.getGL().getGL2();
+
         points = (points / 2);   // Have to be multiple of 2    
         final double m = Math.PI / points;
         final double pr = Math.toRadians(phase);
@@ -86,9 +90,11 @@ public class StarSymbolRenderer extends SymbolRenderer {
      *
      */
     @Override
-    public void render(GL gl) {
+    public void render(GL glold) {
 
         final double polyRadius = s.pointsize / 2.0;
+    	final GL2 gl = glold.getGL().getGL2();
+
         // Translate icon.   (this could be done outside for speed)
         gl.glTranslatef((float) s.xoffset, (float) s.yoffset, 0);
 

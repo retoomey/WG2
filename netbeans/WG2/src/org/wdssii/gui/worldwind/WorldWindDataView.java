@@ -97,11 +97,13 @@ public class WorldWindDataView extends DataView {
             // so we store position in feature list....
             //FeatureList.theFeatures.setTrackingPosition();
             Position newPos = pe.getPosition();
+            if (newPos != null){
             float latDegrees = (float) newPos.latitude.degrees;
             float lonDegrees = (float) newPos.longitude.degrees;
             float elevKM = (float) newPos.elevation;
             FeaturePosition p = new FeaturePosition(latDegrees, lonDegrees, elevKM);
             FeatureList.theFeatures.setTrackingPosition(p);
+            }
             // This will be done globally at setTrackingPosition
             //myStatusBar.moved(pe, myWorld);
         }
@@ -141,6 +143,13 @@ public class WorldWindDataView extends DataView {
     
     public void addLegendFeature() {
 
+    	/** Turn this off should be higher up.
+    	 * However, how to 'patch' worldwind to allow layer control
+    	 * Better design is for color key stuff etc. to be 'higher' 
+    	 * in the design than at the view level.
+    	 * FIXME: new way
+    	 */
+    	/*
         LayerList ll = myWorld.getModel().getLayers();
         ArrayList<String> layerNames = new ArrayList<String>();
         String compass = "";
@@ -168,10 +177,13 @@ public class WorldWindDataView extends DataView {
                 }
             }
         }
-        if (theLegend == null) {
-            theLegend = LegendFeature.createLegend(FeatureList.theFeatures, compass, scale, insert, controls);
-            FeatureList.theFeatures.addFeature(theLegend);
-        }
+        // FIXME: bad..dependent on worldwind to even exist...
+     //   if (theLegend == null) {
+      //      theLegend = LegendFeature.createLegend(FeatureList.theFeatures, compass, scale, insert, controls);
+       //     FeatureList.theFeatures.addFeature(theLegend);
+      //  }
+      
+       */
     }
 
     public Layer getLayer(String key) {

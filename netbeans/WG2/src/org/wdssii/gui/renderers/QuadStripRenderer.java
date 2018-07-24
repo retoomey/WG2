@@ -1,16 +1,20 @@
 package org.wdssii.gui.renderers;
 
-import com.sun.opengl.util.BufferUtil;
+//import com.sun.opengl.util.BufferUtil;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Iterator;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
+
+import com.jogamp.common.nio.Buffers;
 
 /**
  * Quad Strip renders quads 'squares' as a series of strips. It also keeps two
@@ -44,7 +48,7 @@ public class QuadStripRenderer {
     /**
      * The mode..
      */
-    protected int myGLMode = GL.GL_QUAD_STRIP;
+    protected int myGLMode = GL2.GL_QUAD_STRIP;
     /**
      * Set if batched. (multiple calls to draw but a single opengl setup) If
      * true, caller must call beginBatch, endBatch around draw. Basically for
@@ -110,7 +114,7 @@ public class QuadStripRenderer {
     public static ByteBuffer endReadout(Point p, Rectangle view, GL gl) {
         int fullH = (int) (view.getHeight());
         int y = fullH - p.y - 1;  // Invert Y for openGL...
-        ByteBuffer data = BufferUtil.newByteBuffer(4);
+        ByteBuffer data = Buffers.newDirectByteBuffer(4);
         gl.glDisable(GL.GL_SCISSOR_TEST);
         gl.glReadPixels(p.x, y, 1, 1, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, data);
 
@@ -220,8 +224,9 @@ public class QuadStripRenderer {
      *
      * @param dc Draw context in opengl for drawing our radial set
      */
-    public void drawData(GL gl, boolean readoutMode) {
+    public void drawData(GL glold, boolean readoutMode) {
         if (canDraw()) {
+        	final GL2 gl = glold.getGL().getGL2();
             final boolean b = isBatched;
             try {
                 Object lock1 = verts.getBufferLock();
@@ -290,30 +295,32 @@ public class QuadStripRenderer {
      * @param dc
      * @return
      */
-    public static boolean beginBatch(GL gl) {
+    public static boolean beginBatch(GL glold) {
 
-        gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT
+    	final GL2 gl = glold.getGL().getGL2();
+        gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL2.GL_LIGHTING_BIT
                 | GL.GL_COLOR_BUFFER_BIT
-                | GL.GL_ENABLE_BIT
-                | GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT
-                | GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT);
+                | GL2.GL_ENABLE_BIT
+                | GL2.GL_TEXTURE_BIT | GL2.GL_TRANSFORM_BIT
+                | GL2.GL_VIEWPORT_BIT | GL2.GL_CURRENT_BIT);
 
-        gl.glDisable(GL.GL_LIGHTING);
+        gl.glDisable(GL2.GL_LIGHTING);
         gl.glDisable(GL.GL_TEXTURE_2D); // no textures
 
         gl.glDisable(GL.GL_DEPTH_TEST);
-        gl.glShadeModel(GL.GL_FLAT);
+        gl.glShadeModel(GL2.GL_FLAT);
         //		gl.glShadeModel(GL.GL_SMOOTH);
 
-        gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT
-                | GL.GL_CLIENT_PIXEL_STORE_BIT);
-        gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
-        gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+        gl.glPushClientAttrib(GL2.GL_CLIENT_VERTEX_ARRAY_BIT
+                | GL2.GL_CLIENT_PIXEL_STORE_BIT);
+        gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
+        gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
 
         return true;
     }
 
-    public static void endBatch(GL gl) {
+    public static void endBatch(GL glold) {
+    	final GL2 gl = glold.getGL().getGL2();
         gl.glPopClientAttrib();
         gl.glPopAttrib();
     }

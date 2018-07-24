@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 import org.wdssii.geom.LLD_X;
 import org.wdssii.geom.V2;
@@ -27,7 +28,7 @@ import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DfloatAsNodes;
 import org.wdssii.storage.GrowList;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 
 /** Draws the lines and text for polygons from an LLD_X set
  * 
@@ -133,27 +134,28 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 
 			boolean attribsPushed = false;
 			boolean statePushed = false;
-			final GL gl = w.gl;
+			final GL glold = w.gl;
+        	final GL2 gl = glold.getGL().getGL2();
 
 			try {
 				Object lock1 = workPolygons.getBufferLock();
 				synchronized (lock1) {
 
-					gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT
+					gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL2.GL_LIGHTING_BIT
 							| GL.GL_COLOR_BUFFER_BIT
-							| GL.GL_ENABLE_BIT
-							| GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT
-							| GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT
-							| GL.GL_LINE_BIT);
+							| GL2.GL_ENABLE_BIT
+							| GL2.GL_TEXTURE_BIT | GL2.GL_TRANSFORM_BIT
+							| GL2.GL_VIEWPORT_BIT | GL2.GL_CURRENT_BIT
+							| GL2.GL_LINE_BIT);
 					attribsPushed = true;
 
-					gl.glDisable(GL.GL_LIGHTING);
+					gl.glDisable(GL2.GL_LIGHTING);
 					gl.glDisable(GL.GL_TEXTURE_2D);
 					gl.glDisable(GL.GL_DEPTH_TEST);
-					gl.glShadeModel(GL.GL_FLAT);
-					gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT
-							| GL.GL_CLIENT_PIXEL_STORE_BIT);
-					gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+					gl.glShadeModel(GL2.GL_FLAT);
+					gl.glPushClientAttrib(GL2.GL_CLIENT_VERTEX_ARRAY_BIT
+							| GL2.GL_CLIENT_PIXEL_STORE_BIT);
+					gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
 					// gl.glEnableClientState(GL.GL_COLOR_ARRAY);
 
 					// Smooth?

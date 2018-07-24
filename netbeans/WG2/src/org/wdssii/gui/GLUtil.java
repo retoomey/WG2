@@ -1,10 +1,13 @@
 package org.wdssii.gui;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+//import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import java.awt.Color;
 import java.nio.FloatBuffer;
 import java.util.Iterator;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.storage.GrowList;
 
 /**
@@ -43,46 +46,52 @@ public class GLUtil {
 		pushOrtho2D(w.gl, w.width, w.height);
 	}
 
-	public static void pushOrtho2D(GL gl, int width, int height) {
-		gl.glMatrixMode(GL.GL_PROJECTION);
+	public static void pushOrtho2D(GL glold, int width, int height) {
+    	final GL2 gl = glold.getGL().getGL2();
+
+		gl.glMatrixMode(GL2.GL_PROJECTION);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
 		gl.glOrtho(0, width, 0, height, -1, 1);  // TopLeft
-		gl.glMatrixMode(GL.GL_MODELVIEW);
+		gl.glMatrixMode(GL2.GL_MODELVIEW);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
 
 		// Extra default settings for rendering pure 2D
 		// FIXME: check all these needed for below..
 		gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT
-				| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT
-				| GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
-				| GL.GL_CURRENT_BIT);
+				| GL2.GL_ENABLE_BIT | GL2.GL_TEXTURE_BIT
+				| GL2.GL_TRANSFORM_BIT | GL2.GL_VIEWPORT_BIT
+				| GL2.GL_CURRENT_BIT);
 		gl.glEnable(GL.GL_BLEND);
 		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
 		gl.glDisable(GL.GL_DEPTH_TEST);
 		gl.glDisable(GL.GL_TEXTURE_2D); // no textures
-		gl.glShadeModel(GL.GL_SMOOTH); // FIXME: pop attrib
+		gl.glShadeModel(GL2.GL_SMOOTH); // FIXME: pop attrib
 	}
 
 
-	public static void popOrtho2D(GL gl) {
-		gl.glMatrixMode(GL.GL_PROJECTION);
+	public static void popOrtho2D(GL glold) {
+    	final GL2 gl = glold.getGL().getGL2();
+
+		gl.glMatrixMode(GL2.GL_PROJECTION);
 		gl.glPopMatrix();
-		gl.glMatrixMode(GL.GL_MODELVIEW);
+		gl.glMatrixMode(GL2.GL_MODELVIEW);
 		gl.glPopMatrix();
 		gl.glPopAttrib();
 	}
 
-	public static void pushHiddenStipple(GL gl) {
+	public static void pushHiddenStipple(GL glold) {
+    	final GL2 gl = glold.getGL().getGL2();
+
 		gl.glDepthFunc(GL.GL_GREATER);
-		gl.glEnable(GL.GL_LINE_STIPPLE);
+		gl.glEnable(GL2.GL_LINE_STIPPLE);
 		gl.glLineStipple(1, (short) 0x00ff);
 	}
 
 	public static void popHiddenStipple(GL gl) {
 		// FIXME: should push/pop attrib flags probably
-		gl.glDisable(GL.GL_LINE_STIPPLE);
+		gl.glDisable(GL2.GL_LINE_STIPPLE);
 		gl.glDepthFunc(GL.GL_LESS);
 	}
 
@@ -92,9 +101,11 @@ public class GLUtil {
 	   gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 	 * We don't call it since you can call this multiple times within a single client state batch
 	 */
-	public static void renderArrays(GL gl, FloatBuffer z, GrowList<Integer> offsets, int glMode) {
+	public static void renderArrays(GL glold, FloatBuffer z, GrowList<Integer> offsets, int glMode) {
 		// Only render if there is data to render
 		if ((z != null) && (z.capacity() > 0)) {
+	    	final GL2 gl = glold.getGL().getGL2();
+
 			gl.glVertexPointer(3, GL.GL_FLOAT, 0, z.rewind());
 
 			Iterator<Integer> itr = offsets.iterator();

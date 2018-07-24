@@ -6,6 +6,8 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Vector;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.Contour;
@@ -140,7 +142,8 @@ public class ContoursRenderer extends ProductRenderer {
     public void drawData(GLWorld w, boolean readoutMode) {
         
         if (isCreated() && (verts != null)) {
-            final GL gl = w.gl;
+            final GL glold = w.gl;
+        	final GL2 gl = glold.getGL().getGL2();
 
             boolean attribsPushed = false;
             try {
@@ -150,13 +153,13 @@ public class ContoursRenderer extends ProductRenderer {
                 synchronized (lock1) {
                     synchronized (lock2) {
 
-                        gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT
+                        gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL2.GL_LIGHTING_BIT
                                 | GL.GL_COLOR_BUFFER_BIT
-                                | GL.GL_ENABLE_BIT
-                                | GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT
-                                | GL.GL_VIEWPORT_BIT | GL.GL_CURRENT_BIT);
+                                | GL2.GL_ENABLE_BIT
+                                | GL2.GL_TEXTURE_BIT | GL2.GL_TRANSFORM_BIT
+                                | GL2.GL_VIEWPORT_BIT | GL2.GL_CURRENT_BIT);
 
-                        gl.glDisable(GL.GL_LIGHTING);
+                        gl.glDisable(GL2.GL_LIGHTING);
                         gl.glDisable(GL.GL_TEXTURE_2D);
 
                         if (readoutMode) {
@@ -170,11 +173,11 @@ public class ContoursRenderer extends ProductRenderer {
                             gl.glDisable(GL.GL_DEPTH_TEST);
                         }
                         gl.glLineWidth(2.0f);
-                        gl.glShadeModel(GL.GL_FLAT);
-                        gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT
-                                | GL.GL_CLIENT_PIXEL_STORE_BIT);
-                        gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
-                        gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+                        gl.glShadeModel(GL2.GL_FLAT);
+                        gl.glPushClientAttrib(GL2.GL_CLIENT_VERTEX_ARRAY_BIT
+                                | GL2.GL_CLIENT_PIXEL_STORE_BIT);
+                        gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
+                        gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
                         attribsPushed = true;
 //gl.glEnable(GL.GL_BLEND);
 //gl.glBlendFunc(GL.GL_SRC_ALPHA)

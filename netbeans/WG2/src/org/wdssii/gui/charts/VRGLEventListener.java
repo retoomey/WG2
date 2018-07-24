@@ -1,8 +1,10 @@
 package org.wdssii.gui.charts;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
+
 import java.nio.ByteBuffer;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.geom.Location;
@@ -74,9 +76,10 @@ public class VRGLEventListener extends LLHGLEventListener {
 
         super.init(gld);
 
-        GL gl = gld.getGL();
+        GL glold = gld.getGL();
+        final GL2 gl = glold.getGL().getGL2();
         myProgramID = gl.glCreateProgram();
-        GLShader.initShader(gl, myProgramID, "shader1", GL.GL_FRAGMENT_SHADER);
+        GLShader.initShader(gl, myProgramID, "shader1", GL2.GL_FRAGMENT_SHADER);
         gl.glLinkProgram(myProgramID);
         //gl.glShaderSource(shaderID, wh, strings, edgeTable, wh);)
 
@@ -84,10 +87,10 @@ public class VRGLEventListener extends LLHGLEventListener {
 
     }
 
-    public void draw_cube(GL gl) {
+    public void draw_cube(GL glold) {
 
         float col;
-
+        final GL2 gl = glold.getGL().getGL2();
         gl.glBegin(gl.GL_LINES);
         {
             col = (viewer[1] > 0 && viewer[2] > 0) ? 0.4f : 1;
@@ -172,7 +175,8 @@ public class VRGLEventListener extends LLHGLEventListener {
         return 10;
     }
 
-    public void clip(GL gl) {
+    public void clip(GL glold) {
+    	final GL2 gl = glold.getGL().getGL2();
         double FLT_EPSILON = 0;
         // double plane[] = {
         //     +1, 0, 0, FLT_EPSILON,
@@ -195,39 +199,39 @@ public class VRGLEventListener extends LLHGLEventListener {
         };
         //  gl.glTranslatef(-myXRotate, 0.0f, 0.0f);
         //gl.glTranslatef(-.5001f, 0, 0);
-        gl.glClipPlane(gl.GL_CLIP_PLANE0, plane, 0);
-        gl.glEnable(GL.GL_CLIP_PLANE0);
+        gl.glClipPlane(GL2.GL_CLIP_PLANE0, plane, 0);
+        gl.glEnable(GL2.GL_CLIP_PLANE0);
         //  gl.glTranslatef(.5001f, 0,0);
         //  gl.glTranslatef(myXRotate, 0.0f, 0.0f);
-       gl.glEnable(GL.GL_CLIP_PLANE1);
-        gl.glClipPlane(gl.GL_CLIP_PLANE1, plane, 4);
-        gl.glEnable(GL.GL_CLIP_PLANE2);
-        gl.glClipPlane(gl.GL_CLIP_PLANE2, plane, 8);
-        gl.glEnable(GL.GL_CLIP_PLANE3);
-        gl.glClipPlane(gl.GL_CLIP_PLANE3, plane, 12);
-        gl.glEnable(GL.GL_CLIP_PLANE4);
-        gl.glClipPlane(gl.GL_CLIP_PLANE4, plane, 16);
-        gl.glEnable(GL.GL_CLIP_PLANE5);
-        gl.glClipPlane(gl.GL_CLIP_PLANE5, plane, 20);
+       gl.glEnable(GL2.GL_CLIP_PLANE1);
+        gl.glClipPlane(GL2.GL_CLIP_PLANE1, plane, 4);
+        gl.glEnable(GL2.GL_CLIP_PLANE2);
+        gl.glClipPlane(GL2.GL_CLIP_PLANE2, plane, 8);
+        gl.glEnable(GL2.GL_CLIP_PLANE3);
+        gl.glClipPlane(GL2.GL_CLIP_PLANE3, plane, 12);
+        gl.glEnable(GL2.GL_CLIP_PLANE4);
+        gl.glClipPlane(GL2.GL_CLIP_PLANE4, plane, 16);
+        gl.glEnable(GL2.GL_CLIP_PLANE5);
+        gl.glClipPlane(GL2.GL_CLIP_PLANE5, plane, 20);
         
     }
 
     public void unclip(GL gl) {
-        gl.glDisable(gl.GL_CLIP_PLANE0);
-        gl.glDisable(gl.GL_CLIP_PLANE1);
-        gl.glDisable(gl.GL_CLIP_PLANE2);
-        gl.glDisable(gl.GL_CLIP_PLANE3);
-        gl.glDisable(gl.GL_CLIP_PLANE4);
-        gl.glDisable(gl.GL_CLIP_PLANE5);
+        gl.glDisable(GL2.GL_CLIP_PLANE0);
+        gl.glDisable(GL2.GL_CLIP_PLANE1);
+        gl.glDisable(GL2.GL_CLIP_PLANE2);
+        gl.glDisable(GL2.GL_CLIP_PLANE3);
+        gl.glDisable(GL2.GL_CLIP_PLANE4);
+        gl.glDisable(GL2.GL_CLIP_PLANE5);
     }
     public static int counter = 0;
 
-    public void drawMyCube(GL gl, GLAutoDrawable glad) {
+    public void drawMyCube(GL glold, GLAutoDrawable glad) {
 
-
-        gl.glEnable(gl.GL_TEXTURE_3D);
-        gl.glDisable(gl.GL_LIGHTING);
-        gl.glDisable(gl.GL_CULL_FACE);
+    	final GL2 gl = glold.getGL2();
+        gl.glEnable(GL2.GL_TEXTURE_3D);
+        gl.glDisable(GL2.GL_LIGHTING);
+        gl.glDisable(GL2.GL_CULL_FACE);
         // gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_FILL);
         //      gl.glEnable(gl.GL_BLEND);
         //gl.glDepthMask(false);
@@ -246,21 +250,21 @@ public class VRGLEventListener extends LLHGLEventListener {
         //   gl.glLoadIdentity();
 
         //  gl.glEnable(GL.GL_TEXTURE_3D);
-        gl.glBindTexture(GL.GL_TEXTURE_3D, texture);
+        gl.glBindTexture(GL2.GL_TEXTURE_3D, texture);
 
-        gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0);
+        gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
         gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
         int filter = GL.GL_NEAREST;
-        gl.glTexParameteri(GL.GL_TEXTURE_3D, GL.GL_TEXTURE_MAG_FILTER, filter);
-        gl.glTexParameteri(GL.GL_TEXTURE_3D, GL.GL_TEXTURE_MIN_FILTER, filter);
-        gl.glTexParameterf(GL.GL_TEXTURE_3D, GL.GL_TEXTURE_WRAP_R, GL.GL_CLAMP_TO_EDGE);
-        gl.glTexParameterf(GL.GL_TEXTURE_3D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
-        gl.glTexParameterf(GL.GL_TEXTURE_3D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+        gl.glTexParameteri(GL2.GL_TEXTURE_3D, GL.GL_TEXTURE_MAG_FILTER, filter);
+        gl.glTexParameteri(GL2.GL_TEXTURE_3D, GL.GL_TEXTURE_MIN_FILTER, filter);
+        gl.glTexParameterf(GL2.GL_TEXTURE_3D, GL2.GL_TEXTURE_WRAP_R, GL.GL_CLAMP_TO_EDGE);
+        gl.glTexParameterf(GL2.GL_TEXTURE_3D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
+        gl.glTexParameterf(GL2.GL_TEXTURE_3D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
         int internalFormat = GL.GL_RGBA;
         int dataFmt = GL.GL_RGBA;
         int dataType = GL.GL_UNSIGNED_BYTE;
 
-        gl.glTexImage3D(GL.GL_TEXTURE_3D, 0, internalFormat, myCubeX, myCubeY, myCubeZ, 0, dataFmt, dataType, myBuffer);
+        gl.glTexImage3D(GL2.GL_TEXTURE_3D, 0, internalFormat, myCubeX, myCubeY, myCubeZ, 0, dataFmt, dataType, myBuffer);
 
         if (drawCube) {
             // draw a cube (6 quadrilaterals) with depth
@@ -453,7 +457,8 @@ public class VRGLEventListener extends LLHGLEventListener {
 
         // int x, y, h;
         // x = y = h = 10;
-        GL gl = glad.getGL();
+        GL glold = glad.getGL();
+        final GL2 gl = glold.getGL2();
         GLU glu = new GLU();
 
         final int ww = glad.getWidth();
@@ -473,7 +478,7 @@ public class VRGLEventListener extends LLHGLEventListener {
             gl.glMatrixMode(gl.GL_PROJECTION);
             gl.glLoadIdentity();
             // glu.gluLookAt(0, 0, 3, 0, 0, 0, 0, 1, 0);
-            gl.glMatrixMode(GL.GL_MODELVIEW);
+            gl.glMatrixMode(GL2.GL_MODELVIEW);
             gl.glLoadIdentity();
 
             gl.glRotatef(myYRotate, 0.0f, 1.0f, 0.0f);
@@ -838,7 +843,7 @@ public class VRGLEventListener extends LLHGLEventListener {
         if (myBuffer != null) {  // FIXME: AND THE SIZE WE NEED
             buffer = myBuffer;  // AT THE MOMENT ASSUMING NEVER CHANGES
         } else {
-            buffer = BufferUtil.newByteBuffer(total * 4);
+            buffer = Buffers.newDirectByteBuffer(total * 4);
         }
         /*  int counter = 0;
          for (int i = 0; i < total; i++) {

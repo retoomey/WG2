@@ -11,7 +11,9 @@ import org.wdssii.gui.Picker;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
+
+//import com.sun.opengl.util.BufferUtil;
 
 /** This picker uses a unique rendered openGL color to pick a set of objects
  * 
@@ -67,7 +69,9 @@ public class PickWithOpenGLColor extends Picker {
 		// Then snag the color pixel value...
 		int fullH = (int) (world.height);
         int yf = fullH - y - 1;  // Invert Y for openGL...
-        ByteBuffer data = BufferUtil.newByteBuffer(4);
+        //ByteBuffer data = BufferUtil.newByteBuffer(4);
+        ByteBuffer data = Buffers.newDirectByteBuffer(4);
+
        // gl.glDisable(GL.GL_SCISSOR_TEST);   // need to restore state then right?  
         gl.glReadPixels(x, yf, 1, 1, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, data);
         

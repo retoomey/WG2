@@ -7,6 +7,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.xml.iconSetConfig.ArrowSymbol;
 import org.wdssii.xml.iconSetConfig.Symbol;
 
@@ -38,14 +40,14 @@ public class ArrowSymbolRenderer extends SymbolRenderer {
     /**
      * Draws an arrow pointing in x direction
      */
-    public static void arrow(GL gl, double length, double width, int taillength, int tailthick) {
+    public static void arrow(GL glold, double length, double width, int taillength, int tailthick) {
 
         if (tailthick > width) {
             tailthick = (int) width;
         }
         final double halfLength = length / 2.0;
         final double halfWidth = width / 2.0;
-
+        final GL2 gl = glold.getGL().getGL2();
         gl.glVertex2d(halfLength, 0);           // Tip
         gl.glVertex2d(-halfLength, halfWidth);  // Left wing
 
@@ -97,10 +99,10 @@ public class ArrowSymbolRenderer extends SymbolRenderer {
      *
      */
     @Override
-    public void render(GL gl) {
+    public void render(GL glold) {
 
         final double polyRadius = s.pointsize / 2.0;
-
+        final GL2 gl = glold.getGL().getGL2();
         // Translate icon.
         gl.glTranslatef((float) s.xoffset, (float) s.yoffset, 0);
         gl.glRotatef(s.phaseangle, 0, 0, 1);
@@ -110,7 +112,8 @@ public class ArrowSymbolRenderer extends SymbolRenderer {
          */
         gl.glColor4f(s.color.getRed() / 255.0f, s.color.getGreen() / 255.0f,
                 s.color.getBlue() / 255.0f, s.color.getAlpha() / 255.0f);
-        gl.glBegin(GL.GL_POLYGON);
+        gl.glBegin(GL2.GL_POLYGON);
+        
         arrow(gl, s.pointsize, s.width, s.taillength, s.tailthick);
         gl.glEnd();
 

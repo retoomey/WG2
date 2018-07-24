@@ -4,7 +4,6 @@
 	<classpathentry kind="lib" path="netbeans/WG2/lib/commons-pool-1.5.4.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/CopyLibs/org-netbeans-modules-java-j2seproject-copylibstask.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/glazedlists_java15-1.9.0.jar"/>
-	<classpathentry kind="lib" path="netbeans/WG2/lib/gluegen-rt.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-api-10.2.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-coverage-10.2.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/gt-data-10.2.jar"/>
@@ -21,21 +20,31 @@
 	<classpathentry kind="lib" path="netbeans/WG2/lib/jfreechart-1.0.13.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/jide-oss-3.4.9_2.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/jnotify-0.94.jar"/>
-	<classpathentry kind="lib" path="netbeans/WG2/lib/jogl.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/jsr-275-1.0-beta-2.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/jts-1.13.jar"/>
-	<classpathentry kind="lib" path="netbeans/WG2/lib/junit.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/logback-classic-1.0.0.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/logback-core-1.0.0.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/miglayout-3.7.4.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/netcdf-4.3.16.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/slf4j-api-1.6.4.jar"/>
 	<classpathentry kind="lib" path="netbeans/WG2/lib/vecmath-1.3.2.jar"/>
-	<classpathentry kind="lib" path="netbeans/WG2/lib/worldwind.jar">
-		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="wg2-fresh/netbeans/WG2/release/modules/lib/amd64"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/gdal.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/gluegen-rt-natives-linux-amd64.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/gluegen-rt-natives-linux-i586.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/gluegen-rt-natives-macosx-universal.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/gluegen-rt-natives-windows-amd64.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/gluegen-rt-natives-windows-i586.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/gluegen-rt.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/jogl-all-natives-linux-amd64.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/jogl-all-natives-linux-i586.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/jogl-all-natives-macosx-universal.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/jogl-all-natives-windows-amd64.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/jogl-all-natives-windows-i586.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/jogl-all.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/junit-4.5.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/vpf-symbols.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/worldwind.jar"/>
+	<classpathentry kind="lib" path="netbeans/WG2/lib/worldwindx.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

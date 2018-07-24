@@ -81,6 +81,7 @@ public class WJSceneController extends BasicSceneController {
 
     @Override
     protected void draw(DrawContext dc) {
+    LOG.error("************************************DRAW CALLED!\n");	
         try {
         	GLWorld w = setupGLWorld(dc);
             FeatureList f = ProductManager.getInstance().getFeatureList();

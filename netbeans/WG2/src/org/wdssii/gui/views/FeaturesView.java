@@ -2,6 +2,8 @@ package org.wdssii.gui.views;
 
 import org.wdssii.core.CommandListener;
 import com.jidesoft.swing.JideSplitButton;
+
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -23,11 +25,13 @@ import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.core.CommandManager;
 import org.wdssii.gui.swing.SwingGUIPlugInPanel;
+import org.wdssii.gui.FeatureTableList;
 import org.wdssii.gui.commands.*;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.LegendFeature;
 import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.features.MapGUI;
 import org.wdssii.gui.features.PolarGridFeature;
@@ -75,8 +79,8 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             return new FeaturesView(myDockControls);
         }
     }
-    private FeatureListTableModel myFeatureListTableModel;
-    private RowEntryTable jObjects3DListTable;
+    private FeatureListTableModel myProductListTableModel;
+    private RowEntryTable myProductListTable;
     private Feature myLastSelectedFeature = null;
     /**
      * Holds the regular controls of selected feature
@@ -87,7 +91,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
      */
     //private JPanel jFeatureGUITablePanel;
     private javax.swing.JToolBar jEditToolBar;
-    private javax.swing.JScrollPane jObjectScrollPane;
+ //   private javax.swing.JScrollPane jObjectScrollPane;
     private JComponent jControls;
     /**
      * Scroll bar for regular controls for feature
@@ -99,6 +103,9 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
      */
     //private javax.swing.JScrollPane jTableScrollPane;
     private javax.swing.JLabel jInfoLabel;
+	private FeatureTableList myFeatureTableList;
+	private FeatureTableList myFeatureTableList2;
+	private FeatureTableList myFeatureTableList3;
 
     /**
      * Get the items for an individual view
@@ -161,6 +168,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         public String keyName; // The key used to select this handler
         public boolean checked;
         public boolean onlyMode;
+        // Used by the navigator right...
         public String type;
         public String timeStamp;
         public String subType;
@@ -183,7 +191,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             });
         }
 
-        @Override
+    /*    @Override
         public boolean rebuilding() {
             return isRebuilding;
         }
@@ -192,6 +200,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         public void setRebuilding(boolean value) {
             isRebuilding = value;
         }
+        */
     }
 
     /**
@@ -250,25 +259,29 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     }
 
     private void initTable() {
-        myFeatureListTableModel = new FeatureListTableModel();
-        jObjects3DListTable = new RowEntryTable();
-        final JTable myTable = jObjects3DListTable;
-        jObjects3DListTable.setModel(myFeatureListTableModel);
-        final FeatureListTableModel myModel = myFeatureListTableModel;
+    	
+    	// Fields...
+        myProductListTableModel = new FeatureListTableModel();
+        myProductListTable = new RowEntryTable();
+        
+        final RowEntryTable t = myProductListTable;
+        final FeatureListTableModel m = myProductListTableModel;
 
-        jObjects3DListTable.setFillsViewportHeight(true);
-        jObjects3DListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        jObjectScrollPane.setViewportView(jObjects3DListTable);
+        t.setModel(m);
+        t.setFillsViewportHeight(true);
+        t.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+       // jObjectScrollPane.setViewportView(myProductListTable);
 
         FeatureListTableCellRenderer p = new FeatureListTableCellRenderer();
-        jObjects3DListTable.setDefaultRenderer(FeatureListTableData.class, p);
+        t.setDefaultRenderer(FeatureListTableData.class, p);
 
-        int count = myTable.getColumnCount();
-        TableColumnModel cm = myTable.getColumnModel();
+        TableColumnModel cm = t.getColumnModel();
         JCheckBox aBox = new JCheckBox();
         Dimension d = aBox.getMinimumSize();
         IconHeaderRenderer r = new IconHeaderRenderer();
 
+        final int count = t.getColumnCount();
         for (int i = 0; i < count; i++) {
             TableColumn col = cm.getColumn(i);
             // Make all headers draw the same to be consistent.
@@ -295,14 +308,14 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             }
         }
 
-        jObjects3DListTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+        t.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 jObjects3DListTableValueChanged(e);
             }
         });
 
-        jObjects3DListTable.addMouseListener(new RowEntryTableMouseAdapter(jObjects3DListTable, myModel) {
+        t.addMouseListener(new RowEntryTableMouseAdapter(t, m) {
             class Item extends JMenuItem {
 
                 private final FeatureListTableData d;
@@ -404,13 +417,13 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         }
         // We're in the updateTable and have set the selection to the old
         // value, we don't want to loop infinitely
-        if (myFeatureListTableModel.rebuilding()) {
+        if (myProductListTableModel.rebuilding()) {
             return;
         }
-        int row = jObjects3DListTable.getSelectedRow();
+        int row = myProductListTable.getSelectedRow();
         if (row > -1) {
-            int dataRow = jObjects3DListTable.convertRowIndexToModel(row);
-            FeatureListTableData d = (FeatureListTableData) (myFeatureListTableModel.getDataForRow(dataRow));
+            int dataRow = myProductListTable.convertRowIndexToModel(row);
+            FeatureListTableData d = (FeatureListTableData) (myProductListTableModel.getDataForRow(dataRow));
             if (d != null) {
                 FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
                 CommandManager.getInstance().executeCommand(c, true);
@@ -419,6 +432,9 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     }
 
     public void updateTable(Object info) {
+        myFeatureTableList.updateList(info);
+        myFeatureTableList2.updateList(info);
+        myFeatureTableList3.updateList(info);
 
         // We only want to change selection when the user directly
         // changes one, not from other updates like from looping
@@ -472,6 +488,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             }
         }
 
+        // Fill in the table(s).  Split by group name...
         for (Feature d : f) {
             FeatureListTableData d2 = new FeatureListTableData();
             d2.visibleName = d.getName();
@@ -490,8 +507,8 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             }
             currentLine++;
         }
-        myFeatureListTableModel.setDataTypes(newList);
-        myFeatureListTableModel.fireTableDataChanged();
+        myProductListTableModel.setDataTypes(newList);
+        myProductListTableModel.fireTableDataChanged();
         // Keep old selection unless it's gone...
         if (!changeSelection) {
             // Use old selection if exists...
@@ -504,15 +521,15 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         }
 
         if (select > -1) {
-            select = jObjects3DListTable.convertRowIndexToView(select);
+            select = myProductListTable.convertRowIndexToView(select);
 
             // This of course fires an event, which calls jProductsListTableValueChanged
             // which would send a command which would do this again in an
             // infinite loop.  So we have a flag.  We don't use isAdjusting
             // because it still fires and event when you set it false
-            myFeatureListTableModel.setRebuilding(true);
+            myProductListTableModel.setRebuilding(true);
 
-            jObjects3DListTable.setRowSelectionInterval(select, select);
+            myProductListTable.setRowSelectionInterval(select, select);
 
             // Swap from old controls to new controls
             FeatureGUI newControls = null;
@@ -529,7 +546,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
                 myLastSelectedFeature = topFeature;
             }
 
-            myFeatureListTableModel.setRebuilding(false);
+            myProductListTableModel.setRebuilding(false);
 
         } else {
             setEmptyControls();
@@ -537,7 +554,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             jFeatureGUIPanel.repaint();
             myLastSelectedFeature = null;
         }
-        jObjects3DListTable.repaint();
+        myProductListTable.repaint();
         
         // Hack updates...need a better system for this
         if (myLastSelectedFeature != null){
@@ -545,6 +562,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         }
         // Notification for product changed...
          FeatureList.theFeatures.sendMessage("product");
+
     }
 
     private void updateLabel() {
@@ -587,20 +605,78 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     /**
      * The part of the GUI that deals with selection of a individual feature
      */
-    private JComponent initFeatureSelectGUI() {
+ /*   private JComponent initFeatureSelectGUIoldcode() {
 
+// only done once...
         jObjectScrollPane = new JScrollPane();
         jObjectScrollPane.setBorder(null);
         jInfoLabel = new JLabel("---");
         return jObjectScrollPane;
     }
-
+*/
+    
     private void initComponents(boolean dockControls) {
 
+    	// Create a tab per group type.  For the moment hard coded..
+    	// but could be done dynamically.
         setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        javax.swing.JTabbedPane jRootTab;
+        jRootTab = new javax.swing.JTabbedPane();
+        add(jRootTab, new CC().growX().growY());
+        
+        // Add a tab 
+        JComponent w = new JPanel();
+        w.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        jRootTab.addTab("All", w);
+       
+        JComponent w4 = new JPanel();
+        w4.setBackground(Color.GREEN);
+        w4.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        jRootTab.addTab("Products", w4);
+        myFeatureTableList3 = new FeatureTableList(ProductFeature.ProductGroup);
+        javax.swing.JScrollPane testScroll3 = new JScrollPane();
+        testScroll3.setBorder(null);
+        //	add(toolbar, new CC().dockNorth());
+        w4.add(new JLabel("PRODUCTS!"), new CC().dockNorth().growX());
+        w4.add(testScroll3, new CC().growX().growY());
+        testScroll3.setViewportView(myFeatureTableList3);
+        
+        JComponent w3 = new JPanel();
+        w3.setBackground(Color.BLUE);
+        w3.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        jRootTab.addTab("Maps", w3);
+        myFeatureTableList = new FeatureTableList(MapFeature.MapGroup);
+        javax.swing.JScrollPane testScroll = new JScrollPane();
+        testScroll.setBorder(null);
+        //	add(toolbar, new CC().dockNorth());
+        w3.add(new JLabel("MAPS!"), new CC().dockNorth().growX());
+        w3.add(testScroll, new CC().growX().growY());
+        testScroll.setViewportView(myFeatureTableList);
+
+        JComponent w2 = new JPanel();
+        w2.setBackground(Color.RED);
+        w2.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+        jRootTab.addTab("2D Overlays", w2);
+        myFeatureTableList2 = new FeatureTableList(LegendFeature.LegendGroup);
+        javax.swing.JScrollPane testScroll2 = new JScrollPane();
+        testScroll2.setBorder(null);
+        //	add(toolbar, new CC().dockNorth());
+        w2.add(new JLabel("LEGENDS!"), new CC().dockNorth().growX());
+        w2.add(testScroll2, new CC().growX().growY());
+        testScroll2.setViewportView(myFeatureTableList2);
+        
+
+        
+        // Add stuff inside panel....
         jInfoLabel = new JLabel("---");
         jControls = initFeatureControlGUI();
-        JComponent selection = initFeatureSelectGUI();
+       
+   
+        // Init feature selection gui...
+        javax.swing.JScrollPane jObjectScrollPane = new JScrollPane();
+        jObjectScrollPane.setBorder(null);
+        JComponent selection = jObjectScrollPane;
+        
         JComponent rootComponent;
         if (!dockControls) {
             JSplitPane s = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -611,12 +687,21 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             rootComponent = selection;
         }
 
+        
         //	add(toolbar, new CC().dockNorth());
-        add(jInfoLabel, new CC().dockNorth().growX());
-        add(rootComponent, new CC().growX().growY());
+        w.add(jInfoLabel, new CC().dockNorth().growX());
+        w.add(rootComponent, new CC().growX().growY());
 
         // to size correct, init table last, nope not it
         initTable();
+        myFeatureTableList.updateList(null);
+        myFeatureTableList2.updateList(null);
+        myFeatureTableList3.updateList(null);
+        
+        // Have to have table object before assigning to scroll pane
+        myProductListTable.setFillsViewportHeight(true);
+        jObjectScrollPane.setViewportView(myProductListTable);
+
     }
 
     @Override

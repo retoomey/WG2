@@ -4,8 +4,11 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
+
+//import com.sun.opengl.util.BufferUtil;
 
 /** Output for a volume slice.  Eventually we'll override for stuff like 3d windfield...
  * @author Robert Toomey
@@ -34,7 +37,7 @@ public class VolumeSlice3DOutput {
 
     public FloatBuffer getNewColorBuffer(int size) {
         if (myColorBuffer == null) {
-            myColorBuffer = BufferUtil.newFloatBuffer(size);
+            myColorBuffer = Buffers.newDirectFloatBuffer(size);
         }
         myColorBuffer.position(0);
         return myColorBuffer;
@@ -42,7 +45,7 @@ public class VolumeSlice3DOutput {
 
     public FloatBuffer getNewVertexBuffer(int size) {
         if (myVertexBuffer == null) {
-            myVertexBuffer = BufferUtil.newFloatBuffer(size);
+            myVertexBuffer = Buffers.newDirectFloatBuffer(size);
         }
         myVertexBuffer.position(0);
         return myVertexBuffer;
@@ -50,7 +53,7 @@ public class VolumeSlice3DOutput {
 
     public IntBuffer getNewIndexBuffer(int size) {
         if (myIndexBuffer == null) {
-            myIndexBuffer = BufferUtil.newIntBuffer(size);
+            myIndexBuffer = Buffers.newDirectIntBuffer(size);
         }
         myIndexBuffer.position(0);
         myNumberElements = size;
@@ -58,17 +61,20 @@ public class VolumeSlice3DOutput {
     }
 
     /** Set up a gl vertex pointer with our vertex data */
-    public void setupVertexPointer(GL gl) {
+    public void setupVertexPointer(GL glold) {
+    	final GL2 gl = glold.getGL2();
         gl.glVertexPointer(SIZE_OF_VERTEX, GL.GL_FLOAT, 0, myVertexBuffer);
     }
 
     /** Set up a gl color pointer with our color data */
-    public void setupColorPointer(GL gl) {
+    public void setupColorPointer(GL glold) {
+    	final GL2 gl = glold.getGL2();
         gl.glColorPointer(SIZE_OF_COLOR, GL.GL_FLOAT, 0, myColorBuffer);
     }
 
-    public void drawElementBuffer(GL gl) {
-        gl.glDrawElements(GL.GL_QUADS, myNumberElements, GL.GL_UNSIGNED_INT, myIndexBuffer);
+    public void drawElementBuffer(GL glold) {
+    	final GL2 gl = glold.getGL2();
+        gl.glDrawElements(GL2.GL_QUADS, myNumberElements, GL.GL_UNSIGNED_INT, myIndexBuffer);
     }
 
     public VolumeSlice3DOutput() {

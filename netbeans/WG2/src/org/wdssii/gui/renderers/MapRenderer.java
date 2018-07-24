@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -317,7 +318,7 @@ public class MapRenderer extends Feature3DRenderer {
 					// allow user to set it...
 					LOG.error(
 							"shapefile is missing projection information (.prj), assuming it's lat/lon data...map could be wrong.");
-					success = false;
+				//	success = false;
 				} else {
 
 					// If we have .prj, we want it in a projection system with
@@ -398,7 +399,9 @@ public class MapRenderer extends Feature3DRenderer {
 		synchronized (drawLock) {
 
 			if (isCreated() && (polygonData != null)) {
-				final GL gl = w.gl;
+				final GL glold = w.gl;
+            	final GL2 gl = glold.getGL().getGL2();
+
 				Color line = m.get(MapMemento.LINE_COLOR, Color.WHITE);
 				final float r = line.getRed() / 255.0f;
 				final float g = line.getGreen() / 255.0f;
@@ -409,20 +412,20 @@ public class MapRenderer extends Feature3DRenderer {
 					Object lock1 = polygonData.getBufferLock();
 					synchronized (lock1) {
 
-						gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL.GL_LIGHTING_BIT | GL.GL_COLOR_BUFFER_BIT
-								| GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT | GL.GL_TRANSFORM_BIT | GL.GL_VIEWPORT_BIT
-								| GL.GL_CURRENT_BIT | GL.GL_LINE_BIT);
+						gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL2.GL_LIGHTING_BIT | GL.GL_COLOR_BUFFER_BIT
+								| GL2.GL_ENABLE_BIT | GL2.GL_TEXTURE_BIT | GL2.GL_TRANSFORM_BIT | GL2.GL_VIEWPORT_BIT
+								| GL2.GL_CURRENT_BIT | GL2.GL_LINE_BIT);
 
-						gl.glDisable(GL.GL_LIGHTING);
+						gl.glDisable(GL2.GL_LIGHTING);
 						gl.glDisable(GL.GL_TEXTURE_2D);
 
 						// We WANT depth test, we use the hidden stipple for
 						// things behind...
 						gl.glEnable(GL.GL_DEPTH_TEST);
 
-						gl.glShadeModel(GL.GL_FLAT);
-						gl.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT | GL.GL_CLIENT_PIXEL_STORE_BIT);
-						gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+						gl.glShadeModel(GL2.GL_FLAT);
+						gl.glPushClientAttrib(GL2.GL_CLIENT_VERTEX_ARRAY_BIT | GL2.GL_CLIENT_PIXEL_STORE_BIT);
+						gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
 						// gl.glEnableClientState(GL.GL_COLOR_ARRAY);
 						attribsPushed = true;
 						FloatBuffer z = polygonData.getRawBuffer();

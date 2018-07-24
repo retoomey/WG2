@@ -18,12 +18,12 @@ import org.wdssii.storage.DataManager;
  *
  * @author Robert Toomey
  */
-public class Application {
+public class Application { 
 
     private final static Logger LOG;// = LoggerFactory.getLogger(Application.class);
     public final static String NAME = "WDSSII GUI";
     public final static int MAJOR_VERSION = 2;
-    public final static int MINOR_VERSION = 0;
+    public final static int MINOR_VERSION = 1;
     public static final boolean USE_HEAVYWEIGHT_GL = false;
 
     public final static String logmessage;

@@ -94,10 +94,15 @@ public class FeatureList {
     protected Date mySimulationTime = new Date();
 
     static {
-       // Feature testOne = new MapFeature(theFeatures, "shapefiles/usa/ok/okcnty.shp");
-       // theFeatures.addFeature(testOne);
+        //Feature testOne = new MapFeature(theFeatures, "shapefiles/usa/ok/okcnty.shp");
+        Feature testOne = new MapFeature(theFeatures, "/home/dyolf/MAPS/shapefiles/usa/ok/okcnty.shp");
+
+        theFeatures.addFeature(testOne);
        // Feature testTwo = new MapFeature(theFeatures, "shapefiles/usa/tx/txcnty.shp");
        // theFeatures.addFeature(testTwo);
+        Feature legend = LegendFeature.createLegend(FeatureList.theFeatures, 
+        		"compass", "scale", "insert", "controls"); // FIXME: magic strings better way
+        theFeatures.addFeature(legend);
         Feature loop = new LoopFeature(theFeatures);
         theFeatures.addFeature(loop);
     }
@@ -434,6 +439,26 @@ public class FeatureList {
 
         return holder;
     }
+    
+    /**
+     * Get all features in a group by name.
+     *
+     */
+    public List<Feature> getFeatureGroup(String g) {
+    	ArrayList<Feature> holder = new ArrayList<Feature>();
+
+    	synchronized (featureSync) {
+    		Iterator<Feature> i = myFeatures.iterator();
+    		while (i.hasNext()) {
+    			Feature f = i.next();
+    			if (f.getFeatureGroup().equals(g)) {
+    				holder.add(f);
+    			}
+    		}
+    	}
+    	return holder;
+    }
+
 
     public <T> ArrayList<T> getFeatureGroup(Class<?> c) {
         ArrayList<T> holder = new ArrayList<T>();

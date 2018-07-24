@@ -24,6 +24,7 @@ public class ChartCreateCommand extends ProductCommand {
      * and will break if class is moved
      */
     public final static String VIEW_WORLD_WIND = "org.wdssii.gui.worldwind.WorldWindDataView";
+    public final static String VIEW_W2 = "org.wdssii.gui.W2DataView";
     public final static String VIEW_GEO = "org.wdssii.gui.charts.GeoToolDataView";
     public final static String VIEW_VSLICE = "org.wdssii.gui.worldwind.VSliceChart";
     public final static String VIEW_VSLICE2 = "org.wdssii.gui.charts.VSliceChart";
@@ -58,6 +59,7 @@ public class ChartCreateCommand extends ProductCommand {
         theList.add(new CommandOption("", ""));
 
         theList.add(new CommandOption("Add Worldwind", VIEW_WORLD_WIND));
+        theList.add(new CommandOption("Add W2", VIEW_W2));
 
         theList.add(new CommandOption("", ""));
 

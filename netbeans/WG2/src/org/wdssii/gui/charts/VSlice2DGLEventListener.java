@@ -1,8 +1,10 @@
 package org.wdssii.gui.charts;
 
-import com.sun.opengl.util.BufferUtil;
+//import com.sun.opengl.util.BufferUtil;
 import java.nio.ByteBuffer;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.core.StopWatch;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.geom.Location;
@@ -15,6 +17,8 @@ import org.wdssii.gui.products.filters.DataFilter;
 import org.wdssii.gui.products.volumes.VolumeValue;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
+
+import com.jogamp.common.nio.Buffers;
 
 /**
  * VSlice 2D Renderer in a GLDrawable
@@ -46,7 +50,8 @@ public class VSlice2DGLEventListener extends LLHGLEventListener {
 		if (myBuffer != null) { // FIXME: AND THE SIZE WE NEED
 			buffer = myBuffer; // AT THE MOMENT ASSUMING NEVER CHANGES
 		} else {
-			buffer = BufferUtil.newByteBuffer(total * 4);
+			//buffer = BufferUtil.newByteBuffer(total * 4);
+			buffer = Buffers.newDirectByteBuffer(total * 4);
 		}
 
 		if ((myVolume != null) && (myLLHArea != null)) {
@@ -161,7 +166,8 @@ public class VSlice2DGLEventListener extends LLHGLEventListener {
 
 		if (sourceGrid != null) {
 
-			GL gl = w.gl;
+			GL glold = w.gl;
+			final GL2 gl = glold.getGL2();
 			V3 at;
 
 			if (texture3d == -1) { // FIXME: We're not playing nice with other
@@ -177,7 +183,7 @@ public class VSlice2DGLEventListener extends LLHGLEventListener {
 
 				gl.glBindTexture(TEXTURE_TARGET, texture3d);
 
-				gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0);
+				gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
 				gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
 
 				// No mipmapping, regular linear
@@ -197,7 +203,7 @@ public class VSlice2DGLEventListener extends LLHGLEventListener {
 
 				gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // Color affects texture
 
-				gl.glBegin(GL.GL_QUADS);
+				gl.glBegin(GL2.GL_QUADS);
 
 				// ---------------------------------------------------
 				// VSlice calculations

@@ -76,6 +76,7 @@ public class MapFeature extends Feature {
                 FileDataStore store = FileDataStoreFinder.getDataStore(u);
                 SimpleFeatureSource featureSource = store.getFeatureSource();
                 mySource = featureSource;
+                LOG.error(">>>>>>>>>>>>>>>>MAP SOURCE "+mySource );
                 // Set message to our shapefile url...
                 String s = u.toString();
                 setMessage(s);

@@ -158,9 +158,13 @@ public class W2Config {
             current = current.replaceFirst("\\{1\\}", s);
             aURL = tryReadingURL(current);
             if (aURL != null) {
+            	LOG.error("Load URL non null match '"+p+"' --> "+aURL);
+
                 return aURL;
             }
         }
+        aURL = tryReadingURL("file:"+s); // absolute paths"
+
         return aURL;
     }
 
@@ -175,6 +179,7 @@ public class W2Config {
      */
     private static URL tryReadingURL(String s) {
         URL aURL;
+        LOG.error("READ URL "+s);
         try {
             aURL = new URL(s);
             try {

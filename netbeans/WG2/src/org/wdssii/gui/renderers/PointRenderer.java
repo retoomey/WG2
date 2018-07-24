@@ -1,12 +1,14 @@
 package org.wdssii.gui.renderers;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.datatypes.AttributeTable.AttributeColumn;
@@ -204,7 +206,9 @@ public class PointRenderer {
         }
 
         int row = 0;
-        final GL g = w.gl;
+        final GL glold = w.gl;
+    	final GL2 g = glold.getGL().getGL2();
+
         for (V3 at3D : points) {
             V2 at2D = w.project(at3D);
             if (updateRenderer) {
@@ -369,15 +373,17 @@ public class PointRenderer {
                     Iterable<IntervalTree<Node>> XSets = theMergeTree.getValues();
                     int xcount = 0;
                     int ycount = 0;
+                    final GL glold = w.gl;
+                	final GL2 g = glold.getGL().getGL2();
                     for (IntervalTree<Node> x : XSets) {
                         Iterable<Node> YSet = x.getValues();
                         for (Node y : YSet) {
                             ycount++;
-                            w.gl.glTranslated(y.thePoint.x, y.thePoint.y, 0);
+                            g.glTranslated(y.thePoint.x, y.thePoint.y, 0);
                             SymbolRenderer sr = getRenderer(y.theRow, s);
                             sr.render(w.gl);
 
-                            w.gl.glTranslated(-y.thePoint.x, -y.thePoint.y, 0);
+                            g.glTranslated(-y.thePoint.x, -y.thePoint.y, 0);
                             if (y.myCount > 1) {
                                 sr.renderSymbolRectangle(w.gl, y.myCoverage);
                             }

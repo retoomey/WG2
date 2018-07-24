@@ -10,6 +10,7 @@ import java.net.URLConnection;
 import java.nio.IntBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 import org.wdssii.core.W2Config;
 import org.wdssii.gui.volumes.IsoBox;
@@ -33,8 +34,9 @@ public class GLShader {
      * GLContext is valid, either during the draw of the view, or with a
      * RendererListener post buffer. (See snapshot code for an example of this)
      */
-    public static void loadShaderTest(GL gl) {
+    public static void loadShaderTest(GL glold) {
         //int shaderType = 0;
+    	final GL2 gl = glold.getGL().getGL2();
         IsoBox box = new IsoBox();
         box.createIsoBox(gl);
         /*
@@ -80,8 +82,9 @@ public class GLShader {
      * @param shaderType
      * @return
      */
-    public static boolean initShader(GL gl, int programID, String shaderName, int shaderType) {
+    public static boolean initShader(GL glold, int programID, String shaderName, int shaderType) {
         boolean success = false;
+        final GL2 gl = glold.getGL().getGL2();
         int newShader = gl.glCreateShader(shaderType);
         if (newShader != 0) {
             // ... then try to compile shader source code....
@@ -98,7 +101,7 @@ public class GLShader {
     /**
      * Compile a single shader from disk
      */
-    public static boolean compileShader(GL gl, String shaderName, int shaderID) {
+    public static boolean compileShader(GL glold, String shaderName, int shaderID) {
         boolean success = false;
 
         // First try to find the shader code file on disk....
@@ -124,10 +127,11 @@ public class GLShader {
             String[] data = new String[]{buffer.toString()};
 
             // Ok we have the file, try to compile it...
+            final GL2 gl = glold.getGL().getGL2();
             gl.glShaderSource(shaderID, 1, data, (int[]) null, 0);
             gl.glCompileShader(shaderID);
             IntBuffer intBuffer = IntBuffer.allocate(1);
-            gl.glGetShaderiv(shaderID, GL.GL_COMPILE_STATUS, intBuffer);
+            gl.glGetShaderiv(shaderID, GL2.GL_COMPILE_STATUS, intBuffer);
             if (intBuffer.get(0) == GL.GL_TRUE) {
                 reader.close();
                 success = true;

@@ -1,6 +1,7 @@
 package org.wdssii.gui.features;
 
 import java.lang.ref.WeakReference;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.TreeMap;
 
+import org.wdssii.core.W2Config;
 import org.wdssii.gui.charts.DataView;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
@@ -94,12 +96,13 @@ public class FeatureList {
     protected Date mySimulationTime = new Date();
 
     static {
-        //Feature testOne = new MapFeature(theFeatures, "shapefiles/usa/ok/okcnty.shp");
-        Feature testOne = new MapFeature(theFeatures, "/home/dyolf/MAPS/shapefiles/usa/ok/okcnty.shp");
-
-        theFeatures.addFeature(testOne);
-       // Feature testTwo = new MapFeature(theFeatures, "shapefiles/usa/tx/txcnty.shp");
-       // theFeatures.addFeature(testTwo);
+    	URL aURL = W2Config.getURL("maps/shapefiles/usa/ok/okcnty.shp");
+    	if (aURL != null) {
+    		String filename = aURL.getPath();
+    		Feature testOne = new MapFeature(theFeatures, filename);
+    		theFeatures.addFeature(testOne);
+    	} 
+    	
         Feature legend = LegendFeature.createLegend(FeatureList.theFeatures, 
         		"compass", "scale", "insert", "controls"); // FIXME: magic strings better way
         theFeatures.addFeature(legend);

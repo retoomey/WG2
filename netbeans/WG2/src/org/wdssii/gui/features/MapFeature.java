@@ -88,9 +88,6 @@ public class MapFeature extends Feature {
                 String sub = s.substring(sep + 1, dot);
                 setName(sub);
 
-                // This has to go away, since we have multiview now...
-                //   MapRenderer m = new MapRenderer(featureSource);
-                // GOOP   addRenderer(m);
             } else {
                 setMessage("?? " + source);
                 setKey(source);

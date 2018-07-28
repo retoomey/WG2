@@ -30,6 +30,7 @@ public class GUISingletonManager extends SingletonManager implements DataRequest
         add(ProductManager.create());
         add(CommandManager.create());
         add(SourceManager.create());
+        add(GLCacheManager.create());
     
         DataRequest.setDataRequestGlobalListener(this);
         notifyAllCreated();

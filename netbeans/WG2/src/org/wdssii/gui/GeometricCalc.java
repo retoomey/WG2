@@ -1,5 +1,7 @@
 package org.wdssii.gui;
 
+import org.wdssii.geom.D3;
+
 /** Class to do  some geometric calculation math */
 public class GeometricCalc {
 

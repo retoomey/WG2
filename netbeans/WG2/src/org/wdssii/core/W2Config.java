@@ -185,13 +185,15 @@ public class W2Config {
             try {
 
                 if (isLocalFile(aURL)) {
-                    // If it's a local URL, then check for existance and read
+                    // If it's a local URL, then check for existence and read
                     // of the file.
 
                     // URL will have spaces encoded as %20, which will fail in windows
                     // This will decode %20 into actual spaces for the filename
                     URI uri = new URI(aURL.toString());
-                    File aFile = new File(uri.getPath());
+                    String uripath = uri.getPath();
+                    if (uripath == null) { return null; }
+                    File aFile = new File(uripath);
                     if (!(aFile.exists() && aFile.canRead())) {
                         aURL = null;
                     }

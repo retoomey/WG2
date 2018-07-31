@@ -1,8 +1,5 @@
 package org.wdssii.gui;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
@@ -35,30 +32,34 @@ final class CameraPlane
 	public float d;
 };
 
-/**
- * Like the WG camera state, keeps info for looking on an earth ball projection
+/** Store the open gl information and utilities for viewing in our W2 model space
  * 
  * @author Robert Toomey
  *
  */
-final class CameraState {
+public class GLBoxCamera  {
+	private final static org.wdssii.log.Logger LOG = LoggerFactory.getLogger(GLBoxCamera.class);
+
+	// ----------------------------------
+	// Camera state stuff begin (we don't need separate objects) 
+	
 	/** Distance between reference point and view point. */
-	float r;
+	float myR;
 
 	/** Minimum distance between reference point and view point. */
-	float r_limit;
+	float myRLimit;
 
 	/** code::Angle of declination of view point from z-axis. */
-	float theta;
+	float myTheta;
 
 	/** Azimuthal angle of view point about reference point. */
-	float phi;
+	float myPhi;
 
 	/** Distance in km from view point to near clipping plane. */
-	float near;
+	float myNear;
 
 	/** Distance in km from view point to far clipping plane. */
-	float far;
+	float myFar;
 
 	/** Reference object's x-axis direction. */
 	D3 ref_ux = new D3(1, 0, 0);
@@ -70,23 +71,20 @@ final class CameraState {
 	D3 ref_uz = new D3(0, 0, 1);
 
 	/** View point. */
-	D3 view = new D3(0,0,0);
+	public D3 myView = new D3(0,0,0);
 
 	/** Reference point. */
-	D3 ref = new D3(0,0,0);
+	public D3 myRef = new D3(0,0,0);
 
 	/** Screen's up direction (for gluLookAt). */
-	D3 up = new D3(0,0,0);
+	D3 myUp = new D3(0,0,0);
 
 	/** Field of view. */
-	double fovDegrees = 45.0;
-
-}
-
-
-public class GLBoxCamera  {
-	private final static org.wdssii.log.Logger LOG = LoggerFactory.getLogger(GLBoxCamera.class);
-
+	double myFOVDegrees = 45.0;
+	
+	// ----------------------------------
+	// Camera state stuff end
+	
 	/** The point we are looking at on the earth's surface in orbit view. 
 	 * (0,0,0) is the center of the earth in our coordinate system.
 	 *  +++ This is wrong..needs to be an earth surface point 
@@ -122,8 +120,6 @@ public class GLBoxCamera  {
 	D3 uz = new D3(0,0,0);
 	D3 ut = new D3(0,0,0);
 
-	CameraState myCameraState = new CameraState();
-
 	CameraPlane[] myPlanes = new CameraPlane[6];
 
 	private boolean myValidLastDown = false;
@@ -138,12 +134,11 @@ public class GLBoxCamera  {
 	 * occur. Camera changes happen in 'bursts' typically  */
 	// wg_TimeCheck myChangeTime;
 
-
 	public GLBoxCamera(boolean enableTilt) {
 		//super(enableTilt);
 
 		// Permanent camera settings for now at least
-		myCameraState.r_limit = myMinDistance;
+		myRLimit = myMinDistance;
 		// myCameraState.fovDegrees =  45;
 		//  myCameraState.ref_ux = new D3( 1, 0, 0 );
 		//  myCameraState.ref_uy = new D3( 0, 1, 0 );
@@ -151,7 +146,6 @@ public class GLBoxCamera  {
 
 	}
 
-	//public boolean cameraAction(wg_MouseEvent e) {};
 	/** Jumps the 3D view to this location.  -1 for any param means to 
 	 * ignore changing the setting for that field */
 	public void goToLocation(float lon, float lat, float length,
@@ -161,13 +155,13 @@ public class GLBoxCamera  {
 		// fields not wanted
 
 		// Length of viewing stick
-		if (length != -1.0) { myCameraState.r  = length; }
+		if (length != -1.0) { myR  = length; }
 
 		// Latitude
-		if (lat != -1.0){ myCameraState.theta = (float) ((90.0 - lat)*Math.PI/180.0); }
+		if (lat != -1.0){ myTheta = (float) ((90.0 - lat)*Math.PI/180.0); }
 
 		// Longitude
-		if (lon != -1.0){ myCameraState.phi   = (float) (lon *Math.PI/180.0); }
+		if (lon != -1.0){ myPhi   = (float) (lon *Math.PI/180.0); }
 
 		// Back tilt
 		if (tiltRadians != -1.0){ myTilt   = tiltRadians; }
@@ -194,13 +188,13 @@ public class GLBoxCamera  {
 		//LOG.error("PANNING BY " +dx+", " +dy);
 		float lon, lat, length, rotateRadians, tiltRadians;
 		//getCamera(lon, lat, length, rotateRadians, tiltRadians);
-		lat = (float) (90.0-(myCameraState.theta*180.0)/Math.PI);
-		lon = (float) ((myCameraState.phi*180.0 )/Math.PI);
+		lat = (float) (90.0-(myTheta*180.0)/Math.PI);
+		lon = (float) ((myPhi*180.0 )/Math.PI);
 		int factor =(int) lon / 360;
 		lon = (float) (lon - factor * 360.0);
 		if( lon <= -180 ) lon += 360;
 		if( lon > +180 ) lon -= 360;
-		length = myCameraState.r;
+		length = myR;
 		rotateRadians = myCompass;
 		tiltRadians = myTilt;
 
@@ -231,7 +225,7 @@ public class GLBoxCamera  {
 	}
 
 	/** Zoom the world camera */
-	boolean zoom(int dx, int dy, boolean shift) {
+	public boolean zoom(int dx, int dy, boolean shift) {
 		// dx is ignored for now, so we don't need to adjust it.
 		dy = (int) ((Math.abs(dy) <= 10) ? dy :
 			(dy / Math.log10(Math.abs(dy*10))));
@@ -239,11 +233,11 @@ public class GLBoxCamera  {
 		// We use an exponential zoom for easier UI, but make sure
 		// we can't just keep zooming in forever, never reaching
 		// myCameraState.r_limit.
-		float newdistance = (float) ((myCameraState.r) * Math.exp( -dy/100.0 ));
+		float newdistance = (float) ((myR) * Math.exp( -dy/100.0 ));
 
 		//  Pin myCameraState.r to be no less than myCameraState.r_limit.
-		myCameraState.r = (newdistance <= myCameraState.r_limit) ?
-				myCameraState.r_limit : newdistance;
+		myR = (newdistance <= myRLimit) ?
+				myRLimit : newdistance;
 		cameraChanged(); 
 		return true;
 
@@ -251,21 +245,17 @@ public class GLBoxCamera  {
 	}
 
 	/** Get the current camera state */
-	/* Harder in java well kinda
-	 *    void getCamera( float& lon, float& lat, float& length,
-	 *        float& rotateRadians, float& tiltRadians ) const;
-	 *        */
 	public void cameraChanged() {
 
 		// --------------------------------------------------------------------------
 		// Camera validation.  Check all independent variables
 		//
-		if( myCameraState.r > myMaxDistance){
-			myCameraState.r = (float) (myMaxDistance-.001);
+		if( myR > myMaxDistance){
+			myR= (float) (myMaxDistance-.001);
 			LOG.error("Zoomed out too far");
 		}
-		if( myCameraState.r < myMinDistance){
-			myCameraState.r = (float) (myMinDistance+.001);
+		if( myR < myMinDistance){
+			myR = (float) (myMinDistance+.001);
 			LOG.error("Zoomed in too close");
 		}
 
@@ -279,19 +269,19 @@ public class GLBoxCamera  {
 		if (myTilt > Math.PI/2) { myTilt = (float) (Math.PI/2); }
 
 		// Keep theta and phi in value ranges north/south, east/west
-		if ( myCameraState.theta < 0.01 ) { myCameraState.theta = (float) 0.01; }
-		if ( myCameraState.theta > Math.PI-0.01) { myCameraState.theta = (float) (Math.PI-0.01); }
+		if ( myTheta < 0.01 ) { myTheta = (float) 0.01; }
+		if ( myTheta > Math.PI-0.01) { myTheta = (float) (Math.PI-0.01); }
 
-		if ( myCameraState.phi < 0) { myCameraState.phi += 2*Math.PI; }else
-			if ( myCameraState.phi > 2*Math.PI) { myCameraState.phi -= 2*Math.PI; }
+		if ( myPhi < 0) { myPhi += 2*Math.PI; }else
+			if ( myPhi > 2*Math.PI) { myPhi -= 2*Math.PI; }
 
 		//--------------------------------------------------------------------------
 		// Rotation of view due to Earth theta (north/south) and phi (east/west)
 		//
 		float er = (float) D3.EARTH_RADIUS_KMS;
-		float t = myCameraState.theta;
-		float p = myCameraState.phi;
-		float height = myCameraState.r;
+		float t = myTheta;
+		float p = myPhi;
+		float height = myR;
 
 		final double first = Math.sin(t)*Math.cos(p);
 		final double second = Math.sin(t)*Math.sin(p);
@@ -299,38 +289,29 @@ public class GLBoxCamera  {
 
 		final D3 ruv = new D3(first, second, third);
 		final D3 erv = new D3(ruv).times(er);
-		// erv.times(er);
 
 		// The surface point is out on this vector a distance of er.
 		// We could add to this here if needed to 'float' a bit
-		// code::CPoint surfacePoint = code::CPoint(0,0,0) + (er*ruv);
-		// myLOP = surfacePoint;
-		// myCameraState.ref = myLOP; // Always look at this point
-		//
-
 		// Look at the surface point on the earth
-		//myCameraState.ref = myLOP = code::CPoint(erv.x, erv.y, erv.z);
-		myCameraState.ref.set(erv);
+		myRef.set(erv);
 		myLOP.set(erv);
 
 		//  Construct the coordinate system associated with the reference point
 		uz.set(erv).toUnit();
-		//ux = ( code::CVector( 0, 0, 1 ) % uz ).unit();
 		ux.set(0, 0, 1).cross(uz).toUnit();
-		// uy = uz % ux; // Y up on screen at center of screen
 		uy.set(uz).cross(ux);
 
 		//--------------------------------------------------------------------------
 		// Rotation of compass (myCompass 0 to 2*M_PI)
 		//
-		//myCameraState.up = uy  (Use just this line to disable rotating)
+		//myUp = uy  (Use just this line to disable rotating)
 
 		// Rotate in y/x direction
 		//  ut = uy*Math.cos( myCompass ) + ux*Math.sin( myCompass );
 		//final D3 uxc = new D3(ux).times(Math.sin(myCompass));
 		ut.set(uy).times(Math.cos(myCompass)).plus(new D3(ux).times(Math.sin(myCompass))).toUnit();
 
-		myCameraState.up.set(ut);
+		myUp.set(ut);
 
 		//--------------------------------------------------------------------------
 		// Tilt back. (myTilt 0 to 90)
@@ -341,7 +322,7 @@ public class GLBoxCamera  {
 
 		final D3 ub = new D3(ut).times(cosT).plus(new D3(uz).times(sinT));
 
-		myCameraState.up.set(ub);// new up vector tilts forward..
+		myUp.set(ub);// new up vector tilts forward..
 		// tilt view vector as well
 		//code::CVector uv2 = uz*cos( myTilt ) + -ut*sin( myTilt );
 		final D3 uv2 = new D3(uz).times(cosT).minus(new D3(ut).times(sinT)).times(height);
@@ -350,7 +331,7 @@ public class GLBoxCamera  {
 		//myCameraState.view = code::CPoint(0,0,0)
 		//        + (er*ruv)      // Move view to the earth's surface
 		//        + (height*uv2); // ...then move along tilt line to height
-		myCameraState.view.set(erv).plus(uv2);
+		myView.set(erv).plus(uv2);
 
 		calculateClippingPlanes();
 
@@ -365,14 +346,14 @@ public class GLBoxCamera  {
 	{
 		//  distance from view point to reference point
 		//double dvr = ( myCameraState.view - myCameraState.ref).norm();
-		D3 temp = new D3(myCameraState.view).minus(myCameraState.ref);
+		D3 temp = new D3(myView).minus(myRef);
 		final double dvr = temp.norm();
 
 		//  distance from center of earth to reference point
 		//double dcr = ( myCameraState.ref - code::CPoint( 0, 0, 0 ) ).norm();
 
 		//  distance from center of earth to reference point
-		final double dcr = myCameraState.ref.norm();
+		final double dcr = myRef.norm();
 
 		//  earth radius
 		//const double er = code::Constants::EarthRadius().kilometers();
@@ -386,15 +367,15 @@ public class GLBoxCamera  {
 
 			double h = dvr - er;
 
-			myCameraState.near = (float) (h/2.0);
-			myCameraState.far  = (float) (h*2.0);
+			myNear = (float) (h/2.0);
+			myFar  = (float) (h*2.0);
 		}else{
 			//  Either the reference point is not at the center of the earth,
 			//  or the view point is farther from the surface of the earth than
 			//  it is from the center of the earth.
 
-			myCameraState.near = (float) (dvr/32);
-			myCameraState.far  = (float) (dvr*4);
+			myNear = (float) (dvr/32);
+			myFar  = (float) (dvr*4);
 		}
 
 		// LOG.error("CAMERASTATE " +myCameraState.near +", "+myCameraState.far);
@@ -515,9 +496,9 @@ public class GLBoxCamera  {
 		gl.glMatrixMode( GL2.GL_PROJECTION );
 		gl.glLoadIdentity();
 		double ratio = (double)width/(double)height;
-		glu.gluPerspective( myCameraState.fovDegrees,
+		glu.gluPerspective( myFOVDegrees,
 				ratio,
-				myCameraState.near, myCameraState.far );
+				myNear, myFar );
 
 		// ---------------------------------------------------------------------
 		// Look at a point in 3d space
@@ -526,11 +507,11 @@ public class GLBoxCamera  {
 
 		// Forward vector (Point your finger at place on earth ball)
 		//code::CVector f = (myCameraState.ref-myCameraState.view).unit();
-		D3 f = new D3(myCameraState.ref).minus(myCameraState.view).toUnit();
+		D3 f = new D3(myRef).minus(myView).toUnit();
 
 		// Right vector...(Stick your arm out to the right)
 		//code::CVector s = (f%myCameraState.up).unit();
-		D3 s = new D3(f).cross(myCameraState.up).toUnit();
+		D3 s = new D3(f).cross(myUp).toUnit();
 
 		// Recalculate up vector (Stick your arm straight up in the air)
 		// (gl docs say do this, probably ensures proper sign)
@@ -547,8 +528,8 @@ public class GLBoxCamera  {
 			};
 		gl.glMultMatrixd(m, 0);
 
-		gl.glTranslated(-myCameraState.view.x, -myCameraState.view.y,
-				-myCameraState.view.z);
+		gl.glTranslated(-myView.x, -myView.y,
+				-myView.z);
 		/* glu dependent code.
 		  gluLookAt(
 		      myCameraState.view.x, myCameraState.view.y, myCameraState.view.z,
@@ -677,8 +658,8 @@ public class GLBoxCamera  {
 	 */
 	public double getPointToScale(D3 point, double height) {
 		D3 scale = new D3(point);
-		double d = scale.minus(myCameraState.view).norm();
-		double fov = Math.toRadians(myCameraState.fovDegrees);
+		double d = scale.minus(myView).norm();
+		double fov = Math.toRadians(myFOVDegrees);
 		double angle_pixel = fov/(height-10.0f);
 		return d*angle_pixel;
 	}

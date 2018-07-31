@@ -27,7 +27,6 @@ import org.wdssii.gui.commands.FeatureSelectCommand;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.swing.RowEntryTable;
 import org.wdssii.gui.swing.RowEntryTableModel;
 import org.wdssii.gui.swing.RowEntryTableMouseAdapter;
@@ -37,19 +36,22 @@ import org.wdssii.gui.swing.TableUtil.WG2TableCellRenderer;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
-/** Generic handling of feature lists by group name.  For example the nav list of products, or tabs in features.*/
+/**
+ * Generic handling of feature lists by group name. For example the nav list of
+ * products, or tabs in features.
+ */
 @SuppressWarnings("serial")
-public class FeatureTableList extends  RowEntryTable {
+public class FeatureTableList extends RowEntryTable {
 	private final static Logger LOG = LoggerFactory.getLogger(FeatureTableList.class);
 
 	// Commands...subclasses add to
 	private final static int DELETECOMMAND = 0;
-	
+
 	private FeatureTableListModel myModel;
 	private FeatureTableListCellRenderer myRenderer;
 	private IconHeaderRenderer myIconHeaderRenderer = null;
 
-	private String myGroupName;
+	private String[] myGroupNames;
 
 	/**
 	 * Storage for displaying the current feature list.
@@ -79,9 +81,7 @@ public class FeatureTableList extends  RowEntryTable {
 		private boolean isRebuilding = false;
 
 		public FeatureTableListModel() {
-			super(FeatureTableListData.class, new String[]{
-					"Visible", "Only", "Name", "Type", "Message"
-			});
+			super(FeatureTableListData.class, new String[] { "Visible", "Only", "Name", "Type", "Message" });
 		}
 
 		@Override
@@ -101,12 +101,11 @@ public class FeatureTableList extends  RowEntryTable {
 	public static class FeatureTableListCellRenderer extends WG2TableCellRenderer {
 
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value,
-				boolean isSelected, boolean cellHasFocus, int row, int col) {
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+				boolean cellHasFocus, int row, int col) {
 
 			// Let super set all the defaults...
-			super.getTableCellRendererComponent(table, "",
-					isSelected, cellHasFocus, row, col);
+			super.getTableCellRendererComponent(table, "", isSelected, cellHasFocus, row, col);
 
 			String info;
 			int trueCol = table.convertColumnIndexToModel(col);
@@ -120,7 +119,8 @@ public class FeatureTableList extends  RowEntryTable {
 				case FeatureTableListModel.OBJ_VISIBLE:
 					return getJCheckBox(table, e.checked, isSelected, cellHasFocus, row, col);
 				case FeatureTableListModel.OBJ_ONLY:
-					return getJCheckBoxIcon(table, e.onlyMode, "picture.png", "pictures.png", isSelected, cellHasFocus, row, col);
+					return getJCheckBoxIcon(table, e.onlyMode, "picture.png", "pictures.png", isSelected, cellHasFocus,
+							row, col);
 				case FeatureTableListModel.OBJ_NAME:
 					info = e.visibleName;
 					break;
@@ -144,44 +144,44 @@ public class FeatureTableList extends  RowEntryTable {
 		}
 	}
 
-	/** Create and execute a command from the right click pop up menu.  Up
-	 * to subclasses to do what they want
+	/**
+	 * Create and execute a command from the right click pop up menu. Up to
+	 * subclasses to do what they want
+	 * 
 	 * @param row
 	 * @param column
 	 * @param commandnumber
 	 */
-	public void executeMenuCommand(int row, int column, int commandnumber)
-	{
+	public void executeMenuCommand(int row, int column, int commandnumber) {
 		FeatureTableListData data = myModel.getDataForRow(row);
 		if (data != null) {
 			if (commandnumber == FeatureTableList.DELETECOMMAND) {
-				
+
 				FeatureDeleteCommand del = new FeatureDeleteCommand(data.keyName);
 				CommandManager.getInstance().executeCommand(del, true);
-				
-				// Navigator does a ProductDeleteCommand.  What's different does it matter?
+
+				// Navigator does a ProductDeleteCommand. What's different does it matter?
 				// It should be consistent action even if done in different windows I think.
-				//ProductDeleteCommand del = new ProductDeleteCommand();
-                //del.ProductDeleteByKey(i.getData().keyName);
-                //CommandManager.getInstance().executeCommand(del, true);
+				// ProductDeleteCommand del = new ProductDeleteCommand();
+				// del.ProductDeleteByKey(i.getData().keyName);
+				// CommandManager.getInstance().executeCommand(del, true);
 			}
-    	}
+		}
 	}
-	
-	public static class FeatureTableActionListener implements ActionListener
-	{
+
+	public static class FeatureTableActionListener implements ActionListener {
 		/** The list we refer to */
 		protected FeatureTableList myFeatureTableList;
-		
+
 		/** Row number of action event */
 		protected int myRowNumber;
-		
+
 		/** Col number of action event */
 		protected int myColNumber;
-		
+
 		/** Command number of action event, what to do */
 		protected int myCommandNumber;
-		
+
 		/** Store information so we can send back to table to handle */
 		public FeatureTableActionListener(FeatureTableList list, int row, int col, int commandNumber) {
 			super();
@@ -190,14 +190,14 @@ public class FeatureTableList extends  RowEntryTable {
 			myCommandNumber = commandNumber;
 			myFeatureTableList = list;
 		}
-		
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			myFeatureTableList.executeMenuCommand(myRowNumber, myColNumber, myCommandNumber);
 		}
-	
+
 	}
-	
+
 	/** Set header of given column number to an icon */
 	public void setIconColumn(int columnNum, String iconname) {
 
@@ -228,141 +228,118 @@ public class FeatureTableList extends  RowEntryTable {
 	}
 
 	/** Callback for table value changed (change in selection) */
-	public void featureTableValueChanged(ListSelectionEvent e)
-	{
+	public void featureTableValueChanged(ListSelectionEvent e) {
 		if (e.getValueIsAdjusting()) {
-            return;
+			return;
 		}
-		
+
 		// We're in the updateTable and have set the selection to the old
-        // value, we don't want to loop infinitely
-        if (myModel.rebuilding()) {
-            return;
-        }
-        
-        int row = getSelectedRow();
-        if (row > -1) {
-        	int dataRow = convertRowIndexToModel(row);
-        	FeatureTableListData d = myModel.getDataForRow(dataRow);
-        	if (d != null) {
-                FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
-                CommandManager.getInstance().executeCommand(c, true);
-            }
-        }
-		/*  Navigator
-		 *         if (evt.getValueIsAdjusting()) {
-            return;
-        }
-        // We're in the updateTable and have set the selection to the old
-        // value, we don't want to loop infinitely
-        if (myProductsListTableModel.rebuilding()) {
-            return;
-        }
-        int row = jProductsListTable.getSelectedRow();
-        if (row > -1) {
-            int dataRow = jProductsListTable.convertRowIndexToModel(row);
-            ProductsTableData d = myProductsListTableModel.getDataForRow(dataRow);
-            if (d != null) {
-                FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
-                CommandManager.getInstance().executeCommand(c, true);
-            }
-        }
+		// value, we don't want to loop infinitely
+		if (myModel.rebuilding()) {
+			return;
+		}
+
+		int row = getSelectedRow();
+		if (row > -1) {
+			int dataRow = convertRowIndexToModel(row);
+			FeatureTableListData d = myModel.getDataForRow(dataRow);
+			if (d != null) {
+				FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
+				CommandManager.getInstance().executeCommand(c, true);
+			}
+		}
+		/*
+		 * Navigator if (evt.getValueIsAdjusting()) { return; } // We're in the
+		 * updateTable and have set the selection to the old // value, we don't want to
+		 * loop infinitely if (myProductsListTableModel.rebuilding()) { return; } int
+		 * row = jProductsListTable.getSelectedRow(); if (row > -1) { int dataRow =
+		 * jProductsListTable.convertRowIndexToModel(row); ProductsTableData d =
+		 * myProductsListTableModel.getDataForRow(dataRow); if (d != null) {
+		 * FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
+		 * CommandManager.getInstance().executeCommand(c, true); } }
 		 * 
-		 * Feature view....
-		 *   if (evt.getValueIsAdjusting()) {
-            return;
-        }
-        // We're in the updateTable and have set the selection to the old
-        // value, we don't want to loop infinitely
-        if (myProductListTableModel.rebuilding()) {
-            return;
-        }
-        int row = myProductListTable.getSelectedRow();
-        if (row > -1) {
-            int dataRow = myProductListTable.convertRowIndexToModel(row);
-            FeatureListTableData d = (FeatureListTableData) (myProductListTableModel.getDataForRow(dataRow));
-            if (d != null) {
-                FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
-                CommandManager.getInstance().executeCommand(c, true);
-            }
-        }
+		 * Feature view.... if (evt.getValueIsAdjusting()) { return; } // We're in the
+		 * updateTable and have set the selection to the old // value, we don't want to
+		 * loop infinitely if (myProductListTableModel.rebuilding()) { return; } int row
+		 * = myProductListTable.getSelectedRow(); if (row > -1) { int dataRow =
+		 * myProductListTable.convertRowIndexToModel(row); FeatureListTableData d =
+		 * (FeatureListTableData) (myProductListTableModel.getDataForRow(dataRow)); if
+		 * (d != null) { FeatureSelectCommand c = new FeatureSelectCommand(d.keyName);
+		 * CommandManager.getInstance().executeCommand(c, true); } }
 		 * 
 		 * 
 		 */
 	}
 
 	/** Callback for the right click pop up menu */
-	public JPopupMenu featureTablePopUp(Object line, int row, int column)
-	{
+	public JPopupMenu featureTablePopUp(Object line, int row, int column) {
 		JPopupMenu popupmenu = new JPopupMenu();
-		
+
 		// Instead of copying..use the model directly
 		// Check is rebuilding?
 		FeatureTableListData data = myModel.getDataForRow(row);
 		if (data == null) {
-			
-			// No data.  Could just not have a popup....
+
+			// No data. Could just not have a popup....
 			JMenuItem i = new JMenuItem("No data available");
-	        popupmenu.add(i);
-		}else {
+			popupmenu.add(i);
+		} else {
 
 			// ------------------------------------------
-			// Basic delete feature ability.  Probably will
+			// Basic delete feature ability. Probably will
 			// always have this...
 			String name;
 			boolean canDelete = data.candelete;
 			if (canDelete) {
-				name = "Delete '" + data.visibleName+"'";
-			}else {
+				name = "Delete '" + data.visibleName + "'";
+			} else {
 				name = "This feature cannot be deleted";
 			}
-			FeatureTableActionListener al = 
-				new FeatureTableActionListener(this, row, column, FeatureTableList.DELETECOMMAND) {
+			FeatureTableActionListener al = new FeatureTableActionListener(this, row, column,
+					FeatureTableList.DELETECOMMAND) {
 			};
 			JMenuItem i = new JMenuItem(name);
 			i.addActionListener(al);
 			popupmenu.add(i);
-			
+
 		}
-        return popupmenu;
+		return popupmenu;
 	}
-	
-    public void featureTableHandleClick(Object stuff, int orgRow, int orgColumn)
-    {
+
+	public void featureTableHandleClick(Object stuff, int orgRow, int orgColumn) {
 		FeatureTableListData data = myModel.getDataForRow(orgRow);
 		if (data != null) {
-    	switch(orgColumn) {
-    	case 0:  {// How to map the columns generically? (VISIBLE COLUMN)
-             Feature f = FeatureList.theFeatures.getFeature(data.keyName);
-             if (f != null) {
-                 FeatureMemento m = f.getNewMemento();
-                 m.setProperty(FeatureMemento.VISIBLE, !data.checked);
-                 FeatureChangeCommand c = new FeatureChangeCommand(data.keyName, m);
-                 CommandManager.getInstance().executeCommand(c, true);
-             }
-    	} 
-    		break;
-    	case 1: {// How to map the columns generically? (ONLY COLUMN)
-            Feature f = FeatureList.theFeatures.getFeature(data.keyName);
-            if (f != null) {
-                FeatureMemento m = f.getNewMemento();
-                m.setProperty(FeatureMemento.ONLY, !data.onlyMode);
-                FeatureChangeCommand c = new FeatureChangeCommand(data.keyName, m);
-                CommandManager.getInstance().executeCommand(c, true);
-            }
-    	}
-            break;
-    		default:
-    			// The selection change will handle clicking another column...
-    			break;
-    	}
-    	}	
-    }
-    
-	public FeatureTableList(String groupName)
-	{
-		myGroupName = groupName;
-		
+			switch (orgColumn) {
+			case 0: {// How to map the columns generically? (VISIBLE COLUMN)
+				Feature f = FeatureList.theFeatures.getFeature(data.keyName);
+				if (f != null) {
+					FeatureMemento m = f.getNewMemento();
+					m.setProperty(FeatureMemento.VISIBLE, !data.checked);
+					FeatureChangeCommand c = new FeatureChangeCommand(data.keyName, m);
+					CommandManager.getInstance().executeCommand(c, true);
+				}
+			}
+				break;
+			case 1: {// How to map the columns generically? (ONLY COLUMN)
+				Feature f = FeatureList.theFeatures.getFeature(data.keyName);
+				if (f != null) {
+					FeatureMemento m = f.getNewMemento();
+					m.setProperty(FeatureMemento.ONLY, !data.onlyMode);
+					FeatureChangeCommand c = new FeatureChangeCommand(data.keyName, m);
+					CommandManager.getInstance().executeCommand(c, true);
+				}
+			}
+				break;
+			default:
+				// The selection change will handle clicking another column...
+				break;
+			}
+		}
+	}
+
+	public FeatureTableList(String[] groupNames) {
+		myGroupNames = groupNames;
+
 		// Set the model which describes our columns
 		myModel = new FeatureTableListModel();
 		setModel(myModel);
@@ -377,34 +354,34 @@ public class FeatureTableList extends  RowEntryTable {
 		setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		// Hook up line change listener to our class.
-        getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                featureTableValueChanged(e);
-            }
-        });
-        
-        // Hook up mouse listener to our class
-        addMouseListener(new RowEntryTableMouseAdapter(this, myModel)
-        {
-        	
-        	@Override
-            public JPopupMenu getDynamicPopupMenu(Object line, int row, int column) {
-        		return featureTablePopUp(line, row, column);	
-        	}
-        	
-        	@Override
-            public void handleClick(Object stuff, int orgRow, int orgColumn)
-        	{
-        		featureTableHandleClick(stuff, orgRow, orgColumn);
-        	}
-        	
-        });
-            
+		getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				featureTableValueChanged(e);
+			}
+		});
+
+		// Hook up mouse listener to our class
+		addMouseListener(new RowEntryTableMouseAdapter(this, myModel) {
+
+			@Override
+			public JPopupMenu getDynamicPopupMenu(Object line, int row, int column) {
+				return featureTablePopUp(line, row, column);
+			}
+
+			@Override
+			public void handleClick(Object stuff, int orgRow, int orgColumn) {
+				featureTableHandleClick(stuff, orgRow, orgColumn);
+			}
+
+		});
+
 	}
 
-	/** Update list to feature command, note..we might not the feature in us
-	 * that is being sent 
+	/**
+	 * Update list to feature command, note..we might not the feature in us that is
+	 * being sent
+	 * 
 	 * @param info
 	 */
 	public void updateList(Object info) {
@@ -417,7 +394,7 @@ public class FeatureTableList extends  RowEntryTable {
 			FeatureSelectCommand c = (FeatureSelectCommand) (info);
 			changeSelection = true;
 			fromSelect = c.getFeature();
-			//LOG.debug("******SELECTCOMMAND " + fromSelect);
+			// LOG.debug("******SELECTCOMMAND " + fromSelect);
 		}
 
 		// -----------------------------------------------------------
@@ -428,30 +405,44 @@ public class FeatureTableList extends  RowEntryTable {
 		// Sort this list....might be better to keep a sorted list within
 		// the FeatureList...we'll see how much this gets 'hit'
 		// This is done a lot...every feature table list will do it over and over...
-		// FIXME: make FeatureList maintain a sorted list?  No reason it couldn't be.
-		final List<Feature> porg = FeatureList.theFeatures.getFeatureGroup(myGroupName);
+		// FIXME: make FeatureList maintain a sorted list? No reason it couldn't be.
+
+		/** Get all items from our groups and get the selected for each group */
+		int count = myGroupNames.length;
+		ArrayList<Feature> porg = new ArrayList<Feature>();
+		// List<Feature> selected = new ArrayList<Feature>();
+		for (int i = 0; i < count; i++) {
+			String aGroup = myGroupNames[i];
+			List<Feature> sub = FeatureList.theFeatures.getFeatureGroup(aGroup);
+			// Feature select = FeatureList.theFeatures.getSelected(aGroup);
+			// selected.add(select);
+			porg.addAll(sub);
+		}
+
+		// List<Feature> porg = FeatureList.theFeatures.getFeatureGroup(aGroup);
 		List<Feature> p = new ArrayList<Feature>(porg);
-		Feature top = FeatureList.theFeatures.getSelected(myGroupName);
-		
-        Collections.sort(p,
-                new Comparator<Feature>() {
-            @Override
-            public int compare(Feature o1, Feature o2) {
-                String k1 = o1.getFeatureGroup();
-                String k2 = o2.getFeatureGroup();
-                int c = k1.compareTo(k2);
-                if (c == 0) { // same group, sort by key name...
-                    c = o1.getKey().compareTo(o2.getKey());
-                }
-                return c;
-            }
-        });
-		 
+		// Feature top = FeatureList.theFeatures.getSelected(aGroup);
+		// Top is good enough for now I think...
+		Feature top = FeatureList.theFeatures.getTopSelected();
+
+		Collections.sort(p, new Comparator<Feature>() {
+			@Override
+			public int compare(Feature o1, Feature o2) {
+				String k1 = o1.getFeatureGroup();
+				String k2 = o2.getFeatureGroup();
+				int c = k1.compareTo(k2);
+				if (c == 0) { // same group, sort by key name...
+					c = o1.getKey().compareTo(o2.getKey());
+				}
+				return c;
+			}
+		});
+
 		if (p != null) {
 			int currentLine = 0;
 			int select = -1;
 			ArrayList<FeatureTableListData> newList = new ArrayList<FeatureTableListData>();
-			Iterator<Feature> iter = p.iterator();  // Question is do we need it to be subclasses, such as MapFeature
+			Iterator<Feature> iter = p.iterator(); // Question is do we need it to be subclasses, such as MapFeature
 
 			for (Feature d : p) {
 				FeatureTableListData d2 = new FeatureTableListData();
@@ -471,8 +462,8 @@ public class FeatureTableList extends  RowEntryTable {
 				if (d == top) {
 					select = currentLine;
 				}
-				//if (myLastSelectedFeature == d) {
-				//     oldSelect = currentLine;
+				// if (myLastSelectedFeature == d) {
+				// oldSelect = currentLine;
 				// }
 				currentLine++;
 
@@ -485,7 +476,7 @@ public class FeatureTableList extends  RowEntryTable {
 
 				// This of course fires an event, which calls jProductsListTableValueChanged
 				// which would send a command which would do this again in an
-				// infinite loop.  So we have a flag.  We don't use isAdjusting
+				// infinite loop. So we have a flag. We don't use isAdjusting
 				// because it still fires and event when you set it false
 				myModel.setRebuilding(true);
 				setRowSelectionInterval(select, select);
@@ -494,7 +485,7 @@ public class FeatureTableList extends  RowEntryTable {
 
 				myModel.setRebuilding(false);
 
-			}else {
+			} else {
 				// FeaturesView does this but nav doesn't because it destroy controls ..
 				// setEmptyControls();
 				// jFeatureGUIPanel.validate();
@@ -505,11 +496,10 @@ public class FeatureTableList extends  RowEntryTable {
 			repaint();
 			// Used by features view ... Hack updates...need a better system for this
 			// if (myLastSelectedFeature != null){
-			//     myLastSelectedFeature.getControls().updateGUI();
+			// myLastSelectedFeature.getControls().updateGUI();
 			// }
 
 		}
 	}
 
 }
-

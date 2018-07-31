@@ -1,0 +1,10 @@
+# Simple netcdf example of reflectivy and velocity data
+# from May 3, 1999 with KTLX radar, covering a 
+# major tornado event.
+# More detailed data can be inquired from the 
+# National Severe Storms Laboratory, Norman, Oklahoma
+
+Dataset:
+Reflectivity and Velocity data
+KTLX19990503_213415.Z to KTLX19990504_020629.Z
+both inclusive.

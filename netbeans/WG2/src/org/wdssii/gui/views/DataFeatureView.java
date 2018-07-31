@@ -82,7 +82,7 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
         theSubViews.add(v);
         LOG.debug("ADD subview list is :");
         for (DataFeatureView c : theSubViews) {
-            LOG.debug("Chart is " + c.getTitle());
+           // LOG.debug("Chart is " + c.getTitle());
         }
     }
 
@@ -200,7 +200,7 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
     /**
      * The visible title used for GUI stuff
      */
-    private String myTitle;
+   // private String myTitle;
     /**
      * The neverchanging key for this chart
      */
@@ -211,21 +211,23 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
      * multiview. It's a temporary object
      */
     public DataFeatureView() {
-        myTitle = "Top chart object, not a real chart.";
+       // myTitle = "Top chart object, not a real chart.";
         myKey = "";
     }
 
     public DataFeatureView(String title, String chartName) {
-        myTitle = title;
+        myTopDataView = this;  // hackzors
+        
+       // myTitle = title;
         myKey = title;
         initComponents();
         initCharts(chartName);
     }
 
-    public String getTitle() {
+  /*  public String getTitle() {
         return myTitle;
     }
-
+*/
     public String getKey() {
         return myKey;
     }
@@ -259,7 +261,7 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
 
     public final void initCharts(String chartName) {
 
-        CommandManager.getInstance().addListener(myTitle, this);
+        CommandManager.getInstance().addListener(myKey, this);
         createChart(chartName);
         updateGUI();
     }
@@ -388,4 +390,16 @@ public class DataFeatureView extends JThreadPanel implements MDockView, CommandL
         }
         return use;
     }
+
+	public void setDataViewName(DataView dataView, String t) {
+		for (DataFeatureView c : theSubViews) {
+			if (c.myChart == dataView) {
+				LOG.error("Found the dataview to change...");
+				c.myChart.setTitle(t);
+				break;
+			}
+	           // LOG.debug("Chart is " + c.getTitle());
+	    }
+	}
+
 }

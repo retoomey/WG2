@@ -96,13 +96,7 @@ public class FeatureList {
     protected Date mySimulationTime = new Date();
 
     static {
-    	URL aURL = W2Config.getURL("maps/shapefiles/usa/ok/okcnty.shp");
-    	if (aURL != null) {
-    		String filename = aURL.getPath();
-    		Feature testOne = new MapFeature(theFeatures, filename);
-    		theFeatures.addFeature(testOne);
-    	} 
-    	
+    		
         Feature legend = LegendFeature.createLegend(FeatureList.theFeatures, 
         		"compass", "scale", "insert", "controls"); // FIXME: magic strings better way
         theFeatures.addFeature(legend);

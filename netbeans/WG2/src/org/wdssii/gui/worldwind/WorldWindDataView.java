@@ -204,6 +204,7 @@ public class WorldWindDataView extends DataView {
     }
 
     public void addWorldWindFeatures() {
+    	/*
         if (theWWStock == null) {
             LayerList layers = myWorld.getModel().getLayers();
             ArrayList<String> names = new ArrayList<String>();
@@ -225,6 +226,7 @@ public class WorldWindDataView extends DataView {
             theWWStock = WorldwindStockFeature.grabsAllLayers(FeatureList.theFeatures, names);
             FeatureList.theFeatures.addFeature(theWWStock);
         }
+        */
     }
 
     public WorldWindDataView() {
@@ -250,7 +252,13 @@ public class WorldWindDataView extends DataView {
             worldHolder.add(info, new CC().growX().growY());
             return worldHolder;
         }
-
+        
+        JTextArea info = new JTextArea();
+        info.setText("Disabled.");
+        worldHolder.add(info, new CC().growX().growY());
+        return worldHolder;
+   
+        /*
         final String w = "50"; // MigLayout width parameter
 
         JSplitPane jSplitPane1;
@@ -271,9 +279,9 @@ public class WorldWindDataView extends DataView {
         //     worldHolder.add((Component) number2, new CC().growX().growY());
         // }
 
-        myStatusBar = new ReadoutStatusBar();
+ //       myStatusBar = new ReadoutStatusBar();
         // myStatusBar.setEventSource(myWorld);
-        worldHolder.add((Component) myStatusBar, new CC().dockSouth());
+ //       worldHolder.add((Component) myStatusBar, new CC().dockSouth());
 
         //  // Put into split pane
         // jSplitPane1 = new JSplitPane(javax.swing.JSplitPane.VERTICAL_SPLIT, true, worldHolder, myStatusBar);
@@ -285,13 +293,14 @@ public class WorldWindDataView extends DataView {
 
         // FIXME: should probably make a preference for this that can be
         // toggled by user if it works correctly/incorrectly
-        System.setProperty("sun.awt.noerasebackground", "true");
+     //   System.setProperty("sun.awt.noerasebackground", "true");
         // CommandManager.getInstance().addListener(ID, this);
-        PosRenderHelper h = new PosRenderHelper();
-        myWorld.addPositionListener(h);
-        myWorld.addRenderingListener(h);
-        delayedInit();
-        return worldHolder;
+//        PosRenderHelper h = new PosRenderHelper();
+ //       myWorld.addPositionListener(h);
+ //       myWorld.addRenderingListener(h);
+ //       delayedInit();
+      //  return worldHolder;
+        */
     }
 
     public final void createWG2Layers() {

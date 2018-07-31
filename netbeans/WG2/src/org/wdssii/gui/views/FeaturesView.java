@@ -31,6 +31,7 @@ import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.features.LegendFeature;
 import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.features.MapGUI;
@@ -90,7 +91,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
      * Holds the optional table for selected feature
      */
     //private JPanel jFeatureGUITablePanel;
-    private javax.swing.JToolBar jEditToolBar;
+    JToolBar jEditToolBar;
  //   private javax.swing.JScrollPane jObjectScrollPane;
     private JComponent jControls;
     /**
@@ -102,10 +103,11 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
      * point table for the data point line
      */
     //private javax.swing.JScrollPane jTableScrollPane;
-    private javax.swing.JLabel jInfoLabel;
+    JLabel jInfoLabel;
 	private FeatureTableList myFeatureTableList;
 	private FeatureTableList myFeatureTableList2;
 	private FeatureTableList myFeatureTableList3;
+	private FeatureTableList myFeatureTableList4;
 
     /**
      * Get the items for an individual view
@@ -122,35 +124,35 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         JMenuItem item;
 
         item = new JMenuItem("2 Points");
-        item.addActionListener(new java.awt.event.ActionListener() {
+        item.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            public void actionPerformed(ActionEvent evt) {
                 addSetActionPerformed(evt, 2);
             }
         });
         button.add(item);
 
         item = new JMenuItem("1 Point");
-        item.addActionListener(new java.awt.event.ActionListener() {
+        item.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            public void actionPerformed(ActionEvent evt) {
                 addSetActionPerformed(evt, 1);
             }
         });
         button.add(item);
 
         item = new JMenuItem("Map from ESRI shapefile...");
-        item.addActionListener(new java.awt.event.ActionListener() {
+        item.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            public void actionPerformed(ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
         button.add(item);
         item = new JMenuItem("Polargrid");
-        item.addActionListener(new java.awt.event.ActionListener() {
+        item.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            public void actionPerformed(ActionEvent evt) {
                 jPolarGridButtonActionPerformed(evt);
             }
         });
@@ -190,17 +192,6 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
                 "Visible", "Only", "Name", "Type", "Message"
             });
         }
-
-    /*    @Override
-        public boolean rebuilding() {
-            return isRebuilding;
-        }
-
-        @Override
-        public void setRebuilding(boolean value) {
-            isRebuilding = value;
-        }
-        */
     }
 
     /**
@@ -416,7 +407,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             return;
         }
         // We're in the updateTable and have set the selection to the old
-        // value, we don't want to loop infinitely
+        // alue, we don't want to loop infinitely
         if (myProductListTableModel.rebuilding()) {
             return;
         }
@@ -430,11 +421,12 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             }
         }
     }
-
+    
     public void updateTable(Object info) {
         myFeatureTableList.updateList(info);
         myFeatureTableList2.updateList(info);
         myFeatureTableList3.updateList(info);
+        myFeatureTableList4.updateList(info);
 
         // We only want to change selection when the user directly
         // changes one, not from other updates like from looping
@@ -615,93 +607,66 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     }
 */
     
+    private JComponent tabForGroup(Color aColor, String groupName, FeatureTableList list )
+    {
+    	 JComponent w3 = new JPanel();
+         w3.setBackground(aColor);
+         w3.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
+       //  myFeatureTableList = new FeatureTableList(groupName);
+         javax.swing.JScrollPane testScroll = new JScrollPane();
+         testScroll.setBorder(null);
+         //	add(toolbar, new CC().dockNorth());
+         w3.add(new JLabel(groupName), new CC().dockNorth().growX());
+         w3.add(testScroll, new CC().growX().growY());
+         testScroll.setViewportView(list);
+         return w3;
+    }
+    
     private void initComponents(boolean dockControls) {
 
     	// Create a tab per group type.  For the moment hard coded..
     	// but could be done dynamically.
         setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        javax.swing.JTabbedPane jRootTab;
-        jRootTab = new javax.swing.JTabbedPane();
-        add(jRootTab, new CC().growX().growY());
-        
-        // Add a tab 
+         
+        // Tab panel for each feature group
         JComponent w = new JPanel();
         w.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        jRootTab.addTab("All", w);
-       
-        JComponent w4 = new JPanel();
-        w4.setBackground(Color.GREEN);
-        w4.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        jRootTab.addTab("Products", w4);
-        myFeatureTableList3 = new FeatureTableList(ProductFeature.ProductGroup);
-        javax.swing.JScrollPane testScroll3 = new JScrollPane();
-        testScroll3.setBorder(null);
-        //	add(toolbar, new CC().dockNorth());
-        w4.add(new JLabel("PRODUCTS!"), new CC().dockNorth().growX());
-        w4.add(testScroll3, new CC().growX().growY());
-        testScroll3.setViewportView(myFeatureTableList3);
-        
-        JComponent w3 = new JPanel();
-        w3.setBackground(Color.BLUE);
-        w3.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        jRootTab.addTab("Maps", w3);
-        myFeatureTableList = new FeatureTableList(MapFeature.MapGroup);
-        javax.swing.JScrollPane testScroll = new JScrollPane();
-        testScroll.setBorder(null);
-        //	add(toolbar, new CC().dockNorth());
-        w3.add(new JLabel("MAPS!"), new CC().dockNorth().growX());
-        w3.add(testScroll, new CC().growX().growY());
-        testScroll.setViewportView(myFeatureTableList);
-
-        JComponent w2 = new JPanel();
-        w2.setBackground(Color.RED);
-        w2.setLayout(new MigLayout(new LC().fill().insetsAll("0"), null, null));
-        jRootTab.addTab("2D Overlays", w2);
-        myFeatureTableList2 = new FeatureTableList(LegendFeature.LegendGroup);
-        javax.swing.JScrollPane testScroll2 = new JScrollPane();
-        testScroll2.setBorder(null);
-        //	add(toolbar, new CC().dockNorth());
-        w2.add(new JLabel("LEGENDS!"), new CC().dockNorth().growX());
-        w2.add(testScroll2, new CC().growX().growY());
-        testScroll2.setViewportView(myFeatureTableList2);
-        
-
-        
-        // Add stuff inside panel....
         jInfoLabel = new JLabel("---");
-        jControls = initFeatureControlGUI();
-       
-   
-        // Init feature selection gui...
-        javax.swing.JScrollPane jObjectScrollPane = new JScrollPane();
-        jObjectScrollPane.setBorder(null);
-        JComponent selection = jObjectScrollPane;
-        
-        JComponent rootComponent;
-        if (!dockControls) {
-            JSplitPane s = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                    selection, jControls);
-            s.setResizeWeight(.50);
-            rootComponent = s;
-        } else {
-            rootComponent = selection;
-        }
-
-        
-        //	add(toolbar, new CC().dockNorth());
         w.add(jInfoLabel, new CC().dockNorth().growX());
-        w.add(rootComponent, new CC().growX().growY());
-
+        JScrollPane jObjectScrollPane = new JScrollPane();
+        w.add(jObjectScrollPane, new CC().growX().growY());
+        
+        JTabbedPane t = new javax.swing.JTabbedPane();
+        t.addTab("All", w);
+        myFeatureTableList3 = new FeatureTableList(new String[] {ProductFeature.ProductGroup});
+        t.addTab("Products", tabForGroup(Color.GREEN, "PRODUCTS!", myFeatureTableList3));   
+        myFeatureTableList = new FeatureTableList(new String[] {MapFeature.MapGroup});
+        t.addTab("Maps", tabForGroup(Color.BLUE, "MAPS!", myFeatureTableList));      
+        myFeatureTableList2 = new FeatureTableList(
+        		new String[] {LegendFeature.LegendGroup, MapFeature.MapGroup});
+        t.addTab("2D Overlays", tabForGroup(Color.RED, "2D!", myFeatureTableList2));
+        myFeatureTableList4 = new FeatureTableList(
+        		new String[] {LLHAreaFeature.LLHAreaGroup, PolarGridFeature.PolarGridGroup});
+        t.addTab("3D Overlays", tabForGroup(Color.PINK, "3D!", myFeatureTableList4));
+      
+        // Controls for latest selected feature
+        // This split pane could be done by our new generic window manager
+        jControls = initFeatureControlGUI();
+        JSplitPane s = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                t, jControls);
+        s.setResizeWeight(.50);
+        add(s, new CC().growX().growY());
+ 
         // to size correct, init table last, nope not it
         initTable();
         myFeatureTableList.updateList(null);
         myFeatureTableList2.updateList(null);
         myFeatureTableList3.updateList(null);
+        myFeatureTableList4.updateList(null);
         
         // Have to have table object before assigning to scroll pane
         myProductListTable.setFillsViewportHeight(true);
         jObjectScrollPane.setViewportView(myProductListTable);
-
     }
 
     @Override

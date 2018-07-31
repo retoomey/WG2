@@ -38,6 +38,10 @@ public class WdssiiView {
         return title;
     }
     
+    public void setTitle(String t) {
+    	title = t;
+    }
+    
     public Component getComponent(){
         return component;
     }

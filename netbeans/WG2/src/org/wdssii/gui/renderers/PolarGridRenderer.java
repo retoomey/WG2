@@ -133,15 +133,13 @@ public class PolarGridRenderer extends Feature3DRenderer {
 			Integer numCircles = p.get(PolarGridMemento.RING_COUNT, 20);
 			float ringApart = range / 1000.0f;
 
-			LOG.debug("CREATING with number of rings..." + numCircles);
 			if (numCircles < 1) {
 				numCircles = 1;
 			} // HAVE to have at least one
 
-		    V2 center = null;
-		    center = p.get(PolarGridMemento.CENTER, center);
+			V2 center = null;
+			center = p.get(PolarGridMemento.CENTER, center);
 			Location ourCenter = new Location(center.x, center.y, 0);
-			LOG.debug("Center is at " + ourCenter);
 
 			// if (ringApart > myMaxR) {
 			// numCircles = 1;
@@ -151,10 +149,10 @@ public class PolarGridRenderer extends Feature3DRenderer {
 			Double elev = p.get(PolarGridMemento.ELEV_DEGREES, 50.0d);
 			final double sinElevAngle = Math.sin(Math.toRadians(elev));
 			final double cosElevAngle = Math.cos(Math.toRadians(elev));
-			final int numSegments = 10;
+			//final int numSegments = 10;
 
 			Location l = new Location(35, 35, 10);
-			double circleHeightKms = 0;
+			//double circleHeightKms = 0;
 
 			final int maxDegree = 360; // Make sure no remainder for numSegs...
 			final int degStep = 6; // density of rings
@@ -167,11 +165,11 @@ public class PolarGridRenderer extends Feature3DRenderer {
 			final int spokeStep = 360 / numSpokes;
 
 			// Allocate memory...
-			Array1D<Float> workPolygons = new Array1DfloatAsNodes(
-					(numCircles * (numSegs + 1) * 3) // Number of circle points
-							+ (numSpokes * (numCircles + 1) * 3), // Number of
-																	// spoke
-																	// points
+			Array1D<Float> workPolygons = new Array1DfloatAsNodes((numCircles * (numSegs + 1) * 3) // Number of circle
+																									// points
+					+ (numSpokes * (numCircles + 1) * 3), // Number of
+															// spoke
+															// points
 					0.0f);
 			GrowList<Integer> workOffsets = new GrowList<Integer>();
 			GrowList<V3> workLabelPoints = new GrowList<V3>();
@@ -263,7 +261,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 				// render,
 				// so we need to make sure string is available
 				// FIXME: need more intelligent labeling for low values...
-				workLabelStrings.add(String.format("%d Km", (int)(rangeKMS)));
+				workLabelStrings.add(String.format("%d Km", (int) (rangeKMS)));
 				workLabelPoints.add(point);
 				rangeKMS += ringApart;
 			}
@@ -275,8 +273,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 	}
 
 	/**
-	 * Tell if this changes requires a new background job. Some changes, like
-	 * line thickness are done by the renderer on the fly
+	 * Tell if this changes requires a new background job. Some changes, like line
+	 * thickness are done by the renderer on the fly
 	 */
 	public boolean changeNeedsUpdate(PolarGridMemento new1, PolarGridMemento old) {
 		boolean needsUpdate = false;
@@ -317,7 +315,12 @@ public class PolarGridRenderer extends Feature3DRenderer {
 					double latOldDegs = ll.x;
 					double lonOldDegs = ll.y;
 
-					if ((latOldDegs != latDegs) || (lonOldDegs != lonDegs)) {
+					// Round off if V2 is float for example causes bad match
+					// ((latOldDegs != latDegs) || (lonOldDegs != lonDegs))
+					if ((Math.abs(latOldDegs - latDegs) > 0.01) || // close enough
+							(Math.abs(lonOldDegs - lonDegs) > 0.01)) {
+						LOG.error("DEGREE CHANGE " + latOldDegs + ", " + latDegs + ", " + lonOldDegs + ", " + lonDegs);
+
 						needsUpdate = true;
 						V2 aLatLon = new V2(latDegs, lonDegs);
 						new1.setProperty(PolarGridMemento.CENTER, aLatLon);
@@ -362,8 +365,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 
 		synchronized (drawLock) {
 			if (isCreated() && (polygonData != null)) {
-		        final GL glold = w.gl;
-		    	final GL2 gl = glold.getGL().getGL2();
+				final GL glold = w.gl;
+				final GL2 gl = glold.getGL().getGL2();
 				Color line = m.get(PolarGridMemento.LINE_COLOR, Color.WHITE);
 				final float r = line.getRed() / 255.0f;
 				final float g = line.getGreen() / 255.0f;
@@ -444,8 +447,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 	}
 
 	/**
-	 * Simple rectangle collection intersection. Not optimized, this could be
-	 * better with an interval binary search tree....
+	 * Simple rectangle collection intersection. Not optimized, this could be better
+	 * with an interval binary search tree....
 	 */
 	public static class Rectangle2DIntersector {
 
@@ -477,8 +480,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 	}
 
 	/**
-	 * Update our data to the data of a worker. Note because of threads for
-	 * brief time periods more than one worker might be going. (Fast changing of
+	 * Update our data to the data of a worker. Note because of threads for brief
+	 * time periods more than one worker might be going. (Fast changing of
 	 * settings). The worker will stop on false
 	 */
 	public boolean updateData(BackgroundPolarGridMaker worker, GrowList<Integer> off, Array1D<Float> poly,

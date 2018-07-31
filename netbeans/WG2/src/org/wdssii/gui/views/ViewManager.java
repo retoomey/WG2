@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.swing.Icon;
 
+import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.views.WdssiiMDockedViewFactory.MDockView;
 import org.wdssii.xml.views.RootWindow;
 
@@ -19,143 +20,152 @@ import org.wdssii.xml.views.RootWindow;
  */
 public class ViewManager {
 
-    public final static String DATA_VIEW_NAME = "DataFeatureView";
-    
-    /**
-     * Holder the class doing the work here
-     */
-    public static ViewMaker myWorker = null;
-    private static DataFeatureView myDataFeatureView;
+	public final static String DATA_VIEW_NAME = "DataFeatureView";
 
-    public static void setConfigPath(URL aURL) {
-        if (myWorker != null) {
-            myWorker.setConfigPath(aURL);
-        }
-    }
+	/**
+	 * Holder the class doing the work here
+	 */
+	public static ViewMaker myWorker = null;
+	private static DataFeatureView myDataFeatureView;
 
- public static interface RootContainer {
+	public static void setConfigPath(URL aURL) {
+		if (myWorker != null) {
+			myWorker.setConfigPath(aURL);
+		}
+	}
 
-        public void addWdssiiView(WdssiiView w, MDockView md);
+	public static interface RootContainer {
 
-        public void addControls(List<Object> list);
+		public void addWdssiiView(WdssiiView w, MDockView md);
 
-        public void createSingleSubWindow(String controlTitle, Icon i, Component f, Component c);
-    }
+		public void addControls(List<Object> list);
 
-    /**
-     * interface to doing real window work
-     */
-    public static interface ViewMaker {
+		public void createSingleSubWindow(String controlTitle, Icon i, Component f, Component c);
+	}
 
-        public void init();
+	/**
+	 * interface to doing real window work
+	 */
+	public static interface ViewMaker {
 
-        /**
-         * Create root component for holding stuff
-         */
-        public RootContainer createRootContainer();
+		public void init();
 
-        /**
-         * Wrap a WdssiiView with an actual GUI container
-         */
-        public void wrapWdssiiViewWithGUI(WdssiiView wv);
+		/**
+		 * Create root component for holding stuff
+		 */
+		public RootContainer createRootContainer();
 
-        /**
-         *
-         * @return layout xml JAXB node
-         */
-        public RootWindow getLayoutXML();
+		/**
+		 * Wrap a WdssiiView with an actual GUI container
+		 */
+		public void wrapWdssiiViewWithGUI(WdssiiView wv);
 
-        /**
-         * Set layout to that from XML, if possible
-         */
-        public void setLayoutXML(RootWindow r);
+		/**
+		 *
+		 * @return layout xml JAXB node
+		 */
+		public RootWindow getLayoutXML();
 
-        /**
-         * Set a new layout state
-         */
-        public void setNewLayout();
+		/**
+		 * Set layout to that from XML, if possible
+		 */
+		public void setLayoutXML(RootWindow r);
 
-        /**
-         * Set the URL path of this document
-         */
-        public void setConfigPath(URL aURL);
+		/**
+		 * Set a new layout state
+		 */
+		public void setNewLayout();
 
-        public void collapseLayout(RootContainer rootW);
+		/**
+		 * Set the URL path of this document
+		 */
+		public void setConfigPath(URL aURL);
 
-        /**
-         * Add a WdssiiView to a given root container
-         */
-        // public void addWdssiiViewToRootContainer(RootContainer c, WdssiiView wv, MDockView m);
-        public DataFeatureView getDataFeatureView();
-    }
+		public void collapseLayout(RootContainer rootW);
 
-    public void setViewMaker(ViewMaker worker) {
-        myWorker = worker;
-    }
+		/**
+		 * Add a WdssiiView to a given root container
+		 */
+		// public void addWdssiiViewToRootContainer(RootContainer c, WdssiiView wv,
+		// MDockView m);
+		public DataFeatureView getDataFeatureView();
 
-    public static void init(ViewMaker w) {
-        myWorker = w;
-        startWindows();
-    }
+		public void renameWindow(RootContainer r, String t);
+	}
 
-    public static void startWindows() {
-        if (myWorker != null) {
-            myWorker.init();
-        }
-    }
+	public static void init(ViewMaker w) {
+		myWorker = w;
+		startWindows();
+	}
 
-    public static RootContainer createRootContainer() {
-        RootContainer holder = null;
-        if (myWorker != null) {
-            holder = myWorker.createRootContainer();
-        }
-        return holder;
-    }
+	public static void startWindows() {
+		if (myWorker != null) {
+			myWorker.init();
+		}
+	}
 
-    /**
-     * Wrap a given WdssiiView with a GUI container
-     */
-    public static void wrapWdssiiViewWithGUI(WdssiiView wv) {
-        Container holder = null;
-        if (myWorker != null) {
-            myWorker.wrapWdssiiViewWithGUI(wv);
-        }
-    }
+	public static RootContainer createRootContainer() {
+		RootContainer holder = null;
+		if (myWorker != null) {
+			holder = myWorker.createRootContainer();
+		}
+		return holder;
+	}
 
-    public static RootWindow getLayoutXML() {
-        RootWindow xml = null;
-        if (myWorker != null) {
-            xml = myWorker.getLayoutXML();
-        }
-        return xml;
-    }
+	/**
+	 * Wrap a given WdssiiView with a GUI container
+	 */
+	public static void wrapWdssiiViewWithGUI(WdssiiView wv) {
+		Container holder = null;
+		if (myWorker != null) {
+			myWorker.wrapWdssiiViewWithGUI(wv);
+		}
+	}
 
-    public static void setLayoutXML(RootWindow r) {
-        if (myWorker != null) {
-            myWorker.setLayoutXML(r);
-        }
-    }
+	public static RootWindow getLayoutXML() {
+		RootWindow xml = null;
+		if (myWorker != null) {
+			xml = myWorker.getLayoutXML();
+		}
+		return xml;
+	}
 
-    public static void setNewLayout() {
-        if (myWorker != null) {
-            myWorker.setNewLayout();
-        }
-    }
+	public static void setLayoutXML(RootWindow r) {
+		if (myWorker != null) {
+			myWorker.setLayoutXML(r);
+		}
+	}
 
-    public static void collapseLayout(RootContainer rootW) {
-        if (myWorker != null) {
-            myWorker.collapseLayout(rootW);
-        }
-    }
-    
-    public static  DataFeatureView getDataView() {
-        if (myDataFeatureView == null){
-        if (myWorker != null){
-            myDataFeatureView = myWorker.getDataFeatureView();
-        }
-        }
-        return myDataFeatureView;
-    }
+	public static void setNewLayout() {
+		if (myWorker != null) {
+			myWorker.setNewLayout();
+		}
+	}
 
-   
+	public static void collapseLayout(RootContainer rootW) {
+		if (myWorker != null) {
+			myWorker.collapseLayout(rootW);
+		}
+	}
+
+	public static DataFeatureView getDataView() {
+		if (myDataFeatureView == null) {
+			if (myWorker != null) {
+				myDataFeatureView = myWorker.getDataFeatureView();
+			}
+		}
+		return myDataFeatureView;
+	}
+
+	/** Set a data view title */
+	public static void setDataViewName(DataView dataView, String t) {
+		/*DataFeatureView dv = getDataView();
+		if (dv != null) {
+			dv.setDataViewName(dataView, t);
+		}*/
+		if (myWorker != null) {
+		//	myWorker.renameWindow(myDataFeatureView, t);
+		}
+	}
+
 }

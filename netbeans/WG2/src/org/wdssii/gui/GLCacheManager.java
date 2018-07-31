@@ -66,6 +66,7 @@ public class GLCacheManager implements Singleton {
 	 * alive and separate from any display instance.
 	 */
 	public GLAutoDrawable getSharedGLAutoDrawable() {
+		LOG.error("Setting up shared...");
 		if (mySharedSetup == false) {
 			try {
 			GLProfile glp = GLProfile.getDefault(); // caps.getGLProfile();
@@ -79,7 +80,10 @@ public class GLCacheManager implements Singleton {
 
 			mySharedDrawable  = sharedDrawable;
 			mySharedSetup = true;
+			LOG.error("Set up shared...");
+
 			}catch(Exception e) {
+				LOG.error("Exception creating open gl setup "+e.toString());
 				// Display probably completely worthless if this happens...so how to handle?
 			}
 		}

@@ -211,6 +211,18 @@ public class InfonodeViews implements ViewMaker {
     public static boolean toggle = true;
     public static Container test;
 
+    @Override
+    public void renameWindow(RootContainer rootW, String t) {
+    	// New code attempt 
+    	if (rootW instanceof WRootWindow) {
+             WRootWindow r = (WRootWindow) (rootW);
+             int current = r.getChildWindowCount();
+             for (int i = 0; i < current; i++) {
+                 DockingWindow win = r.getChildWindow(i);
+             }
+    	 }
+    }
+    
     // Experimental collapse of layout for the RootContainer of the DataView only
     // Biggest hack ever.  Hide all current windows, frames with data views in them,
     // and stick everything into a single container with simple layout

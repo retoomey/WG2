@@ -24,7 +24,7 @@ public class ChartCreateCommand extends ProductCommand {
      * and will break if class is moved
      */
     public final static String VIEW_WORLD_WIND = "org.wdssii.gui.worldwind.WorldWindDataView";
-    public final static String VIEW_W2 = "org.wdssii.gui.W2DataView";
+    public final static String VIEW_W2 = "org.wdssii.gui.charts.W2DataView";
     public final static String VIEW_GEO = "org.wdssii.gui.charts.GeoToolDataView";
     public final static String VIEW_VSLICE = "org.wdssii.gui.worldwind.VSliceChart";
     public final static String VIEW_VSLICE2 = "org.wdssii.gui.charts.VSliceChart";
@@ -54,13 +54,9 @@ public class ChartCreateCommand extends ProductCommand {
 
         // I wouldn't do this normally, do for now at least we have a short list
         // that shouldn't change much
+        theList.add(new CommandOption("Add W2 viewer", VIEW_W2));
         theList.add(new CommandOption("Add 2D Tracking Table", VIEW_2D_TRACK));
         theList.add(new CommandOption("Add Data Readout Chart", VIEW_READOUT_CHART));
-        theList.add(new CommandOption("", ""));
-
-        theList.add(new CommandOption("Add Worldwind", VIEW_WORLD_WIND));
-        theList.add(new CommandOption("Add W2", VIEW_W2));
-
         theList.add(new CommandOption("", ""));
 
         theList.add(new CommandOption("Add VSlice Chart", VIEW_VSLICE));
@@ -69,7 +65,9 @@ public class ChartCreateCommand extends ProductCommand {
         theList.add(new CommandOption("Add ALPHA OpenGL ISO ", VIEW_ISO));
         theList.add(new CommandOption("", ""));
 
-        theList.add(new CommandOption("Add ALPHA GeoTool View", VIEW_GEO));
+        theList.add(new CommandOption("Broken: Add GeoTool View", VIEW_GEO));
+        theList.add(new CommandOption("Broken: Add Worldwind View", VIEW_WORLD_WIND));
+
 
 
 

@@ -2,6 +2,8 @@ package org.wdssii.gui.views.infonode;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -10,8 +12,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import org.jfree.util.Log;
 import org.wdssii.gui.Application;
+import org.wdssii.gui.views.WdssiiDockedViewFactory.DockView;
 import org.wdssii.gui.views.Window;
 import org.wdssii.gui.views.WindowManager.WindowMaker;
 import org.wdssii.log.Logger;
@@ -146,22 +148,22 @@ public class Infonode implements WindowMaker {
 	private static void setupTitleBarStyleProperties(RootWindowProperties titleBarStyleProperties) {
 		titleBarStyleProperties.getViewProperties().getViewTitleBarProperties().setVisible(true);
 		titleBarStyleProperties.getTabWindowProperties().getTabbedPanelProperties()
-		.setTabAreaOrientation(Direction.LEFT).setTabLayoutPolicy(TabLayoutPolicy.SCROLLING);
-		titleBarStyleProperties.getTabWindowProperties().getTabProperties().getTitledTabProperties().getNormalProperties()
-		.setDirection(Direction.UP);
+				.setTabAreaOrientation(Direction.LEFT).setTabLayoutPolicy(TabLayoutPolicy.SCROLLING);
+		titleBarStyleProperties.getTabWindowProperties().getTabProperties().getTitledTabProperties()
+				.getNormalProperties().setDirection(Direction.UP);
 		titleBarStyleProperties.getTabWindowProperties().getTabbedPanelProperties().getTabAreaProperties()
-		.setTabAreaVisiblePolicy(TabAreaVisiblePolicy.MORE_THAN_ONE_TAB);
+				.setTabAreaVisiblePolicy(TabAreaVisiblePolicy.MORE_THAN_ONE_TAB);
 
 		titleBarStyleProperties.getTabWindowProperties().getTabProperties().getHighlightedButtonProperties()
-		.getMinimizeButtonProperties().setVisible(false);
+				.getMinimizeButtonProperties().setVisible(false);
 		titleBarStyleProperties.getTabWindowProperties().getTabProperties().getHighlightedButtonProperties()
-		.getRestoreButtonProperties().setVisible(false);
+				.getRestoreButtonProperties().setVisible(false);
 		titleBarStyleProperties.getTabWindowProperties().getTabProperties().getHighlightedButtonProperties()
-		.getCloseButtonProperties().setVisible(false);
+				.getCloseButtonProperties().setVisible(false);
 		titleBarStyleProperties.getTabWindowProperties().getTabProperties().getHighlightedButtonProperties()
-		.getUndockButtonProperties().setVisible(false);
+				.getUndockButtonProperties().setVisible(false);
 		titleBarStyleProperties.getTabWindowProperties().getTabProperties().getHighlightedButtonProperties()
-		.getDockButtonProperties().setVisible(false);
+				.getDockButtonProperties().setVisible(false);
 
 		titleBarStyleProperties.getTabWindowProperties().getCloseButtonProperties().setVisible(false);
 		titleBarStyleProperties.getTabWindowProperties().getMaximizeButtonProperties().setVisible(false);
@@ -171,23 +173,23 @@ public class Infonode implements WindowMaker {
 		titleBarStyleProperties.getTabWindowProperties().getRestoreButtonProperties().setVisible(false);
 
 		titleBarStyleProperties.getWindowBarProperties().getTabWindowProperties().getTabProperties()
-		.getHighlightedButtonProperties().getMinimizeButtonProperties().setVisible(true);
+				.getHighlightedButtonProperties().getMinimizeButtonProperties().setVisible(true);
 		titleBarStyleProperties.getWindowBarProperties().getTabWindowProperties().getTabProperties()
-		.getHighlightedButtonProperties().getRestoreButtonProperties().setVisible(true);
+				.getHighlightedButtonProperties().getRestoreButtonProperties().setVisible(true);
 		titleBarStyleProperties.getWindowBarProperties().getTabWindowProperties().getTabProperties()
-		.getHighlightedButtonProperties().getCloseButtonProperties().setVisible(true);
+				.getHighlightedButtonProperties().getCloseButtonProperties().setVisible(true);
 		titleBarStyleProperties.getWindowBarProperties().getTabWindowProperties().getTabProperties()
-		.getHighlightedButtonProperties().getUndockButtonProperties().setVisible(true);
+				.getHighlightedButtonProperties().getUndockButtonProperties().setVisible(true);
 		titleBarStyleProperties.getWindowBarProperties().getTabWindowProperties().getTabProperties()
-		.getHighlightedButtonProperties().getDockButtonProperties().setVisible(true);
+				.getHighlightedButtonProperties().getDockButtonProperties().setVisible(true);
 
 		titleBarStyleProperties.getWindowBarProperties().getTabWindowProperties().getTabbedPanelProperties()
-		.setTabLayoutPolicy(TabLayoutPolicy.SCROLLING);
+				.setTabLayoutPolicy(TabLayoutPolicy.SCROLLING);
 	}
 
 	/** Create the root window */
 	public Object createWindowRoot(Window aWindow) {
-		//JFrame.setDefaultLookAndFeelDecorated(true);
+		// JFrame.setDefaultLookAndFeelDecorated(true);
 		JFrame frame = new JFrame("Testing Infonode Builder");
 
 		// Ok so root menu could be done here instead....
@@ -226,10 +228,10 @@ public class Infonode implements WindowMaker {
 		frame.add(rootWindow);
 
 		int count = aWindow.theWindows.size();
-		if (count != 1) {	
+		if (count != 1) {
 			// I think root infonode can actually handle more than one window...
 			LOG.error("This split window GUI can only handle 2 children at moment, sorry");
-		}else {
+		} else {
 			DockingWindow dd = (DockingWindow) createWindowGUI(aWindow.theWindows.get(0));
 			rootWindow.setWindow(dd);
 		}
@@ -242,106 +244,129 @@ public class Infonode implements WindowMaker {
 		return rootWindow;
 	}
 
-	/** Create the data view window, which is special because it can change custom layouts */
+	/**
+	 * Create the data view window, which is special because it can change custom
+	 * layouts
+	 */
 	public Object createDataView(Window w) {
-		
+
 		// Custom layout class.
-		
+
 		// Use custom tile layout for all charts at moment.
 		// This means no docking per-say here...
 		// In theory I could use a single GL world and do my own camera subviews,
 		// this would give us a big speed increase.
-		JPanel panel = new JPanel();  // Could be a single heavyweight opengl,
+		JPanel panel = new JPanel(); // Could be a single heavyweight opengl,
 		// would be our own class then that handled special opengl 'views' added to it
 		panel.setLayout(new TileLayout());
-		View view = new View("DataView", null, panel);  // Dataview can dedock..
+		View view = new View("DataView", null, panel); // Dataview can dedock..
+		// Problem is old way uses the DataFeatureView class to organize all the view
+		// so how to execute creation commands addTo.add(ChartCreateCommand.getDropButton(this));
 		
 		// Children will be charts...
 		int count = w.theWindows.size();
-		for(int i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			// Not letting children dedock yet...new layout playing
-			
+
 			// Note this break since not a component...?
-			//DockingWindow childGUI = (DockingWindow) createWindowGUI(w.theWindows.get(i));
-			
+			// DockingWindow childGUI = (DockingWindow)
+			// createWindowGUI(w.theWindows.get(i));
+
 			// Use simple tile layout engine for this.
-			panel.add((Component)(w.theWindows.get(i).myNode));	
+			panel.add((Component) (w.theWindows.get(i).myNode));
 
 		}
 		w.setGUI(view);
-		return view;	
+		return view;
+	}
+
+	public Object createNode(Window w) {
+
+		// Wrap component in a infonode docking window
+		View newOne = new View(w.getTitle(), w.getWindowIcon(), (Component) (w.myNode));
+
+		// If this is a wdssii DockView class object, it has menu ability at moment,
+		// so call the DockView method as MenuMaker here.
+		Object theNode = w.myNode;
+		if (theNode instanceof DockView) {
+			DockView theView = (DockView) (theNode);
+			List<Object> l = new ArrayList<Object>();
+			theView.addGlobalCustomTitleBarComponents(l); // Note class can cache them
+			@SuppressWarnings("unchecked")
+			List<Object> realList = newOne.getCustomTitleBarComponents();
+			for (Object o : l) {
+				realList.add(o);
+			}
+
+		}
+		return newOne;
 	}
 
 	/** Create a split window return new GUI item */
-	private Object createSplit(Window w)
-	{
+	private Object createSplit(Window w) {
 		int count = w.theWindows.size();
-		if (count != 2) {	
+		if (count != 2) {
 			// FIXME: we could handle having n children by auto-nesting splits, right?
 			LOG.error("This split window GUI can only handle 2 children at moment, sorry");
 			return null;
 		}
 		DockingWindow leftGUI = (DockingWindow) createWindowGUI(w.theWindows.get(0));
 		DockingWindow rightGUI = (DockingWindow) createWindowGUI(w.theWindows.get(1));
-		SplitWindow split = new SplitWindow(
-				w.getSplitHorizontal(), w.getSplitPercentage(),
-				leftGUI, 
-				rightGUI);
+		SplitWindow split = new SplitWindow(w.getSplitHorizontal(), w.getSplitPercentage(), leftGUI, rightGUI);
 		rightGUI = split;
-		
+
 		w.setGUI(split);
 		return split;
 	}
-	
+
 	/** Create a tab window */
-	private Object createTabs(Window w)
-	{
+	private Object createTabs(Window w) {
 		int count = w.theWindows.size();
 		DockingWindow[] tabchilds = new DockingWindow[count];
-		for(int i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			tabchilds[i] = (DockingWindow) createWindowGUI(w.theWindows.get(i));
 		}
 		TabWindow tabs = new TabWindow(tabchilds);
 		tabs.setName("GOOP");
-        tabs.setSelectedTab(0); // Usually first is wanted
+		tabs.setSelectedTab(0); // Usually first is wanted
 
 		w.setGUI(tabs);
 		return tabs;
 	}
-	
+
 	@Override
 	public Object createWindowGUI(Object stuff) {
-		
+
 		// Factory creating true GUI objects based on window type
 		if (stuff instanceof Window) {
 			// Ok more windows to go before final node
-			Window aWindow = (Window)(stuff);
-			
+			Window aWindow = (Window) (stuff);
+
 			// Ok maybe we 'should' subclass these... lol
-			
+
 			int type = aWindow.getType();
 			switch (type) {
 			case Window.WINDOW_ROOT:
 				return createWindowRoot(aWindow);
-			case Window.WINDOW_DATAVIEW: 
+			case Window.WINDOW_DATAVIEW:
 				return createDataView(aWindow);
 			case Window.WINDOW_SPLIT:
-				return createSplit(aWindow);	
+				return createSplit(aWindow);
 			case Window.WINDOW_TAB:
 				return createTabs(aWindow);
 			case Window.WINDOW_NODE:
-				return new View(aWindow.getTitle(), aWindow.getWindowIcon(), (Component)(aWindow.myNode));	
+				return createNode(aWindow);
 			default:
-				Log.error("UNKNOWN WINDOW TYPE FOR THIS MAKER!!! " + type);
+				LOG.error("UNKNOWN WINDOW TYPE FOR THIS MAKER!!! " + type);
 				break;
 			}
-			
-		}else if (stuff instanceof Component){  // Swing item, we wrap it..
+
+		} else if (stuff instanceof Component) { // Swing item, we wrap it..
 			LOG.error("MASSIVE GUI ERROR!");
-		}else {
+		} else {
 			LOG.error("Ignoring unknown type in window model tree");
 		}
 
-		return null;	
+		return null;
 	}
 }

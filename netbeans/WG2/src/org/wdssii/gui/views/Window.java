@@ -2,10 +2,6 @@ package org.wdssii.gui.views;
 
 import java.util.Vector;
 
-import javax.swing.Icon;
-
-import org.wdssii.gui.swing.SwingIconFactory;
-
 /** This looks just like WDSIIView, lol.  Trying to make a cleaner rewrite, the infonode
  * stuff got a bit crazy, mostly because I was new to the library.  The goal of this
  * class is to allow multiple GUI layout and GUI types.
@@ -20,20 +16,27 @@ public class Window {
 	 * The layout can use place this object into the window tree */
 	public Object myComponent1 = null;
 	
-	/** Link back to our parent, if any */
-	//private Window myParent = null;
+	/** Link back to our parent, if any.  Helps when swapping for example. */
+	private Window myParent = null;
+	
+	/** Group number for syncing.  */
+	private int groupNumber = 0;
 	
 	/** Windows have a 'type' flag to help GUI generators create them 
 	 * Should probably subclass these...antipattern.  For moment all types
 	 * are stuck into one class for development.
 	 * */
 	private int myType;
-	public static final int WINDOW_NODE = -1; // Node store reused GUI items
 	public static final int WINDOW_ROOT = 0;
 	public static final int WINDOW_DATAVIEW = 1;
 	public static final int WINDOW_CHART = 2;
 	public static final int WINDOW_TAB = 3;
 	public static final int WINDOW_SPLIT = 4;
+	public static final int WINDOW_NAV = 5;
+	public static final int WINDOW_SOURCES = 6;
+	public static final int WINDOW_FEATURES = 7;
+	public static final int WINDOW_CATALOG = 8;
+
 	
 	public Object myNode = null;
 	
@@ -52,25 +55,26 @@ public class Window {
 	
 	// Node....
 	/** A title typically shown at top of a window */
-	public String myTitle;
+	public String myTitle = "None";
 
-	/** A icon typically shown left of the title */
-	public String myIconName;
-	
-    /**
-     * The icon for this window, if any
-     */
-    public Icon getWindowIcon() {
-        Icon i = null;
-        if (!myIconName.isEmpty()) {
-            i = SwingIconFactory.getIconByName(myIconName);
-        }
-        return i;
-    }
-    
+    /** Get title of window, used by window maker */
     public String getTitle() {
     	return myTitle;
     }
+    
+    /** Set title of window, up to window maker to use this how it wants */
+    public void setTitle(String s) {
+    	myTitle = s;
+    }
+    
+    public Window getParent() {
+    	return myParent;
+    }
+    
+    public void setParent(Window p) {
+    	myParent = p;
+    }
+    
 	/** A single GUI thing stored within this window. It could be a JFrame or
 	 * a JPanel, or Swt panel, or Infodock window, etc.  Up the the WindowMaker.
 	 */
@@ -80,13 +84,12 @@ public class Window {
 	public Window(int type)
 	{		
 		myType = type;
+		myNode = null;
 	}
 	
-	public Window(Object o, String title, String iconName) {
-		myType = WINDOW_NODE;
-		myNode = o;
-		myTitle = title;
-		myIconName = iconName;
+	public Window(int type, Object data) {
+		myType = type;
+		myNode = data;
 	}
 	
 	private Object myGUI = null;
@@ -97,26 +100,17 @@ public class Window {
 	public void addWindow(Window aWindow)
 	{
 		theWindows.add(aWindow);
-	//	aWindow.setParent(this);
+		aWindow.setParent(this);
 	}
 	
 	/** Remove a window */
-	/*public void removeWindow(Window aWindow)
+	public void removeWindow(Window aWindow)
 	{
-		// CODE not used yet, maybe never right?  Well on delete
-		// will need something like this, but GUI should go too
 		int index = theWindows.indexOf(aWindow);
 		if (index > 0) {
 			theWindows.remove(aWindow);	
 			aWindow.myParent = null;
-			// Note the assumption is you're destroying this I think...
-			// FIXME: kill the GUI for this?
 		}
-	}*/
-	
-	/** Name a window.  This can show up in a title bar, for instance. */
-	public void renameWindow(String name)
-	{
 	}
 
 	/** Set the type of window we are.  Makers use this to build GUIs */

@@ -1,28 +1,42 @@
 package org.wdssii.gui.views;
 
+import java.util.Iterator;
+import java.util.Vector;
+
+import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.charts.W2DataView;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
-/** Rewrite of our view layout stuff.  Try to reduce the mess.  We need a more
- * top down approach.  The current way is kind of a spaghetti mess.
+/**
+ * Rewrite of our view layout stuff. Try to reduce the mess. We need a more top
+ * down approach. The current way is kind of a spaghetti mess.
  * 
- * Windows are completely unrelated to the GUI they are within.  They store
- * no direct GUI information.
+ * Windows are completely unrelated to the GUI they are within. They store no
+ * direct GUI information.
  * 
- * So this is the MODEL part of a MVC pattern.  The tree of Window objects
- * is parsed and then holds a 'GUI' object (VIEW) that represents it in the widget library.
- * This allows me to swap/out control GUI items
+ * So this is the MODEL part of a MVC pattern. The tree of Window objects is
+ * parsed and then holds a 'GUI' object (VIEW) that represents it in the widget
+ * library. This allows me to swap/out control GUI items
  * 
  * @author Robert Toomey
  */
 public class WindowManager {
-	
+
 	private final static Logger LOG = LoggerFactory.getLogger(WindowManager.class);
-			
-	/** (MODEL) The top window. We call this desktop (this allows other 'main' windows to be created.) */
+
+	/**
+	 * (MODEL) The top window. We call this desktop (this allows other 'main'
+	 * windows to be created.)
+	 */
 	public static Window theTopWindow;
-	
+
+	/** Top window for data views at moment */
+	private static Window theDataViews;
+
+	/** Name of the main data view window */
+	private static String myTopDataView = "";
+
 	/** (VIEW) The thing that creates the actual GUI for our model objects */
 	private static WindowMaker myGUI;
 
@@ -31,9 +45,10 @@ public class WindowManager {
 	 */
 	public static interface WindowMaker {
 
-		/** Create the GUI for given window by type. GUI usually
-		 * wraps around this in some way, either a panel or something
-		 * Object returned depends upon the maker gui library, swt based or swing, etc.
+		/**
+		 * Create the GUI for given window by type. GUI usually wraps around this in
+		 * some way, either a panel or something Object returned depends upon the maker
+		 * gui library, swt based or swing, etc.
 		 * 
 		 * @param aWindow the window to start from, usually a root window
 		 */
@@ -42,74 +57,242 @@ public class WindowManager {
 		/** Create a GUI/window from a given window forest top */
 		void init(final Window aWindow);
 
-	}
-	
-	/** Create menu bar for main window .
-	 * FIXME: probably need a MenuMaker class.  Menu might be a different
-	 * widget set. */
-	public void createMenuBar()
-	{
-		
-	}
-	
-	/** Linking to the thing that draws the view..the ViewMaker, WindowMaker, whatever
-	 * Should be generic interface here of course*/
-	public static void init(WindowMaker d)
-	{	
-		// Humm if I wanna hot swap complete window layouts, need to precreate the nodes
-		NavView nav = new NavView();
-		SourcesView sview = new SourcesView(false);
-		FeaturesView fview = new FeaturesView(false);
-		CatalogView cat = new CatalogView();
-		Object data1 = new W2DataView().getNewGUIForChart(null);
-		Object data2 = new W2DataView().getNewGUIForChart(null);
-		Object data3 = new W2DataView().getNewGUIForChart(null);
+		// Notification of changes to model
 
+		/** Notify when two windows are swapped in the model */
+		void notifySwapped(Window a, Window b);
+
+		/** Notify when a window is deleted in the model */
+		void notifyDeleted(Window wasDeleted);
+
+		/** Notify when a window is renamed in the model */
+		void notifyRenamed(Window w);
+	}
+
+	/**
+	 * Create menu bar for main window . FIXME: probably need a MenuMaker class.
+	 * Menu might be a different widget set.
+	 */
+	public void createMenuBar() {
+
+	}
+
+	/**
+	 * Linking to the thing that draws the view..the ViewMaker, WindowMaker,
+	 * whatever Should be generic interface here of course
+	 */
+	public static void init(WindowMaker d) {
 		theTopWindow = new Window(Window.WINDOW_ROOT); // Zero is 'base'
-	
+
+		// Add some data views..set titles properly in model
+		Vector<DataView> myDataViews = new Vector<DataView>();
+		int counter = 0;
+		for (int i = 0; i < 3; i++) {
+			W2DataView dv = new W2DataView();
+			dv.setTitle("#" + Integer.toString(++counter));
+			myDataViews.add(dv);
+		}
+		myTopDataView = "#1";
+
 		// Old layout
-		/*Window w = new Window(Window.WINDOW_SPLIT);
-		w.setSplitPercentage(0.5f);
-		w.setSplitHorizontal(false);
-		
-		// Left split dataview and nav below..
-		Window w2 = new Window(Window.WINDOW_SPLIT);
-		w2.setSplitPercentage(0.7f);
-		w2.setSplitHorizontal(true);	
-		Window data = new Window(Window.WINDOW_DATAVIEW);
-		data.addWindow(new Window(new W2DataView().getNewGUIForChart(null)));
-		w2.addWindow(data); // Still have to set title, icon for example
-		w2.addWindow(new Window(new NavView()));
-		w.addWindow(w2);
-		
-		// Right side tabs
-		Window t = new Window(Window.WINDOW_TAB);
-		w.addWindow(t);
-		t.addWindow(new Window(new SourcesView(false)));
-		t.addWindow(new Window(new FeaturesView(false)));
-		t.addWindow(new Window(new CatalogView()));
-		*/
-		
+		/*
+		 * Window w = new Window(Window.WINDOW_SPLIT); w.setSplitPercentage(0.5f);
+		 * w.setSplitHorizontal(false);
+		 * 
+		 * // Left split dataview and nav below.. Window w2 = new
+		 * Window(Window.WINDOW_SPLIT); w2.setSplitPercentage(0.7f);
+		 * w2.setSplitHorizontal(true); Window data = new
+		 * Window(Window.WINDOW_DATAVIEW); for (int i=0; i < myDataViews.size(); i++) {
+		 * data.addWindow(new Window(myDataViews.get(i), "", "")); } w2.addWindow(data);
+		 * w2.addWindow(new Window(new NavView())); w.addWindow(w2);
+		 * 
+		 * // Right side tabs Window t = new Window(Window.WINDOW_TAB); w.addWindow(t);
+		 * t.addWindow(new Window(new SourcesView(false))); t.addWindow(new Window(new
+		 * FeaturesView(false))); t.addWindow(new Window(new CatalogView()));
+		 */
+
 		// Top data view above, nav/etc below
 		Window w2 = new Window(Window.WINDOW_SPLIT);
 		w2.setSplitPercentage(0.7f);
-		w2.setSplitHorizontal(true);	
+		w2.setSplitHorizontal(true);
+
+		// Add a window for each data view
 		Window data = new Window(Window.WINDOW_DATAVIEW);
-		data.addWindow(new Window(data1, "", ""));
-		data.addWindow(new Window(data2, "", ""));
-		data.addWindow(new Window(data3, "", ""));
-		w2.addWindow(data); // Still have to set title, icon for example
-		
+		theDataViews = data;
+		Iterator<DataView> itr = myDataViews.iterator();
+		while (itr.hasNext()) {
+			DataView dv = itr.next();
+			Window w = new Window(Window.WINDOW_CHART, dv);
+			w.setTitle(dv.getTitle()); // Sync for now, bad design though
+			data.addWindow(w);
+		}
+		w2.addWindow(data);
+
 		// Bottom
-		Window t = new Window(Window.WINDOW_TAB);	
-		t.addWindow(new Window(nav, "Navigator", "eye.png"));
-		t.addWindow(new Window(sview, "Sources", "brick_add.png"));
-		t.addWindow(new Window(fview, "Features", "brick_add.png"));
-		t.addWindow(new Window(cat, "Catalog", "cart_add.png"));
+		Window t = new Window(Window.WINDOW_TAB);
+		t.addWindow(new Window(Window.WINDOW_NAV));
+		t.addWindow(new Window(Window.WINDOW_SOURCES));
+		t.addWindow(new Window(Window.WINDOW_FEATURES));
+		t.addWindow(new Window(Window.WINDOW_CATALOG));
 		w2.addWindow(t);
 		theTopWindow.addWindow(w2);
 
 		myGUI = d;
 		myGUI.init(theTopWindow);
+	}
+
+	public static String getTopDataViewName() {
+		return myTopDataView;
+	}
+
+	/**
+	 * Return found windows matching a list of given names, passed in window's name
+	 * is ignored. Non-recursive for now, can implement later if needed.
+	 */
+	public static Vector<Window> findWindows(Window top, Vector<String> names) {
+		Vector<Window> results = new Vector<Window>();
+		results.setSize(names.size()); // null fills
+
+		// names.set(1, "#3");
+		// names.set(0, "#2");
+
+		Iterator<Window> iter = top.theWindows.iterator();
+		final int aSize = names.size();
+		int found = 0;
+		while (iter.hasNext()) {
+			Window at = iter.next();
+			String title = at.getTitle();
+			if (title != null) {
+				for (int i = 0; i < aSize; i++) {
+					if (title.equals(names.get(i))) {
+						results.set(i, at);
+						found++;
+						if (found >= aSize) {
+							break;
+						}
+					}
+				}
+			}
+		}
+		return results;
+	}
+
+	/** Does data view with given name exist? */
+	public static boolean windowExists(String aName) {
+		Vector<String> names = new Vector<String>();
+		names.add(aName);
+		Vector<Window> windows = findWindows(theDataViews, names);
+		return (windows.get(0) != null);
+	}
+
+	/** Rename a data window with a given name, return true on success */
+	public static boolean renameWindow(String oldName, String newName) {
+		if (newName.isEmpty()) {
+			return false;
+		}
+		if (newName.equals(oldName)) {
+			return true;
+		}
+
+		// For the moment, only allowing rename to data views...
+		Vector<String> names = new Vector<String>();
+		names.add(oldName);
+		names.add(newName);
+		Vector<Window> windows = findWindows(theDataViews, names);
+		if (windows.get(1) != null) { // uh oh found the new name
+			LOG.error("Can't rename window to " + newName + " since that window exists");
+			return false;
+		}
+		Window w = windows.get(0);
+		if (w != null) {
+			if (w.getTitle().equals(myTopDataView)) {
+				myTopDataView = newName;
+			}
+			w.setTitle(newName);
+			// hack for now FIXME
+			if (w.myNode instanceof W2DataView) {
+				((W2DataView) w.myNode).setTitle(newName);
+			}
+			myGUI.notifyRenamed(w);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Find and swap two windows by name in the model and notify the WindowMaker to
+	 * take action on this
+	 * 
+	 * @param aName
+	 * @param bName
+	 * @return
+	 */
+	public static boolean swapWindows(String aName, String bName) {
+		Vector<String> names = new Vector<String>();
+		names.add(aName);
+		names.add(bName);
+
+		Vector<Window> windows = findWindows(theDataViews, names);
+		Window a = windows.get(0);
+		Window b = windows.get(1);
+		if ((a != null) && (b != null)) {
+
+			// New top window perhaps...
+			String aTitle = a.getTitle();
+			String bTitle = b.getTitle();
+			if (aTitle.equals(myTopDataView)) {
+				myTopDataView = bTitle;
+			} else if (bTitle.equals(myTopDataView)) {
+				myTopDataView = aTitle;
+			}
+
+			// Swap parents (with data views it's probably same parent...)
+			Window para = a.getParent();
+			Window parb = b.getParent();
+			if (para != null) {
+				para.removeWindow(a);
+				para.addWindow(b);
+				b.setParent(para);
+			}
+			if (parb != null) {
+				parb.removeWindow(b);
+				parb.addWindow(a);
+				a.setParent(parb);
+			}
+			myGUI.notifySwapped(a, b);
+
+		} else {
+			LOG.error("Couldn't find windows to swap...");
+		}
+		return true;
+	}
+
+	/** Delete a data view window */
+	public static boolean deleteWindow(String aName) {
+		Vector<String> names = new Vector<String>();
+		names.add(aName);
+		Vector<Window> windows = findWindows(theDataViews, names);
+		Window w = windows.get(0);
+		if (w != null) {
+
+			// Don't allow deletion of main window?  We could swap in another..
+			// need to check how wg does it...for now, don't allow
+			if (w.getTitle().equals(myTopDataView)) {
+				LOG.error("Can't delete the main window");
+				return false;
+			}
+
+			// FIXME: Allow data view/windows to clean up..I think openGL could benefit
+			// from explicit cleanup due to native issues
+			Window parent = w.getParent();
+			if (parent != null) {
+				parent.removeWindow(w); // References should die here
+			}
+			myGUI.notifyDeleted(w);
+			return true;
+		} else {
+			LOG.error("Can't find view '" + aName + "' to delete!");
+		}
+		return false;
 	}
 }

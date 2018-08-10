@@ -157,15 +157,4 @@ public class ViewManager {
 		return myDataFeatureView;
 	}
 
-	/** Set a data view title */
-	public static void setDataViewName(DataView dataView, String t) {
-		/*DataFeatureView dv = getDataView();
-		if (dv != null) {
-			dv.setDataViewName(dataView, t);
-		}*/
-		if (myWorker != null) {
-		//	myWorker.renameWindow(myDataFeatureView, t);
-		}
-	}
-
 }

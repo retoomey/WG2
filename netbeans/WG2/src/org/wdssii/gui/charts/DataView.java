@@ -18,7 +18,7 @@ public class DataView {
 
     private final static Logger LOG = LoggerFactory.getLogger(DataView.class);
 
-    private String title;
+    private String title = "None";
     
     /**
      * Update chart when needed (check should be done by chart)

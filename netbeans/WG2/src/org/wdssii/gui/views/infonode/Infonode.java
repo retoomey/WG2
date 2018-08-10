@@ -2,10 +2,14 @@ package org.wdssii.gui.views.infonode;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Icon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -13,6 +17,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.wdssii.gui.Application;
+import org.wdssii.gui.charts.DataView;
+import org.wdssii.gui.charts.W2DataView;
+import org.wdssii.gui.swing.SwingIconFactory;
+import org.wdssii.gui.views.CatalogView;
+import org.wdssii.gui.views.FeaturesView;
+import org.wdssii.gui.views.NavView;
+import org.wdssii.gui.views.SourcesView;
 import org.wdssii.gui.views.WdssiiDockedViewFactory.DockView;
 import org.wdssii.gui.views.Window;
 import org.wdssii.gui.views.WindowManager.WindowMaker;
@@ -261,10 +272,12 @@ public class Infonode implements WindowMaker {
 		panel.setLayout(new TileLayout());
 		View view = new View("DataView", null, panel); // Dataview can dedock..
 		// Problem is old way uses the DataFeatureView class to organize all the view
-		// so how to execute creation commands addTo.add(ChartCreateCommand.getDropButton(this));
-		
+		// so how to execute creation commands
+		// addTo.add(ChartCreateCommand.getDropButton(this));
+
 		// Children will be charts...
 		int count = w.theWindows.size();
+		// int counter = 1;
 		for (int i = 0; i < count; i++) {
 			// Not letting children dedock yet...new layout playing
 
@@ -273,23 +286,39 @@ public class Infonode implements WindowMaker {
 			// createWindowGUI(w.theWindows.get(i));
 
 			// Use simple tile layout engine for this.
-			panel.add((Component) (w.theWindows.get(i).myNode));
-
+			Object n = w.theWindows.get(i).myNode;
+			if (n instanceof W2DataView) {
+				W2DataView dv = (W2DataView) (n);
+				Component addMe = (Component) dv.getNewGUIForChart(null);
+				panel.add(addMe);
+				w.theWindows.get(i).setGUI(addMe);
+			} else {
+				LOG.error("Data view expects subclass of W2DataView for children!");
+			}
 		}
 		w.setGUI(view);
 		return view;
 	}
 
-	public Object createNode(Window w) {
+	public Icon getWindowIcon(String myIconName) {
+		Icon i = null;
+		if (!myIconName.isEmpty()) {
+			i = SwingIconFactory.getIconByName(myIconName);
+		}
+		return i;
+	}
 
+	/** Utility method to wrap a component stored in window's node in a DockWindow/View */
+	private Object wrapInfoView(Window w, Component c, String aTitle, String aIconName)
+	{
 		// Wrap component in a infonode docking window
-		View newOne = new View(w.getTitle(), w.getWindowIcon(), (Component) (w.myNode));
-
+		View newOne = new View(aTitle, getWindowIcon(aIconName), c);
+		w.myNode = c;  // Store it in case we need to reference it later
+		
 		// If this is a wdssii DockView class object, it has menu ability at moment,
 		// so call the DockView method as MenuMaker here.
-		Object theNode = w.myNode;
-		if (theNode instanceof DockView) {
-			DockView theView = (DockView) (theNode);
+		if (c instanceof DockView) {
+			DockView theView = (DockView) (c);
 			List<Object> l = new ArrayList<Object>();
 			theView.addGlobalCustomTitleBarComponents(l); // Note class can cache them
 			@SuppressWarnings("unchecked")
@@ -299,8 +328,10 @@ public class Infonode implements WindowMaker {
 			}
 
 		}
-		return newOne;
+		return newOne;	
 	}
+
+
 
 	/** Create a split window return new GUI item */
 	private Object createSplit(Window w) {
@@ -325,8 +356,18 @@ public class Infonode implements WindowMaker {
 		DockingWindow[] tabchilds = new DockingWindow[count];
 		for (int i = 0; i < count; i++) {
 			tabchilds[i] = (DockingWindow) createWindowGUI(w.theWindows.get(i));
+			// Fill on error
+			if (tabchilds[i] == null) {
+				tabchilds[i] = new View("Empty", null, new JLabel("Error creating this view"));
+			}
 		}
-		TabWindow tabs = new TabWindow(tabchilds);
+		
+		TabWindow tabs;
+		if (count < 1) {
+			tabs = new TabWindow(new View("Empty", null, new JPanel()));
+		}else {
+			tabs = new TabWindow(tabchilds); 
+		}
 		tabs.setName("GOOP");
 		tabs.setSelectedTab(0); // Usually first is wanted
 
@@ -354,8 +395,16 @@ public class Infonode implements WindowMaker {
 				return createSplit(aWindow);
 			case Window.WINDOW_TAB:
 				return createTabs(aWindow);
-			case Window.WINDOW_NODE:
-				return createNode(aWindow);
+			//case Window.WINDOW_NODE:
+			//	return createNode(aWindow);
+			case Window.WINDOW_NAV:
+				return wrapInfoView(aWindow, new NavView(), "Navigator", "eye.png");
+			case Window.WINDOW_SOURCES:
+				return wrapInfoView(aWindow, new SourcesView(false), "Sources", "brick_add.png");
+			case Window.WINDOW_FEATURES:
+				return wrapInfoView(aWindow, new FeaturesView(false), "Features", "brick_add.png");
+			case Window.WINDOW_CATALOG:
+				return wrapInfoView(aWindow, new CatalogView(), "Catalog", "cart_add.png");
 			default:
 				LOG.error("UNKNOWN WINDOW TYPE FOR THIS MAKER!!! " + type);
 				break;
@@ -368,5 +417,71 @@ public class Infonode implements WindowMaker {
 		}
 
 		return null;
+	}
+
+	@Override
+	public void notifySwapped(Window a, Window b) {
+		
+		// For data views we could just swap the gl info they point to.
+		Object gui1 = a.getGUI();
+		Object gui2 = b.getGUI();
+		if ((gui1 != null) && (gui2 != null) && (gui1 instanceof Component)
+				&& (gui2 instanceof Component)) {
+			Component c1 = (Component)(gui1);
+			Component c2 = (Component)(gui2);	
+			
+			// Parent's might be same, snag component child location from parents first
+			Container p1 = c1.getParent();
+			int at1 = p1.getComponentZOrder(c1);
+			Container p2 = c2.getParent();
+			int at2 = p2.getComponentZOrder(c2);
+	
+			// If parent the same, can just change z orders
+			if (p1 == p2) {
+				p2.setComponentZOrder(c1, at2);
+				p1.setComponentZOrder(c2, at1);
+				p1.revalidate();
+				p1.repaint();
+			}else {
+				p1.remove(c1);
+				p2.remove(c2);
+				p1.add(c2);
+				p2.add(c1);
+				p2.setComponentZOrder(c1, at2);
+				p1.setComponentZOrder(c2, at1);
+				p1.revalidate();
+				p2.revalidate();
+				p1.repaint();
+				p2.repaint();
+			}
+				
+		}else {
+			System.out.println("Unable to swap physical guis of windows");
+		}
+		
+	}
+	
+
+	@Override
+	public void notifyDeleted(Window wasDeleted) {
+		// For data views we could just swap the gl info they point to.
+		Object gui1 = wasDeleted.getGUI();
+		if ((gui1 != null) && (gui1 instanceof Component)) {
+			Component c1 = (Component)(gui1);
+			
+			// Remove from parent container if exists...
+			Container p1 = c1.getParent();
+			if (p1 != null) {
+				p1.remove(c1);
+				p1.revalidate();
+				p1.repaint();
+			}
+		}
+	}
+
+	@Override
+	public void notifyRenamed(Window w) {
+		// We only rename data views...which currently are laid out without
+		// dock frames...so no title to change.
 	}
 }

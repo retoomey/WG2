@@ -1,5 +1,7 @@
 package org.wdssii.gui.charts;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -7,6 +9,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +23,7 @@ import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
 import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
@@ -33,6 +37,15 @@ import org.wdssii.gui.GLTexture;
 import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.W2GLWorld;
+import org.wdssii.gui.commands.ChartDeleteCommand;
+import org.wdssii.gui.commands.ChartDeleteCommand.ChartDeleteParams;
+import org.wdssii.gui.commands.ChartRenameCommand;
+import org.wdssii.gui.commands.ChartRenameCommand.ChartRenameParams;
+import org.wdssii.gui.commands.ChartSwapCommand;
+import org.wdssii.gui.commands.ChartSwapCommand.ChartSwapParams;
+import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
+import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
@@ -46,9 +59,11 @@ import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.renderers.CompassRenderer;
 import org.wdssii.gui.renderers.EarthBallRenderer;
 import org.wdssii.gui.views.ViewManager;
+import org.wdssii.gui.views.WindowManager;
 import org.wdssii.log.LoggerFactory;
 
 import com.jogamp.opengl.util.FPSAnimator;
+import com.jogamp.opengl.util.awt.TextRenderer;
 
 /**
  * Should we use an interface to 'hide' the mouse structure? This is useful if
@@ -103,105 +118,6 @@ final class myMouseEvent {
 	}
 }
 
-final class GLGoopWorld extends GLWorld {
-	private final W2DataView myWorld;
-	private GLU myGLU = new GLU();
-	
-	double myModel[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6};
-	double myProj[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6};
-	int myView[] = {1, 2, 3, 4};
-	
-	public GLGoopWorld(GL aGL, int width, int height, W2DataView w) {
-		super(aGL, width, height);
-		final GL2 gl = aGL.getGL2();
-		myWorld = w;
-
-		gl.getContext().makeCurrent();
-		gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, myModel, 0);
-		gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, myProj, 0);
-		gl.glGetIntegerv(GL2.GL_VIEWPORT, myView, 0);
-	}
-
-	@Override
-	public V2 project(V3 a3d) {
-		// Use GLU to project...assuming GL context is current.  You need a current one
-		// for result to make sense...
-		double xyz[] = {1, 2, 3};
-        myGLU.gluProject(a3d.x, a3d.y, a3d.z, myModel, 0, myProj, 0, myView, 0, xyz, 0);
-        return new V2(xyz[0], xyz[1]);
-	}
-
-	@Override
-	public V3 projectLLH(float latDegrees, float lonDegrees, float heightMeters) {	
-		double r = D3.EARTH_RADIUS_KMS + (heightMeters / 1000.0f);
-		double phi = Math.toRadians(lonDegrees);
-		double beta = Math.toRadians(latDegrees);
-		double cos_beta = Math.cos(beta);
-		double x = r * Math.cos(phi) * cos_beta;
-		double y = r * Math.sin(phi) * cos_beta;
-		double z = r * Math.sin(beta);
-		return new V3(x, y, z);
-
-	}
-
-	@Override
-	public V3 projectLLH(double latDegrees, double lonDegrees, double heightMeters) {
-		double r = D3.EARTH_RADIUS_KMS + (heightMeters / 1000.0f);
-		double phi = Math.toRadians(lonDegrees);
-		double beta = Math.toRadians(latDegrees);
-		double cos_beta = Math.cos(beta);
-		double x = r * Math.cos(phi) * cos_beta;
-		double y = r * Math.sin(phi) * cos_beta;
-		double z = r * Math.sin(beta);
-		return new V3(x, y, z);
-	}
-
-	@Override
-	public V3 projectV3ToLLH(V3 in) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public V3 project2DToEarthSurface(double x, double y, double elevation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public float getElevation(float latDegrees, float lonDegrees) {
-		return 0; // WG is flat as a pancake sphere
-	}
-
-	@Override
-	public double getElevation(double latDegrees, double lonDegrees) {
-		return 0; // Flat
-	}
-
-	@Override
-	public boolean isPickingMode() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public double getVerticalExaggeration() {
-		return 0;
-	}
-
-	@Override
-	public boolean inView(V3 a3d) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void redraw() {
-		// GOOP
-	}
-
-}
-
 final class testGL implements GLEventListener,
 // Oh only in Java. Couldn't we just have one it's not like there
 // are a billion methods, lol...
@@ -232,6 +148,8 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 	private boolean myFirstTime = true;
 
 	private EarthBallRenderer myEarthBall;
+
+	private TextRenderer myText;
 
 	// ^^^^^ End mouse stuff
 
@@ -286,6 +204,8 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		GLU glu = new GLU();
 		if (myFirstTime == true) {
 			myCamera.goToLocation(-97.1640f, 35.1959f, 400.0f, 0.0f, 0.0f);
+			Font font = new Font("Arial", Font.PLAIN, 14);
+			myText = new TextRenderer(font, true, true);
 		}
 		final double w = drawable.getWidth();
 		final double h = drawable.getHeight();
@@ -311,7 +231,7 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		// Create world object which allows renderers to know projection to draw into...
 		// NOTE: this will cache the current modelview state for efficiency in projection, so
 		// if the camera changes after creating this, it is no longer valid.
-		GLGoopWorld glw = new GLGoopWorld(gl, drawable.getWidth(), drawable.getHeight(), myW2DataView);
+		W2GLWorld glw = new W2GLWorld(gl, drawable.getWidth(), drawable.getHeight(), myW2DataView);
 		renderFeatureGroup(glw, ProductFeature.ProductGroup);
 
 		renderFeatureGroup(glw, MapFeature.MapGroup);
@@ -340,6 +260,7 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 			
 		final double m = 0.5;
 		GLUtil.pushOrtho2D(gl, drawable.getWidth(), drawable.getHeight());
+		
 		gl.glColor3d(1.0, 0.0, 0.0);
 		gl.glLineWidth(3.0f);
 		gl.glBegin(GL.GL_LINE_LOOP);
@@ -349,6 +270,23 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		gl.glVertex2d(m, h-m);   // top left
 		gl.glEnd();
 		gl.glLineWidth(1.0f);
+		
+		// FIXME: Need something to coordinate overlay locations, so for example
+		// color key doesn't draw over us.
+		String l = myW2DataView.getTitle();
+		String top = WindowManager.getTopDataViewName();
+		if (l.equals(top)) {
+			l += " (Main)";
+		}
+		myText.begin3DRendering();
+		Rectangle2D bounds = myText.getBounds(l);
+		final int x = 10;
+		final int y = (int) (bounds.getHeight() -m-m-m);
+
+		//bounds.setRect(bounds.getX() + x, bounds.getY() +y, bounds.getWidth(), bounds.getHeight());
+		GLUtil.cheezyOutline(myText, l, Color.WHITE, Color.BLACK, (int) x, (int) y);
+		myText.end3DRendering();
+		
 		GLUtil.popOrtho2D(gl);
 		
 		gl.getContext().release();
@@ -358,7 +296,7 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 	/** This can be called just by undocking, etc...so don't clean up GL here */
 	@Override
 	public void dispose(GLAutoDrawable drawable) {
-		LOG.error("****************************DISPOSE CALLED FOR THIS OBJECT!!!!!!");
+		//LOG.error("****************************DISPOSE CALLED FOR THIS OBJECT!!!!!!");
 	}
 
 	/** Init can be called on docking change as well, so don't 'reset' everything */
@@ -673,13 +611,21 @@ final class myPopupActionListener implements ActionListener
 		String c = e.getActionCommand();
 		LOG.error("MENU ITEM CALLED! ["+c+"]");
 		if (c == W2DataView.RENAME_MENU) {
-			// Humm 'could' make this a command right?
-			LOG.error("Here in the rename");
-			ViewManager.setDataViewName(myView, "NEWTITLE");
+			ChartRenameParams params = new ChartRenameParams(myView.getTitle(), "NEWNAME");
+			ChartRenameCommand renameIt = new ChartRenameCommand(params);
+			renameIt.setConfirmReport(true, true, null);
+			CommandManager.getInstance().executeCommand(renameIt, false);
+			//WindowManager.setDataViewName(myView, "NEWTITLE");
 		}else if (c == W2DataView.SWAP_MENU) {
-			//LOG.error("*****************SWAP CALLED");
+			ChartSwapParams params = new ChartSwapParams(myView.getTitle());
+			ChartSwapCommand swapIt = new ChartSwapCommand(params);
+			swapIt.setConfirmReport(true, true, null);
+			CommandManager.getInstance().executeCommand(swapIt, false);
 		}else if (c == W2DataView.DELETE_MENU) {
-			//LOG.error("*****************DELETE CALLED");
+			ChartDeleteParams params = new ChartDeleteParams(myView.getTitle());
+			ChartDeleteCommand deleteIt = new ChartDeleteCommand(params);
+			deleteIt.setConfirmReport(true, true, null);
+			CommandManager.getInstance().executeCommand(deleteIt, false);
 		}else {
 			
 		}

@@ -5,6 +5,7 @@ import org.wdssii.gui.views.infonode.InfonodeViews;
 import org.wdssii.gui.commands.SourceAddCommand;
 import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
 import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;
+import org.wdssii.gui.features.EarthBallFeature;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.MapFeature;
@@ -93,6 +94,9 @@ public class Application {
 				boolean loadExamples = true;
 				if (loadExamples) {
 
+					Feature earthBall = new EarthBallFeature(FeatureList.theFeatures);
+					FeatureList.theFeatures.addFeature(earthBall);
+					
 					URL mapURL = W2Config.getURL("maps/shapefiles/usa/ok/okcnty.shp");
 					if (mapURL != null) {
 						String filename = mapURL.getPath();

@@ -1,4 +1,4 @@
-package org.wdssii.gui.worldwind.products;
+package org.wdssii.gui.worldwind.renderers;
 
 import org.wdssii.gui.renderers.ProductRenderer;
 import org.wdssii.gui.renderers.QuadStripRenderer;

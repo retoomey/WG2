@@ -2,6 +2,7 @@ package org.wdssii.gui.charts;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -10,30 +11,29 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL3;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
-import javax.media.opengl.glu.GLUquadric;
-import javax.swing.Icon;
-import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import org.wdssii.core.CommandManager;
 import org.wdssii.geom.D3;
-import org.wdssii.geom.V2;
-import org.wdssii.geom.V3;
 import org.wdssii.gui.GLBoxCamera;
 import org.wdssii.gui.GLCacheManager;
-import org.wdssii.gui.GLTexture;
 import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.ProductManager;
@@ -44,8 +44,7 @@ import org.wdssii.gui.commands.ChartRenameCommand;
 import org.wdssii.gui.commands.ChartRenameCommand.ChartRenameParams;
 import org.wdssii.gui.commands.ChartSwapCommand;
 import org.wdssii.gui.commands.ChartSwapCommand.ChartSwapParams;
-import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
-import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;
+import org.wdssii.gui.features.EarthBallFeature;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
@@ -58,11 +57,12 @@ import org.wdssii.gui.features.PolarGridFeature;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.renderers.CompassRenderer;
 import org.wdssii.gui.renderers.EarthBallRenderer;
-import org.wdssii.gui.views.ViewManager;
 import org.wdssii.gui.views.WindowManager;
+import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.log.LoggerFactory;
 
 import com.jogamp.opengl.util.FPSAnimator;
+import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.awt.TextRenderer;
 
 /**
@@ -118,11 +118,11 @@ final class myMouseEvent {
 	}
 }
 
-final class testGL implements GLEventListener,
+final class W2DataViewListener implements GLEventListener,
 // Oh only in Java. Couldn't we just have one it's not like there
 // are a billion methods, lol...
-MouseListener, MouseMotionListener, MouseWheelListener {
-	private final static org.wdssii.log.Logger LOG = LoggerFactory.getLogger(testGL.class);
+		MouseListener, MouseMotionListener, MouseWheelListener {
+	private final static org.wdssii.log.Logger LOG = LoggerFactory.getLogger(W2DataViewListener.class);
 
 	private GLU glu; // for the GL Utility
 	private boolean myIn;
@@ -147,13 +147,26 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 
 	private boolean myFirstTime = true;
 
-	private EarthBallRenderer myEarthBall;
-
+	private LLHAreaLayer myLLHAreaLayer;
+	 
 	private TextRenderer myText;
+
+	private int myDrawCounter;
+
+	/** Is the drawn view dirty? For example, readout drew over it. */
+	private boolean myDirty = true;
+
+	/** Did the scene change in our view? */
+	private boolean mySceneChanged = true;
+
+	private int myLastWidth = 0;
+	private int myLastHeight = 0;
+
+	private ByteBuffer myBuffer = null;
 
 	// ^^^^^ End mouse stuff
 
-	public testGL(W2DataView w2DataView) {
+	public W2DataViewListener(W2DataView w2DataView) {
 		myW2DataView = w2DataView;
 	}
 
@@ -173,7 +186,10 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 				if (f.getRank() == i) {
 					// f.render(w);
 					FeatureMemento m = f.getMemento();
-					ArrayList<FeatureRenderer> theList = f.getRendererList("WW", "org.wdssii.gui.worldwind");
+					// eh?  How did it work?
+					//ArrayList<FeatureRenderer> theList = f.getRendererList("WW", "org.wdssii.gui.worldwind.renderers");
+					ArrayList<FeatureRenderer> theList = f.getRendererList("", "org.wdssii.gui.renderers");
+
 					// ArrayList<FeatureRenderer> theList = myMap.get(f);
 					if (theList != null) {
 						for (FeatureRenderer fr : theList) {
@@ -189,88 +205,233 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		}
 	}
 
+	/**
+	 * Beginning experiment for snapshotting the screen. Humm I think we need a
+	 * custom GLDrawable so we can adjust the screensize for output from
+	 * preferences, right?
+	 * 
+	 * @param gl
+	 * @param width
+	 * @param height
+	 */
+	protected void saveImage(GL gl, int width, int height) {
+
+		GL3 gl3 = gl.getGL3();
+
+		BufferedImage screenshot = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		Graphics graphics = screenshot.getGraphics();
+
+		// FIXME: We could reuse buffers when width/height same for speed.
+		ByteBuffer buffer = GLBuffers.newDirectByteBuffer(width * height * 4);
+		// be sure you are reading from the right fbo (here is supposed to be the
+		// default one)
+		// bind the right buffer to read from
+		gl3.glReadBuffer(GL.GL_BACK);
+		// if the width is not multiple of 4, set unpackPixel = 1
+		gl3.glReadPixels(0, 0, width, height, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, buffer);
+
+		for (int h = 0; h < height; h++) {
+			for (int w = 0; w < width; w++) {
+				// The color are the three consecutive bytes, it's like referencing
+				// to the next consecutive array elements, so we got red, green, blue..
+				// red, green, blue, and so on..+ ", "
+				graphics.setColor(new Color((buffer.get() & 0xff), (buffer.get() & 0xff), (buffer.get() & 0xff)));
+				buffer.get(); // consume alpha
+				graphics.drawRect(w, height - h, 1, 1); // height - h is for flipping the image
+			}
+		}
+		// FIXME: Do we need to clean, or does java handle. Guess we'll find out
+
+		try {
+			File outputfile = new File("WGSnapshot1.png");
+			ImageIO.write(screenshot, "png", outputfile);
+		} catch (IOException ex) {
+		}
+	}
+
+	/** Dirty means overlay is drawn or being drawn */
+	public void setDirty() {
+		myDirty = true;
+	}
+
+	/** Scene changed, graphic caching is invalid */
+	public void setSceneChanged() {
+		mySceneChanged = true;
+	}
+
 	@Override
 	public void display(GLAutoDrawable drawable) {
+
+		// If view isn't dirty or scene hasn't change, no need to draw anything at all
+		// Linux seems ok with this..need to check on windows and mac. I know clipping
+		// window for example might not get us any other event other than display..so we
+		// wouldn't draw properly then.
+		if (!(myDirty || mySceneChanged)) {
+			return;
+		}
+
+		// Scene changed requires a redraw of gl, due to camera or size, etc..
+		// and we will then go ahead and fill myBuffer for faster next time rendering
+		GL2 gl = drawable.getGL().getGL2(); // get the OpenGL 2 graphics context
+		gl.getContext().makeCurrent();
+		final int w = drawable.getWidth();
+		final int h = drawable.getHeight();
+
+		if (mySceneChanged == true) {
+			renderFullScene(gl, w, h);
+		} else {
+			if (myDirty == true) {
+				
+				// If we have buffer, use it...
+				//if (myBuffer != null) {
+				if (fromBuffer(gl, w, h)) {
+				/*	GLUtil.pushOrtho2D(gl, w, h);
+					gl.glRasterPos2i(0, 0);
+					// Do we need alpha here?
+					//gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
+					gl.glDrawPixels(w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
+					GLUtil.popOrtho2D(gl);
+					*/
+					myDirty = false;
+
+				// otherwise full render...
+				} else {
+					renderFullScene(gl, w, h);
+				}
+			}
+		}
+	}
+
+	public boolean fromBuffer(GL2 gl, int w, int h)
+	{
+		if (myBuffer != null) {
+			GLUtil.pushOrtho2D(gl, w, h);
+			gl.glRasterPos2i(0, 0);
+			// Do we need alpha here?
+			//gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
+			gl.glDrawPixels(w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
+			GLUtil.popOrtho2D(gl);
+			return true;
+		}
+		return false;
+	}
+	
+	public void toBuffer(GL3 gl, int w, int h) {
+		// Store the rendered scene...
+		if (myBuffer == null) {
+			//GLBuffers.sizeof(gl,... )
+			// FIXME: buffer size is complicated it seems..
+			myBuffer = GLBuffers.newDirectByteBuffer(w * h * 4); // RGB = 3. RGBA = 4
+		}
+		GLUtil.pushOrtho2D(gl, w, h);
+		//GL3 gl3 = gl.getGL3();
+		gl.glReadBuffer(GL.GL_BACK);
+		// if the width is not multiple of 4, set unpackPixel = 1 ?? Do we need this or
+		// not
+		//gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
+		gl.glReadPixels(0, 0, w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
+		GLUtil.popOrtho2D(gl);
+	}
+	
+	public void renderReadoutOverlay(GL gli, int x, int y)
+	{
+		boolean readoutOn = false;
+		// Begin overlay readout testing...
+		if (readoutOn) {
+			if (myText != null) {
+			
+				//int dx = x - leftX;
+				//int dy = y - leftY;
+				String l = "Readout Test";
+				
+				gli.getContext().makeCurrent();
+				GLUtil.pushOrtho2D(gli, canvas.getWidth(), canvas.getHeight());
+
+				myText.begin3DRendering();
+				//Rectangle2D bounds = myText.getBounds(l);
+
+				// bounds.setRect(bounds.getX() + x, bounds.getY() +y, bounds.getWidth(),
+				// bounds.getHeight());
+				GLUtil.cheezyOutline(myText, "Readout", Color.WHITE, Color.BLACK, (int) x, (int) y);
+				myText.end3DRendering();
+
+				GLUtil.popOrtho2D(gli);
+				gli.getContext().release();
+			//	setDirty(); // needs to be erased right...
+			}
+		}
+	}
+	
+	public void renderFullScene(GL gli, int w, int h) {
+		GL2 gl = gli.getGL2();
+		
+		myDirty = false;
+		mySceneChanged = false; // might need a lock for this if other threads mess with us
+
+		// A Draw counter for debugging frame drawing...
+		myDrawCounter++;
+
+		if (myDrawCounter > 10000) {
+			myDrawCounter = 0;
+		}
 		// LOG.error("DISPLAY CALLED!");
 		// TODO Auto-generated method stub
 		// LOG.error("DISPLAY CALLED!!!!"+ drawable);
-
-		// FIXME: This gonna get called way too much for multi windows, need
-		// background saving
-		GL2 gl = drawable.getGL().getGL2(); // get the OpenGL 2 graphics context
-		gl.getContext().makeCurrent();
 
 		// Set up camera GL on render always would be better right?
 		GLU glu = new GLU();
 		if (myFirstTime == true) {
 			myCamera.goToLocation(-97.1640f, 35.1959f, 400.0f, 0.0f, 0.0f);
-			Font font = new Font("Arial", Font.PLAIN, 14);
+			Font font = new Font("Arial", Font.PLAIN, 28);
 			myText = new TextRenderer(font, true, true);
-		}
-		final double w = drawable.getWidth();
-		final double h = drawable.getHeight();
-		
-		myCamera.setUpCamera(gl, glu, 0, 0, (int)w, (int)h);
-
-		if (myFirstTime == true) { // First time simple create texture test. We're making it work first.
 			myFirstTime = false;
-			myEarthBall = new EarthBallRenderer(gl);
 		}
+
+		myCamera.setUpCamera(gl, glu, 0, 0, (int) w, (int) h);
+
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
 
-		myEarthBall.DrawEarthBall(gl);
-
-		// Earth ball is in map group, but should render at lower layer...
-		// FIXME: ahhhh ok so groups and layers need to be different
-		// or base layers are a different group type.
-		// renderFeatureGroup(w, MapFeature.MapBaseGroup) or something
-		// =============================
-		// Products
-		// dirty flag with overlay would be good here..
-
 		// Create world object which allows renderers to know projection to draw into...
-		// NOTE: this will cache the current modelview state for efficiency in projection, so
+		// NOTE: this will cache the current modelview state for efficiency in
+		// projection, so
 		// if the camera changes after creating this, it is no longer valid.
-		W2GLWorld glw = new W2GLWorld(gl, drawable.getWidth(), drawable.getHeight(), myW2DataView);
+		W2GLWorld glw = new W2GLWorld(gl, myCamera, w, h, myW2DataView);
+		
+		// Basemaps first (below products)
+		renderFeatureGroup(glw, EarthBallFeature.MapGroup);
+
 		renderFeatureGroup(glw, ProductFeature.ProductGroup);
 
 		renderFeatureGroup(glw, MapFeature.MapGroup);
+
+		// Draw lines, labels
+		renderFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup);
 		
-        // Render the LLHRenderer stuff...
-       // renderFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup);
-       // if (myLLHAreaLayer != null) {
-       // 	myLLHAreaLayer.draw(w);
-       // }
+		// Draw actual control points.  Humm why not part of feature?
+		if (myLLHAreaLayer == null) {
+			myLLHAreaLayer = new LLHAreaLayer();
+		}
+        if (myLLHAreaLayer != null) {  
+        	myLLHAreaLayer.draw(glw);
+        }
+        
 		renderFeatureGroup(glw, PolarGridFeature.PolarGridGroup);
+		
 		renderFeatureGroup(glw, LegendFeature.LegendGroup);
 
-		// --------------------------------------------------------------
-		// Draw a compass on the screen.
-		// FIXME: Probably make it a feature next pass.
-		D3 compassPos = new D3(myCamera.myRef);
-		if ((compassPos.x == 0) && (compassPos.y == 0) && (compassPos.y == 0)) {
-			// D3 cv = myCamera.myCameraState.view.newUnit().times(D3.EARTH_RADIUS_KMS);
-			D3 cv = new D3(myCamera.myView).toUnit().times(D3.EARTH_RADIUS_KMS);
-			compassPos.plus(cv);
-		}
-		final double scale = myCamera.getPointToScale(compassPos, drawable.getHeight()) * 1.50;
-		CompassRenderer aCompass = new CompassRenderer();
-		aCompass.DrawCompass(gl, compassPos, scale);
-		// --------------------------------------------------------------
-			
 		final double m = 0.5;
-		GLUtil.pushOrtho2D(gl, drawable.getWidth(), drawable.getHeight());
-		
+		GLUtil.pushOrtho2D(gl, w, h);
+
 		gl.glColor3d(1.0, 0.0, 0.0);
 		gl.glLineWidth(3.0f);
 		gl.glBegin(GL.GL_LINE_LOOP);
-		gl.glVertex2d(m, m);     // bottom left
-		gl.glVertex2d(w-m, m);   // bottom right
-		gl.glVertex2d(w-m, h-m); // top right
-		gl.glVertex2d(m, h-m);   // top left
+		gl.glVertex2d(m, m); // bottom left
+		gl.glVertex2d(w - m, m); // bottom right
+		gl.glVertex2d(w - m, h - m); // top right
+		gl.glVertex2d(m, h - m); // top left
 		gl.glEnd();
 		gl.glLineWidth(1.0f);
-		
+
 		// FIXME: Need something to coordinate overlay locations, so for example
 		// color key doesn't draw over us.
 		String l = myW2DataView.getTitle();
@@ -278,17 +439,32 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		if (l.equals(top)) {
 			l += " (Main)";
 		}
+
+		// Visually see how much we're redrawing for debugging. We should only draw on
+		// window
+		// changing in some way, such as size or content. We're gonna have a lot of
+		// windows.
+		l += " Frame:" + Integer.toString(myDrawCounter);
+
 		myText.begin3DRendering();
 		Rectangle2D bounds = myText.getBounds(l);
 		final int x = 10;
-		final int y = (int) (bounds.getHeight() -m-m-m);
+		final int y = (int) (bounds.getHeight() - m - m - m);
 
-		//bounds.setRect(bounds.getX() + x, bounds.getY() +y, bounds.getWidth(), bounds.getHeight());
+		// bounds.setRect(bounds.getX() + x, bounds.getY() +y, bounds.getWidth(),
+		// bounds.getHeight());
 		GLUtil.cheezyOutline(myText, l, Color.WHITE, Color.BLACK, (int) x, (int) y);
 		myText.end3DRendering();
-		
+
 		GLUtil.popOrtho2D(gl);
-		
+
+		// if (myDrawCounter == 20) {
+		// saveImage(gl, w, h);
+		// System.exit(1);
+		// }
+		GL3 gl3 = gl.getGL3();
+		toBuffer(gl3, w, h);
+
 		gl.getContext().release();
 
 	}
@@ -296,38 +472,13 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 	/** This can be called just by undocking, etc...so don't clean up GL here */
 	@Override
 	public void dispose(GLAutoDrawable drawable) {
-		//LOG.error("****************************DISPOSE CALLED FOR THIS OBJECT!!!!!!");
+		// LOG.error("****************************DISPOSE CALLED FOR THIS
+		// OBJECT!!!!!!");
 	}
 
 	/** Init can be called on docking change as well, so don't 'reset' everything */
 	@Override
 	public void init(GLAutoDrawable drawable) {
-		// LOG.error("GOT TO INIT..let's see what happens...");
-		GL2 gl = drawable.getGL().getGL2(); // get the OpenGL graphics context
-		// glu = new GLU(); // get GL Utilities
-		// myCamera.goToLocation(-97.60f, 33.84f, 1500.0f, 0.0f, 0.0f);
-		//myCamera.goToLocation(-97.1640f, 35.1959f, 400.0f, 0.0f, 0.0f);
-
-		/*
-		 * TEST gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // set background (clear) color
-		 * gl.glClearDepth(1.0f); // set clear depth value to farthest
-		 * gl.glEnable(GL2.GL_DEPTH_TEST); // enables depth testing
-		 * gl.glDepthFunc(GL2.GL_LEQUAL); // the type of depth test to do
-		 * gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST); // best
-		 * perspective correction gl.glShadeModel(GL2.GL_SMOOTH); // blends colors
-		 * nicely, and smoothes out lighting
-		 */
-
-		/**
-		 * WG port right gl.glEnable(GL2.GL_DEPTH_TEST); double mat_shininess[] = { 30.0
-		 * }; double mat_specular [] = { 1.0, 1.0, 1.0, 1.0 }; double lightPos[] = {
-		 * view.x, view.y, view.z, 0.0 };
-		 * 
-		 * gl.glLightfv ( GL2.GL_LIGHT0, GL2.GL_POSITION, lightPos ); gl.glMaterialfv(
-		 * GL2.GL_FRONT, GL2.GL_SPECULAR, mat_specular ); gl.glMaterialfv( GL2.GL_FRONT,
-		 * GL2.GL_SHININESS, mat_shininess );
-		 */
-
 	}
 
 	@Override
@@ -336,31 +487,25 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		glu = new GLU(); // get GL Utilities
 
 		// Shouldn't this be part of the camera setup to be honest?
-
 		if (height == 0)
 			height = 1; // prevent divide by zero
 		// float aspect = (float)width / height;
 
+		// Changing width or height automatically changes the scene and needs to
+		// be redrawn in openGL, and invalids the background buffer..
+		if (myLastHeight != height) {
+			setSceneChanged();
+			myLastHeight = height;
+			myBuffer = null;  // Only recreate buffer when size changes, otherwise fill old one
+		}
+		if (myLastWidth != width) {
+			setSceneChanged();
+			myLastHeight = width;
+			myBuffer = null;
+		}
+
 		// Set the view port (display area) to cover the entire window
 		gl.glViewport(0, 0, width, height);
-
-		// This is duplicated in setUpCamera... notice..hummm
-
-		/*
-		 * // Setup perspective projection, with aspect ratio matches viewport
-		 * gl.glMatrixMode(GL2.GL_PROJECTION); // choose projection matrix
-		 * gl.glLoadIdentity(); // reset projection matrix glu.gluPerspective(45.0,
-		 * aspect, 0.1, 100.0); // fovy, aspect, zNear, zFar
-		 * 
-		 * // Enable the model-view transform gl.glMatrixMode(GL2.GL_MODELVIEW);
-		 * gl.glLoadIdentity(); // reset
-		 */
-
-		// Ok do it doing redraw is better right? Maybe it can be split up for speed.
-		// myCamera.setUpCamera(gl, glu, 0, 0, width, height);
-
-		// Try to render earth ball?myW2DataView
-
 	}
 
 	@Override
@@ -370,7 +515,7 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		boolean rightDown = (e.getButton() == MouseEvent.BUTTON3);
 		if (rightDown) {
 			JPopupMenu m = myW2DataView.getMainPopupMenu();
-			m.show(e.getComponent(), e.getX(),e.getY());
+			m.show(e.getComponent(), e.getX(), e.getY());
 		}
 	}
 
@@ -378,7 +523,9 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 	public void mouseEntered(MouseEvent arg0) {
 		// LOG.error("Mouse entered again!");
 
+		canvas.setRequestFocusEnabled(true);
 		myIn = true;
+		setDirty();
 		canvas.repaint();
 
 	}
@@ -388,6 +535,7 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		// LOG.error("Mouse exited again!");
 
 		myIn = false;
+		setDirty();
 		canvas.repaint();
 
 	}
@@ -445,7 +593,9 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		 * g.flatToggled(glc); } if (needFullRedraw){ cameraChanged(glc);
 		 * g.syncCameras(glc); } g.updateGroup(glc, !needFullRedraw);
 		 */
+		setDirty(); // Make click redraw
 		canvas.display();
+
 		// this.myW2DataView.repaint();
 
 	}
@@ -467,7 +617,10 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		 * (m){ m->initView(*this, false); mouseToView(e, m); m-> handleRelease(this,
 		 * e); }
 		 */
-		canvas.display();
+		// Might need to draw sometime..but now don't think we do...
+		//canvas.display();
+		//renderReadoutOverlay(glold, x, y);
+
 		// this.myW2DataView.repaint();
 
 	}
@@ -484,28 +637,32 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		int dy = y - leftY;
 
 		shiftDown = e.isShiftDown();
-		if (leftDown) {
-			GL glold = canvas.getGL();
-			glold.getContext().makeCurrent();
-			myCamera.prepMouseDownFlags(glold, x, y, dx, dy);
 
-			myCamera.dragPan(-dx, -dy, shiftDown);
+		// I 'think' if dx/dy are zero we can quick break out...
+		if ((dx == 0) && (dy == 0)) {
+			return;
+		}
+
+		if (leftDown || middleDown) {
+			GL gl = canvas.getGL();
+			gl.getContext().makeCurrent();
+			myCamera.prepMouseDownFlags(gl, x, y, dx, dy);
+
+			if (leftDown) {
+				myCamera.dragPan(-dx, -dy, shiftDown);
+			} else if (middleDown) // what if both buttons down? eh? eh??
+			{
+				myCamera.zoom(dx, dy, shiftDown);
+			}
+
 			leftX = x;
 			leftY = y;
+			setSceneChanged();
 			canvas.display();
-			glold.getContext().release();
+			renderReadoutOverlay(gl, leftX, leftY);
+			
+			gl.getContext().release();
 
-		} else if (middleDown) // what if both buttons down? eh? eh??
-		{
-			GL glold = canvas.getGL();
-			glold.getContext().makeCurrent();
-			myCamera.prepMouseDownFlags(glold, x, y, dx, dy);
-
-			myCamera.zoom(dx, dy, shiftDown);
-			leftX = x;
-			leftY = y;
-			canvas.display();
-			glold.getContext().release();
 		}
 	}
 
@@ -513,9 +670,24 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 	public void mouseMoved(MouseEvent e) {
 
 		GL glold = canvas.getGL();
-		glold.getContext().makeCurrent();
+		// glold.getContext().makeCurrent();
+		// final int y = canvas.getHeight() - e.getY();
+		// D3 loc = myCamera.locationOnSphere(glold, 0, e.getX(), y);
+
+		// ahh ahh ahh...chicken egg.  It's most likely already drawn
+		// correctly....
+		//setDirty();  // To erase any old overlay...
+		
+		// This will delete any old one IFF it was already dirty....
+		final int x = e.getX();
 		final int y = canvas.getHeight() - e.getY();
-		D3 loc = myCamera.locationOnSphere(glold, 0, e.getX(), y);
+		//setSceneChanged();
+		setDirty();
+		canvas.display();  // Flicker between these two.  Could buffer 
+		renderReadoutOverlay(glold, x, y);
+		// setDirty will immediately redraw..
+		
+		
 		// LOG.error("MOVE PROJECTION: "+loc.x+", "+loc.y+", "+loc.z);
 		// LOG.error("Mouse moved");
 
@@ -567,67 +739,57 @@ MouseListener, MouseMotionListener, MouseWheelListener {
 		int dy = y - leftY;
 
 		// Not sure we need this here....
-		GL glold = canvas.getGL();
-		glold.getContext().makeCurrent();
-		myCamera.prepMouseDownFlags(glold, x, y, dx, dy);
+		GL gl = canvas.getGL();
+		gl.getContext().makeCurrent();
+		myCamera.prepMouseDownFlags(gl, x, y, dx, dy);
 
 		// Could be zero for a while with a super resolution wheel...
 		// we'll wait the a strictly positive or negative before
 		// doing anything. Negative is away from user, positive towards..
 		int wheelRotation = e.getWheelRotation();
-		if (wheelRotation > 0) {
-			myCamera.zoom(0, -20, shiftDown);
+		if (wheelRotation != 0) {
+			final int wheelY = (wheelRotation > 0)? -20:20;
+			myCamera.zoom(0, wheelY, shiftDown);
 			leftX = x;
 			leftY = y;
+			setSceneChanged(); // Make click redraw
 			canvas.display();
-			glold.getContext().release();
-		} else if (wheelRotation < 0) {
-			myCamera.zoom(0, 20, shiftDown);
-
-			// myCamera.zoom(dx, dy, shiftDown);
-			leftX = x;
-			leftY = y;
-			canvas.display();
-			glold.getContext().release();
+			renderReadoutOverlay(gl, leftX, leftY);
 		}
-
+		gl.getContext().release();
 	}
-
 }
 
-
-final class myPopupActionListener implements ActionListener
-{
+final class myPopupActionListener implements ActionListener {
 	public W2DataView myView = null;
 	private final static org.wdssii.log.Logger LOG = LoggerFactory.getLogger(myPopupActionListener.class);
 
-	public myPopupActionListener(W2DataView v)
-	{
+	public myPopupActionListener(W2DataView v) {
 		myView = v;
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String c = e.getActionCommand();
-		LOG.error("MENU ITEM CALLED! ["+c+"]");
+		LOG.error("MENU ITEM CALLED! [" + c + "]");
 		if (c == W2DataView.RENAME_MENU) {
 			ChartRenameParams params = new ChartRenameParams(myView.getTitle(), "NEWNAME");
 			ChartRenameCommand renameIt = new ChartRenameCommand(params);
 			renameIt.setConfirmReport(true, true, null);
 			CommandManager.getInstance().executeCommand(renameIt, false);
-			//WindowManager.setDataViewName(myView, "NEWTITLE");
-		}else if (c == W2DataView.SWAP_MENU) {
+			// WindowManager.setDataViewName(myView, "NEWTITLE");
+		} else if (c == W2DataView.SWAP_MENU) {
 			ChartSwapParams params = new ChartSwapParams(myView.getTitle());
 			ChartSwapCommand swapIt = new ChartSwapCommand(params);
 			swapIt.setConfirmReport(true, true, null);
 			CommandManager.getInstance().executeCommand(swapIt, false);
-		}else if (c == W2DataView.DELETE_MENU) {
+		} else if (c == W2DataView.DELETE_MENU) {
 			ChartDeleteParams params = new ChartDeleteParams(myView.getTitle());
 			ChartDeleteCommand deleteIt = new ChartDeleteCommand(params);
 			deleteIt.setConfirmReport(true, true, null);
 			CommandManager.getInstance().executeCommand(deleteIt, false);
-		}else {
-			
+		} else {
+
 		}
 	}
 
@@ -639,6 +801,9 @@ public class W2DataView extends DataView {
 	public static final String DELETE_MENU = "Delete this window...";
 	public static final String SWAP_MENU = "Swap with main window";
 
+	/** Contain or subclass...humm FIXME: */
+	private W2DataViewListener myListener = null;
+	
 	/**
 	 * Static method to create a vslice chart, called by reflection
 	 */
@@ -649,57 +814,75 @@ public class W2DataView extends DataView {
 	}
 
 	@Override
+	public void repaint()
+	{
+		if (myListener != null) {
+			LOG.error("REPAINT WAS CALLED");
+			myListener.setSceneChanged();
+		}
+	}
+	
+    /**
+     * Update chart when needed (check should be done by chart)
+     */
+	@Override
+    public void updateChart(boolean force) {
+		if (myListener != null) {
+			LOG.error("UPDATE CHART CALLED");
+			myListener.setSceneChanged();
+		}
+    }
+	
+	@Override
 	public Object getNewGUIForChart(Object parent) {
 
-		//boolean heavyweight = true;
+		// boolean heavyweight = true;
 
 		// Make sure all W2DataViews use same GLContext to share resources.
 		GLAutoDrawable sharedDrawable = GLCacheManager.getInstance().getSharedGLAutoDrawable();
 		GLJPanel canvas = new GLJPanel();
 		canvas.setSharedAutoDrawable(sharedDrawable);
-		testGL test = new testGL(this);
+
+		// Listener.
+		W2DataViewListener test = new W2DataViewListener(this);
+		myListener = test;
 		test.canvas = canvas;
 		canvas.addGLEventListener(test);
-
-		// Do we really need three different classes?
 		canvas.addMouseListener(test);
 		canvas.addMouseMotionListener(test);
 		canvas.addMouseWheelListener(test);
-		
-		// Bleh not sure I like how this works.  Currently have to select
+
+		// Bleh not sure I like how this works. Currently have to select
 		// window before popup will work...
-		//JPopupMenu menu = getMainPopupMenu();
-		//canvas.setComponentPopupMenu(menu);
-		
-		// Really?  FIXME: we're gonna need dirty handling, this gonna hammer display
+		// JPopupMenu menu = getMainPopupMenu();
+		// canvas.setComponentPopupMenu(menu);
+
+		// Really? FIXME: we're gonna need dirty handling, this gonna hammer display
 		final FPSAnimator animator = new FPSAnimator(canvas, 60, true);
 		animator.start();
 
 		return canvas;
-
-		// return worldHolder;
 	}
 
-	
 	/** Add a popup menu to the view */
 	public JPopupMenu getMainPopupMenu() {
-		
+
 		myPopupActionListener al = new myPopupActionListener(this);
-		
-		//JMenuItem item;
-	    //popup.add(item = new JMenuItem("Left", new ImageIcon("1.gif")));
-	    //item.setHorizontalTextPosition(JMenuItem.RIGHT);
-	    //item.addActionListener(menuListener);
+
+		// JMenuItem item;
+		// popup.add(item = new JMenuItem("Left", new ImageIcon("1.gif")));
+		// item.setHorizontalTextPosition(JMenuItem.RIGHT);
+		// item.addActionListener(menuListener);
 		JPopupMenu popupmenu = new JPopupMenu();
-		
+
 		JMenuItem i = new JMenuItem("Swap with main window");
 		popupmenu.add(i);
 		i.addActionListener(al);
-		
+
 		i = new JMenuItem(W2DataView.RENAME_MENU);
 		popupmenu.add(i);
 		i.addActionListener(al);
-		
+
 		i = new JMenuItem("Delete this window...");
 		popupmenu.add(i);
 		i.addActionListener(al);
@@ -708,4 +891,3 @@ public class W2DataView extends DataView {
 	}
 
 }
-

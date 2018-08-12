@@ -1,6 +1,6 @@
-package org.wdssii.gui.worldwind.products;
+package org.wdssii.gui.worldwind.renderers;
 
-import org.wdssii.gui.renderers.PPIRadialSetRenderer;
+import org.wdssii.gui.renderers.DataTableRenderer;
 
 /**
  * Reflection stub.  The GLWorld renderer currently only needs a 
@@ -9,6 +9,6 @@ import org.wdssii.gui.renderers.PPIRadialSetRenderer;
  * 
  * @author Robert Toomey
  */
-public class WWPPIRadialSetRenderer extends PPIRadialSetRenderer {
+public class WWDataTableRenderer extends DataTableRenderer {
     
 }

@@ -1,4 +1,4 @@
-package org.wdssii.gui.worldwind;
+package org.wdssii.gui.worldwind.renderers;
 
 import org.wdssii.gui.renderers.MapRenderer;
 

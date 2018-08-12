@@ -1,6 +1,5 @@
 package org.wdssii.gui.worldwind;
 
-import org.wdssii.gui.worldwind.products.WWLatLonGridRenderer;
 import org.wdssii.gui.renderers.QuadStripRenderer;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Extent;
@@ -29,6 +28,7 @@ import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.worldwind.WWTileRenderer.Tile;
+import org.wdssii.gui.worldwind.renderers.WWLatLonGridRenderer;
 import org.wdssii.storage.Array1DOpenGL;
 import org.wdssii.storage.GrowList;
 

@@ -21,11 +21,13 @@ public class W2GLWorld extends GLWorld {
 	double myModel[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6};
 	double myProj[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6};
 	int myView[] = {1, 2, 3, 4};
+	private GLBoxCamera myCamera;
 	
-	public W2GLWorld(GL aGL, int width, int height, W2DataView w) {
+	public W2GLWorld(GL aGL, GLBoxCamera currentCam, int width, int height, W2DataView w) {
 		super(aGL, width, height);
 		final GL2 gl = aGL.getGL2();
 		myWorld = w;
+		myCamera = currentCam;
 
 		gl.getContext().makeCurrent();
 		gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, myModel, 0);
@@ -103,12 +105,17 @@ public class W2GLWorld extends GLWorld {
 	@Override
 	public boolean inView(V3 a3d) {
 		// TODO Auto-generated method stub
-		return false;
+		//return false;
+		return true;
 	}
 
 	@Override
 	public void redraw() {
-		// GOOP
+		myWorld.repaint();
 	}
 
+	/** The camera math for current render */
+	public GLBoxCamera getCamera() {
+		return myCamera;
+	}
 }

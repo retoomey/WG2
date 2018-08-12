@@ -1,6 +1,6 @@
-package org.wdssii.gui.worldwind.products;
+package org.wdssii.gui.worldwind.renderers;
 
-import org.wdssii.gui.renderers.ContoursRenderer;
+import org.wdssii.gui.renderers.RHIRadialSetRenderer;
 
 /**
  * Reflection stub.  The GLWorld renderer currently only needs a 
@@ -9,6 +9,6 @@ import org.wdssii.gui.renderers.ContoursRenderer;
  * 
  * @author Robert Toomey
  */
-public class WWContoursRenderer extends ContoursRenderer {
+public class WWRHIRadialSetRenderer extends RHIRadialSetRenderer {
     
 }

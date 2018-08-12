@@ -1,5 +1,6 @@
 package org.wdssii.gui.renderers;
 
+import java.awt.Point;
 import java.net.URL;
 
 import javax.media.opengl.GL;
@@ -12,7 +13,12 @@ import org.wdssii.core.W2Config;
 import org.wdssii.geom.D3;
 import org.wdssii.gui.GLCacheManager;
 import org.wdssii.gui.GLTexture;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.Texture;
+import org.wdssii.gui.features.EarthBallFeature.EarthBallMemento;
+import org.wdssii.gui.features.Feature3DRenderer;
+import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.MapFeature.MapMemento;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
@@ -22,19 +28,23 @@ import org.wdssii.log.LoggerFactory;
  * @author Robert Toomey
  * 
  */
-public class EarthBallRenderer {
+public class EarthBallRenderer extends Feature3DRenderer {
 	
     private final static Logger LOG = LoggerFactory.getLogger(EarthBallRenderer.class);
     
 	/** GLU sphere density for the earth ball */
-	private final int myDensity = 200;
+	//private final int myDensity = 200;
 	private GLUquadric myEarthQuadric; // FIXME: leaks, needs to be cachable
 	private double myXScale;
 	private double myYScale;
 	private int myTextureID; // FIXME: leaks, needs to be cachable
 	private boolean myIsValid = false;
 	
-	public EarthBallRenderer(GL glold) {
+	/** For reflection */
+	public EarthBallRenderer() {
+	}
+	
+	public void setupRenderer(GL glold) {
 		final GL2 gl = glold.getGL2();
 		final GLU glu = new GLU();
 
@@ -75,13 +85,24 @@ public class EarthBallRenderer {
 		myIsValid = true;
 	}
 
-	public void DrawEarthBall(GL glold) {
+	@Override
+	public void preRender(GLWorld w, FeatureMemento m) {
+		// TODO Auto-generated method stub
 		
-		if (!myIsValid) { return; }
-		
-		final GL2 gl = glold.getGL2();
-		final GLU glu = new GLU();
+	}
 
+	@Override
+	public void draw(GLWorld w, FeatureMemento m) {
+
+		final GL2 gl = w.gl.getGL2();
+				
+		if (!myIsValid) { 
+			setupRenderer(gl);
+		}
+		
+		final GLU glu = new GLU();
+		Integer density = m.get(EarthBallMemento.BALL_DENSITY, 100);
+		
 		gl.glPushAttrib(GL2.GL_ENABLE_BIT | GL2.GL_TEXTURE_BIT);
 		gl.glEnable(GL2.GL_TEXTURE_2D);
 		gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
@@ -102,10 +123,16 @@ public class EarthBallRenderer {
 		gl.glPushAttrib(GL2.GL_DEPTH_BUFFER_BIT);
 		gl.glEnable(GL2.GL_DEPTH_TEST);
 
-		glu.gluSphere(myEarthQuadric, D3.EARTH_RADIUS_KMS, myDensity, myDensity);
+		glu.gluSphere(myEarthQuadric, D3.EARTH_RADIUS_KMS, density, density);
 
 		gl.glPopAttrib();
 		gl.glPopAttrib();
 		gl.glPopMatrix();
+	}
+
+	@Override
+	public void pick(GLWorld w, Point p, FeatureMemento m) {
+		// TODO Auto-generated method stub
+		
 	}
 }

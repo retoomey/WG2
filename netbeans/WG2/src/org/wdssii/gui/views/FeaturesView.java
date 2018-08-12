@@ -27,6 +27,7 @@ import org.wdssii.core.CommandManager;
 import org.wdssii.gui.swing.SwingGUIPlugInPanel;
 import org.wdssii.gui.FeatureTableList;
 import org.wdssii.gui.commands.*;
+import org.wdssii.gui.features.EarthBallFeature;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureGUI;
 import org.wdssii.gui.features.FeatureList;
@@ -640,14 +641,14 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
         t.addTab("All", w);
         myFeatureTableList3 = new FeatureTableList(new String[] {ProductFeature.ProductGroup});
         t.addTab("Products", tabForGroup(Color.GREEN, "PRODUCTS!", myFeatureTableList3));   
-        myFeatureTableList = new FeatureTableList(new String[] {MapFeature.MapGroup});
-        t.addTab("Maps", tabForGroup(Color.BLUE, "MAPS!", myFeatureTableList));      
+        myFeatureTableList = new FeatureTableList(new String[] {EarthBallFeature.MapGroup, MapFeature.MapGroup});
+        t.addTab("Maps", tabForGroup(Color.GREEN, "MAPS!", myFeatureTableList));      
         myFeatureTableList2 = new FeatureTableList(
-        		new String[] {LegendFeature.LegendGroup, MapFeature.MapGroup});
-        t.addTab("2D Overlays", tabForGroup(Color.RED, "2D!", myFeatureTableList2));
+        		new String[] {LegendFeature.LegendGroup});
+        t.addTab("2D Overlays", tabForGroup(Color.GREEN, "2D!", myFeatureTableList2));
         myFeatureTableList4 = new FeatureTableList(
         		new String[] {LLHAreaFeature.LLHAreaGroup, PolarGridFeature.PolarGridGroup});
-        t.addTab("3D Overlays", tabForGroup(Color.PINK, "3D!", myFeatureTableList4));
+        t.addTab("3D Overlays", tabForGroup(Color.GREEN, "3D!", myFeatureTableList4));
       
         // Controls for latest selected feature
         // This split pane could be done by our new generic window manager

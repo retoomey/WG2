@@ -1,20 +1,24 @@
 package org.wdssii.gui.renderers;
 
+import java.awt.Point;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
 import org.wdssii.geom.D3;
+import org.wdssii.gui.GLBoxCamera;
+import org.wdssii.gui.GLWorld;
+import org.wdssii.gui.W2GLWorld;
+import org.wdssii.gui.features.Feature3DRenderer;
+import org.wdssii.gui.features.FeatureMemento;
 
 /** Simple 'North' compass thing from old W2 display.  Except I avoided all the
  * tessellation and just did it on graph paper.
  * 
- * FIXME: Maybe make this a symbol renderer? Could be useful in an icon or maybe
- * we can share the property setting abilities 
- * 
  * @author Robert Toomey
  *
  */
-public class CompassRenderer {
+public class CompassRenderer extends Feature3DRenderer {
 
 	/** Just draw the north compass and arrow in given gl world */
 	public void DrawCompass(GL glold, D3 compassPos, double scale) {
@@ -125,5 +129,36 @@ public class CompassRenderer {
 		gl.glPopMatrix();
 		gl.glPopAttrib();
 		gl.glLineWidth(1.0f);
+	}
+
+	@Override
+	public void preRender(GLWorld w, FeatureMemento m) {
+		
+	}
+
+	@Override
+	public void draw(GLWorld w, FeatureMemento m) {
+		if (w instanceof W2GLWorld) {
+			W2GLWorld w2 = (W2GLWorld)(w);
+			GLBoxCamera c = w2.getCamera();
+			if (c != null) {
+				
+				// Calculate compass size/location from camera
+				// for a center drawing compass with direction pointing north
+				D3 compassPos = new D3(c.myRef);
+				if ((compassPos.x == 0) && (compassPos.y == 0) && (compassPos.y == 0)) {
+					D3 cv = new D3(c.myView).toUnit().times(D3.EARTH_RADIUS_KMS);
+					compassPos.plus(cv);
+				}
+				final double scale = c.getPointToScale(compassPos, w.height) * 1.50;
+				
+				DrawCompass(w.gl, compassPos, scale);
+			}
+		}
+	}
+
+	@Override
+	public void pick(GLWorld w, Point p, FeatureMemento m) {
+		
 	}
 }

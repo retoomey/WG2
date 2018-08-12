@@ -402,7 +402,7 @@ public class Product extends DelegateHelper {
 // Stock helper objects -------------------------------------------------------
     // Return the thing that draws this product
     public ProductRenderer getRenderer(String id, String packageName) {
-        ProductRenderer pr = (ProductRenderer) getHelperObject(id, "Renderer", false, true, packageName+".products", "");
+        ProductRenderer pr = (ProductRenderer) getHelperObject(id, "Renderer", false, true, packageName, "");
         if (pr != null){pr.setProduct(this);}
         return pr;
     }

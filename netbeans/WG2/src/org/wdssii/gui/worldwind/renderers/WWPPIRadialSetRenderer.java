@@ -1,6 +1,6 @@
-package org.wdssii.gui.worldwind.products;
+package org.wdssii.gui.worldwind.renderers;
 
-import org.wdssii.gui.renderers.RHIRadialSetRenderer;
+import org.wdssii.gui.renderers.PPIRadialSetRenderer;
 
 /**
  * Reflection stub.  The GLWorld renderer currently only needs a 
@@ -9,6 +9,6 @@ import org.wdssii.gui.renderers.RHIRadialSetRenderer;
  * 
  * @author Robert Toomey
  */
-public class WWRHIRadialSetRenderer extends RHIRadialSetRenderer {
+public class WWPPIRadialSetRenderer extends PPIRadialSetRenderer {
     
 }

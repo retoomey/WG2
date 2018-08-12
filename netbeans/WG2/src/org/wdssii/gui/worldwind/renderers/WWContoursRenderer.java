@@ -1,6 +1,6 @@
-package org.wdssii.gui.worldwind.products;
+package org.wdssii.gui.worldwind.renderers;
 
-import org.wdssii.gui.renderers.DataTableRenderer;
+import org.wdssii.gui.renderers.ContoursRenderer;
 
 /**
  * Reflection stub.  The GLWorld renderer currently only needs a 
@@ -9,6 +9,6 @@ import org.wdssii.gui.renderers.DataTableRenderer;
  * 
  * @author Robert Toomey
  */
-public class WWDataTableRenderer extends DataTableRenderer {
+public class WWContoursRenderer extends ContoursRenderer {
     
 }

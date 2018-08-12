@@ -1,6 +1,5 @@
 package org.wdssii.gui.worldwind;
 
-import org.wdssii.gui.worldwind.products.WWWindFieldRenderer;
 import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Extent;
 import gov.nasa.worldwind.geom.Sector;
@@ -26,6 +25,7 @@ import org.wdssii.gui.ColorMap;
 import org.wdssii.gui.products.ColorMapFloatOutput;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.worldwind.WWTileRenderer.Tile;
+import org.wdssii.gui.worldwind.renderers.WWWindFieldRenderer;
 import org.wdssii.storage.Array1D;
 import org.wdssii.storage.Array1DfloatAsNodes;
 

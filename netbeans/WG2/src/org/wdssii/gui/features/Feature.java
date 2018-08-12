@@ -156,6 +156,15 @@ public class Feature implements Mementor {
         // Worldwind id is WW
         // Geotools will be GT
         // Awiips will be AW2
+      //  LOG.error("Package name is "+packageName+", and " +className);
+    	//System.exit(1);
+       // if (packageName.equals("org.wdssii.gui.worldwind")) {
+        	LOG.error("*********************************************************");
+        	LOG.error("Package name is "+packageName+", and " +className);
+        	LOG.error("*********************************************************");
+
+        //	System.exit(1);
+       // }
         String make = packageName + "." + id + className;
         try {
             aClass = Class.forName(make);
@@ -394,7 +403,12 @@ public class Feature implements Mementor {
 
     public static class defaultGUI extends FeatureGUI {
 
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
         public void updateGUI() {
             // Set the layout and add our controls
             // source.setLayout(new java.awt.BorderLayout());

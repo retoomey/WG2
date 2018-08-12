@@ -36,8 +36,8 @@ import org.wdssii.log.LoggerFactory;
  *         Merged Editor ability into this class, since we have a single
  *         'selected' object that is the currently edited one.
  */
-public class LLHAreaLayer 
-				 implements WWCategoryLayer {
+public class LLHAreaLayer {
+				// implements WWCategoryLayer {
 
 	private final static Logger LOG = LoggerFactory.getLogger(LLHAreaLayer.class);
 
@@ -51,10 +51,10 @@ public class LLHAreaLayer
 	protected static final int UPPER_ALTITUDE = 1;
 	private static final double DEFAULT_POLYGON_HEIGHT = 10.0;
 
-	@Override
-	public String getCategory() {
-		return WDSSII_CATEGORY;
-	}
+	//@Override
+	//public String getCategory() {
+	//	return WDSSII_CATEGORY;
+	//}
 
 	/**
 	 * Creates a new <code>Airspace</code> with an empty collection of

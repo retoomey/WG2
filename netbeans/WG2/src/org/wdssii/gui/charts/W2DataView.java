@@ -1,6 +1,7 @@
 package org.wdssii.gui.charts;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -27,10 +28,15 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
+import javax.swing.JComponent;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSeparator;
 
 import org.wdssii.core.CommandManager;
+import org.wdssii.core.WdssiiCommand;
 import org.wdssii.geom.D3;
 import org.wdssii.gui.GLBoxCamera;
 import org.wdssii.gui.GLCacheManager;
@@ -42,6 +48,8 @@ import org.wdssii.gui.commands.ChartDeleteCommand;
 import org.wdssii.gui.commands.ChartDeleteCommand.ChartDeleteParams;
 import org.wdssii.gui.commands.ChartRenameCommand;
 import org.wdssii.gui.commands.ChartRenameCommand.ChartRenameParams;
+import org.wdssii.gui.commands.ChartSetGroupNumberCommand;
+import org.wdssii.gui.commands.ChartSetGroupNumberCommand.ChartSetGroupNumberParams;
 import org.wdssii.gui.commands.ChartSwapCommand;
 import org.wdssii.gui.commands.ChartSwapCommand.ChartSwapParams;
 import org.wdssii.gui.features.EarthBallFeature;
@@ -57,6 +65,7 @@ import org.wdssii.gui.features.PolarGridFeature;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.renderers.CompassRenderer;
 import org.wdssii.gui.renderers.EarthBallRenderer;
+import org.wdssii.gui.views.Window;
 import org.wdssii.gui.views.WindowManager;
 import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.log.LoggerFactory;
@@ -148,7 +157,7 @@ final class W2DataViewListener implements GLEventListener,
 	private boolean myFirstTime = true;
 
 	private LLHAreaLayer myLLHAreaLayer;
-	 
+
 	private TextRenderer myText;
 
 	private int myDrawCounter;
@@ -186,8 +195,9 @@ final class W2DataViewListener implements GLEventListener,
 				if (f.getRank() == i) {
 					// f.render(w);
 					FeatureMemento m = f.getMemento();
-					// eh?  How did it work?
-					//ArrayList<FeatureRenderer> theList = f.getRendererList("WW", "org.wdssii.gui.worldwind.renderers");
+					// eh? How did it work?
+					// ArrayList<FeatureRenderer> theList = f.getRendererList("WW",
+					// "org.wdssii.gui.worldwind.renderers");
 					ArrayList<FeatureRenderer> theList = f.getRendererList("", "org.wdssii.gui.renderers");
 
 					// ArrayList<FeatureRenderer> theList = myMap.get(f);
@@ -281,20 +291,19 @@ final class W2DataViewListener implements GLEventListener,
 			renderFullScene(gl, w, h);
 		} else {
 			if (myDirty == true) {
-				
+
 				// If we have buffer, use it...
-				//if (myBuffer != null) {
+				// if (myBuffer != null) {
 				if (fromBuffer(gl, w, h)) {
-				/*	GLUtil.pushOrtho2D(gl, w, h);
-					gl.glRasterPos2i(0, 0);
-					// Do we need alpha here?
-					//gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
-					gl.glDrawPixels(w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
-					GLUtil.popOrtho2D(gl);
-					*/
+					/*
+					 * GLUtil.pushOrtho2D(gl, w, h); gl.glRasterPos2i(0, 0); // Do we need alpha
+					 * here? //gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
+					 * myBuffer); gl.glDrawPixels(w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
+					 * GLUtil.popOrtho2D(gl);
+					 */
 					myDirty = false;
 
-				// otherwise full render...
+					// otherwise full render...
 				} else {
 					renderFullScene(gl, w, h);
 				}
@@ -302,53 +311,51 @@ final class W2DataViewListener implements GLEventListener,
 		}
 	}
 
-	public boolean fromBuffer(GL2 gl, int w, int h)
-	{
+	public boolean fromBuffer(GL2 gl, int w, int h) {
 		if (myBuffer != null) {
 			GLUtil.pushOrtho2D(gl, w, h);
 			gl.glRasterPos2i(0, 0);
 			// Do we need alpha here?
-			//gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
+			// gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
 			gl.glDrawPixels(w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
 			GLUtil.popOrtho2D(gl);
 			return true;
 		}
 		return false;
 	}
-	
+
 	public void toBuffer(GL3 gl, int w, int h) {
 		// Store the rendered scene...
 		if (myBuffer == null) {
-			//GLBuffers.sizeof(gl,... )
+			// GLBuffers.sizeof(gl,... )
 			// FIXME: buffer size is complicated it seems..
 			myBuffer = GLBuffers.newDirectByteBuffer(w * h * 4); // RGB = 3. RGBA = 4
 		}
 		GLUtil.pushOrtho2D(gl, w, h);
-		//GL3 gl3 = gl.getGL3();
+		// GL3 gl3 = gl.getGL3();
 		gl.glReadBuffer(GL.GL_BACK);
 		// if the width is not multiple of 4, set unpackPixel = 1 ?? Do we need this or
 		// not
-		//gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
+		// gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
 		gl.glReadPixels(0, 0, w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
 		GLUtil.popOrtho2D(gl);
 	}
-	
-	public void renderReadoutOverlay(GL gli, int x, int y)
-	{
-		boolean readoutOn = false;
+
+	public void renderReadoutOverlay(GL gli, int x, int y) {
+		boolean readoutOn = true;
 		// Begin overlay readout testing...
 		if (readoutOn) {
 			if (myText != null) {
-			
-				//int dx = x - leftX;
-				//int dy = y - leftY;
+
+				// int dx = x - leftX;
+				// int dy = y - leftY;
 				String l = "Readout Test";
-				
+
 				gli.getContext().makeCurrent();
 				GLUtil.pushOrtho2D(gli, canvas.getWidth(), canvas.getHeight());
 
 				myText.begin3DRendering();
-				//Rectangle2D bounds = myText.getBounds(l);
+				// Rectangle2D bounds = myText.getBounds(l);
 
 				// bounds.setRect(bounds.getX() + x, bounds.getY() +y, bounds.getWidth(),
 				// bounds.getHeight());
@@ -357,14 +364,14 @@ final class W2DataViewListener implements GLEventListener,
 
 				GLUtil.popOrtho2D(gli);
 				gli.getContext().release();
-			//	setDirty(); // needs to be erased right...
+				// setDirty(); // needs to be erased right...
 			}
 		}
 	}
-	
+
 	public void renderFullScene(GL gli, int w, int h) {
 		GL2 gl = gli.getGL2();
-		
+
 		myDirty = false;
 		mySceneChanged = false; // might need a lock for this if other threads mess with us
 
@@ -396,7 +403,7 @@ final class W2DataViewListener implements GLEventListener,
 		// projection, so
 		// if the camera changes after creating this, it is no longer valid.
 		W2GLWorld glw = new W2GLWorld(gl, myCamera, w, h, myW2DataView);
-		
+
 		// Basemaps first (below products)
 		renderFeatureGroup(glw, EarthBallFeature.MapGroup);
 
@@ -406,17 +413,17 @@ final class W2DataViewListener implements GLEventListener,
 
 		// Draw lines, labels
 		renderFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup);
-		
-		// Draw actual control points.  Humm why not part of feature?
+
+		// Draw actual control points. Humm why not part of feature?
 		if (myLLHAreaLayer == null) {
 			myLLHAreaLayer = new LLHAreaLayer();
 		}
-        if (myLLHAreaLayer != null) {  
-        	myLLHAreaLayer.draw(glw);
-        }
-        
+		if (myLLHAreaLayer != null) {
+			myLLHAreaLayer.draw(glw);
+		}
+
 		renderFeatureGroup(glw, PolarGridFeature.PolarGridGroup);
-		
+
 		renderFeatureGroup(glw, LegendFeature.LegendGroup);
 
 		final double m = 0.5;
@@ -435,8 +442,7 @@ final class W2DataViewListener implements GLEventListener,
 		// FIXME: Need something to coordinate overlay locations, so for example
 		// color key doesn't draw over us.
 		String l = myW2DataView.getTitle();
-		String top = WindowManager.getTopDataViewName();
-		if (l.equals(top)) {
+		if (WindowManager.isTopDataView(myW2DataView)) {
 			l += " (Main)";
 		}
 
@@ -496,7 +502,7 @@ final class W2DataViewListener implements GLEventListener,
 		if (myLastHeight != height) {
 			setSceneChanged();
 			myLastHeight = height;
-			myBuffer = null;  // Only recreate buffer when size changes, otherwise fill old one
+			myBuffer = null; // Only recreate buffer when size changes, otherwise fill old one
 		}
 		if (myLastWidth != width) {
 			setSceneChanged();
@@ -618,8 +624,8 @@ final class W2DataViewListener implements GLEventListener,
 		 * e); }
 		 */
 		// Might need to draw sometime..but now don't think we do...
-		//canvas.display();
-		//renderReadoutOverlay(glold, x, y);
+		// canvas.display();
+		// renderReadoutOverlay(glold, x, y);
 
 		// this.myW2DataView.repaint();
 
@@ -657,10 +663,11 @@ final class W2DataViewListener implements GLEventListener,
 
 			leftX = x;
 			leftY = y;
-			setSceneChanged();
-			canvas.display();
-			renderReadoutOverlay(gl, leftX, leftY);
-			
+			WindowManager.syncWindows(myW2DataView, 0);
+
+			/*
+			 * setSceneChanged(); canvas.display(); renderReadoutOverlay(gl, leftX, leftY);
+			 */
 			gl.getContext().release();
 
 		}
@@ -674,20 +681,23 @@ final class W2DataViewListener implements GLEventListener,
 		// final int y = canvas.getHeight() - e.getY();
 		// D3 loc = myCamera.locationOnSphere(glold, 0, e.getX(), y);
 
-		// ahh ahh ahh...chicken egg.  It's most likely already drawn
+		// ahh ahh ahh...chicken egg. It's most likely already drawn
 		// correctly....
-		//setDirty();  // To erase any old overlay...
-		
+		// setDirty(); // To erase any old overlay...
+
 		// This will delete any old one IFF it was already dirty....
 		final int x = e.getX();
 		final int y = canvas.getHeight() - e.getY();
-		//setSceneChanged();
-		setDirty();
-		canvas.display();  // Flicker between these two.  Could buffer 
-		renderReadoutOverlay(glold, x, y);
+		// setSceneChanged();
+		leftX = x; // FIXME: Bleh tracking x y should be different I think...
+		leftY = y;
+		WindowManager.syncWindows(myW2DataView, 1);
+		/*
+		 * setDirty(); canvas.display(); // Flicker between these two. Could buffer
+		 * renderReadoutOverlay(glold, x, y);
+		 */
 		// setDirty will immediately redraw..
-		
-		
+
 		// LOG.error("MOVE PROJECTION: "+loc.x+", "+loc.y+", "+loc.z);
 		// LOG.error("Mouse moved");
 
@@ -748,48 +758,125 @@ final class W2DataViewListener implements GLEventListener,
 		// doing anything. Negative is away from user, positive towards..
 		int wheelRotation = e.getWheelRotation();
 		if (wheelRotation != 0) {
-			final int wheelY = (wheelRotation > 0)? -20:20;
+			final int wheelY = (wheelRotation > 0) ? -20 : 20;
 			myCamera.zoom(0, wheelY, shiftDown);
 			leftX = x;
 			leftY = y;
-			setSceneChanged(); // Make click redraw
-			canvas.display();
-			renderReadoutOverlay(gl, leftX, leftY);
+			WindowManager.syncWindows(myW2DataView, 0);
+
+			/*
+			 * setSceneChanged(); // Make click redraw canvas.display();
+			 * renderReadoutOverlay(gl, leftX, leftY);
+			 */
 		}
 		gl.getContext().release();
+	}
+
+	public void doSyncGroup(Window w, int mode) {
+		final int group = myW2DataView.getGroupNumber();
+
+		// It's us..so we caused the camera to change, this means
+		// we need to do a full redraw
+		if (w == myW2DataView) {
+			GL gl = canvas.getGL();
+			gl.getContext().makeCurrent();
+			if (mode == 0) {
+				setSceneChanged();
+				canvas.display();
+				renderReadoutOverlay(gl, leftX, leftY); // I have my own
+			} else {
+				setDirty();
+				canvas.display(); // Flicker between these two. Could buffer
+				renderReadoutOverlay(gl, leftX, leftY);
+			}
+			gl.getContext().release();
+			return;
+		}
+
+		if (!(w instanceof W2DataView)) {
+			return;
+		}
+		W2DataView other = (W2DataView) (w);
+
+		if (w.getGroupNumber() == group) {
+			GL gl = canvas.getGL();
+			gl.getContext().makeCurrent();
+			// boolean changed = myCamera.syncToCamera(myW2DataView.getGLCamera());
+			final GLBoxCamera c = other.getGLCamera();
+			float[] l = c.getLocation();
+
+			// If camera is different need full redraw on any mode...
+			boolean changed = myW2DataView.getGLCamera().goToLocation(l);
+			if (changed) {
+				LOG.error("CAMERA CHANGED "+other);
+				setSceneChanged(); // Make click redraw
+				canvas.display();
+
+				// FIXME: bleh readout on sync always needs to draw..
+				renderReadoutOverlay(gl, 50, 50);
+			} else {
+				if (mode == 1) {
+					setDirty();
+					canvas.display(); // Flicker between these two. Could buffer
+					renderReadoutOverlay(gl, 50, 50); // FIXME: ahh need actual point
+				}
+			}
+			gl.getContext().release();
+		}
+		/*
+		 * myGroupMoving = groupMove; bool oldFlat = myPrimaryView->drawFlat(); if (
+		 * mode == wg_GLBoxManager::NoSpatialSync ){ // no spatial sync } else if ( mode
+		 * == wg_GLBoxManager::FullCamera ){
+		 * myPrimaryView->goToLocation(with->myPrimaryView.ptr); } else{ float
+		 * olon,olat,olen,orot,otilt; // other
+		 * with->getLocation(olon,olat,olen,orot,otilt); if (mode ==
+		 * wg_GLBoxManager::ViewPointZoom){ myPrimaryView->goToLocation(this,
+		 * olon,olat,olen, -1.0,-1.0); } else if ( mode ==
+		 * wg_GLBoxManager::ViewPointOnly){ myPrimaryView->goToLocation(this, olon,
+		 * olat, -1.0,-1.0,-1.0); } else if ( mode == wg_GLBoxManager::ZoomOnly){
+		 * myPrimaryView->goToLocation(this, -1.0, -1.0, olen, -1.0,-1.0); } } bool
+		 * newFlat = myPrimaryView->drawFlat(); wg_GLBoxManager& g =
+		 * wg_GLBoxManager::instance(); if (oldFlat != newFlat){ g.flatToggled(this); }
+		 */
 	}
 }
 
 final class myPopupActionListener implements ActionListener {
 	public W2DataView myView = null;
+	private int myGroup = -100;
 	private final static org.wdssii.log.Logger LOG = LoggerFactory.getLogger(myPopupActionListener.class);
 
 	public myPopupActionListener(W2DataView v) {
 		myView = v;
 	}
 
+	public myPopupActionListener(W2DataView v, int group) {
+		myView = v;
+		myGroup = group;
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String c = e.getActionCommand();
-		LOG.error("MENU ITEM CALLED! [" + c + "]");
+		// LOG.error("MENU ITEM CALLED! [" + c + "]");
+		WdssiiCommand command = null;
 		if (c == W2DataView.RENAME_MENU) {
-			ChartRenameParams params = new ChartRenameParams(myView.getTitle(), "NEWNAME");
-			ChartRenameCommand renameIt = new ChartRenameCommand(params);
-			renameIt.setConfirmReport(true, true, null);
-			CommandManager.getInstance().executeCommand(renameIt, false);
-			// WindowManager.setDataViewName(myView, "NEWTITLE");
+			command = new ChartRenameCommand(new ChartRenameParams(myView.getTitle(), "NEWNAME"));
+			command.setConfirmReport(true, true, (JComponent) myView.getGUI());
 		} else if (c == W2DataView.SWAP_MENU) {
-			ChartSwapParams params = new ChartSwapParams(myView.getTitle());
-			ChartSwapCommand swapIt = new ChartSwapCommand(params);
-			swapIt.setConfirmReport(true, true, null);
-			CommandManager.getInstance().executeCommand(swapIt, false);
+			command = new ChartSwapCommand(new ChartSwapParams(myView.getTitle()));
+			command.setConfirmReport(true, true, (JComponent) myView.getGUI());
 		} else if (c == W2DataView.DELETE_MENU) {
-			ChartDeleteParams params = new ChartDeleteParams(myView.getTitle());
-			ChartDeleteCommand deleteIt = new ChartDeleteCommand(params);
-			deleteIt.setConfirmReport(true, true, null);
-			CommandManager.getInstance().executeCommand(deleteIt, false);
+			command = new ChartDeleteCommand(new ChartDeleteParams(myView.getTitle()));
+			command.setConfirmReport(true, true, (JComponent) myView.getGUI());
 		} else {
-
+			// Assume Sync command
+			if (myGroup > -100) {
+				command = new ChartSetGroupNumberCommand(new ChartSetGroupNumberParams(myView.getTitle(), myGroup));
+			}
+		}
+		if (command != null) {
+			CommandManager.getInstance().executeCommand(command, false);
 		}
 	}
 
@@ -803,7 +890,7 @@ public class W2DataView extends DataView {
 
 	/** Contain or subclass...humm FIXME: */
 	private W2DataViewListener myListener = null;
-	
+
 	/**
 	 * Static method to create a vslice chart, called by reflection
 	 */
@@ -813,26 +900,30 @@ public class W2DataView extends DataView {
 
 	}
 
+	/** Get camera for this W2DataView */
+	public GLBoxCamera getGLCamera() {
+		return myListener.myCamera;
+	}
+
 	@Override
-	public void repaint()
-	{
+	public void repaint() {
 		if (myListener != null) {
 			LOG.error("REPAINT WAS CALLED");
 			myListener.setSceneChanged();
 		}
 	}
-	
-    /**
-     * Update chart when needed (check should be done by chart)
-     */
+
+	/**
+	 * Update chart when needed (check should be done by chart)
+	 */
 	@Override
-    public void updateChart(boolean force) {
+	public void updateChart(boolean force) {
 		if (myListener != null) {
 			LOG.error("UPDATE CHART CALLED");
 			myListener.setSceneChanged();
 		}
-    }
-	
+	}
+
 	@Override
 	public Object getNewGUIForChart(Object parent) {
 
@@ -869,20 +960,44 @@ public class W2DataView extends DataView {
 
 		myPopupActionListener al = new myPopupActionListener(this);
 
-		// JMenuItem item;
-		// popup.add(item = new JMenuItem("Left", new ImageIcon("1.gif")));
-		// item.setHorizontalTextPosition(JMenuItem.RIGHT);
-		// item.addActionListener(menuListener);
 		JPopupMenu popupmenu = new JPopupMenu();
 
-		JMenuItem i = new JMenuItem("Swap with main window");
-		popupmenu.add(i);
-		i.addActionListener(al);
+		JMenuItem i;
+		// Only if this window isn't main window...
+		if (!WindowManager.isTopDataView(this)) {
+			i = new JMenuItem("Swap with main window");
+			popupmenu.add(i);
+			i.addActionListener(al);
+		}
+
+		// Menu for changing sync groups. Since state
+		// is stored by us, no need for button group...
+		int group = this.getGroupNumber() - 1; // -1 since zero is reserved for none
+		JMenu sub1 = new JMenu("Set Group");
+		JRadioButtonMenuItem zz = new JRadioButtonMenuItem("No Sync Group");
+		zz.setSelected(group < 0);
+		zz.addActionListener(new myPopupActionListener(this, 0));
+		sub1.add(zz);
+		final int maxGroups = WindowManager.getMaxGroups();
+		for (int x = 0; x < maxGroups; x++) {
+			zz = new JRadioButtonMenuItem("Sync Group '" + (char) ('A' + x) + "'");
+			zz.setSelected(group == x);
+			zz.addActionListener(new myPopupActionListener(this, x + 1));
+			sub1.add(zz);
+		}
+		popupmenu.add(sub1);
+
+		popupmenu.add(new JSeparator());
 
 		i = new JMenuItem(W2DataView.RENAME_MENU);
 		popupmenu.add(i);
 		i.addActionListener(al);
 
+		// "Take Snapshot..."
+
+		// FIXME: What to do when only one window...wg just doesn't do anything in that
+		// case
+		popupmenu.add(new JSeparator());
 		i = new JMenuItem("Delete this window...");
 		popupmenu.add(i);
 		i.addActionListener(al);
@@ -890,4 +1005,8 @@ public class W2DataView extends DataView {
 		return popupmenu;
 	}
 
+	@Override
+	public void doSyncGroup(Window w, int mode) {
+		myListener.doSyncGroup(w, mode);
+	}
 }

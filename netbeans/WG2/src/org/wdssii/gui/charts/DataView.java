@@ -7,6 +7,7 @@ import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.commands.ProductFollowCommand;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureList.FeaturePosition;
+import org.wdssii.gui.views.Window;
 
 /**
  * DataView displays output from a FeatureList
@@ -14,11 +15,15 @@ import org.wdssii.gui.features.FeatureList.FeaturePosition;
  * @author Robert Toomey
  *
  */
-public class DataView {
+public class DataView extends Window {
 
-    private final static Logger LOG = LoggerFactory.getLogger(DataView.class);
+    public DataView() {
+		super(Window.WINDOW_CHART);
+		// TODO Auto-generated constructor stub
+	}
+	private final static Logger LOG = LoggerFactory.getLogger(DataView.class);
 
-    private String title = "None";
+ //   private String title = "None";
     
     /**
      * Update chart when needed (check should be done by chart)
@@ -38,17 +43,17 @@ public class DataView {
      */
     private String myCurrentProduct = ProductFollowCommand.top;
 
-    /** Set title of the view */
-    public void setTitle(String t)
-    {
-    	title = t;
-    }
+ //   /** Set title of the view */
+ //   public void setTitle(String t)
+ //   {
+ //   	title = t;
+ //   }
     
     /** Get title of the view */
-    public String getTitle() {
-    	return title;
-    }
-    
+ //   public String getTitle() {
+ //   	return title;
+  //  }
+ //   
     /**
      * Set if this chart should use virtual volumes
      */

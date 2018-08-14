@@ -3,6 +3,7 @@ package org.wdssii.gui.views;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.wdssii.gui.Application;
 import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.charts.W2DataView;
 import org.wdssii.log.Logger;
@@ -25,6 +26,14 @@ public class WindowManager {
 
 	private final static Logger LOG = LoggerFactory.getLogger(WindowManager.class);
 
+    /**
+     * Default top window title string
+     */
+    public final static String WINDOWTITLE =
+            Application.NAME + " " + Application.MAJOR_VERSION + "."
+            + Application.MINOR_VERSION;
+    //public final static String UNTITLED = "Untitled";
+      
 	/**
 	 * (MODEL) The top window. We call this desktop (this allows other 'main'
 	 * windows to be created.)
@@ -83,7 +92,8 @@ public class WindowManager {
 	 */
 	public static void init(WindowMaker d) {
 		theTopWindow = new Window(Window.WINDOW_ROOT); // Zero is 'base'
-
+		theTopWindow.setTitle(WINDOWTITLE);
+		
 		// Add some data views..set titles properly in model
 		Vector<DataView> myDataViews = new Vector<DataView>();
 		int counter = 0;
@@ -92,6 +102,8 @@ public class WindowManager {
 			dv.setTitle("#" + Integer.toString(++counter));
 			myDataViews.add(dv);
 		}
+		//myDataViews.add(new Data2DTableChart());
+		
 		myTopDataView = "#1";
 
 		// Old layout
@@ -112,9 +124,8 @@ public class WindowManager {
 		 */
 
 		// Top data view above, nav/etc below
-		Window w2 = new Window(Window.WINDOW_SPLIT);
-		w2.setSplitPercentage(0.7f);
-		w2.setSplitHorizontal(true);
+		//Window w2 = new Window(Window.WINDOW_SPLIT);
+		SplitWindow w2 = new SplitWindow(0.7f, true);
 
 		// Add a window for each data view
 		Window data = new Window(Window.WINDOW_DATAVIEW);
@@ -122,14 +133,14 @@ public class WindowManager {
 		Iterator<DataView> itr = myDataViews.iterator();
 		while (itr.hasNext()) {
 			DataView dv = itr.next();
-			Window w = new Window(Window.WINDOW_CHART, dv);
-			w.setTitle(dv.getTitle()); // Sync for now, bad design though
-			data.addWindow(w);
+			data.addWindow(dv);
 		}
 		w2.addWindow(data);
 
 		// Bottom
-		Window t = new Window(Window.WINDOW_TAB);
+		//Window t = new Window(Window.WINDOW_TAB);
+		Window t = new TabWindow();
+		
 		t.addWindow(new Window(Window.WINDOW_NAV));
 		t.addWindow(new Window(Window.WINDOW_SOURCES));
 		t.addWindow(new Window(Window.WINDOW_FEATURES));
@@ -143,6 +154,12 @@ public class WindowManager {
 
 	public static String getTopDataViewName() {
 		return myTopDataView;
+	}
+	
+	/** Is this window the top data view? */
+	public static boolean isTopDataView(Window w) {
+		String l = w.getTitle();
+		return(l.equals(myTopDataView));
 	}
 
 	/**
@@ -177,6 +194,20 @@ public class WindowManager {
 		return results;
 	}
 
+	/** Find list of windows matching a sync group number */
+	public static Vector<Window> findSyncGroup(Window top, int groupNumber) {
+		Vector<Window> results = new Vector<Window>();
+		Iterator<Window> iter = top.theWindows.iterator();
+		while (iter.hasNext()) {
+			Window at = iter.next();
+			final int g = at.getGroupNumber();
+			if (g == groupNumber) {
+				results.add(at);
+			}
+		}
+		return results;
+	}
+	
 	/** Does data view with given name exist? */
 	public static boolean windowExists(String aName) {
 		Vector<String> names = new Vector<String>();
@@ -209,10 +240,6 @@ public class WindowManager {
 				myTopDataView = newName;
 			}
 			w.setTitle(newName);
-			// hack for now FIXME
-			if (w.myNode instanceof W2DataView) {
-				((W2DataView) w.myNode).setTitle(newName);
-			}
 			myGUI.notifyRenamed(w);
 			return true;
 		}
@@ -294,5 +321,45 @@ public class WindowManager {
 			LOG.error("Can't find view '" + aName + "' to delete!");
 		}
 		return false;
+	}
+	
+	/** Set the group number of the named window */
+	public static void setGroupWindow(String aName, int aGroupNumber)
+	{
+		Vector<String> names = new Vector<String>();
+		names.add(aName);
+		Vector<Window> windows = findWindows(theDataViews, names);
+		Window w = windows.get(0);
+		if (w != null) {
+			w.setGroupNumber(aGroupNumber);
+		}
+	}
+
+	/** Get the maximum number of sync groups we have */
+	public static int getMaxGroups() {
+		return 10;
+	}
+	
+	/** Notify all windows sharing a group to perform sync action on the
+	 * given group number 
+	 * 0 -- Camera change
+	 * 1 -- Readout change
+	 */
+	public static void syncWindows(Window w, int mode) {
+		int groupNumber = w.getGroupNumber();
+		
+		// FIXME: Might be a good idea to keep lists of the groups for speed..
+		// This will get called during pan/zoom etc..
+		if (groupNumber > 0) {
+			Vector<Window> results = findSyncGroup(theDataViews, groupNumber);
+			Iterator<Window> iter = results.iterator();
+			while (iter.hasNext()) {
+				Window at = iter.next();
+				at.doSyncGroup(w, mode);
+			}
+		}else {
+			// Window is solo..just send to itself
+			w.doSyncGroup(w, mode);
+		}
 	}
 }

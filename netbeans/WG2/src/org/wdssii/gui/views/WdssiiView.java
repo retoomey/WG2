@@ -9,6 +9,7 @@ import javax.swing.Icon;
  * Used to return all the parts of a view to the window manager
  *
  * @author Robert Toomey
+ * @deprecated 
  */
 public class WdssiiView {
 

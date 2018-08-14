@@ -3,7 +3,9 @@ package org.wdssii.gui.views.infonode;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,18 +14,20 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.wdssii.gui.Application;
 import org.wdssii.gui.charts.DataView;
-import org.wdssii.gui.charts.W2DataView;
+import org.wdssii.gui.commands.OpenCommand;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.CatalogView;
 import org.wdssii.gui.views.FeaturesView;
 import org.wdssii.gui.views.NavView;
 import org.wdssii.gui.views.SourcesView;
+import org.wdssii.gui.views.SplitWindow;
 import org.wdssii.gui.views.WdssiiDockedViewFactory.DockView;
 import org.wdssii.gui.views.Window;
 import org.wdssii.gui.views.WindowManager.WindowMaker;
@@ -32,7 +36,7 @@ import org.wdssii.log.LoggerFactory;
 
 import net.infonode.docking.DockingWindow;
 import net.infonode.docking.RootWindow;
-import net.infonode.docking.SplitWindow;
+//import net.infonode.docking.SplitWindow;
 import net.infonode.docking.TabWindow;
 import net.infonode.docking.View;
 import net.infonode.docking.properties.RootWindowProperties;
@@ -138,16 +142,12 @@ public class Infonode implements WindowMaker {
 	@Override
 	public void init(final Window aWindow) {
 		// This actually sets the java UI, so we do this first
-		// setColorTheme(myCurrentColorThemeIndex);
+		setColorTheme(myCurrentColorThemeIndex);
 		// Docking windows should be run in the Swing thread
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				createWindowGUI(aWindow);
-				// Set the java color theme on root window..
-				setColorTheme(myCurrentThemeIndex);
-				// setTheme();
-				// System.exit(1);
 			}
 		});
 	}
@@ -198,17 +198,116 @@ public class Infonode implements WindowMaker {
 				.setTabLayoutPolicy(TabLayoutPolicy.SCROLLING);
 	}
 
+    /**
+     * FIXME: I should use the command model I set up for this...
+     *
+     * @return
+     */
+    private JMenu createFileMenu() {
+
+        // The file menu
+        JMenu menu = new JMenu("File");
+        menu.setMnemonic('F');
+
+        JMenuItem eMenuItem;
+
+/*
+        eMenuItem = new JMenuItem("New");
+        eMenuItem.setToolTipText("Create a new setup");
+        eMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+             //   doNew();
+            }
+        });
+        menu.add(eMenuItem);
+        menu.addSeparator();
+
+        eMenuItem = new JMenuItem("Open...");
+        eMenuItem.setToolTipText("Create a new setup");
+        eMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+              //  doOpen();
+            }
+        });
+        menu.add(eMenuItem);
+        menu.addSeparator();
+
+        menu.add(OpenCommand.getRecentDocumentMenu());
+        menu.addSeparator();
+
+        eMenuItem = new JMenuItem("Save");
+        //eMenuItem.setMnemonic(KeyEvent.VK_C);
+        eMenuItem.setToolTipText("Save state of display, layout, sources to XML file");
+        eMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+              //  doSave();
+            }
+        });
+        menu.add(eMenuItem);
+
+        eMenuItem = new JMenuItem("Save As...");
+        //eMenuItem.setMnemonic(KeyEvent.VK_C);
+        eMenuItem.setToolTipText("Save state of display, layout, sources to XML file...");
+        eMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+              //  doSaveAs();
+            }
+        });
+        menu.add(eMenuItem);
+
+        menu.addSeparator();
+        
+        */
+        eMenuItem = new JMenuItem("Exit");
+        eMenuItem.setMnemonic(KeyEvent.VK_C);
+        eMenuItem.setToolTipText("Exit application");
+        eMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+              //  doExit();
+            	System.exit(0);
+            }
+        });
+        menu.add(eMenuItem);
+
+        // menu.addSeparator();
+        return menu;
+    }
+    
+    /**
+     * Creates the frame menu bar.
+     * 
+     * We could create a 'menu' maker class..push this into model..
+     * 
+     * @return the menu bar
+     */
+	private JMenuBar createMenuBar()
+	{
+        JMenuBar menu = new JMenuBar();
+        menu.add(createFileMenu());
+        // menu.add(createFocusViewMenu());
+
+        // menu.add(createPropertiesMenu());
+        // menu.add(createWindowBarsMenu());
+      //  menu.add(createWindowMenu());
+        // menu.add(createFloatingWindowMenu());
+        return menu;
+	}
+	
 	/** Create the root window */
 	public Object createWindowRoot(Window aWindow) {
 		// JFrame.setDefaultLookAndFeelDecorated(true);
-		JFrame frame = new JFrame("Testing Infonode Builder");
+		JFrame frame = new JFrame(aWindow.getTitle());
 
+		// Keep root window as GUI item...
+		aWindow.setGUI(frame);
+		
 		// Ok so root menu could be done here instead....
-		JMenuBar menuBar = new JMenuBar();
-		JMenu item = new JMenu("File");
-		menuBar.add(item);
-		item = new JMenu("Again");
-		menuBar.add(item);
+		JMenuBar menuBar = createMenuBar();
 		frame.setJMenuBar(menuBar);
 
 		// Infonode rootwindow has to go into a frame
@@ -241,7 +340,7 @@ public class Infonode implements WindowMaker {
 		int count = aWindow.theWindows.size();
 		if (count != 1) {
 			// I think root infonode can actually handle more than one window...
-			LOG.error("This split window GUI can only handle 2 children at moment, sorry");
+			LOG.error("Root window can only handle one child at moment, sorry");
 		} else {
 			DockingWindow dd = (DockingWindow) createWindowGUI(aWindow.theWindows.get(0));
 			rootWindow.setWindow(dd);
@@ -277,7 +376,6 @@ public class Infonode implements WindowMaker {
 
 		// Children will be charts...
 		int count = w.theWindows.size();
-		// int counter = 1;
 		for (int i = 0; i < count; i++) {
 			// Not letting children dedock yet...new layout playing
 
@@ -286,14 +384,15 @@ public class Infonode implements WindowMaker {
 			// createWindowGUI(w.theWindows.get(i));
 
 			// Use simple tile layout engine for this.
-			Object n = w.theWindows.get(i).myNode;
-			if (n instanceof W2DataView) {
-				W2DataView dv = (W2DataView) (n);
+			// Dataviews are currently their own GUI factories
+			Object n = w.theWindows.get(i);
+			if (n instanceof DataView) {
+				DataView dv = (DataView) (n);
 				Component addMe = (Component) dv.getNewGUIForChart(null);
 				panel.add(addMe);
 				w.theWindows.get(i).setGUI(addMe);
 			} else {
-				LOG.error("Data view expects subclass of W2DataView for children!");
+				LOG.error("Data view expects subclasses of DataView for children!");
 			}
 		}
 		w.setGUI(view);
@@ -313,7 +412,7 @@ public class Infonode implements WindowMaker {
 	{
 		// Wrap component in a infonode docking window
 		View newOne = new View(aTitle, getWindowIcon(aIconName), c);
-		w.myNode = c;  // Store it in case we need to reference it later
+		//w.myNode = c;  // Store it in case we need to reference it later
 		
 		// If this is a wdssii DockView class object, it has menu ability at moment,
 		// so call the DockView method as MenuMaker here.
@@ -334,7 +433,7 @@ public class Infonode implements WindowMaker {
 
 
 	/** Create a split window return new GUI item */
-	private Object createSplit(Window w) {
+	private Object createSplit(SplitWindow w) {
 		int count = w.theWindows.size();
 		if (count != 2) {
 			// FIXME: we could handle having n children by auto-nesting splits, right?
@@ -343,7 +442,7 @@ public class Infonode implements WindowMaker {
 		}
 		DockingWindow leftGUI = (DockingWindow) createWindowGUI(w.theWindows.get(0));
 		DockingWindow rightGUI = (DockingWindow) createWindowGUI(w.theWindows.get(1));
-		SplitWindow split = new SplitWindow(w.getSplitHorizontal(), w.getSplitPercentage(), leftGUI, rightGUI);
+		net.infonode.docking.SplitWindow split = new net.infonode.docking.SplitWindow(!w.getSplitHorizontal(), w.getSplitPercentage(), leftGUI, rightGUI);
 		rightGUI = split;
 
 		w.setGUI(split);
@@ -392,11 +491,11 @@ public class Infonode implements WindowMaker {
 			case Window.WINDOW_DATAVIEW:
 				return createDataView(aWindow);
 			case Window.WINDOW_SPLIT:
-				return createSplit(aWindow);
+				return createSplit((SplitWindow)(aWindow));
 			case Window.WINDOW_TAB:
 				return createTabs(aWindow);
-			//case Window.WINDOW_NODE:
-			//	return createNode(aWindow);
+				
+			// Right now these are direct swing gui items...
 			case Window.WINDOW_NAV:
 				return wrapInfoView(aWindow, new NavView(), "Navigator", "eye.png");
 			case Window.WINDOW_SOURCES:
@@ -481,7 +580,13 @@ public class Infonode implements WindowMaker {
 
 	@Override
 	public void notifyRenamed(Window w) {
-		// We only rename data views...which currently are laid out without
-		// dock frames...so no title to change.
+	    // String currentTitle = w.getTitle();
+	    //String dir = DataManager.getInstance().getRootTempDir();
+	    // String newTitle = currentTitle.replaceAll("tempdir", "["+dir+"]");
+	    // FIXME: shorten it to shortest path?
+		if (w.getGUI() == myRootFrame) {
+			myRootFrame.setTitle(w.getTitle());
+	  //  myRootFrame.setTitle(s + " - " + WINDOWTITLE); //+ " " + dir)
+		}
 	}
 }

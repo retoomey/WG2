@@ -1,22 +1,9 @@
 package org.wdssii.gui;
 
-import org.wdssii.gui.views.infonode.Infonode;
-import org.wdssii.gui.views.infonode.InfonodeViews;
-import org.wdssii.gui.commands.SourceAddCommand;
-import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
-import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;
-import org.wdssii.gui.features.EarthBallFeature;
-import org.wdssii.gui.features.Feature;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.MapFeature;
-import org.wdssii.gui.features.MapGUI;
-import org.wdssii.gui.sources.IndexSource;
-import org.wdssii.gui.views.ViewManager;
-import org.wdssii.gui.views.WindowManager;
-
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Arrays;
+
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -24,6 +11,18 @@ import org.wdssii.core.CommandManager;
 import org.wdssii.core.W2Config;
 import org.wdssii.core.WDSSII;
 import org.wdssii.core.WdssiiJob;
+import org.wdssii.gui.commands.SourceAddCommand;
+import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
+import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;
+import org.wdssii.gui.features.EarthBallFeature;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.MapFeature;
+import org.wdssii.gui.sources.IndexSource;
+import org.wdssii.gui.views.ViewManager;
+import org.wdssii.gui.views.WindowManager;
+import org.wdssii.gui.views.infonode.Infonode;
+import org.wdssii.gui.views.infonode.InfonodeViews;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.storage.DataManager;

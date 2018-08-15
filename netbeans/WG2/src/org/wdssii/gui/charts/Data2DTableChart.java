@@ -284,12 +284,12 @@ public class Data2DTableChart extends DataView {
         // -------------------------------------------------------------------------
         // Snag the top stick for the moment
         LLHAreaFeature f = null;
-        f = FeatureList.theFeatures.getTopMatch(new StickFilter());
+        f = FeatureList.getFeatureList().getTopMatch(new StickFilter());
         if (f == null) {
             // Do ahead and try to make one...
             FeatureCreateCommand doit = new FeatureCreateCommand("Set", Integer.valueOf(1));
             CommandManager.getInstance().executeCommand(doit, true);
-            f = FeatureList.theFeatures.getTopMatch(new StickFilter());
+            f = FeatureList.getFeatureList().getTopMatch(new StickFilter());
         }
         return f;
     }

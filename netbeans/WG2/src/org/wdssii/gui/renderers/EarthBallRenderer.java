@@ -8,7 +8,6 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
 
-import org.jfree.util.Log;
 import org.wdssii.core.W2Config;
 import org.wdssii.geom.D3;
 import org.wdssii.gui.GLCacheManager;
@@ -18,7 +17,6 @@ import org.wdssii.gui.Texture;
 import org.wdssii.gui.features.EarthBallFeature.EarthBallMemento;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.features.MapFeature.MapMemento;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 

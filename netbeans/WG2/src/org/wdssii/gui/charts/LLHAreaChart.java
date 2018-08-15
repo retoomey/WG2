@@ -61,12 +61,12 @@ public class LLHAreaChart extends ChartViewJFreeChart {
         // This has the effect of following the top selected vslice...
 
         LLHAreaSet slice = null;
-        LLHAreaFeature f = FeatureList.theFeatures.getTopMatch(new VSliceFilter());
+        LLHAreaFeature f = FeatureList.getFeatureList().getTopMatch(new VSliceFilter());
          if (f == null) {
             // Do ahead and try to make one...
             FeatureCreateCommand doit = new FeatureCreateCommand("Set", Integer.valueOf(2));
             CommandManager.getInstance().executeCommand(doit, true);
-            f = FeatureList.theFeatures.getTopMatch(new VSliceFilter());
+            f = FeatureList.getFeatureList().getTopMatch(new VSliceFilter());
         }
         if (f != null) {
             LLHArea area = f.getLLHArea();

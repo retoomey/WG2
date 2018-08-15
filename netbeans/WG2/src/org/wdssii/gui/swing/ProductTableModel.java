@@ -2,8 +2,7 @@ package org.wdssii.gui.swing;
 
 import java.awt.Color;
 import java.awt.event.AdjustmentEvent;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
+
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.DataType.DataTypeQuery;
 import org.wdssii.datatypes.Table2DView;
@@ -15,8 +14,9 @@ import org.wdssii.gui.products.FilterList;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.products.ProductTextFormatter;
-import org.wdssii.gui.products.readouts.ProductReadout;
 import org.wdssii.gui.swing.SimpleTable.SimpleTableModel;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 
 /**
  * Links a Table2DView product to a SimpleTableModel
@@ -162,6 +162,6 @@ public class ProductTableModel extends SimpleTableModel {
 
 	@Override
 	public void handleScrollAdjust(AdjustmentEvent e) {
-		FeatureList.theFeatures.updateOnMinTime();
+		FeatureList.getFeatureList().updateOnMinTime();
 	}
 }

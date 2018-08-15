@@ -51,6 +51,9 @@ public class ProductFollowCommand extends ProductCommand {
     @Override
     public ArrayList<CommandOption> getCommandOptions() {
 
+    	/** FIXTUREFIX: Following no longer has meaning, since each
+    	 * data view has it's own list
+    	 
         // Go through products, get a sorted string list...
         ProductManager m = ProductManager.getInstance();
         //ProductHandlerList p = m.getProductOrderedSet();
@@ -73,6 +76,8 @@ public class ProductFollowCommand extends ProductCommand {
         theList.add(0, new CommandOption(top, ProductManager.TOP_PRODUCT));
 
         return theList;
+        */
+    	return null;
     }
 
     /**

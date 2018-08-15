@@ -21,7 +21,6 @@ import javax.swing.UIManager;
 
 import org.wdssii.gui.Application;
 import org.wdssii.gui.charts.DataView;
-import org.wdssii.gui.commands.OpenCommand;
 import org.wdssii.gui.swing.SwingIconFactory;
 import org.wdssii.gui.views.CatalogView;
 import org.wdssii.gui.views.FeaturesView;

@@ -1,7 +1,6 @@
 package org.wdssii.gui.features;
 
 import java.lang.ref.WeakReference;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -10,8 +9,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.TreeMap;
 
-import org.wdssii.core.W2Config;
 import org.wdssii.gui.charts.DataView;
+import org.wdssii.gui.views.WindowManager;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.properties.Memento;
@@ -30,6 +29,15 @@ public class FeatureList {
     private ArrayList<WeakReference<DataView>> myDataViews;
     private FeaturePosition myFeaturePosition = null;
 
+    public static FeatureList getFeatureList() {
+    	
+    	// Should feature lists be contained in the window model?  humm.  Still
+    	// better than having only one.
+    	return WindowManager.getTopFeatureList();
+    	
+    	//return theFeatures;
+    }
+    
     public static class FeaturePosition {
 
         public FeaturePosition(float lat, float lon, float elev) {
@@ -76,7 +84,7 @@ public class FeatureList {
      * A single feature list for entire display, because I only have one window
      * at the moment.....
      */
-    public static final FeatureList theFeatures = new FeatureList();
+    private static final FeatureList theFeatures = new FeatureList();
     /**
      * Every group can have a selected object
      */
@@ -95,14 +103,18 @@ public class FeatureList {
      */
     protected Date mySimulationTime = new Date();
 
+    /* FEATUREFIX
     static {
-    		
-        Feature legend = LegendFeature.createLegend(FeatureList.theFeatures, 
+    
+    	/* FEATUREFIX:
+        Feature legend = LegendFeature.createLegend(FeatureList.getFeatureList(), 
         		"compass", "scale", "insert", "controls"); // FIXME: magic strings better way
-        theFeatures.addFeature(legend);
-        Feature loop = new LoopFeature(theFeatures);
-        theFeatures.addFeature(loop);
+        getFeatureList().addFeature(legend);
+        Feature loop = new LoopFeature(getFeatureList());
+        getFeatureList().addFeature(loop);
+        
     }
+     */
     /**
      * The features we contain. Not adding a public interface here for
      * synchronization purposes

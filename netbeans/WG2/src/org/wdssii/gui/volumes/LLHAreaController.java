@@ -17,9 +17,7 @@ import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.LLHAreaFeature;
 
-
 import org.wdssii.gui.worldwind.LLHAreaLayer;
-import org.wdssii.gui.worldwind.WorldWindDataView;
 
 /**
  * This handles the mouse/key events for an LLHAreaLayer. There is only one of
@@ -97,15 +95,17 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 		STOP_DRAGGING
 	}
 	private ToolbarMode myMode = ToolbarMode.NORMAL;
-	private WorldWindDataView v;
+	private GLWorld myWorld;
 
-	public LLHAreaController(WorldWindDataView v, LLHAreaLayer volume) {
-		this.v = v;
-		// this.wwd = w;
+	public LLHAreaController(GLWorld w, LLHAreaLayer volume) {
+		myWorld = w;
 		this.volumeLayer = volume;
-		//this.setupActionCursorMap();
 	}
 
+	public void setGLWorld(GLWorld w) {
+		myWorld = w;
+	}
+	
 	/**
 	 * Get the action we are currently doing...
 	 */
@@ -122,10 +122,6 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 
 	public LLHAreaLayer getLLHAreaLayer() {
 		return this.volumeLayer;
-	}
-
-	public WorldWindDataView getWorldView(){
-		return this.v;
 	}
 
 	protected Point getMousePoint() {
@@ -174,7 +170,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 		}
 
 		// Bleh! hack this for moment
-		List<Feature> fl = FeatureList.theFeatures.getFeatures();
+		List<Feature> fl = FeatureList.getFeatureList().getFeatures();
 		Iterator<Feature> iter = fl.iterator();
 		while (iter.hasNext()) {
 			Feature f = iter.next();
@@ -301,21 +297,21 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 		// FIXME:  How to do that?
 		boolean b1 = (e.getButton() == MouseEvent.BUTTON1);
 		boolean shift = e.isShiftDown();
-
+		
 		if (myMode == ToolbarMode.ADD_REMOVE) {
 			if (b1) {
 				shiftDown = shift;
 				if (shift) {
-					processDFA(e.getPoint(), DFAAction.DELETE_CONTROL_POINT);
+					processDFA(e.getPoint(), myWorld, DFAAction.DELETE_CONTROL_POINT);
 				} else {
-					processDFA(e.getPoint(), DFAAction.CREATE_CONTROL_POINT);
+					processDFA(e.getPoint(), myWorld, DFAAction.CREATE_CONTROL_POINT);
 					// DFA currently switching to drag automatically
 				}
 				e.consume(); // Don't pass on mouse down to others
 			}
 		} else if (myMode == ToolbarMode.NORMAL) {
 			if (b1) {
-				processDFA(e.getPoint(), DFAAction.START_DRAGGING);
+				processDFA(e.getPoint(), myWorld, DFAAction.START_DRAGGING);
 			}
 		}
 	}
@@ -329,7 +325,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 
 		boolean b1 = (e.getButton() == MouseEvent.BUTTON1);
 		if (b1) {
-			processDFA(e.getPoint(), DFAAction.STOP_DRAGGING);
+			processDFA(e.getPoint(), myWorld, DFAAction.STOP_DRAGGING);
 			e.consume(); // Don't pass on mouse down to others
 		}
 
@@ -359,8 +355,8 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 		if (this.getLLHAreaLayer() == null ) {
 			return;
 		}
-
-		processDFA(e.getPoint(), DFAAction.DRAGGING);
+		
+		processDFA(e.getPoint(), myWorld, DFAAction.DRAGGING);
 		// Anything but NO_ACTION state on drag is consumed...
 		if (myDFAState != DFAMode.NO_ACTION) {
 			// LOG.debug("Mouse drag consume.. " + myDFAState);
@@ -452,14 +448,14 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 	/**
 	 * Handle a mouse event
 	 */
-	protected void processDFA(Point e, DFAAction m) {
-		DFAState d = new DFAState(this, v, e, m);
+	protected void processDFA(Point e, GLWorld w, DFAAction m) {
+		DFAState d = new DFAState(this, w, e, m);
 		processDFA(d);
 	}
 
 	public static class DFAState {
 
-		public DFAState(LLHAreaController c, WorldWindDataView v, Point at2, DFAAction m2) {
+		public DFAState(LLHAreaController c, GLWorld w, Point at2, DFAAction m2) {
 			pickedInfo i = c.getTopPickedObject();
 			pickedArea = i.pickedArea;
 			pickedPoint = i.pickedPoint;
@@ -476,7 +472,7 @@ public class LLHAreaController implements KeyListener, MouseListener, MouseMotio
 			consume = false;
 
 			l = c.getLLHAreaLayer();
-			glw = v.getGLWorld();
+			glw = w;
 		}
 		Point at;
 		DFAAction m;

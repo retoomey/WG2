@@ -1,18 +1,21 @@
 package org.wdssii.gui;
 
-import org.wdssii.core.Singleton;
 import java.awt.Color;
 import java.awt.Point;
 import java.io.File;
 import java.net.URL;
-import java.util.*;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TreeMap;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.wdssii.storage.LRUCache;
-import org.wdssii.storage.LRUCache.LRUTrimComparator;
+import org.wdssii.core.Singleton;
 import org.wdssii.core.W2Config;
 import org.wdssii.datatypes.DataType.DataTypeMetric;
 import org.wdssii.gui.PreferencesManager.PrefConstants;
@@ -28,10 +31,19 @@ import org.wdssii.gui.products.volumes.ProductVolume;
 import org.wdssii.gui.sources.IndexSource;
 import org.wdssii.gui.sources.Source;
 import org.wdssii.gui.sources.SourceList;
+import org.wdssii.gui.views.WindowManager;
 import org.wdssii.index.HistoricalIndex;
 import org.wdssii.index.IndexRecord;
-import org.wdssii.xml.*;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
+import org.wdssii.storage.LRUCache;
+import org.wdssii.storage.LRUCache.LRUTrimComparator;
+import org.wdssii.xml.ColorDatabase;
 import org.wdssii.xml.ColorDatabase.ColorDef;
+import org.wdssii.xml.PointColorMap;
+import org.wdssii.xml.Util;
+import org.wdssii.xml.W2Color;
+import org.wdssii.xml.W2ColorMap;
 import org.wdssii.xml.W2ColorMap.W2ColorBin;
 import org.wdssii.xml.iconSetConfig.IconSetConfig;
 import org.wdssii.xml.iconSetConfig.Symbology;
@@ -65,25 +77,17 @@ public class ProductManager implements Singleton {
      * The cache for Product objects
      */
     LRUCache<String, Product> myProductCache = new LRUCache<String, Product>(MIN_CACHE_SIZE, 200, MAX_CACHE_SIZE);
-
-    // Feature convenience?
-    /**
-     * Wrapper to get list of ProductFeatures. Currently only one . This should
-     * take a key eventually
-     */
-    public List<ProductFeature> getProductFeatures() {
-        FeatureList flist = FeatureList.theFeatures;
-        List<ProductFeature> forg = flist.getFeatureGroup(ProductFeature.class);
-        return forg;
-    }
     
     /**
      * Get a sorted product feature list.  Used by NavView
+     * 
+     * NavView could do this itself...
      */
     public ArrayList<ProductFeature> getSortedProductFeatures() {
 
-        List<ProductFeature> forg = ProductManager.getInstance().getProductFeatures();
-        ArrayList<ProductFeature> f = new ArrayList<ProductFeature>(forg);
+        FeatureList fl = WindowManager.getTopFeatureList();
+		ArrayList<ProductFeature> f = fl.getFeatureGroup(ProductFeature.class);
+        
         // Sort a copy of this list....might be better to keep a sorted list within
         // the FeatureList...we'll see how much this gets 'hit'
         Collections.sort(f,
@@ -97,18 +101,20 @@ public class ProductManager implements Singleton {
     }
 
     public FeatureList getFeatureList() {
-        return FeatureList.theFeatures;
+        FeatureList fl = WindowManager.getTopFeatureList();
+        return fl;
+        //return FeatureList.getFeatureList();
     }
 
     public Feature getNamedFeature(String key) {
-        Feature f = FeatureList.theFeatures.getFeature(key);
+        Feature f = getFeatureList().getFeature(key);
         return f;
     }
 
     public ProductFeature getProductFeature(String key) {
 
         ProductFeature pf = null;
-        Feature f = FeatureList.theFeatures.getFeature(key);
+        Feature f = getFeatureList().getFeature(key);
         if (f instanceof ProductFeature) {
             pf = (ProductFeature) (f);
         }
@@ -126,7 +132,7 @@ public class ProductManager implements Singleton {
     public ProductFeature getTopProductFeature() {
 
         ProductFeature pf = null;
-        Feature f = FeatureList.theFeatures.getSelected(ProductFeature.ProductGroup);
+        Feature f = getFeatureList().getSelected(ProductFeature.ProductGroup);
         if (f instanceof ProductFeature) {
             pf = (ProductFeature) (f);
         }
@@ -134,11 +140,11 @@ public class ProductManager implements Singleton {
     }
 
     public Date getSimulationTime() {
-        return FeatureList.theFeatures.getSimulationTime();
+        return getFeatureList().getSimulationTime();
     }
 
     public String getSimulationTimeStamp() {
-        return FeatureList.theFeatures.getSimulationTimeStamp();
+        return getFeatureList().getSimulationTimeStamp();
     }
 
     public void deleteSelectedProduct() {
@@ -176,11 +182,11 @@ public class ProductManager implements Singleton {
         LOG.info("Delete product matching source " + toDelete);
         LOG.error("Need to implement delete products matching source");
         ProductDeleteFilter filter = new ProductDeleteFilter(toDelete);
-        FeatureList.theFeatures.removeFeatures(filter);
+        getFeatureList().removeFeatures(filter);
     }
 
     public void deleteProduct(String key) {
-        FeatureList.theFeatures.removeFeature(key);
+        getFeatureList().removeFeature(key);
     }
 
     /**
@@ -250,7 +256,9 @@ public class ProductManager implements Singleton {
 
     // called by ColorKeyLayer to get the current color map...
     public ColorMap getCurrentColorMap() {
-        List<ProductFeature> l = getProductFeatures();
+    	
+    	FeatureList fl = WindowManager.getTopFeatureList();
+		List<ProductFeature> l = fl.getFeatureGroup(ProductFeature.class);
         for (ProductFeature current : l) {
             if (current.wouldRender()) {
                 // Just the first color map for now at least
@@ -1263,7 +1271,7 @@ public class ProductManager implements Singleton {
             return null;
         }
 
-        FeatureList toAdd = FeatureList.theFeatures;
+        FeatureList toAdd = FeatureList.getFeatureList();
 
         boolean found = false;
         ArrayList<ProductFeature> list = toAdd.getFeatureGroup(ProductFeature.class);
@@ -1303,9 +1311,9 @@ public class ProductManager implements Singleton {
     public void selectProductFeature(ProductFeature theSelection) {
 
         // Move to 'top' visually
-        FeatureList.theFeatures.setDrawLast(theSelection);
+        FeatureList.getFeatureList().setDrawLast(theSelection);
 
         // Select the item in lists
-        FeatureList.theFeatures.setSelected(theSelection);
+        FeatureList.getFeatureList().setSelected(theSelection);
     }
 }

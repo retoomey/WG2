@@ -27,6 +27,7 @@ import org.wdssii.gui.products.Product;
 import org.wdssii.core.ProductButtonStatus;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.products.navigators.ProductNavigator;
+import org.wdssii.gui.renderers.ColorMapRenderer;
 import org.wdssii.gui.swing.*;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer;
 import org.wdssii.gui.swing.TableUtil.IconHeaderRenderer.IconHeaderInfo;
@@ -44,7 +45,11 @@ public final class NavView extends JThreadPanel implements CommandListener {
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
     // When sources or products change, update the navigation controls
-    public void ProductCommandUpdate(ProductCommand command) {
+    public void ChartSwapCommandUpdate(ChartSwapCommand command) {
+    	updateGUI(command);
+    }
+	
+	public void ProductCommandUpdate(ProductCommand command) {
         updateGUI(command);
     }
 
@@ -83,7 +88,7 @@ public final class NavView extends JThreadPanel implements CommandListener {
         // Update the navigation button array
         ArrayList<ProductFeature> l = ProductManager.getInstance().getSortedProductFeatures();
         ProductFeature top =
-                (ProductFeature) FeatureList.theFeatures.getSelected(ProductFeature.ProductGroup);
+                (ProductFeature) FeatureList.getFeatureList().getSelected(ProductFeature.ProductGroup);
 
         updateContentDescription(l, top);
         updateNavButtons(l, top);
@@ -102,7 +107,6 @@ public final class NavView extends JThreadPanel implements CommandListener {
         @Override
         public Component getNewComponent() {
             NavView justOne = new NavView();
-            CommandManager.getInstance().addListener("Navigation", justOne);
             return justOne;
         }
     }
@@ -291,6 +295,8 @@ public final class NavView extends JThreadPanel implements CommandListener {
 
         // For box layout, have to align label center...
         jProductInfoLabel.setAlignmentX(LEFT_ALIGNMENT);
+
+        CommandManager.getInstance().addListener("Navigation", this);
 
         updateInSwingThread(null);
     }
@@ -607,7 +613,7 @@ public final class NavView extends JThreadPanel implements CommandListener {
             sortedList = new ArrayList<ProductsTableData>();
             Iterator<ProductFeature> iter = p.iterator();
             ProductFeature top =
-                    (ProductFeature) FeatureList.theFeatures.getSelected(ProductFeature.ProductGroup);
+                    (ProductFeature) FeatureList.getFeatureList().getSelected(ProductFeature.ProductGroup);
             while (iter.hasNext()) {
                 ProductFeature h = iter.next();
 

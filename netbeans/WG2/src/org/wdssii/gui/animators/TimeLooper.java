@@ -57,7 +57,7 @@ public class TimeLooper extends Animator {
 	                myLastDwellMS = myDwellMS; // Last frame of loop dwel
 	                myFirstDwellMS = myDwellMS; // Last frame of loop dwel
 
-			LoopFeature f = (LoopFeature) FeatureList.theFeatures.getFirstFeature(LoopFeature.class);
+			LoopFeature f = (LoopFeature) FeatureList.getFeatureList().getFirstFeature(LoopFeature.class);
 			LoopMemento m = (LoopMemento) f.getMemento();
 
 			// First dwell, Last dwell, dwell..

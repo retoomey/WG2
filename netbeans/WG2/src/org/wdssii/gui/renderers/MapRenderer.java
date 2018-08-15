@@ -478,7 +478,7 @@ public class MapRenderer extends Feature3DRenderer {
 				keepWorking = false;
 			}
 		}
-		FeatureList.theFeatures.updateOnMinTime();
+		FeatureList.getFeatureList().updateOnMinTime();
 		return keepWorking;
 	}
 }

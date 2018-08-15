@@ -87,7 +87,6 @@ public class ContoursRenderer extends ProductRenderer {
             readout = new Array1DfloatAsNodes(numOfLocations, 0.0f);
             myOffsets = new Vector<Integer>();
             // colors = new Array1DfloatAsNodes(ccounter / 4, 0.0f); // use one 'float' per color...
-            int offset = 0;
             int idx = 0;
             int idy = 0;
             int idREAD = 0;

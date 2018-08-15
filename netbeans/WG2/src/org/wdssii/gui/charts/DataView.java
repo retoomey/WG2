@@ -17,13 +17,19 @@ import org.wdssii.gui.views.Window;
  */
 public class DataView extends Window {
 
+	/** The feature list stored by this data view */
+	private FeatureList myFeatures = new FeatureList();
+	
+	public FeatureList getFeatureList() {
+		return myFeatures;
+	}
+	
     public DataView() {
 		super(Window.WINDOW_CHART);
 		// TODO Auto-generated constructor stub
 	}
 	private final static Logger LOG = LoggerFactory.getLogger(DataView.class);
 
- //   private String title = "None";
     
     /**
      * Update chart when needed (check should be done by chart)
@@ -43,17 +49,6 @@ public class DataView extends Window {
      */
     private String myCurrentProduct = ProductFollowCommand.top;
 
- //   /** Set title of the view */
- //   public void setTitle(String t)
- //   {
- //   	title = t;
- //   }
-    
-    /** Get title of the view */
- //   public String getTitle() {
- //   	return title;
-  //  }
- //   
     /**
      * Set if this chart should use virtual volumes
      */

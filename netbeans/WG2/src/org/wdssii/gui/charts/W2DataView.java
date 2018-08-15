@@ -1,9 +1,9 @@
 package org.wdssii.gui.charts;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -37,12 +37,10 @@ import javax.swing.JSeparator;
 
 import org.wdssii.core.CommandManager;
 import org.wdssii.core.WdssiiCommand;
-import org.wdssii.geom.D3;
 import org.wdssii.gui.GLBoxCamera;
 import org.wdssii.gui.GLCacheManager;
 import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.GLWorld;
-import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.W2GLWorld;
 import org.wdssii.gui.commands.ChartDeleteCommand;
 import org.wdssii.gui.commands.ChartDeleteCommand.ChartDeleteParams;
@@ -63,11 +61,8 @@ import org.wdssii.gui.features.LegendFeature;
 import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.features.PolarGridFeature;
 import org.wdssii.gui.products.ProductFeature;
-import org.wdssii.gui.renderers.CompassRenderer;
-import org.wdssii.gui.renderers.EarthBallRenderer;
 import org.wdssii.gui.views.Window;
 import org.wdssii.gui.views.WindowManager;
-import org.wdssii.gui.worldwind.LLHAreaLayer;
 import org.wdssii.log.LoggerFactory;
 
 import com.jogamp.opengl.util.FPSAnimator;
@@ -156,7 +151,7 @@ final class W2DataViewListener implements GLEventListener,
 
 	private boolean myFirstTime = true;
 
-	private LLHAreaLayer myLLHAreaLayer;
+	//private LLHAreaLayer myLLHAreaLayer;
 
 	private TextRenderer myText;
 
@@ -184,7 +179,10 @@ final class W2DataViewListener implements GLEventListener,
 	 */
 	public void renderFeatureGroup(GLWorld w, String g) {
 
-		FeatureList fl = ProductManager.getInstance().getFeatureList();
+		// Why product manager? lol.
+		//FeatureList fl = ProductManager.getInstance().getFeatureList();
+		FeatureList fl = myW2DataView.getFeatureList();
+		
 		List<Feature> list = fl.getActiveFeatureGroup(g);
 
 		// For each rank...draw over lower ranks...
@@ -205,7 +203,44 @@ final class W2DataViewListener implements GLEventListener,
 						for (FeatureRenderer fr : theList) {
 							if (fr instanceof Feature3DRenderer) {
 								Feature3DRenderer a3d = (Feature3DRenderer) (fr);
+								a3d.setCurrentFeatureList(fl);
 								a3d.draw(w, m);
+							}
+						}
+					}
+
+				}
+			}
+		}
+	}
+	
+	public void pickFeatureGroup(GLWorld w, String g, int x, int y) {
+
+		//FeatureList fl = ProductManager.getInstance().getFeatureList();
+		FeatureList fl = myW2DataView.getFeatureList();
+
+		List<Feature> list = fl.getActiveFeatureGroup(g);
+
+		// For each rank...draw over lower ranks...
+		for (int i = 0; i <= Feature.MAX_RANK; i++) {
+			Iterator<Feature> iter = list.iterator();
+			while (iter.hasNext()) {
+				Feature f = iter.next();
+				if (f.getRank() == i) {
+					// f.render(w);
+					FeatureMemento m = f.getMemento();
+					// eh? How did it work?
+					// ArrayList<FeatureRenderer> theList = f.getRendererList("WW",
+					// "org.wdssii.gui.worldwind.renderers");
+					ArrayList<FeatureRenderer> theList = f.getRendererList("", "org.wdssii.gui.renderers");
+
+					// ArrayList<FeatureRenderer> theList = myMap.get(f);
+					if (theList != null) {
+						for (FeatureRenderer fr : theList) {
+							if (fr instanceof Feature3DRenderer) {
+								Feature3DRenderer a3d = (Feature3DRenderer) (fr);
+								LOG.error("Pick called on feature "+x+" "+y);
+								a3d.pick(w, new Point(x,y), m);
 							}
 						}
 					}
@@ -404,6 +439,15 @@ final class W2DataViewListener implements GLEventListener,
 		// if the camera changes after creating this, it is no longer valid.
 		W2GLWorld glw = new W2GLWorld(gl, myCamera, w, h, myW2DataView);
 
+		// Probably not where we want it to end up....
+		// Think we should create a 'stack' of objects based upon mouse location in window...
+		// ...so that all features can react to mouse...
+		pickFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup, leftX, h-leftY); // pick y in gl coordinates at moment
+		
+		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
+
+		// This method searches entire list...could we sort them then just render in order?
+		
 		// Basemaps first (below products)
 		renderFeatureGroup(glw, EarthBallFeature.MapGroup);
 
@@ -415,12 +459,14 @@ final class W2DataViewListener implements GLEventListener,
 		renderFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup);
 
 		// Draw actual control points. Humm why not part of feature?
-		if (myLLHAreaLayer == null) {
+		// Yeah rewrite into our own model.  ALL features should have picking
+		// ability, right?  And should be able to handle mouse events...
+	/*	if (myLLHAreaLayer == null) {
 			myLLHAreaLayer = new LLHAreaLayer();
 		}
 		if (myLLHAreaLayer != null) {
 			myLLHAreaLayer.draw(glw);
-		}
+		}*/
 
 		renderFeatureGroup(glw, PolarGridFeature.PolarGridGroup);
 
@@ -599,6 +645,31 @@ final class W2DataViewListener implements GLEventListener,
 		 * g.flatToggled(glc); } if (needFullRedraw){ cameraChanged(glc);
 		 * g.syncCameras(glc); } g.updateGroup(glc, !needFullRedraw);
 		 */
+		
+		 // Controller adds listeners to world which keeps reference
+      //  LLHAreaController c = new LLHAreaController(this,  myLLHAreaLayer);
+      //  myLLHAreaController = c;
+		// LLHAreaLayer has a (Layer that draws?  Should be feature right?
+		//    --- LLHAreaControlPointRenderer... ?
+		//         -- this has opengl, render method and pick method.
+		//         -- shouldn't this subclass Feature3DRenderer and let it have pick ability?
+		// LLHAreaController(has a AreaLayer.  Mouse listeners...)
+		// LLHAreaFeature (Feature itself...bleh)
+		// LLHAreaSetGUI (Changes LLHAreaSet....)
+		
+		// LHAreaControlPointRenderer  Draw actually control boxes?
+		// LLHPolygonRenderer Draw text and lines...
+		
+		// Ok so a conflict...have the layer/controller must be from worldwind...and we have
+		// feature -->renderer --> LLHPolygonRenderer (that's why it works when created)
+		// But the AreaLayer draws too...and adds mouse listeners to main window...or the effect of
+		
+		
+		// LLHArea (volume stuff?)
+		//   --LLHAreaSet subclass (should be LLHArea?  
+		// Why not the LLHSet Feature...then have point renderer as it's renderer..
+		// All the mouse logic...humm  Helper methods instead of direct?
+
 		setDirty(); // Make click redraw
 		canvas.display();
 
@@ -808,7 +879,7 @@ final class W2DataViewListener implements GLEventListener,
 			// If camera is different need full redraw on any mode...
 			boolean changed = myW2DataView.getGLCamera().goToLocation(l);
 			if (changed) {
-				LOG.error("CAMERA CHANGED "+other);
+				//LOG.error("CAMERA CHANGED "+other);
 				setSceneChanged(); // Make click redraw
 				canvas.display();
 

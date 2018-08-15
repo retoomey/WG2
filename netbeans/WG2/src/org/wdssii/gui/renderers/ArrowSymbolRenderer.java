@@ -101,7 +101,7 @@ public class ArrowSymbolRenderer extends SymbolRenderer {
     @Override
     public void render(GL glold) {
 
-        final double polyRadius = s.pointsize / 2.0;
+        //final double polyRadius = s.pointsize / 2.0;
         final GL2 gl = glold.getGL().getGL2();
         // Translate icon.
         gl.glTranslatef((float) s.xoffset, (float) s.yoffset, 0);

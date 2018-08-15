@@ -56,7 +56,7 @@ public class WMSSource extends Source {
      * Get the feature we use to stick WMS into...
      */
     public WorldwindStockFeature getWMSFeature() {
-        WorldwindStockFeature f = FeatureList.theFeatures.getTopMatch(new WWFilter());
+        WorldwindStockFeature f = FeatureList.getFeatureList().getTopMatch(new WWFilter());
         if (f != null) {
             return f;
         }

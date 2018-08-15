@@ -1,5 +1,25 @@
 package org.wdssii.gui.worldwind;
 
+import java.util.ArrayList;
+
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+
+import org.wdssii.geom.Location;
+import org.wdssii.gui.Application;
+import org.wdssii.gui.GLWorld;
+import org.wdssii.gui.ProductManager;
+import org.wdssii.gui.charts.DataView;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureList.FeaturePosition;
+import org.wdssii.gui.features.LLHAreaSetGUI;
+import org.wdssii.gui.features.LegendFeature;
+import org.wdssii.gui.products.Product;
+import org.wdssii.gui.renderers.ProductRenderer;
+import org.wdssii.gui.volumes.LLHAreaController;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
+
 import gov.nasa.worldwind.Configuration;
 import gov.nasa.worldwind.Model;
 import gov.nasa.worldwind.SceneController;
@@ -19,37 +39,15 @@ import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.globes.ElevationModel;
 import gov.nasa.worldwind.globes.Globe;
-import gov.nasa.worldwind.layers.CompassLayer;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.layers.LayerList;
-import gov.nasa.worldwind.layers.ScalebarLayer;
 import gov.nasa.worldwind.layers.ViewControlsLayer;
 import gov.nasa.worldwind.layers.ViewControlsSelectListener;
-import gov.nasa.worldwind.layers.WorldMapLayer;
 import gov.nasa.worldwind.view.orbit.FlyToOrbitViewAnimator;
 import gov.nasa.worldwind.view.orbit.OrbitView;
-import java.awt.Component;
-import java.util.ArrayList;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
-import org.wdssii.geom.Location;
-import org.wdssii.gui.Application;
-import org.wdssii.gui.GLWorld;
-import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.charts.DataView;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.LLHAreaSetGUI;
-import org.wdssii.gui.features.FeatureList.FeaturePosition;
-import org.wdssii.gui.features.LegendFeature;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.renderers.ProductRenderer;
-import org.wdssii.gui.volumes.LLHAreaController;
 
 /**
  * Experimental. As I move towards multiwindow looks like stuff will be moving
@@ -102,7 +100,7 @@ public class WorldWindDataView extends DataView {
             float lonDegrees = (float) newPos.longitude.degrees;
             float elevKM = (float) newPos.elevation;
             FeaturePosition p = new FeaturePosition(latDegrees, lonDegrees, elevKM);
-            FeatureList.theFeatures.setTrackingPosition(p);
+            FeatureList.getFeatureList().setTrackingPosition(p);
             }
             // This will be done globally at setTrackingPosition
             //myStatusBar.moved(pe, myWorld);
@@ -316,7 +314,7 @@ public class WorldWindDataView extends DataView {
             w.setRequiredInfo(this, myVolumeLayer);
         }
         // Controller adds listeners to world which keeps reference
-        LLHAreaController c = new LLHAreaController(this,  myVolumeLayer);
+        LLHAreaController c = new LLHAreaController(this.getGLWorld(),  myVolumeLayer);
         myLLHAreaController = c;
         InputHandler h = myWorld.getInputHandler();
         h.addKeyListener(c);
@@ -343,7 +341,7 @@ public class WorldWindDataView extends DataView {
         ElevationModel m = globe.getElevationModel();
         setElevationModel(m);
 
-        FeatureList.theFeatures.addDataView(this);
+        FeatureList.getFeatureList().addDataView(this);
 
     }
 

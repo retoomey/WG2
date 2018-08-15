@@ -1,24 +1,13 @@
 package org.wdssii.gui;
 
 import java.lang.reflect.Field;
-import java.net.URL;
 import java.util.Arrays;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import org.wdssii.core.CommandManager;
-import org.wdssii.core.W2Config;
 import org.wdssii.core.WDSSII;
 import org.wdssii.core.WdssiiJob;
-import org.wdssii.gui.commands.SourceAddCommand;
-import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
-import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;
-import org.wdssii.gui.features.EarthBallFeature;
-import org.wdssii.gui.features.Feature;
-import org.wdssii.gui.features.FeatureList;
-import org.wdssii.gui.features.MapFeature;
-import org.wdssii.gui.sources.IndexSource;
 import org.wdssii.gui.views.ViewManager;
 import org.wdssii.gui.views.WindowManager;
 import org.wdssii.gui.views.infonode.Infonode;
@@ -80,7 +69,7 @@ public class Application {
 			@Override
 			public void run() {
 
-				int oldOne = 1;
+				int oldOne = 0;
 				if (oldOne == 1) { // Old one we're replacing
 					InfonodeViews d = new InfonodeViews();
 					ViewManager.init(d);
@@ -89,18 +78,19 @@ public class Application {
 					WindowManager.init(d);
 				}
 
+				/*
 				// Lazy load examples up
 				boolean loadExamples = true;
 				if (loadExamples) {
 
-					Feature earthBall = new EarthBallFeature(FeatureList.theFeatures);
-					FeatureList.theFeatures.addFeature(earthBall);
+					Feature earthBall = new EarthBallFeature(FeatureList.getFeatureList());
+					FeatureList.getFeatureList().addFeature(earthBall);
 					
 					URL mapURL = W2Config.getURL("maps/shapefiles/usa/ok/okcnty.shp");
 					if (mapURL != null) {
 						String filename = mapURL.getPath();
-						Feature testOne = new MapFeature(FeatureList.theFeatures, filename);
-						FeatureList.theFeatures.addFeature(testOne);
+						Feature testOne = new MapFeature(FeatureList.getFeatureList(), filename);
+						FeatureList.getFeatureList().addFeature(testOne);
 					}
 
 					URL aURL = W2Config.getURL("data/KTLX_05031999/code_index.xml");
@@ -111,7 +101,7 @@ public class Application {
 						c.setConfirmReport(false, false, null);
 						CommandManager.getInstance().executeCommand(c, false);
 					}
-				}
+				}*/
 			}
 		});
 	}

@@ -48,7 +48,7 @@ public class FeatureChangeCommand extends FeatureCommand {
         // Eventually theFeatures will be per world ball....
         if (initialized) {
         	// Send the property changes...
-            FeatureList.theFeatures.updateMemento(myFeatureKey, myChange);
+            FeatureList.getFeatureList().updateMemento(myFeatureKey, myChange);
 
         }
         return true; // GUI update (bleh full refresh)  

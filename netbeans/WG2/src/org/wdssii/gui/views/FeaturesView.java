@@ -53,6 +53,10 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     // Reflection called updates from CommandManager.
     // See CommandManager execute and gui updating for how this works
     // When sources or products change, update the navigation controls
+    public void ChartSwapCommandUpdate(ChartSwapCommand command) {
+    	updateGUI(command);
+    }
+    
     public void FeatureCommandUpdate(FeatureCommand command) {
         updateGUI(command);
     }
@@ -363,7 +367,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
                     switch (orgColumn) {
                         case FeatureListTableModel.OBJ_VISIBLE: {
-                            Feature f = FeatureList.theFeatures.getFeature(entry.keyName);
+                            Feature f = FeatureList.getFeatureList().getFeature(entry.keyName);
                             if (f != null) {
                                 FeatureMemento m = f.getNewMemento();
                                 m.setProperty(FeatureMemento.VISIBLE, !entry.checked);
@@ -373,7 +377,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
                         }
                         break;
                         case FeatureListTableModel.OBJ_ONLY: {
-                            Feature f = FeatureList.theFeatures.getFeature(entry.keyName);
+                            Feature f = FeatureList.getFeatureList().getFeature(entry.keyName);
                             if (f != null) {
                                 FeatureMemento m = f.getNewMemento();
                                 m.setProperty(FeatureMemento.ONLY, !entry.onlyMode);
@@ -440,7 +444,7 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             //LOG.debug("******SELECTCOMMAND " + fromSelect);
 
         }
-        final FeatureList flist = FeatureList.theFeatures;
+        final FeatureList flist = FeatureList.getFeatureList();
 
         /**
          * Static for now...
@@ -554,12 +558,12 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
             myLastSelectedFeature.getControls().updateGUI();
         }
         // Notification for product changed...
-         FeatureList.theFeatures.sendMessage("product");
+         FeatureList.getFeatureList().sendMessage("product");
 
     }
 
     private void updateLabel() {
-        jInfoLabel.setText(FeatureList.theFeatures.getGUIInfoString());
+        jInfoLabel.setText(FeatureList.getFeatureList().getGUIInfoString());
     }
 
     private JComponent initFeatureControlGUI() {
@@ -700,8 +704,8 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         URL newMap = MapGUI.doSingleMapOpenDialog(this);
         if (newMap != null) {
-            Feature testOne = new MapFeature(FeatureList.theFeatures, newMap);
-            FeatureList.theFeatures.addFeature(testOne);
+            Feature testOne = new MapFeature(FeatureList.getFeatureList(), newMap);
+            FeatureList.getFeatureList().addFeature(testOne);
         }
         updateGUI();
     }
@@ -714,8 +718,8 @@ public class FeaturesView extends JThreadPanel implements SDockView, CommandList
 
     private void jPolarGridButtonActionPerformed(java.awt.event.ActionEvent evt) {
         // FIXME: need to generize the feature create command...
-        PolarGridFeature pg = new PolarGridFeature(FeatureList.theFeatures);
-        FeatureList.theFeatures.addFeature(pg);
+        PolarGridFeature pg = new PolarGridFeature(FeatureList.getFeatureList());
+        FeatureList.getFeatureList().addFeature(pg);
         updateGUI();
     }
 }

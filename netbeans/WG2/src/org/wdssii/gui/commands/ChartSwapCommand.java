@@ -28,9 +28,8 @@ public class ChartSwapCommand extends WdssiiCommand {
 	
 	@Override
 	public boolean execute() {
-		System.out.println("CHART SWAP CALLED");
 		WindowManager.swapWindows(myParams.myName1, myParams.myName2);
-		return false;
+		return true;
 	}
 
 }

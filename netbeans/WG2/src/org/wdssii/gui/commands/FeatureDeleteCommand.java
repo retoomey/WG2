@@ -39,14 +39,14 @@ public class FeatureDeleteCommand extends FeatureCommand {
      * Delete all features from display
      */
     protected boolean deleteAllFeatures() {
-        FeatureList.theFeatures.removeFeatures(new DeleteAllFilter());
+        FeatureList.getFeatureList().removeFeatures(new DeleteAllFilter());
         return true;
     }
 
     @Override
     public boolean execute() {
-        FeatureList.theFeatures.removeFeature(myFeatureKey);
-        FeatureList.theFeatures.updateOnMinTime();
+        FeatureList.getFeatureList().removeFeature(myFeatureKey);
+        FeatureList.getFeatureList().updateOnMinTime();
         return true;
     }
 }

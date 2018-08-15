@@ -80,7 +80,7 @@ public class LLHAreaLayer {
 
 		// Assemble points ---------------------------------------------
 		currentControlPoints.clear();			
-		Feature f = FeatureList.theFeatures.getSelected(LLHAreaFeature.LLHAreaGroup);
+		Feature f = FeatureList.getFeatureList().getSelected(LLHAreaFeature.LLHAreaGroup);
 		if ((f == null) || (!f.getVisible())) {
 			return;
 		}
@@ -265,7 +265,7 @@ public class LLHAreaLayer {
 	public LLHArea getAirspace() {
 		LLHArea ap = null;
 
-		Feature f = FeatureList.theFeatures.getSelected(LLHAreaFeature.LLHAreaGroup);
+		Feature f = FeatureList.getFeatureList().getSelected(LLHAreaFeature.LLHAreaGroup);
 		if (f != null) {
 			LLHAreaFeature l = (LLHAreaFeature) (f);
 			ap = l.getLLHArea();

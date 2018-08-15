@@ -1,29 +1,37 @@
 package org.wdssii.gui.renderers;
 
-import org.wdssii.gui.features.Feature3DRenderer;
 //import com.sun.opengl.util.j2d.TextRenderer;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.List;
+
 import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
+import org.wdssii.gui.ColorMap;
+import org.wdssii.gui.ColorMap.ColorMapOutput;
+import org.wdssii.gui.GLUtil;
+import org.wdssii.gui.GLWorld;
+import org.wdssii.gui.features.Feature3DRenderer;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.LegendFeature.LegendMemento;
+import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
 import com.jogamp.opengl.util.awt.TextRenderer;
-
-import org.wdssii.gui.GLWorld;
-import org.wdssii.gui.ColorMap;
-import org.wdssii.gui.ColorMap.ColorMapOutput;
-import org.wdssii.gui.GLUtil;
-import org.wdssii.gui.ProductManager;
-import org.wdssii.gui.features.FeatureMemento;
-import org.wdssii.gui.features.LegendFeature.LegendMemento;
-import org.wdssii.gui.products.ProductFeature;
 
 /**
  * ColorMapRenderer. Base class for rendering a ColorMap. Since I'm only
@@ -41,8 +49,8 @@ public class ColorMapRenderer extends Feature3DRenderer {
 	 */
 	private ColorMap myColorMap;
 
-	/** 
-	 * The shown units 
+	/**
+	 * The shown units
 	 */
 	private String myUnits;
 
@@ -57,6 +65,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 	public ColorMap getColorMap() {
 		return myColorMap;
 	}
+
 	/**
 	 * Do we show labels when drawing?
 	 */
@@ -70,11 +79,11 @@ public class ColorMapRenderer extends Feature3DRenderer {
 	}
 
 	/** Set the shown units for renderer */
-	public void setUnits(String u){
+	public void setUnits(String u) {
 		myUnits = u;
 	}
 
-	public String getUnits(){
+	public String getUnits() {
 		return myUnits;
 	}
 
@@ -87,17 +96,17 @@ public class ColorMapRenderer extends Feature3DRenderer {
 	}
 
 	/**
-	 * Paint to a file (snapshot for all purposes). Returns an empty string
-	 * on success, otherwise a reason for failure.
+	 * Paint to a file (snapshot for all purposes). Returns an empty string on
+	 * success, otherwise a reason for failure.
 	 *
-	 * The GUI knows to ask for overwrite confirmation, if you call this
-	 * directly realize it will overwrite any given file with new stuff.
+	 * The GUI knows to ask for overwrite confirmation, if you call this directly
+	 * realize it will overwrite any given file with new stuff.
 	 */
 	public String paintToFile(String fileName, int w, int h) {
 		String success = "";
 		if (myColorMap != null) {
 			try {
-				// Get the extension use it as the file type.  Supported types are
+				// Get the extension use it as the file type. Supported types are
 				// "PNG", "JPEG", "gif", "BMP"
 				// "Mypicture.gif" --> ".gif"
 				int dot = fileName.lastIndexOf('.');
@@ -129,7 +138,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 
 					// This is annoying, we need a graphics to tell what size
 					// to draw the image as, but creating an image takes a size,
-					// lol.  So we do it twice.  FIXME: easier way?
+					// lol. So we do it twice. FIXME: easier way?
 					BufferedImage bi = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
 					Graphics2D ig2 = bi.createGraphics();
 					int minH = getColorKeyMinHeight(ig2);
@@ -144,23 +153,19 @@ public class ColorMapRenderer extends Feature3DRenderer {
 
 					// ImageIO freaks unless the file already exists...
 					File output = new File(fileName);
-					//   if (!output.createNewFile()){
-					//      return "Writing image failed because '"+fileName+"' already exists";
-					//  }
+					// if (!output.createNewFile()){
+					// return "Writing image failed because '"+fileName+"' already exists";
+					// }
+					// Write draw graphics to file....
 
-					if (output == null) {
-						success = "Writing image failed because file is null";
-					} else {
-						// Write draw graphics to file....
+					ImageIO.write(bi, type, output);
 
-						ImageIO.write(bi, type, output);
+					// ImageIO.write(bi, "PNG", new File("c:\\yourImageName.PNG"));
+					// ImageIO.write(bi, "JPEG", new File("c:\\yourImageName.JPG"));
+					// ImageIO.write(bi, "gif", new File("c:\\yourImageName.GIF"));
+					// ImageIO.write(bi, "BMP", new File("c:\\yourImageName.BMP"));
+					LOG.info("Drew color key to '" + fileName + "' as type '" + type + "'");
 
-						//ImageIO.write(bi, "PNG", new File("c:\\yourImageName.PNG"));
-						// ImageIO.write(bi, "JPEG", new File("c:\\yourImageName.JPG"));
-						// ImageIO.write(bi, "gif", new File("c:\\yourImageName.GIF"));
-						// ImageIO.write(bi, "BMP", new File("c:\\yourImageName.BMP"));
-						LOG.info("Drew color key to '" + fileName + "' as type '" + type + "'");
-					}
 				} else {
 					success = "Writing image failed because there is no writer for '" + type + "'";
 				}
@@ -183,8 +188,8 @@ public class ColorMapRenderer extends Feature3DRenderer {
 	}
 
 	/**
-	 * Combine some of the drawing logic. This is slower, but as the color
-	 * key gets more advanced this will try to share drawing logic
+	 * Combine some of the drawing logic. This is slower, but as the color key gets
+	 * more advanced this will try to share drawing logic
 	 */
 	private static class drawer {
 
@@ -192,6 +197,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		GL2 gl;
 		float opacity;
 		TextRenderer glText;
+		@SuppressWarnings("unused")
 		int viewWidth;
 		int viewHeight;
 
@@ -200,16 +206,14 @@ public class ColorMapRenderer extends Feature3DRenderer {
 			opacity = o;
 			viewWidth = vw;
 			viewHeight = vh;
-			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-			g.setRenderingHint(RenderingHints.KEY_RENDERING,
-				RenderingHints.VALUE_RENDER_QUALITY);
+			g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		}
 
 		public drawer(GL aGL, int vw, int vh, float o) {
-			//gl = aGL; // or subclass...
-        	gl = aGL.getGL().getGL2();
+			// gl = aGL; // or subclass...
+			gl = aGL.getGL().getGL2();
 
 			opacity = o;
 			viewWidth = vw;
@@ -233,11 +237,8 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		/**
 		 * Draw the background of color
 		 */
-		public void drawBackground(
-			double x,
-			double y, // 0 is top of viewport (reverse to gl) 
-			double w,
-			double h) {
+		public void drawBackground(double x, double y, // 0 is top of viewport (reverse to gl)
+				double w, double h) {
 			Color backColor = Color.BLACK;
 			if (g != null) {
 				// Erase square of colormap
@@ -247,9 +248,9 @@ public class ColorMapRenderer extends Feature3DRenderer {
 				// Erase square of colormap
 				final double uy = viewHeight - y;
 
-				gl.glColor4ub((byte) backColor.getRed(), //FIXME
-					(byte) backColor.getGreen(), (byte) backColor.getBlue(),
-					(byte) (backColor.getAlpha() * opacity));
+				gl.glColor4ub((byte) backColor.getRed(), // FIXME
+						(byte) backColor.getGreen(), (byte) backColor.getBlue(),
+						(byte) (backColor.getAlpha() * opacity));
 				gl.glRectd(0.0, uy, 0.0 + w + 0.5, uy - h - 0.5);
 			}
 		}
@@ -264,12 +265,9 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		/**
 		 * Draw the color bin box
 		 */
-		public void drawBin(
-			ColorMapOutput lo, ColorMapOutput hi,
-			double x,
-			double y, // 0 is top of viewport (reverse to gl)
-			double w,
-			double h) {
+		public void drawBin(ColorMapOutput lo, ColorMapOutput hi, double x, double y, // 0 is top of viewport (reverse
+																						// to gl)
+				double w, double h) {
 
 			if (g != null) {
 				final int ix = (int) x;
@@ -278,18 +276,15 @@ public class ColorMapRenderer extends Feature3DRenderer {
 				final int iy = (int) y;
 				Color loC = new Color(lo.redI(), lo.greenI(), lo.blueI());
 				Color hiC = new Color(hi.redI(), hi.greenI(), hi.blueI());
-				GradientPaint p = new GradientPaint(ix, iy, loC,
-					ix + iw, iy, hiC);
+				GradientPaint p = new GradientPaint(ix, iy, loC, ix + iw, iy, hiC);
 				g.setPaint(p);
 				g.fillRect(ix, iy, iw, ih);
 			} else {
 				final double uy = viewHeight - y;
-				gl.glColor4f(lo.redF(), lo.greenF(), lo.blueF(),
-					opacity);
+				gl.glColor4f(lo.redF(), lo.greenF(), lo.blueF(), opacity);
 				gl.glVertex2d(x, uy);
 				gl.glVertex2d(x, uy - h);
-				gl.glColor4f(hi.redF(), hi.greenF(), hi.blueF(),
-					opacity);
+				gl.glColor4f(hi.redF(), hi.greenF(), hi.blueF(), opacity);
 				gl.glVertex2d(x + w, uy - h);
 				gl.glVertex2d(x + w, uy);
 			}
@@ -317,7 +312,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 				TextLayout t2 = new TextLayout(text, font, frc);
 				cheezyOutline(g, (int) (x + 2), (int) y, t2);
 			} else {
-				//glText.draw(text, (int) (x + 2), (int) (viewHeight - y));
+				// glText.draw(text, (int) (x + 2), (int) (viewHeight - y));
 				final double uy = viewHeight - y;
 				GLUtil.cheezyOutline(glText, text, Color.WHITE, Color.BLACK, (int) x, (int) uy);
 			}
@@ -377,9 +372,9 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		// Width of unit text
 		double unitWidth;
 		String unitName = getUnits();
-                if (unitName == null){
-                    unitName = "dimensionless";
-                }
+		if (unitName == null) {
+			unitName = "dimensionless";
+		}
 		if ((unitName != null) && (unitName.length() > 0)) {
 			unitWidth = metrics.stringWidth(unitName) + 2;
 		} else {
@@ -387,7 +382,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		}
 
 		// Calculate height
-		double barwidth = Math.max((float)w - (float)unitWidth, 1);
+		double barwidth = Math.max((float) w - (float) unitWidth, 1);
 		int aSize = myColorMap.getNumberOfBins();
 		double cellWidth = barwidth > 0 ? barwidth / aSize : 1;
 		barwidth = cellWidth * aSize;
@@ -452,9 +447,9 @@ public class ColorMapRenderer extends Feature3DRenderer {
 	}
 
 	/**
-	 * A cheezy outline behind the text that doesn't require an outline font
-	 * to render. It shadows by shifting the text 1 pixel in every
-	 * direction. Not very fast, but color keys are more about looks.
+	 * A cheezy outline behind the text that doesn't require an outline font to
+	 * render. It shadows by shifting the text 1 pixel in every direction. Not very
+	 * fast, but color keys are more about looks.
 	 */
 	public static void cheezyOutline(Graphics2D g, int x, int y, TextLayout t) {
 
@@ -479,11 +474,9 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		int cellHeight = 5;
 		if (myColorMap != null) {
 			Graphics2D g2 = (Graphics2D) g;
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-			g2.setRenderingHint(RenderingHints.KEY_RENDERING,
-				RenderingHints.VALUE_RENDER_QUALITY);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
 			Font f = getFont();
 			FontMetrics metrics = g2.getFontMetrics(f);
@@ -496,12 +489,14 @@ public class ColorMapRenderer extends Feature3DRenderer {
 	@Override
 	public void draw(GLWorld w, FeatureMemento m) {
 
-
 		// Grab the first product map of first rendered
 		ColorMap aColorMap = null;
 		String units = "";
-		ProductManager man = ProductManager.getInstance();
-		java.util.List<ProductFeature> l = man.getProductFeatures();
+		// ProductManager man = ProductManager.getInstance();
+		// java.util.List<ProductFeature> l = man.getProductFeatures();
+		FeatureList fl = getCurrentFeatureList();
+		List<ProductFeature> l = fl.getFeatureGroup(ProductFeature.class);
+
 		for (ProductFeature current : l) {
 			if (current.wouldRender()) {
 				// Just the first color map for now at least
@@ -512,7 +507,7 @@ public class ColorMapRenderer extends Feature3DRenderer {
 		}
 		setColorMap(aColorMap);
 		setUnits(units);
-		
+
 		// Pass in viewport to avoid getting width from context, since it
 		// could be wrong for lightweight
 		Boolean on = m.get(LegendMemento.SHOWLABELS, true);

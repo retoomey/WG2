@@ -11,7 +11,6 @@ import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 
-import org.wdssii.core.CommandManager;
 import org.wdssii.core.Singleton;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;

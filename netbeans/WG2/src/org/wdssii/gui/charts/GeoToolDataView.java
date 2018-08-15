@@ -138,7 +138,7 @@ public class GeoToolDataView extends DataView {
             setRenderer(new StreamingRenderer());
 
             // Go through feature list, rebuild anything different
-            List<Feature> list = FeatureList.theFeatures.getFeatures();
+            List<Feature> list = FeatureList.getFeatureList().getFeatures();
             for (Feature f : list) {
                 FeatureMemento memento = f.getMemento();
                 boolean visible = f.getVisible();

@@ -311,7 +311,7 @@ public class FeatureTableList extends RowEntryTable {
 		if (data != null) {
 			switch (orgColumn) {
 			case 0: {// How to map the columns generically? (VISIBLE COLUMN)
-				Feature f = FeatureList.theFeatures.getFeature(data.keyName);
+				Feature f = FeatureList.getFeatureList().getFeature(data.keyName);
 				if (f != null) {
 					FeatureMemento m = f.getNewMemento();
 					m.setProperty(FeatureMemento.VISIBLE, !data.checked);
@@ -321,7 +321,7 @@ public class FeatureTableList extends RowEntryTable {
 			}
 				break;
 			case 1: {// How to map the columns generically? (ONLY COLUMN)
-				Feature f = FeatureList.theFeatures.getFeature(data.keyName);
+				Feature f = FeatureList.getFeatureList().getFeature(data.keyName);
 				if (f != null) {
 					FeatureMemento m = f.getNewMemento();
 					m.setProperty(FeatureMemento.ONLY, !data.onlyMode);
@@ -413,8 +413,8 @@ public class FeatureTableList extends RowEntryTable {
 		// List<Feature> selected = new ArrayList<Feature>();
 		for (int i = 0; i < count; i++) {
 			String aGroup = myGroupNames[i];
-			List<Feature> sub = FeatureList.theFeatures.getFeatureGroup(aGroup);
-			// Feature select = FeatureList.theFeatures.getSelected(aGroup);
+			List<Feature> sub = FeatureList.getFeatureList().getFeatureGroup(aGroup);
+			// Feature select = FeatureList.getFeatureList().getSelected(aGroup);
 			// selected.add(select);
 			porg.addAll(sub);
 		}
@@ -423,7 +423,7 @@ public class FeatureTableList extends RowEntryTable {
 		List<Feature> p = new ArrayList<Feature>(porg);
 		// Feature top = FeatureList.theFeatures.getSelected(aGroup);
 		// Top is good enough for now I think...
-		Feature top = FeatureList.theFeatures.getTopSelected();
+		Feature top = FeatureList.getFeatureList().getTopSelected();
 
 		Collections.sort(p, new Comparator<Feature>() {
 			@Override

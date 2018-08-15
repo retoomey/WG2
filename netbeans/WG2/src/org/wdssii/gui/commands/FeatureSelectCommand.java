@@ -25,18 +25,18 @@ public class FeatureSelectCommand extends FeatureCommand {
 	    if (myFeature != null){
 		    return myFeature;
 	    }else{
-		    return FeatureList.theFeatures.getFeature(myFeatureKey);
+		    return FeatureList.getFeatureList().getFeature(myFeatureKey);
 	    }
     }
 
     @Override
     public boolean execute() {
         if (myFeature != null){
-            FeatureList.theFeatures.setSelected(myFeature);
+            FeatureList.getFeatureList().setSelected(myFeature);
         }else{
-            FeatureList.theFeatures.setSelected(myFeatureKey);
+            FeatureList.getFeatureList().setSelected(myFeatureKey);
         }
-	FeatureList.theFeatures.updateOnMinTime();
+	FeatureList.getFeatureList().updateOnMinTime();
         return true;
     }
 }

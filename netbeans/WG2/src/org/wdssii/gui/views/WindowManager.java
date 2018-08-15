@@ -1,11 +1,24 @@
 package org.wdssii.gui.views;
 
+import java.net.URL;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.wdssii.core.CommandManager;
+import org.wdssii.core.W2Config;
 import org.wdssii.gui.Application;
 import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.charts.W2DataView;
+import org.wdssii.gui.commands.SourceAddCommand;
+import org.wdssii.gui.commands.SourceAddCommand.IndexSourceAddParams;
+import org.wdssii.gui.commands.SourceAddCommand.SourceAddParams;
+import org.wdssii.gui.features.EarthBallFeature;
+import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.features.FeatureList;
+import org.wdssii.gui.features.LegendFeature;
+import org.wdssii.gui.features.LoopFeature;
+import org.wdssii.gui.features.MapFeature;
+import org.wdssii.gui.sources.IndexSource;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
@@ -26,14 +39,13 @@ public class WindowManager {
 
 	private final static Logger LOG = LoggerFactory.getLogger(WindowManager.class);
 
-    /**
-     * Default top window title string
-     */
-    public final static String WINDOWTITLE =
-            Application.NAME + " " + Application.MAJOR_VERSION + "."
-            + Application.MINOR_VERSION;
-    //public final static String UNTITLED = "Untitled";
-      
+	/**
+	 * Default top window title string
+	 */
+	public final static String WINDOWTITLE = Application.NAME + " " + Application.MAJOR_VERSION + "."
+			+ Application.MINOR_VERSION;
+	// public final static String UNTITLED = "Untitled";
+
 	/**
 	 * (MODEL) The top window. We call this desktop (this allows other 'main'
 	 * windows to be created.)
@@ -93,17 +105,58 @@ public class WindowManager {
 	public static void init(WindowMaker d) {
 		theTopWindow = new Window(Window.WINDOW_ROOT); // Zero is 'base'
 		theTopWindow.setTitle(WINDOWTITLE);
-		
+
 		// Add some data views..set titles properly in model
 		Vector<DataView> myDataViews = new Vector<DataView>();
 		int counter = 0;
 		for (int i = 0; i < 3; i++) {
 			W2DataView dv = new W2DataView();
 			dv.setTitle("#" + Integer.toString(++counter));
+			// Defaults for main window...
+			FeatureList fl = dv.getFeatureList();
+
+			// Ok put compass and loop stuff in every W2DataView..
+			// FIXME: this code should probably actually be in W2DataView
+			Feature legend = LegendFeature.createLegend(fl, "compass", "scale", "insert", "controls"); // FIXME: magic
+																										// strings																						// better way
+			fl.addFeature(legend);
+			Feature loop = new LoopFeature(fl);
+			fl.addFeature(loop);
+			Feature earthBall = new EarthBallFeature(fl);
+			fl.addFeature(earthBall);
+
+			URL mapURL = W2Config.getURL("maps/shapefiles/usa/ok/okcnty.shp");
+			if (mapURL != null) {
+				String filename = mapURL.getPath();
+				Feature testOne = new MapFeature(fl, filename);
+				fl.addFeature(testOne);
+			}
+			
+			// Just for main window...
+			if (i == 0) {
+				dv.setGroupNumber(1);
+				
+				// Lazy load examples up
+				boolean loadExamples = true;
+				if (loadExamples) {
+
+					// Example source
+					URL aURL = W2Config.getURL("data/KTLX_05031999/code_index.xml");
+					if (aURL != null) {
+						SourceAddParams params = new IndexSourceAddParams("KTLX-MAY-1999", aURL, false, true,
+								IndexSource.HISTORY_ARCHIVE);
+						SourceAddCommand c = new SourceAddCommand(params);
+						c.setConfirmReport(false, false, null);
+						CommandManager.getInstance().executeCommand(c, false);
+					}
+				}
+			}else if (i ==1) {
+				dv.setGroupNumber(1);
+			}
 			myDataViews.add(dv);
 		}
-		//myDataViews.add(new Data2DTableChart());
-		
+		// myDataViews.add(new Data2DTableChart());
+
 		myTopDataView = "#1";
 
 		// Old layout
@@ -124,8 +177,8 @@ public class WindowManager {
 		 */
 
 		// Top data view above, nav/etc below
-		//Window w2 = new Window(Window.WINDOW_SPLIT);
-		SplitWindow w2 = new SplitWindow(0.7f, true);
+		// Window w2 = new Window(Window.WINDOW_SPLIT);
+		SplitWindow w2 = new SplitWindow(0.6f, true);
 
 		// Add a window for each data view
 		Window data = new Window(Window.WINDOW_DATAVIEW);
@@ -138,9 +191,9 @@ public class WindowManager {
 		w2.addWindow(data);
 
 		// Bottom
-		//Window t = new Window(Window.WINDOW_TAB);
+		// Window t = new Window(Window.WINDOW_TAB);
 		Window t = new TabWindow();
-		
+
 		t.addWindow(new Window(Window.WINDOW_NAV));
 		t.addWindow(new Window(Window.WINDOW_SOURCES));
 		t.addWindow(new Window(Window.WINDOW_FEATURES));
@@ -155,11 +208,11 @@ public class WindowManager {
 	public static String getTopDataViewName() {
 		return myTopDataView;
 	}
-	
+
 	/** Is this window the top data view? */
 	public static boolean isTopDataView(Window w) {
 		String l = w.getTitle();
-		return(l.equals(myTopDataView));
+		return (l.equals(myTopDataView));
 	}
 
 	/**
@@ -207,7 +260,7 @@ public class WindowManager {
 		}
 		return results;
 	}
-	
+
 	/** Does data view with given name exist? */
 	public static boolean windowExists(String aName) {
 		Vector<String> names = new Vector<String>();
@@ -302,7 +355,7 @@ public class WindowManager {
 		Window w = windows.get(0);
 		if (w != null) {
 
-			// Don't allow deletion of main window?  We could swap in another..
+			// Don't allow deletion of main window? We could swap in another..
 			// need to check how wg does it...for now, don't allow
 			if (w.getTitle().equals(myTopDataView)) {
 				LOG.error("Can't delete the main window");
@@ -322,10 +375,9 @@ public class WindowManager {
 		}
 		return false;
 	}
-	
+
 	/** Set the group number of the named window */
-	public static void setGroupWindow(String aName, int aGroupNumber)
-	{
+	public static void setGroupWindow(String aName, int aGroupNumber) {
 		Vector<String> names = new Vector<String>();
 		names.add(aName);
 		Vector<Window> windows = findWindows(theDataViews, names);
@@ -339,15 +391,14 @@ public class WindowManager {
 	public static int getMaxGroups() {
 		return 10;
 	}
-	
-	/** Notify all windows sharing a group to perform sync action on the
-	 * given group number 
-	 * 0 -- Camera change
-	 * 1 -- Readout change
+
+	/**
+	 * Notify all windows sharing a group to perform sync action on the given group
+	 * number 0 -- Camera change 1 -- Readout change
 	 */
 	public static void syncWindows(Window w, int mode) {
 		int groupNumber = w.getGroupNumber();
-		
+
 		// FIXME: Might be a good idea to keep lists of the groups for speed..
 		// This will get called during pan/zoom etc..
 		if (groupNumber > 0) {
@@ -357,9 +408,30 @@ public class WindowManager {
 				Window at = iter.next();
 				at.doSyncGroup(w, mode);
 			}
-		}else {
+		} else {
 			// Window is solo..just send to itself
 			w.doSyncGroup(w, mode);
 		}
+	}
+
+	/**
+	 * Kinda slow we should cache..entire display uses the feature list constantly
+	 */
+	public static FeatureList getTopFeatureList() {
+		return (getFeatureListFor(myTopDataView));
+	}
+
+	public static FeatureList getFeatureListFor(String aName) {
+		Vector<String> names = new Vector<String>();
+		names.add(aName);
+		Vector<Window> windows = findWindows(theDataViews, names);
+		Window w = windows.get(0);
+		if (w != null) {
+			if (w instanceof DataView) { // Not sure how to handle subclasses having different stuff...
+				return ((DataView) (w)).getFeatureList();
+			}
+		}
+		LOG.error("Uh oh..the feature list is null...");
+		return null;
 	}
 }

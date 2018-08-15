@@ -45,7 +45,7 @@ public class AnimateManager {
     public static void updateDuringRender() {
         // FIXME: disable this update if we are looping...loop
         // will update us...
-        FeatureList.theFeatures.updateOnMinTime();
+        FeatureList.getFeatureList().updateOnMinTime();
     }
     
     // Collection of animators

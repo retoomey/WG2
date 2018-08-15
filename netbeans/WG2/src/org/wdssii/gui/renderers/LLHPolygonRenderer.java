@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,12 +17,14 @@ import org.wdssii.geom.V2;
 import org.wdssii.geom.V3;
 import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.GLWorld;
+import org.wdssii.gui.Picker;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.renderers.PolarGridRenderer.Rectangle2DIntersector;
 import org.wdssii.gui.volumes.LLHArea;
+import org.wdssii.gui.volumes.LLHAreaControlPoint;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 import org.wdssii.storage.Array1D;
@@ -39,13 +42,45 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 
 	private final static Logger LOG = LoggerFactory.getLogger(LLHPolygonRenderer.class);
 
+	/** Allow opengl color picking here.  We could use a rectangle based picker for non-gl worlds, or worlds where we can't
+	 *  do separate pick drawing passes (like AWIPS2)
+	 * @author Robert Toomey
+	 *
+	 */
+	private static class ourGLPicker extends PickWithOpenGLColor {
+		
+		// FIXME: Ok so if the collection of objects drew themselves..this would be generic
+		private LLHPolygonRenderer myR;
+		private Iterable<? extends LLHAreaControlPoint> myC;
+		
+		public ourGLPicker(GLWorld w, LLHPolygonRenderer r, Iterable<? extends LLHAreaControlPoint> controlPoints) {
+			super(w);
+			myR = r;
+			myC = controlPoints;
+		}
+
+		@Override
+		public void renderPick(){
+			
+			try {
+				// Render each of the control points for picking though....
+				for (LLHAreaControlPoint p : myC) {
+					Color c = getUniqueColor();
+                	final GL2 gln = gl.getGL().getGL2();
+LOG.error("Pick rendering a point...");
+					gln.glColor3ub((byte) c.getRed(), (byte) c.getGreen(), (byte) c.getBlue());
+					myR.drawControlPoint(world, p, true);
+					addCandidate(c, p);
+				}
+			} finally {
+				// Catch just to avoid rendering error spam
+			}
+		}
+	}
+	
 	private LLHAreaFeature myFeature = null;
 
 	public LLHPolygonRenderer() {
-	}
-
-	@Override
-	public void pick(GLWorld w, Point p, FeatureMemento m) {
 	}
 
 	@Override
@@ -59,6 +94,94 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 
 		}
 	}
+	
+	protected void drawControlPoint(GLWorld w, LLHAreaControlPoint controlPoint, boolean pick) {
+
+		// Clip when outside the view area...
+		V3 aV3 = controlPoint.getPoint();
+		if (!w.inView(aV3)){
+			return;
+		}
+		GL glold = w.gl;
+    	final GL2 gl = glold.getGL().getGL2();
+
+		//int i = controlPoint.getAltitudeIndex();
+		int i = 0;
+		if (i == 0){ // bottom points only...
+			boolean selected = false;
+			LLD_X x = controlPoint.getLocation();
+			if (x != null){
+				selected = x.getSelected();
+			}
+			// Can't use my symbol library 'yet' because glTranslate messes up worldwind picking...
+			// need to make my own...
+			// Ahhh need to translate the mouse point too right? lol
+			V2 p = w.project(aV3);
+
+			int z = 10;
+			int aViewWidth = w.width;
+			int aViewHeight = w.height;
+
+			gl.glDisable(GL2.GL_LIGHTING);
+			gl.glDisable(GL.GL_DEPTH_TEST);
+			gl.glDisable(GL.GL_TEXTURE_2D); // no textures
+			gl.glMatrixMode(GL2.GL_PROJECTION);
+			gl.glPushMatrix();
+			gl.glLoadIdentity();
+			gl.glOrtho(0, aViewWidth, 0, aViewHeight, -1, 1);  // TopLeft
+			gl.glMatrixMode(GL2.GL_MODELVIEW);
+			gl.glPushMatrix();
+			gl.glLoadIdentity();
+
+			if (pick) {
+				// Draw the pick box area
+				gl.glBegin(GL2.GL_QUADS);
+				gl.glVertex2d(p.x - z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y + z);
+				gl.glVertex2d(p.x - z, p.y + z);
+				gl.glEnd();
+			} else {
+
+				gl.glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
+				gl.glBegin(GL2.GL_QUADS);
+				gl.glVertex2d(p.x - z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y + z);
+				gl.glVertex2d(p.x - z, p.y + z);
+				gl.glEnd();
+				z--;
+				gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+				gl.glBegin(GL2.GL_QUADS);
+				gl.glVertex2d(p.x - z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y + z);
+				gl.glVertex2d(p.x - z, p.y + z);
+				gl.glEnd();
+				z--;
+				// if (myPoint.selected){
+				//     
+				// }
+				if (selected){
+					gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+				}else{
+					gl.glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
+				}
+				gl.glBegin(GL2.GL_QUADS);
+				gl.glVertex2d(p.x - z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y - z);
+				gl.glVertex2d(p.x + z, p.y + z);
+				gl.glVertex2d(p.x - z, p.y + z);
+				gl.glEnd();            			
+			}
+
+			gl.glMatrixMode(GL2.GL_PROJECTION);
+			gl.glPopMatrix();
+			gl.glMatrixMode(GL2.GL_MODELVIEW);
+			gl.glPopMatrix();
+		}
+	}
+	
 	/**
 	 * Draw the product in the current dc. FIXME: Shared code with map
 	 * renderer right now.....do we merge some of these classes or make util
@@ -214,8 +337,12 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 			aText.end3DRendering();
 			GLUtil.popOrtho2D(w.gl);
 
-
-
+			// Ok so basically we can get rid of the LLHAreaControlPointRenderer...
+			// We need ALL features to have the ability to handle mouse events basically...
+			ArrayList<LLHAreaControlPoint> cpoints = a.getControlPoints(w);
+			for(LLHAreaControlPoint pp: cpoints) {
+				drawControlPoint(w, pp, false);
+			}
 			/*GLUtil.pushOrtho2D(w);
 			aText.begin3DRendering();
 			GLUtil.cheezyOutline(aText, "POLYGON EDITING", Color.WHITE, Color.BLACK, (int) 100, (int) 100);
@@ -228,7 +355,33 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 	/**
 	 * Pick an object in the current dc at point
 	 */
-	public void doPick(GLWorld w, java.awt.Point pickPoint) {
+	@Override
+	public void pick(GLWorld w, Point pickPoint, FeatureMemento m) {
+		
+if (myFeature != null){
+			
+			LLHArea a = myFeature.getLLHArea();
+			//List<LLD_X> list = a.getLocations();
+			ArrayList<LLHAreaControlPoint> cpoints = a.getControlPoints(w);
+
+			LOG.error("NUMBER OF PICKABLE POINTS IS "+cpoints.size());
+			
+			PickWithOpenGLColor p = new ourGLPicker(w, this, cpoints); 
+			p.begin();
+			p.pick(pickPoint.x, pickPoint.y);  // Find objects at the point, add to list...
+			p.end();
+			
+			ArrayList<Object> picked = p.getPicked();
+			for(Object i: picked) {
+				LOG.error("Picked this object "+i);
+			}
+			
+		//	for(LLHAreaControlPoint pp: cpoints) {
+		//		drawControlPoint(w, pp, true);
+		//	}
+}else {
+	LOG.error("Feature is null?");
+}
 	}
 
 

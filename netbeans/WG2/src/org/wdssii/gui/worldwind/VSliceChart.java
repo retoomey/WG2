@@ -571,7 +571,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
                     float lon = (float) myPlot.myInput.getLonDegrees(col);
                     float ht = (float) myPlot.myInput.getHeightKMS(row);
                     FeaturePosition f = new FeaturePosition(lat, lon, ht);
-                    FeatureList.theFeatures.setTrackingPosition(f);
+                    FeatureList.getFeatureList().setTrackingPosition(f);
                 }
             }
         }
@@ -592,7 +592,7 @@ public class VSliceChart extends LLHAreaChart implements VolumeValueFollowerView
         final double xf = b.getX();
         final double yf = b.getY();
 
-        FeaturePosition f = FeatureList.theFeatures.getTrackingPosition();
+        FeaturePosition f = FeatureList.getFeatureList().getTrackingPosition();
 
         if (f == null) {
             return;

@@ -2,6 +2,8 @@ package org.wdssii.gui.views;
 
 import java.util.Vector;
 
+import org.wdssii.geom.V3;
+
 final class TabWindow extends Window
 {
 	public TabWindow() {
@@ -93,10 +95,6 @@ public class Window {
 		myType = type;
 	}
 	
-//	public Window(int type, Object data) {
-//		myType = type;
-//	}
-	
 	public Object getGUI() { return myGUI; }
 	
 	public void setGUI(Object o) { myGUI = o; }
@@ -112,13 +110,36 @@ public class Window {
 	public void removeWindow(Window aWindow)
 	{
 		int index = theWindows.indexOf(aWindow);
-		if (index > 0) {
+		if (index > -1) {
 			theWindows.remove(aWindow);	
 			aWindow.myParent = null;
 		}
 	}
-
-	public void doSyncGroup(Window w, int mode) {
+	
+	/** Swap two windows, even if different parents or one or both are null */
+	public static void swapWindows(Window a, Window b)
+	{
+		// First get indexes into possible parents, 
+		// parents might be the same...
+		Window para = a.getParent();
+		Window parb = b.getParent();
+	    int indexA = -1;
+	    int indexB = -1;
+	    if (para != null) { indexA = para.theWindows.indexOf(a); }
+	    if (parb != null) { indexB = parb.theWindows.indexOf(b); }
+	    
+	    // Now swap into each other's parent
+		if (indexA > -1) {
+			para.theWindows.set(indexA, b);
+		}
+		b.setParent(para);
+		if (indexB > -1) {
+			parb.theWindows.set(indexB, a);
+		}
+		a.setParent(parb);
+	}
+	
+	public void doSyncGroup(Window w, int mode, V3 readoutPoint, boolean inside) {
 		System.out.println("Synchronize group called...");
 	}
 

@@ -71,14 +71,15 @@ public class W2GLWorld extends GLWorld {
 
 	@Override
 	public V3 projectV3ToLLH(V3 in) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public V3 project2DToEarthSurface(double x, double y, double elevation) {
 		// TODO Auto-generated method stub
-		return null;
+		double xyz[] = {1, 2, 3};
+        myGLU.gluUnProject(x, y, 0.0, myModel, 0, myProj, 0, myView, 0, xyz, 0);
+        return new V3(xyz[0], xyz[1], xyz[2]);
 	}
 
 	@Override

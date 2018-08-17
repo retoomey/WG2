@@ -453,4 +453,9 @@ public class Feature implements Mementor {
             myControls.sendMessage(message);
         }
     }
+
+	public void handlePickText(int pickId) {
+		// TODO Auto-generated method stub
+		
+	}
 }

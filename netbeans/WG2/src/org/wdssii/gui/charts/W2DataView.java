@@ -37,6 +37,8 @@ import javax.swing.JSeparator;
 
 import org.wdssii.core.CommandManager;
 import org.wdssii.core.WdssiiCommand;
+import org.wdssii.geom.V2;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.GLBoxCamera;
 import org.wdssii.gui.GLCacheManager;
 import org.wdssii.gui.GLUtil;
@@ -151,7 +153,7 @@ final class W2DataViewListener implements GLEventListener,
 
 	private boolean myFirstTime = true;
 
-	//private LLHAreaLayer myLLHAreaLayer;
+	// private LLHAreaLayer myLLHAreaLayer;
 
 	private TextRenderer myText;
 
@@ -168,6 +170,8 @@ final class W2DataViewListener implements GLEventListener,
 
 	private ByteBuffer myBuffer = null;
 
+	private V3 myReadoutPoint;
+
 	// ^^^^^ End mouse stuff
 
 	public W2DataViewListener(W2DataView w2DataView) {
@@ -175,14 +179,16 @@ final class W2DataViewListener implements GLEventListener,
 	}
 
 	/**
-	 * Render all features that are in the given group
+	 * Render all features that are in the given group.
+	 * 
+	 * FIXME: We should sort during add/remove so that we can just call draw/pick I
+	 * think without having to group here. This is slower...
 	 */
 	public void renderFeatureGroup(GLWorld w, String g) {
 
 		// Why product manager? lol.
-		//FeatureList fl = ProductManager.getInstance().getFeatureList();
 		FeatureList fl = myW2DataView.getFeatureList();
-		
+
 		List<Feature> list = fl.getActiveFeatureGroup(g);
 
 		// For each rank...draw over lower ranks...
@@ -213,10 +219,14 @@ final class W2DataViewListener implements GLEventListener,
 			}
 		}
 	}
-	
+
 	public void pickFeatureGroup(GLWorld w, String g, int x, int y) {
 
-		//FeatureList fl = ProductManager.getInstance().getFeatureList();
+		/*
+		 * * FIXME: We should sort during add/remove so that we can just call draw/pick
+		 * I think without having to group here. This is slower...
+		 */
+		// FeatureList fl = ProductManager.getInstance().getFeatureList();
 		FeatureList fl = myW2DataView.getFeatureList();
 
 		List<Feature> list = fl.getActiveFeatureGroup(g);
@@ -239,14 +249,28 @@ final class W2DataViewListener implements GLEventListener,
 						for (FeatureRenderer fr : theList) {
 							if (fr instanceof Feature3DRenderer) {
 								Feature3DRenderer a3d = (Feature3DRenderer) (fr);
-								LOG.error("Pick called on feature "+x+" "+y);
-								a3d.pick(w, new Point(x,y), m);
+								// LOG.error("Pick called on feature "+x+" "+y);
+								a3d.pick(w, new Point(x, y), m);
 							}
 						}
 					}
 
 				}
 			}
+		}
+
+		// Now do a pick read?
+		int pickId = w.doPickRead(w, x, y);
+		LOG.error("PICK ID BACK IS " + pickId);
+		// see problem is what to do with it..feature will want to drag or
+		// something...which
+		// can affect renderers right..that can be handled by memento settings coming
+		// from
+		// feature...
+		Iterator<Feature> iter = list.iterator();
+		while (iter.hasNext()) {
+			Feature f = iter.next();
+			f.handlePickText(pickId);
 		}
 	}
 
@@ -323,24 +347,17 @@ final class W2DataViewListener implements GLEventListener,
 		final int h = drawable.getHeight();
 
 		if (mySceneChanged == true) {
-			renderFullScene(gl, w, h);
+			W2GLWorld glw = setUpGLWorld(gl, w, h);
+			renderFullScene(gl, w, h, glw);
 		} else {
 			if (myDirty == true) {
-
 				// If we have buffer, use it...
-				// if (myBuffer != null) {
 				if (fromBuffer(gl, w, h)) {
-					/*
-					 * GLUtil.pushOrtho2D(gl, w, h); gl.glRasterPos2i(0, 0); // Do we need alpha
-					 * here? //gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
-					 * myBuffer); gl.glDrawPixels(w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
-					 * GLUtil.popOrtho2D(gl);
-					 */
 					myDirty = false;
-
-					// otherwise full render...
+				// otherwise full render...
 				} else {
-					renderFullScene(gl, w, h);
+					W2GLWorld glw = setUpGLWorld(gl, w, h);
+					renderFullScene(gl, w, h, glw);
 				}
 			}
 		}
@@ -349,10 +366,18 @@ final class W2DataViewListener implements GLEventListener,
 	public boolean fromBuffer(GL2 gl, int w, int h) {
 		if (myBuffer != null) {
 			GLUtil.pushOrtho2D(gl, w, h);
+			gl.glDrawBuffer(GL.GL_BACK);
+
 			gl.glRasterPos2i(0, 0);
 			// Do we need alpha here?
 			// gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
 			gl.glDrawPixels(w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
+
+			// Do readout immediately to avoid flicker issues...
+			if (myIn) {
+				renderReadoutOverlay(gl, leftX, leftY);
+			}
+
 			GLUtil.popOrtho2D(gl);
 			return true;
 		}
@@ -366,29 +391,27 @@ final class W2DataViewListener implements GLEventListener,
 			// FIXME: buffer size is complicated it seems..
 			myBuffer = GLBuffers.newDirectByteBuffer(w * h * 4); // RGB = 3. RGBA = 4
 		}
-		GLUtil.pushOrtho2D(gl, w, h);
+		// GLUtil.pushOrtho2D(gl, w, h);
 		// GL3 gl3 = gl.getGL3();
 		gl.glReadBuffer(GL.GL_BACK);
 		// if the width is not multiple of 4, set unpackPixel = 1 ?? Do we need this or
 		// not
-		// gl3.glReadPixels(0, 0, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, myBuffer);
 		gl.glReadPixels(0, 0, w, h, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, myBuffer);
-		GLUtil.popOrtho2D(gl);
+		// GLUtil.popOrtho2D(gl);
 	}
 
+	/**
+	 * Only called from within draw routines to avoid flickering from setup.
+	 * Requires: 2D ortho
+	 */
 	public void renderReadoutOverlay(GL gli, int x, int y) {
 		boolean readoutOn = true;
+
 		// Begin overlay readout testing...
 		if (readoutOn) {
 			if (myText != null) {
 
-				// int dx = x - leftX;
-				// int dy = y - leftY;
 				String l = "Readout Test";
-
-				gli.getContext().makeCurrent();
-				GLUtil.pushOrtho2D(gli, canvas.getWidth(), canvas.getHeight());
-
 				myText.begin3DRendering();
 				// Rectangle2D bounds = myText.getBounds(l);
 
@@ -396,15 +419,38 @@ final class W2DataViewListener implements GLEventListener,
 				// bounds.getHeight());
 				GLUtil.cheezyOutline(myText, "Readout", Color.WHITE, Color.BLACK, (int) x, (int) y);
 				myText.end3DRendering();
-
-				GLUtil.popOrtho2D(gli);
-				gli.getContext().release();
-				// setDirty(); // needs to be erased right...
 			}
 		}
 	}
 
-	public void renderFullScene(GL gli, int w, int h) {
+	public void pickScene(GLWorld world, int w, int h) {
+		world.gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
+
+		// Probably not where we want it to end up....
+		// Think we should create a 'stack' of objects based upon mouse location in
+		// window...
+		// ...so that all features can react to mouse...
+		// pickFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup, leftX, h-leftY); // pick y
+		// in gl coordinates at moment
+		pickFeatureGroup(world, LegendFeature.LegendGroup, leftX, h - leftY); // pick y in gl coordinates at moment
+
+	}
+
+	public W2GLWorld setUpGLWorld(GL gl, int w, int h) {
+		if (myFirstTime == true) {
+			myCamera.goToLocation(-97.1640f, 35.1959f, 400.0f, 0.0f, 0.0f);
+			Font font = new Font("Arial", Font.PLAIN, 28);
+			myText = new TextRenderer(font, true, true);
+			myFirstTime = false;
+		}
+
+		// if the camera changes after creating this, it is no longer valid.
+		myCamera.setUpCamera(gl, glu, 0, 0, (int) w, (int) h);
+		W2GLWorld glw = new W2GLWorld(gl, myCamera, w, h, myW2DataView);
+		return glw;
+	}
+
+	public void renderFullScene(GL gli, int w, int h, W2GLWorld glw) {
 		GL2 gl = gli.getGL2();
 
 		myDirty = false;
@@ -416,38 +462,19 @@ final class W2DataViewListener implements GLEventListener,
 		if (myDrawCounter > 10000) {
 			myDrawCounter = 0;
 		}
-		// LOG.error("DISPLAY CALLED!");
-		// TODO Auto-generated method stub
-		// LOG.error("DISPLAY CALLED!!!!"+ drawable);
 
-		// Set up camera GL on render always would be better right?
-		GLU glu = new GLU();
-		if (myFirstTime == true) {
-			myCamera.goToLocation(-97.1640f, 35.1959f, 400.0f, 0.0f, 0.0f);
-			Font font = new Font("Arial", Font.PLAIN, 28);
-			myText = new TextRenderer(font, true, true);
-			myFirstTime = false;
-		}
-
-		myCamera.setUpCamera(gl, glu, 0, 0, (int) w, (int) h);
-
-		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
-
+		// myCamera.setUpCamera(gl, glu, 0, 0, (int) w, (int) h);
 		// Create world object which allows renderers to know projection to draw into...
 		// NOTE: this will cache the current modelview state for efficiency in
 		// projection, so
 		// if the camera changes after creating this, it is no longer valid.
-		W2GLWorld glw = new W2GLWorld(gl, myCamera, w, h, myW2DataView);
+		// W2GLWorld glw = new W2GLWorld(gl, myCamera, w, h, myW2DataView);
 
-		// Probably not where we want it to end up....
-		// Think we should create a 'stack' of objects based upon mouse location in window...
-		// ...so that all features can react to mouse...
-		pickFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup, leftX, h-leftY); // pick y in gl coordinates at moment
-		
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
 
-		// This method searches entire list...could we sort them then just render in order?
-		
+		// This method searches entire list...could we sort them then just render in
+		// order?
+
 		// Basemaps first (below products)
 		renderFeatureGroup(glw, EarthBallFeature.MapGroup);
 
@@ -459,14 +486,12 @@ final class W2DataViewListener implements GLEventListener,
 		renderFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup);
 
 		// Draw actual control points. Humm why not part of feature?
-		// Yeah rewrite into our own model.  ALL features should have picking
-		// ability, right?  And should be able to handle mouse events...
-	/*	if (myLLHAreaLayer == null) {
-			myLLHAreaLayer = new LLHAreaLayer();
-		}
-		if (myLLHAreaLayer != null) {
-			myLLHAreaLayer.draw(glw);
-		}*/
+		// Yeah rewrite into our own model. ALL features should have picking
+		// ability, right? And should be able to handle mouse events...
+		/*
+		 * if (myLLHAreaLayer == null) { myLLHAreaLayer = new LLHAreaLayer(); } if
+		 * (myLLHAreaLayer != null) { myLLHAreaLayer.draw(glw); }
+		 */
 
 		renderFeatureGroup(glw, PolarGridFeature.PolarGridGroup);
 
@@ -497,6 +522,7 @@ final class W2DataViewListener implements GLEventListener,
 		// changing in some way, such as size or content. We're gonna have a lot of
 		// windows.
 		l += " Frame:" + Integer.toString(myDrawCounter);
+		l += " " + this;
 
 		myText.begin3DRendering();
 		Rectangle2D bounds = myText.getBounds(l);
@@ -506,9 +532,9 @@ final class W2DataViewListener implements GLEventListener,
 		// bounds.setRect(bounds.getX() + x, bounds.getY() +y, bounds.getWidth(),
 		// bounds.getHeight());
 		GLUtil.cheezyOutline(myText, l, Color.WHITE, Color.BLACK, (int) x, (int) y);
-		myText.end3DRendering();
 
-		GLUtil.popOrtho2D(gl);
+		// Do readout inside
+		myText.end3DRendering();
 
 		// if (myDrawCounter == 20) {
 		// saveImage(gl, w, h);
@@ -516,6 +542,13 @@ final class W2DataViewListener implements GLEventListener,
 		// }
 		GL3 gl3 = gl.getGL3();
 		toBuffer(gl3, w, h);
+
+		// Do readout here AFTER buffer capture...
+		if (myIn) {
+			renderReadoutOverlay(gl, leftX, leftY);
+		}
+
+		GLUtil.popOrtho2D(gl);
 
 		gl.getContext().release();
 
@@ -539,8 +572,9 @@ final class W2DataViewListener implements GLEventListener,
 		glu = new GLU(); // get GL Utilities
 
 		// Shouldn't this be part of the camera setup to be honest?
-		if (height == 0)
+		if (height == 0) {
 			height = 1; // prevent divide by zero
+		}
 		// float aspect = (float)width / height;
 
 		// Changing width or height automatically changes the scene and needs to
@@ -571,135 +605,44 @@ final class W2DataViewListener implements GLEventListener,
 		}
 	}
 
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		// LOG.error("Mouse entered again!");
-
-		canvas.setRequestFocusEnabled(true);
+	/** Setup readout point location */
+	public void doReadoutGroupRender(GL gl, int x, int y, int mode) {
 		myIn = true;
-		setDirty();
-		canvas.repaint();
-
+		leftX = x;
+		leftY = y;
+		gl.getContext().makeCurrent();
+		W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
+		myReadoutPoint = glw.project2DToEarthSurface(leftX, leftY, 0);
+		WindowManager.syncWindows(myW2DataView, mode, myReadoutPoint, myIn);
+	}
+	
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		
+		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight()-e.getY(), 0);
 	}
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {
-		// LOG.error("Mouse exited again!");
-
-		myIn = false;
-		setDirty();
-		canvas.repaint();
-
+		myIn = false;		
+		WindowManager.syncWindows(myW2DataView, 1, myReadoutPoint, myIn);
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// LOG.error("Mouse pressed");
-		// LOG.error("BUTTON 1 PRESSED is " + e.getButton());
 
-		// prepOnMouseDown right?
 		leftDown = (e.getButton() == MouseEvent.BUTTON1);
 		middleDown = (e.getButton() == MouseEvent.BUTTON2);
 		shiftDown = e.isShiftDown();
 		ctrlDown = e.isControlDown();
 
-		leftX = e.getX();
-		leftY = canvas.getHeight() - e.getY(); // FIXME: Check under/overflow?
-		// leftY = e.getY();
-
-		/*
-		 * makeCurrentBox();
-		 * 
-		 * // If we already are locked into a view, the mouse // goes to it...
-		 * wg_GLView* m = 0; if (myLockView){ m = myLockView; }else{ m =
-		 * getViewMouseIn(e->x, e->y); } myMouseView = m;
-		 * 
-		 * if (m){ myLockView = m; m->initView(*this, false); mouseToView(e, m);
-		 * m->handlePress(this, e); }
-		 */
-		// this.myCamera.setClip(true);
-
-		/*
-		 * if (myGLBox){
-		 * 
-		 * // Save LOD on mouse press, will restore on release toOldLOD();
-		 * 
-		 * // Set default clip to use clipping planes wg_GLBoxCamera* cam = camera();
-		 * if(cam){ cam->setClip(true);}
-		 * 
-		 * // Let top interactor get first grab at mouse bool handled = false;
-		 * wg_GLBoxInteractor* selected = myGLBox->getSelected(); if (selected != 0){
-		 * handled = selected->handleMousePress(e, *this); }
-		 * 
-		 * // Let other interactors get a shot if (!handled){
-		 * std::vector<wg_ViewInteractor*>* i = myGLBox->getInteractors(); for
-		 * (interactors_t::iterator iter=i->begin(); iter != i->end(); ++iter){ if
-		 * ((*iter) != selected) { handled = (*iter)->handleMousePress(e, *this); } if
-		 * (handled) break; } } }
-		 */
-		/*
-		 * // handle zoom.... wg_GLBoxManager& g = wg_GLBoxManager::instance(); bool
-		 * oldFlat = drawFlat(); wg_GLBoxWorldCamera* camera =
-		 * (wg_GLBoxWorldCamera*)(myCamera); bool needFullRedraw = camera->zoom(dx, dy,
-		 * shift); bool newFlat = drawFlat(); if (oldFlat != newFlat){
-		 * g.flatToggled(glc); } if (needFullRedraw){ cameraChanged(glc);
-		 * g.syncCameras(glc); } g.updateGroup(glc, !needFullRedraw);
-		 */
-		
-		 // Controller adds listeners to world which keeps reference
-      //  LLHAreaController c = new LLHAreaController(this,  myLLHAreaLayer);
-      //  myLLHAreaController = c;
-		// LLHAreaLayer has a (Layer that draws?  Should be feature right?
-		//    --- LLHAreaControlPointRenderer... ?
-		//         -- this has opengl, render method and pick method.
-		//         -- shouldn't this subclass Feature3DRenderer and let it have pick ability?
-		// LLHAreaController(has a AreaLayer.  Mouse listeners...)
-		// LLHAreaFeature (Feature itself...bleh)
-		// LLHAreaSetGUI (Changes LLHAreaSet....)
-		
-		// LHAreaControlPointRenderer  Draw actually control boxes?
-		// LLHPolygonRenderer Draw text and lines...
-		
-		// Ok so a conflict...have the layer/controller must be from worldwind...and we have
-		// feature -->renderer --> LLHPolygonRenderer (that's why it works when created)
-		// But the AreaLayer draws too...and adds mouse listeners to main window...or the effect of
-		
-		
-		// LLHArea (volume stuff?)
-		//   --LLHAreaSet subclass (should be LLHArea?  
-		// Why not the LLHSet Feature...then have point renderer as it's renderer..
-		// All the mouse logic...humm  Helper methods instead of direct?
-
-		setDirty(); // Make click redraw
-		canvas.display();
-
-		// this.myW2DataView.repaint();
-
+		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight()-e.getY(), 0);
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// LOG.error("Mouse released");
-
 		leftDown = false;
 		middleDown = false;
-
-		// myCamera.goToLocation(-97.1640f, 35.1959f, 400.0f, 0.0f, 0.0f);
-
-		/*
-		 * makeCurrentBox(); wg_GLView* m = 0; if (myLockView){ m = myLockView; }else{ m
-		 * = getViewMouseIn(e->x, e->y); } myMouseView = m;
-		 * 
-		 * // Release lock myLockView = 0; // assuming each mouse up/down separate! if
-		 * (m){ m->initView(*this, false); mouseToView(e, m); m-> handleRelease(this,
-		 * e); }
-		 */
-		// Might need to draw sometime..but now don't think we do...
-		// canvas.display();
-		// renderReadoutOverlay(glold, x, y);
-
-		// this.myW2DataView.repaint();
-
 	}
 
 	// MouseMotion stuff...
@@ -731,10 +674,7 @@ final class W2DataViewListener implements GLEventListener,
 			{
 				myCamera.zoom(dx, dy, shiftDown);
 			}
-
-			leftX = x;
-			leftY = y;
-			WindowManager.syncWindows(myW2DataView, 0);
+			doReadoutGroupRender(gl, x, y, 0);
 
 			/*
 			 * setSceneChanged(); canvas.display(); renderReadoutOverlay(gl, leftX, leftY);
@@ -745,73 +685,12 @@ final class W2DataViewListener implements GLEventListener,
 	}
 
 	@Override
-	public void mouseMoved(MouseEvent e) {
-
-		GL glold = canvas.getGL();
-		// glold.getContext().makeCurrent();
-		// final int y = canvas.getHeight() - e.getY();
-		// D3 loc = myCamera.locationOnSphere(glold, 0, e.getX(), y);
-
-		// ahh ahh ahh...chicken egg. It's most likely already drawn
-		// correctly....
-		// setDirty(); // To erase any old overlay...
-
-		// This will delete any old one IFF it was already dirty....
-		final int x = e.getX();
-		final int y = canvas.getHeight() - e.getY();
-		// setSceneChanged();
-		leftX = x; // FIXME: Bleh tracking x y should be different I think...
-		leftY = y;
-		WindowManager.syncWindows(myW2DataView, 1);
-		/*
-		 * setDirty(); canvas.display(); // Flicker between these two. Could buffer
-		 * renderReadoutOverlay(glold, x, y);
-		 */
-		// setDirty will immediately redraw..
-
-		// LOG.error("MOVE PROJECTION: "+loc.x+", "+loc.y+", "+loc.z);
-		// LOG.error("Mouse moved");
-
-		/*
-		 * // TODO Auto-generated method stub makeCurrentBox(); wg_GLView* m = 0; if
-		 * (myLockView){ m = myLockView; }else{ m = getViewMouseIn(e->x, e->y); }
-		 * myMouseView = m;
-		 * 
-		 * // TEST: have a view follow mouse // if (myViews.size() > 1){ //
-		 * myViews[1]->myWidth = e->x+200; // myViews[1]->myY = myHeight-(e->y); // }
-		 * 
-		 * if (m){ m->initView(*this, false); mouseToView(e, m); m->handleMove(this, e);
-		 * }
-		 */
-		// From wg_GLBoxCamera.cpp
-		// MouseInfo.getNumberOfButtons();
-		// if (e.getButton() == MouseEvent.BUTTON1){
-		// LOG.error("BUTTON 1 MOVING is " + e.getButton());
-		// }
-		// myCamera.prepMouseDownFlags(glold, e.X(), y, dx, dy);
-
-		// dragPan(-e->dx -e->dy, e->shiftDown);
-
+	public void mouseMoved(MouseEvent e) {	
+		doReadoutGroupRender(canvas.getGL(),e.getX(), canvas.getHeight() - e.getY(), 1);
 	}
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		// TODO Auto-generated method stub
-		// prepOnMouseDown right?
-		/*
-		 * leftDown = (e.getButton() == MouseEvent.BUTTON1); middleDown = (e.getButton()
-		 * == MouseEvent.BUTTON2); shiftDown = e.isShiftDown(); ctrlDown =
-		 * e.isControlDown();
-		 * 
-		 * leftX = e.getX(); leftY = canvas.getHeight()-e.getY(); // FIXME: Check
-		 * under/overflow? //leftY = e.getY();
-		 * 
-		 */
-		// LOG.error("OK wheel moved event...");
-		// LOG.error("Stuff "+e.getY()+",
-		// "+e.getYOnScreen()+","+e.getUnitsToScroll()+","
-		// );
-		// Camera action?
 
 		// Snag x,y, set up canvas for mathz
 		final int x = e.getX();
@@ -831,84 +710,52 @@ final class W2DataViewListener implements GLEventListener,
 		if (wheelRotation != 0) {
 			final int wheelY = (wheelRotation > 0) ? -20 : 20;
 			myCamera.zoom(0, wheelY, shiftDown);
-			leftX = x;
-			leftY = y;
-			WindowManager.syncWindows(myW2DataView, 0);
-
-			/*
-			 * setSceneChanged(); // Make click redraw canvas.display();
-			 * renderReadoutOverlay(gl, leftX, leftY);
-			 */
+			doReadoutGroupRender(canvas.getGL(), x, y, 0);
 		}
 		gl.getContext().release();
 	}
 
-	public void doSyncGroup(Window w, int mode) {
-		final int group = myW2DataView.getGroupNumber();
+	/** Call back from window manager to render as part of a window group */
+	public void doSyncGroup(Window win, int mode, V3 readoutPoint, boolean inside) {
+		if (!(win instanceof W2DataView)) {
+			return; // FIXME: eventually sync could come from a non W2DataView..such as a vslice
+					// chart
+		}
+		W2DataView w = (W2DataView) (win);
+		boolean fullRedraw = false;
+		boolean readout = (mode == 1);
 
-		// It's us..so we caused the camera to change, this means
-		// we need to do a full redraw
+		GL gl = canvas.getGL();
+		gl.getContext().makeCurrent();
+
+		// It's us calling for a camera change..or a readout
 		if (w == myW2DataView) {
-			GL gl = canvas.getGL();
-			gl.getContext().makeCurrent();
-			if (mode == 0) {
-				setSceneChanged();
-				canvas.display();
-				renderReadoutOverlay(gl, leftX, leftY); // I have my own
-			} else {
-				setDirty();
-				canvas.display(); // Flicker between these two. Could buffer
-				renderReadoutOverlay(gl, leftX, leftY);
-			}
-			gl.getContext().release();
-			return;
-		}
-
-		if (!(w instanceof W2DataView)) {
-			return;
-		}
-		W2DataView other = (W2DataView) (w);
-
-		if (w.getGroupNumber() == group) {
-			GL gl = canvas.getGL();
-			gl.getContext().makeCurrent();
-			// boolean changed = myCamera.syncToCamera(myW2DataView.getGLCamera());
-			final GLBoxCamera c = other.getGLCamera();
-			float[] l = c.getLocation();
-
+			fullRedraw = (mode == 0);
+		} else { // We're another window
 			// If camera is different need full redraw on any mode...
-			boolean changed = myW2DataView.getGLCamera().goToLocation(l);
-			if (changed) {
-				//LOG.error("CAMERA CHANGED "+other);
-				setSceneChanged(); // Make click redraw
-				canvas.display();
+			final GLBoxCamera c = w.getGLCamera();
+			float[] l = c.getLocation();
+			fullRedraw = myW2DataView.getGLCamera().goToLocation(l);
 
-				// FIXME: bleh readout on sync always needs to draw..
-				renderReadoutOverlay(gl, 50, 50);
-			} else {
-				if (mode == 1) {
-					setDirty();
-					canvas.display(); // Flicker between these two. Could buffer
-					renderReadoutOverlay(gl, 50, 50); // FIXME: ahh need actual point
-				}
+			// If fully redrawing, or readout overlay..project our readout from other's
+			// point
+			if (fullRedraw || readout) {
+				W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
+				V2 v = glw.project(readoutPoint);
+				leftX = (int) v.x;
+				leftY = (int) v.y;
+				myIn = inside;  // Other box is inside, so we are too
 			}
-			gl.getContext().release();
 		}
-		/*
-		 * myGroupMoving = groupMove; bool oldFlat = myPrimaryView->drawFlat(); if (
-		 * mode == wg_GLBoxManager::NoSpatialSync ){ // no spatial sync } else if ( mode
-		 * == wg_GLBoxManager::FullCamera ){
-		 * myPrimaryView->goToLocation(with->myPrimaryView.ptr); } else{ float
-		 * olon,olat,olen,orot,otilt; // other
-		 * with->getLocation(olon,olat,olen,orot,otilt); if (mode ==
-		 * wg_GLBoxManager::ViewPointZoom){ myPrimaryView->goToLocation(this,
-		 * olon,olat,olen, -1.0,-1.0); } else if ( mode ==
-		 * wg_GLBoxManager::ViewPointOnly){ myPrimaryView->goToLocation(this, olon,
-		 * olat, -1.0,-1.0,-1.0); } else if ( mode == wg_GLBoxManager::ZoomOnly){
-		 * myPrimaryView->goToLocation(this, -1.0, -1.0, olen, -1.0,-1.0); } } bool
-		 * newFlat = myPrimaryView->drawFlat(); wg_GLBoxManager& g =
-		 * wg_GLBoxManager::instance(); if (oldFlat != newFlat){ g.flatToggled(this); }
-		 */
+
+		// Do actual redraw or back copy...
+		if (fullRedraw) {
+			setSceneChanged();
+		} else if (readout) {
+			setDirty();
+		}
+		canvas.display();
+		gl.getContext().release();
 	}
 }
 
@@ -979,7 +826,6 @@ public class W2DataView extends DataView {
 	@Override
 	public void repaint() {
 		if (myListener != null) {
-			LOG.error("REPAINT WAS CALLED");
 			myListener.setSceneChanged();
 		}
 	}
@@ -990,7 +836,6 @@ public class W2DataView extends DataView {
 	@Override
 	public void updateChart(boolean force) {
 		if (myListener != null) {
-			LOG.error("UPDATE CHART CALLED");
 			myListener.setSceneChanged();
 		}
 	}
@@ -1013,6 +858,10 @@ public class W2DataView extends DataView {
 		canvas.addMouseListener(test);
 		canvas.addMouseMotionListener(test);
 		canvas.addMouseWheelListener(test);
+		canvas.setRequestFocusEnabled(true);
+
+		// I'll do it myself when I know it's ready...
+		// canvas.setAutoSwapBufferMode(false);
 
 		// Bleh not sure I like how this works. Currently have to select
 		// window before popup will work...
@@ -1020,7 +869,9 @@ public class W2DataView extends DataView {
 		// canvas.setComponentPopupMenu(menu);
 
 		// Really? FIXME: we're gonna need dirty handling, this gonna hammer display
-		final FPSAnimator animator = new FPSAnimator(canvas, 60, true);
+		// Seems to work without this now, except for overlay..if we can get that to
+		// work properly, dump this...
+		final FPSAnimator animator = new FPSAnimator(canvas, 300, true);
 		animator.start();
 
 		return canvas;
@@ -1077,7 +928,7 @@ public class W2DataView extends DataView {
 	}
 
 	@Override
-	public void doSyncGroup(Window w, int mode) {
-		myListener.doSyncGroup(w, mode);
+	public void doSyncGroup(Window w, int mode, V3 readoutPoint, boolean inside) {
+		myListener.doSyncGroup(w, mode, readoutPoint, inside);
 	}
 }

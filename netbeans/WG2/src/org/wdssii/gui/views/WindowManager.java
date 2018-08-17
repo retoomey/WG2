@@ -6,6 +6,7 @@ import java.util.Vector;
 
 import org.wdssii.core.CommandManager;
 import org.wdssii.core.W2Config;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.Application;
 import org.wdssii.gui.charts.DataView;
 import org.wdssii.gui.charts.W2DataView;
@@ -299,6 +300,15 @@ public class WindowManager {
 		return false;
 	}
 
+	public static void dumpWindows(Window top)
+	{
+		Iterator<Window> iter = top.theWindows.iterator();
+		while (iter.hasNext()) {
+			Window at = iter.next();
+			LOG.error("Window name is '"+at.getTitle()+"' "+at);
+		}
+	}
+	
 	/**
 	 * Find and swap two windows by name in the model and notify the WindowMaker to
 	 * take action on this
@@ -326,23 +336,13 @@ public class WindowManager {
 				myTopDataView = aTitle;
 			}
 
-			// Swap parents (with data views it's probably same parent...)
-			Window para = a.getParent();
-			Window parb = b.getParent();
-			if (para != null) {
-				para.removeWindow(a);
-				para.addWindow(b);
-				b.setParent(para);
-			}
-			if (parb != null) {
-				parb.removeWindow(b);
-				parb.addWindow(a);
-				a.setParent(parb);
-			}
+			// Swap windows in model
+			Window.swapWindows(a, b);
+			
+			// Swap windows in GUI
 			myGUI.notifySwapped(a, b);
-
 		} else {
-			LOG.error("Couldn't find windows to swap...");
+			LOG.error("Couldn't find windows to swap..."+aName+", "+bName);
 		}
 		return true;
 	}
@@ -396,7 +396,7 @@ public class WindowManager {
 	 * Notify all windows sharing a group to perform sync action on the given group
 	 * number 0 -- Camera change 1 -- Readout change
 	 */
-	public static void syncWindows(Window w, int mode) {
+	public static void syncWindows(Window w, int mode, V3 readoutPoint, boolean inside) {
 		int groupNumber = w.getGroupNumber();
 
 		// FIXME: Might be a good idea to keep lists of the groups for speed..
@@ -406,11 +406,11 @@ public class WindowManager {
 			Iterator<Window> iter = results.iterator();
 			while (iter.hasNext()) {
 				Window at = iter.next();
-				at.doSyncGroup(w, mode);
+				at.doSyncGroup(w, mode, readoutPoint, inside);
 			}
 		} else {
 			// Window is solo..just send to itself
-			w.doSyncGroup(w, mode);
+			w.doSyncGroup(w, mode, readoutPoint, inside);
 		}
 	}
 

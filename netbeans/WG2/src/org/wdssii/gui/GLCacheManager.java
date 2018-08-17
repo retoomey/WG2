@@ -73,7 +73,8 @@ public class GLCacheManager implements Singleton {
 			GLAutoDrawable sharedDrawable = GLDrawableFactory.getFactory(glp).createDummyAutoDrawable(null, true, caps,
 					null);
 			GLCapabilitiesChooser chooser = null;
-
+			//sharedDrawable.setAutoSwapBufferMode(false);
+			
 			// So this should be called from main GUI thread...
 			sharedDrawable.display();
 

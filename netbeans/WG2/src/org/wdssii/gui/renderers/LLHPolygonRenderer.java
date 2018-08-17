@@ -71,6 +71,11 @@ LOG.error("Pick rendering a point...");
 					gln.glColor3ub((byte) c.getRed(), (byte) c.getGreen(), (byte) c.getBlue());
 					myR.drawControlPoint(world, p, true);
 					addCandidate(c, p);
+					
+					// getUniqueColor (3 bytes)
+					// FFAA00 for example...why not a counter and vector?  eh?  no map needed then
+					// 
+					
 				}
 			} finally {
 				// Catch just to avoid rendering error spam
@@ -366,6 +371,8 @@ if (myFeature != null){
 
 			LOG.error("NUMBER OF PICKABLE POINTS IS "+cpoints.size());
 			
+			w.isPickingMode();
+	
 			PickWithOpenGLColor p = new ourGLPicker(w, this, cpoints); 
 			p.begin();
 			p.pick(pickPoint.x, pickPoint.y);  // Find objects at the point, add to list...

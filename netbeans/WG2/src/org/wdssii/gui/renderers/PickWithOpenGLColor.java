@@ -90,6 +90,11 @@ public class PickWithOpenGLColor extends Picker {
         // Ok need to add the control point matching this to the list, right?
 	}
 	
+	//public byte[] getUnique() {
+	//	byte[] c = new byte[3];
+	//	
+	//}
+	
 	protected Color getUniqueColor(){
 		
 		// range 0-255 per color...probably could do some byte thingie here instead,

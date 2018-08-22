@@ -63,7 +63,7 @@ public class CatalogView extends JThreadPanel implements CommandListener {
         // Add each class by reflection.  Eventually need to get this list
         // from somewhere...
         addNamedComponent("WDSS2", "org.wdssii.gui.views.WdssiiCatalog");
-        addNamedComponent("WMS", "org.wdssii.gui.worldwind.WMSCatalog");
+      //  addNamedComponent("WMS", "org.wdssii.gui.worldwind.WMSCatalog");
     }
 
     private void addNamedComponent(String tabName, String name) {

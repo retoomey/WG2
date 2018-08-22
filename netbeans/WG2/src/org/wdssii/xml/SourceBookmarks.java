@@ -16,6 +16,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.xml.sax.SAXException;
 
 /**
@@ -59,12 +61,9 @@ public class SourceBookmarks {
     }
 
     public static BookmarkURLData getBookmarksFromURL(URL aURL) {
-
+    	final Logger LOG = LoggerFactory.getLogger(BookmarkURLData.class);
+    	
         BookmarkURLData b = new BookmarkURLData();
-        // disable temporarily...causes hanging when tensor.protect.nssl not 
-        // available. 
-        // FIXME: Move to JAXB priority 1 when actually at work.
-   //     if (true) { return b; }
         try {
 
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -118,14 +117,14 @@ public class SourceBookmarks {
                     return (arg0.name.compareTo(arg1.name));
                 }
             });
+            
         } catch (SAXException e) { // FIXME: figure out each exception what to
-            // do
-            // That's what she said...
+            LOG.error("SAX XML parse exception reading the bookmark xml file");
         } catch (ParserConfigurationException e) {
         } catch (MalformedURLException e) {
-            System.out.println("Exception reading URL " + e.toString());
+            LOG.error("Exception reading URL " + e.toString());
         } catch (IOException io) {
-            System.out.println("IO Exception reading URL " + io.toString());
+            LOG.error("IO Exception reading URL " + io.toString());
         }
         return b;
     }

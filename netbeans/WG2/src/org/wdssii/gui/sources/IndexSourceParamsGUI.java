@@ -26,8 +26,12 @@ import org.wdssii.index.HistoricalIndex;
  */
 public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final static Logger LOG = LoggerFactory.getLogger(IndexSourceParamsGUI.class);
-	private JComboBox myHistoryComboBox;
+	private JComboBox<String> myHistoryComboBox;
 	private SourcesURLLoadDialog myOwner;
 	private ActionListener myOKListener;
 	private int myHistoryValue = 1000;
@@ -111,7 +115,7 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 	public static class historyControl {
 
 		private JLabel label = new JLabel("History");
-		private JComboBox box = new javax.swing.JComboBox();
+		private JComboBox<String> box = new JComboBox<String>();
 		private int history = 1000; // match first box item
 		private final String[] listNames = new String[]{
 			"Realtime: Latest 1000 records",
@@ -127,7 +131,7 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 		public historyControl(ActionListener notify) {
 			final ActionListener secondNotify = notify;
 
-			box.setModel(new DefaultComboBoxModel(listNames));
+			box.setModel(new DefaultComboBoxModel<String>(listNames));
 
 			box.addActionListener(new java.awt.event.ActionListener() {
 
@@ -143,7 +147,7 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 		}
 
 		private void historyActionPerformed(java.awt.event.ActionEvent e) {
-			JComboBox cb = (JComboBox) e.getSource();
+			JComboBox<String> cb = (JComboBox<String>) e.getSource();
 			int item = cb.getSelectedIndex();
 			if (item < historyValues.length) {
 				history = historyValues[item];
@@ -156,7 +160,7 @@ public class IndexSourceParamsGUI extends JPanel implements GUIPlugInPanel {
 			return label;
 		}
 
-		public JComboBox getDropDown() {
+		public JComboBox<String> getDropDown() {
 			return box;
 		}
 

@@ -107,12 +107,13 @@ public class LLHAreaSetGUI extends FeatureGUI {
 
 	/** Eventually this controller stuff all in us I think */
 	private static LLHAreaController theController = null;
-
 	private LLHAreaFeature myFeature;
 	private final LLHAreaSet myLLHAreaSet;
+	
+	
 	private LLHAreaSetTableModel myLLHAreaSetTableModel;
 	private RowEntryTable jObjects3DListTable;
-	private javax.swing.JScrollPane jObjectScrollPane;
+	private JScrollPane jObjectScrollPane;
 	private JPanel myContainer;
 	private JButton myAddRemoveButton, myNormalButton, myNewPolyButton;
 	private JComponent myParent = null;

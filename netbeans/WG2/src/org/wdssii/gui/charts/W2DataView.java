@@ -172,6 +172,8 @@ final class W2DataViewListener implements GLEventListener,
 
 	private V3 myReadoutPoint;
 
+	private int myMouseOverID;
+
 	// ^^^^^ End mouse stuff
 
 	public W2DataViewListener(W2DataView w2DataView) {
@@ -261,8 +263,10 @@ final class W2DataViewListener implements GLEventListener,
 			}
 		}
 
-		// Now do a pick read?
-		int pickId = w.doPickRead(w, x, y);
+		// The picked id is constantly updated to be what's under the mouse...
+		myMouseOverID = w.doPickRead(w, x, y);
+		
+		/*
 		//LOG.error("PICK ID BACK IS " + pickId);
 		// see problem is what to do with it..feature will want to drag or
 		// something...which
@@ -273,7 +277,7 @@ final class W2DataViewListener implements GLEventListener,
 		while (iter.hasNext()) {
 			Feature f = iter.next();
 			f.handlePickText(pickId, leftDown); // Ok pass full mouse state to subclasses...
-		}
+		}*/
 	}
 
 	/**
@@ -348,7 +352,7 @@ final class W2DataViewListener implements GLEventListener,
 		final int w = drawable.getWidth();
 		final int h = drawable.getHeight();
 
-		// Update the pick here?  Does this work with buffer/overlay?
+		// We update our mouse over object(s) whenever we redraw
 		W2GLWorld glw = setUpGLWorld(gl, w, h);
 		pickScene(glw, w, h);
 		
@@ -511,7 +515,7 @@ final class W2DataViewListener implements GLEventListener,
 		// W2GLWorld glw = new W2GLWorld(gl, myCamera, w, h, myW2DataView);
 		
 	//	pickScene(glw, w, h); // I'm thinking always pick scene when full render is done....
-		gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+		//gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
 
 		// This method searches entire list...could we sort them then just render in

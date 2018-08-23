@@ -26,6 +26,7 @@ import org.wdssii.gui.worldwind.LLHAreaLayer;
  *
  * @author Robert Toomey
  */
+@Deprecated
 public class LLHAreaController implements KeyListener, MouseListener, MouseMotionListener {
 
 	private final static Logger LOG = LoggerFactory.getLogger(LLHAreaController.class);

@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+
+import org.wdssii.gui.views.WindowManager;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
 
@@ -122,6 +124,8 @@ public class CommandManager implements Singleton {
             // Does the command require an immediate update message sent?
             if (command.execute()) {
                 fireUpdate(command);
+                // Hack gonna update the new views on ANY command...
+                WindowManager.repaintDataViews();
             }
         }
     }

@@ -393,6 +393,25 @@ public class WindowManager {
 	}
 
 	/**
+	 * Hack for command manager to repaint data views on any command.
+	 * To be honest, most commands affect the views...but it could be
+	 * more efficient to have a subset.
+	 */
+	public static void repaintDataViews() {
+		if (theDataViews != null) {
+			Vector<Window> results = new Vector<Window>();
+			Iterator<Window> iter = theDataViews.theWindows.iterator();
+			while (iter.hasNext()) {
+				Window at = iter.next();
+				if (at instanceof DataView) {
+					DataView dv = (DataView) (at);
+					dv.repaint();
+				}
+			}
+		}
+	}
+
+	/**
 	 * Notify all windows sharing a group to perform sync action on the given group
 	 * number 0 -- Camera change 1 -- Readout change
 	 */

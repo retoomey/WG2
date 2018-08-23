@@ -36,6 +36,7 @@ import org.wdssii.log.LoggerFactory;
  *         Merged Editor ability into this class, since we have a single
  *         'selected' object that is the currently edited one.
  */
+@Deprecated
 public class LLHAreaLayer {
 				// implements WWCategoryLayer {
 

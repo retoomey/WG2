@@ -186,6 +186,9 @@ final class W2DataViewListener implements GLEventListener,
 	 */
 	public void renderFeatureGroup(GLWorld w, String g) {
 
+	//	pickFeatureGroup(w, g, w.width, w.height);
+	//	return;
+		
 		// Why product manager? lol.
 		FeatureList fl = myW2DataView.getFeatureList();
 
@@ -221,7 +224,6 @@ final class W2DataViewListener implements GLEventListener,
 	}
 
 	public void pickFeatureGroup(GLWorld w, String g, int x, int y) {
-
 		/*
 		 * * FIXME: We should sort during add/remove so that we can just call draw/pick
 		 * I think without having to group here. This is slower...
@@ -261,7 +263,7 @@ final class W2DataViewListener implements GLEventListener,
 
 		// Now do a pick read?
 		int pickId = w.doPickRead(w, x, y);
-		LOG.error("PICK ID BACK IS " + pickId);
+		//LOG.error("PICK ID BACK IS " + pickId);
 		// see problem is what to do with it..feature will want to drag or
 		// something...which
 		// can affect renderers right..that can be handled by memento settings coming
@@ -270,7 +272,7 @@ final class W2DataViewListener implements GLEventListener,
 		Iterator<Feature> iter = list.iterator();
 		while (iter.hasNext()) {
 			Feature f = iter.next();
-			f.handlePickText(pickId);
+			f.handlePickText(pickId, leftDown); // Ok pass full mouse state to subclasses...
 		}
 	}
 
@@ -346,17 +348,21 @@ final class W2DataViewListener implements GLEventListener,
 		final int w = drawable.getWidth();
 		final int h = drawable.getHeight();
 
+		// Update the pick here?  Does this work with buffer/overlay?
+		W2GLWorld glw = setUpGLWorld(gl, w, h);
+		pickScene(glw, w, h);
+		
 		if (mySceneChanged == true) {
-			W2GLWorld glw = setUpGLWorld(gl, w, h);
+		//	W2GLWorld glw = setUpGLWorld(gl, w, h);
 			renderFullScene(gl, w, h, glw);
 		} else {
 			if (myDirty == true) {
 				// If we have buffer, use it...
 				if (fromBuffer(gl, w, h)) {
 					myDirty = false;
-				// otherwise full render...
+					// otherwise full render...
 				} else {
-					W2GLWorld glw = setUpGLWorld(gl, w, h);
+				//	W2GLWorld glw = setUpGLWorld(gl, w, h);
 					renderFullScene(gl, w, h, glw);
 				}
 			}
@@ -411,6 +417,37 @@ final class W2DataViewListener implements GLEventListener,
 		if (readoutOn) {
 			if (myText != null) {
 
+				// CROSSHAIR
+				final GL2 gl = gli.getGL2();
+
+				// p is 2d point in 2d ortho
+				gl.glPushAttrib(GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_COLOR_BUFFER_BIT | GL2.GL_LINE_BIT);
+				// glEnable(GL_COLOR_LOGIC_OP);
+				// glLogicOp(GL_INVERT);
+				gl.glDisable(GL2.GL_DEPTH_TEST);
+				gl.glEnable(GL2.GL_LINE_SMOOTH); // make crosshair lines draw smooth
+				gl.glColor3d(1.0, 1.0, 1.0);
+
+				gl.glLineWidth(3.0f); // must be odd for symmetry
+				/*
+				 * if (false){ gl.glBegin(GL.GL_LINE_STRIP); gl.glVertex2d(x-3,y-3);
+				 * gl.glVertex2d(x-3,y+3); gl.glVertex2d(x+3,y+3); gl.glVertex2d(x+3,y-3);
+				 * gl.glVertex2d(x-3,y-3); gl.glEnd(); }else{
+				 */
+				gl.glBegin(GL.GL_LINES);
+				gl.glVertex2d(x - 6, y);
+				gl.glVertex2d(x - 1, y);
+				gl.glVertex2d(x + 1, y);
+				gl.glVertex2d(x + 6, y);
+				gl.glVertex2d(x, y - 6);
+				gl.glVertex2d(x, y - 1);
+				gl.glVertex2d(x, y + 1);
+				gl.glVertex2d(x, y + 6);
+				gl.glEnd();
+				// }
+				gl.glPopAttrib();
+				y = y - 50; // test so I can see it..remove me
+
 				String l = "Readout Test";
 				myText.begin3DRendering();
 				// Rectangle2D bounds = myText.getBounds(l);
@@ -432,7 +469,10 @@ final class W2DataViewListener implements GLEventListener,
 		// ...so that all features can react to mouse...
 		// pickFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup, leftX, h-leftY); // pick y
 		// in gl coordinates at moment
-		pickFeatureGroup(world, LegendFeature.LegendGroup, leftX, h - leftY); // pick y in gl coordinates at moment
+		//pickFeatureGroup(world, LegendFeature.LegendGroup, leftX, h - leftY); // pick y in gl coordinates at moment
+		pickFeatureGroup(world, LegendFeature.LegendGroup, leftX, leftY); // pick y in gl coordinates at moment
+
+		pickFeatureGroup(world, LLHAreaFeature.LLHAreaGroup, leftX, leftY); // pick y
 
 	}
 
@@ -469,7 +509,9 @@ final class W2DataViewListener implements GLEventListener,
 		// projection, so
 		// if the camera changes after creating this, it is no longer valid.
 		// W2GLWorld glw = new W2GLWorld(gl, myCamera, w, h, myW2DataView);
-
+		
+	//	pickScene(glw, w, h); // I'm thinking always pick scene when full render is done....
+		gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
 
 		// This method searches entire list...could we sort them then just render in
@@ -615,16 +657,16 @@ final class W2DataViewListener implements GLEventListener,
 		myReadoutPoint = glw.project2DToEarthSurface(leftX, leftY, 0);
 		WindowManager.syncWindows(myW2DataView, mode, myReadoutPoint, myIn);
 	}
-	
+
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		
-		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight()-e.getY(), 0);
+
+		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight() - e.getY(), 0);
 	}
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {
-		myIn = false;		
+		myIn = false;
 		WindowManager.syncWindows(myW2DataView, 1, myReadoutPoint, myIn);
 	}
 
@@ -635,14 +677,20 @@ final class W2DataViewListener implements GLEventListener,
 		middleDown = (e.getButton() == MouseEvent.BUTTON2);
 		shiftDown = e.isShiftDown();
 		ctrlDown = e.isControlDown();
-
-		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight()-e.getY(), 0);
+		
+		// Full redraw on mouse down...for picked objects
+		//setSceneChanged();
+		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight() - e.getY(), 0);
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		leftDown = false;
 		middleDown = false;
+		
+		// Full redraw on mouse release...for picked objects.
+		//setSceneChanged();
+		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight() - e.getY(), 0);
 	}
 
 	// MouseMotion stuff...
@@ -653,6 +701,7 @@ final class W2DataViewListener implements GLEventListener,
 		// Snag x,y, set up canvas for mathz
 		final int x = e.getX();
 		final int y = canvas.getHeight() - e.getY();
+		LOG.error("DRAG X/Y is "+x+", "+y);
 		int dx = x - leftX;
 		int dy = y - leftY;
 
@@ -674,6 +723,7 @@ final class W2DataViewListener implements GLEventListener,
 			{
 				myCamera.zoom(dx, dy, shiftDown);
 			}
+
 			doReadoutGroupRender(gl, x, y, 0);
 
 			/*
@@ -685,8 +735,12 @@ final class W2DataViewListener implements GLEventListener,
 	}
 
 	@Override
-	public void mouseMoved(MouseEvent e) {	
-		doReadoutGroupRender(canvas.getGL(),e.getX(), canvas.getHeight() - e.getY(), 1);
+	public void mouseMoved(MouseEvent e) {
+		LOG.error("INCOMING X/Y is "+e.getX()+", "+e.getY());
+		leftX = e.getX(); // Pick using left and y
+		leftY = canvas.getHeight() - e.getY();
+		
+		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight() - e.getY(), 1);
 	}
 
 	@Override
@@ -744,7 +798,7 @@ final class W2DataViewListener implements GLEventListener,
 				V2 v = glw.project(readoutPoint);
 				leftX = (int) v.x;
 				leftY = (int) v.y;
-				myIn = inside;  // Other box is inside, so we are too
+				myIn = inside; // Other box is inside, so we are too
 			}
 		}
 

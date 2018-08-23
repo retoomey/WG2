@@ -114,8 +114,8 @@ public abstract class GLWorld {
 				}
 			}
 		}
-		LOG.error("BYTES: "+Byte.toString(myPick[0])+" "+Byte.toString(myPick[1])+" "+Byte.toString(myPick[2])+
-				" "+Byte.toString(myPick[3]));	
+		//LOG.error("BYTES: "+Byte.toString(myPick[0])+" "+Byte.toString(myPick[1])+" "+Byte.toString(myPick[2])+
+		//		" "+Byte.toString(myPick[3]));	
 		gl2.glColor4ub(myPick[0], myPick[1], myPick[2], myPick[3]);
 		return myPickID;
 	}
@@ -128,25 +128,30 @@ public abstract class GLWorld {
 		ByteBuffer data = Buffers.newDirectByteBuffer(4);
 
 		// gl.glDisable(GL.GL_SCISSOR_TEST); // need to restore state then right?
+		
+		// Wait do we need ortho???
+		//GLUtil.pushOrtho2D(w);
 		gl.glReadPixels(x, y, 1, 1, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, data);
-
+		//GLUtil.popOrtho2D(w.gl);
+		
 		byte d0 = data.get(0);
 		byte d1 = data.get(1);
 		byte d2 = data.get(2);
 		//byte d3 = data.get(3);
 		
-		LOG.error("READ: "+Byte.toString(d0)+" "+Byte.toString(d1)+" "+Byte.toString(d2)+
-				" ");
-		System.out.println(String.format("0x%02X", d0));
-		System.out.println(String.format("0x%02X", d1));
-		System.out.println(String.format("0x%02X", d2));
+		//LOG.error("X and Y "+x+", " +y);
+		//LOG.error("READ: "+Byte.toString(d0)+" "+Byte.toString(d1)+" "+Byte.toString(d2)+
+		//		" ");
+		//System.out.println(String.format("0x%02X", d0));
+		//System.out.println(String.format("0x%02X", d1));
+		//System.out.println(String.format("0x%02X", d2));
 		//System.out.println(String.format("0x%02X", d3));
 		
 
 		//int id = (d3 << 24)+(d2 << 16)+(d1 << 8) + d0;
 		int id = (d2 << 16)+(d1 << 8) + d0;
 
-		LOG.error("INT: "+Integer.toString(id));
+		//LOG.error("INT: "+Integer.toString(id));
 		return id;  // Note zero means no hit
 	}
 	

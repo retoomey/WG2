@@ -187,7 +187,7 @@ public class CompassRenderer extends Feature3DRenderer {
 					compassPos.plus(cv);
 				}
 				final double scale = c.getPointToScale(compassPos, w.height) * 1.50;
-				LOG.error("Get unique color compass");
+				//LOG.error("Get unique color compass");
 				myCompassPickID = w.setUniqueGLColor();
 				// LOG.error("PICK COMPASS IS "+myCompassPickID);
 				DrawCompass(w.gl, compassPos, scale, true, false);

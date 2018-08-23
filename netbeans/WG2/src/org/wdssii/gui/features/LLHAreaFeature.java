@@ -3,8 +3,15 @@ package org.wdssii.gui.features;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
+import org.wdssii.core.CommandManager;
+import org.wdssii.gui.commands.PointSelectCommand;
+import org.wdssii.gui.features.LegendFeature.LegendMemento;
+import org.wdssii.gui.renderers.CompassRenderer;
+import org.wdssii.gui.renderers.LLHPolygonRenderer;
 import org.wdssii.gui.volumes.LLHArea;
+import org.wdssii.gui.volumes.LLHAreaControlPoint;
 import org.wdssii.gui.volumes.LLHAreaFactory;
+import org.wdssii.gui.volumes.LLHAreaSet;
 import org.wdssii.gui.volumes.LLHAreaSetFactory;
 import org.wdssii.log.Logger;
 import org.wdssii.log.LoggerFactory;
@@ -35,6 +42,7 @@ public class LLHAreaFeature extends Feature {
      * The LLHArea object we render
      */
     private LLHArea myLLHArea;
+	private LLHPolygonRenderer myLLHPolygonRenderer;
 
     public LLHAreaFeature(FeatureList f) {
         super(f, LLHAreaGroup);
@@ -102,7 +110,13 @@ public class LLHAreaFeature extends Feature {
     @Override
     public ArrayList<FeatureRenderer> getNewRendererList(String type, String packageName) {
     	ArrayList<FeatureRenderer> list = new ArrayList<FeatureRenderer>();
-        addNewRendererItem(list, type, packageName, "LLHPolygonRenderer");    
+        //addNewRendererItem(list, type, packageName, "LLHPolygonRenderer");    
+        // Kinda violates the whole create by name thing...  Need a generic way of getting
+        // pick ids from renderers if we want to avoid this...
+    	myLLHPolygonRenderer = new LLHPolygonRenderer();
+    	myLLHPolygonRenderer.initToFeature(this);
+        list.add(myLLHPolygonRenderer);
+        
         return list;
     }
     
@@ -123,4 +137,41 @@ public class LLHAreaFeature extends Feature {
             return super.createNewControls();
         }
     }
+    
+    
+    @Override
+    public void handlePickText(int pickID, boolean leftDown) {
+    	
+    	// FIXME: Shouldn't have to search..ranges should be in order...
+    	//LOG.error("Got pick "+pickID);
+		//ArrayList<Integer> picks = myLLHPolygonRenderer.myPicks;
+		int id = myLLHPolygonRenderer.myFirstPick;
+		int count = myLLHPolygonRenderer.myPickCount;		
+		LOG.error("INFO: "+pickID +", " +id+", " +(id+count));
+		boolean found = ((pickID >= id) && (pickID < (id+count)));
+		if (found) {
+			LOG.error("FOUND ID OF "+pickID);
+			int pointNumber = pickID-id;
+			LOG.error("PICK INDEX OF "+pointNumber);
+			// Auto select.  FIXME: redesign/streamline
+			// From the LLHAreaLayer stuff.  Bleh this needs to integrate...
+			// Wow needs a GLWorld to create new control points each time...
+			// for moment hack into renderer...clean me clean me clean me..
+			// (got into this mess because of worldwind)
+			ArrayList<LLHAreaControlPoint> c = myLLHPolygonRenderer.myLastControls;
+			LLHAreaControlPoint controlPoint = c.get(pointNumber);
+			
+			if (myLLHArea instanceof LLHAreaSet) {  // BLEH!
+				LLHAreaSet set = (LLHAreaSet) (myLLHArea);
+				int index = controlPoint.getLocationIndex();
+				PointSelectCommand command = new PointSelectCommand(set, index);
+				CommandManager.getInstance().executeCommand(command, true);
+			}			
+		}
+		
+		//LOG.error("ID BACK HANDLE PICK IS "+id);
+
+		//boolean value = (leftDown && (pickID == id) && (pickID > -1));
+		//getMemento().setProperty(LegendMemento.INCOMPASS, value);
+	}
 }

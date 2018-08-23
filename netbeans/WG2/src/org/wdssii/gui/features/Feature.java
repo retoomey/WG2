@@ -454,7 +454,7 @@ public class Feature implements Mementor {
         }
     }
 
-	public void handlePickText(int pickId) {
+	public void handlePickText(int pickId, boolean leftMouse) {
 		// TODO Auto-generated method stub
 		
 	}

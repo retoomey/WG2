@@ -15,9 +15,11 @@ import javax.media.opengl.GL2;
 import org.wdssii.geom.LLD_X;
 import org.wdssii.geom.V2;
 import org.wdssii.geom.V3;
+import org.wdssii.gui.GLBoxCamera;
 import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.Picker;
+import org.wdssii.gui.W2GLWorld;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
@@ -33,7 +35,8 @@ import org.wdssii.storage.GrowList;
 
 import com.jogamp.opengl.util.awt.TextRenderer;
 
-/** Draws the lines and text for polygons from an LLD_X set
+/**
+ * Draws the lines and text for polygons from an LLD_X set
  * 
  * @author Robert Toomey
  *
@@ -42,48 +45,11 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 
 	private final static Logger LOG = LoggerFactory.getLogger(LLHPolygonRenderer.class);
 
-	/** Allow opengl color picking here.  We could use a rectangle based picker for non-gl worlds, or worlds where we can't
-	 *  do separate pick drawing passes (like AWIPS2)
-	 * @author Robert Toomey
-	 *
-	 */
-	private static class ourGLPicker extends PickWithOpenGLColor {
-		
-		// FIXME: Ok so if the collection of objects drew themselves..this would be generic
-		private LLHPolygonRenderer myR;
-		private Iterable<? extends LLHAreaControlPoint> myC;
-		
-		public ourGLPicker(GLWorld w, LLHPolygonRenderer r, Iterable<? extends LLHAreaControlPoint> controlPoints) {
-			super(w);
-			myR = r;
-			myC = controlPoints;
-		}
-
-		@Override
-		public void renderPick(){
-			
-			try {
-				// Render each of the control points for picking though....
-				for (LLHAreaControlPoint p : myC) {
-					Color c = getUniqueColor();
-                	final GL2 gln = gl.getGL().getGL2();
-LOG.error("Pick rendering a point...");
-					gln.glColor3ub((byte) c.getRed(), (byte) c.getGreen(), (byte) c.getBlue());
-					myR.drawControlPoint(world, p, true);
-					addCandidate(c, p);
-					
-					// getUniqueColor (3 bytes)
-					// FFAA00 for example...why not a counter and vector?  eh?  no map needed then
-					// 
-					
-				}
-			} finally {
-				// Catch just to avoid rendering error spam
-			}
-		}
-	}
-	
+	public int myFirstPick;
+	public int myPickCount = 0;
 	private LLHAreaFeature myFeature = null;
+
+	public ArrayList<LLHAreaControlPoint> myLastControls;
 
 	public LLHPolygonRenderer() {
 	}
@@ -99,26 +65,27 @@ LOG.error("Pick rendering a point...");
 
 		}
 	}
-	
+
 	protected void drawControlPoint(GLWorld w, LLHAreaControlPoint controlPoint, boolean pick) {
 
 		// Clip when outside the view area...
 		V3 aV3 = controlPoint.getPoint();
-		if (!w.inView(aV3)){
+		if (!w.inView(aV3)) {
 			return;
 		}
 		GL glold = w.gl;
-    	final GL2 gl = glold.getGL().getGL2();
+		final GL2 gl = glold.getGL().getGL2();
 
-		//int i = controlPoint.getAltitudeIndex();
+		// int i = controlPoint.getAltitudeIndex();
 		int i = 0;
-		if (i == 0){ // bottom points only...
+		if (i == 0) { // bottom points only...
 			boolean selected = false;
 			LLD_X x = controlPoint.getLocation();
-			if (x != null){
+			if (x != null) {
 				selected = x.getSelected();
 			}
-			// Can't use my symbol library 'yet' because glTranslate messes up worldwind picking...
+			// Can't use my symbol library 'yet' because glTranslate messes up worldwind
+			// picking...
 			// need to make my own...
 			// Ahhh need to translate the mouse point too right? lol
 			V2 p = w.project(aV3);
@@ -133,7 +100,7 @@ LOG.error("Pick rendering a point...");
 			gl.glMatrixMode(GL2.GL_PROJECTION);
 			gl.glPushMatrix();
 			gl.glLoadIdentity();
-			gl.glOrtho(0, aViewWidth, 0, aViewHeight, -1, 1);  // TopLeft
+			gl.glOrtho(0, aViewWidth, 0, aViewHeight, -1, 1); // TopLeft
 			gl.glMatrixMode(GL2.GL_MODELVIEW);
 			gl.glPushMatrix();
 			gl.glLoadIdentity();
@@ -165,11 +132,11 @@ LOG.error("Pick rendering a point...");
 				gl.glEnd();
 				z--;
 				// if (myPoint.selected){
-				//     
+				//
 				// }
-				if (selected){
+				if (selected) {
 					gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-				}else{
+				} else {
 					gl.glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
 				}
 				gl.glBegin(GL2.GL_QUADS);
@@ -177,7 +144,7 @@ LOG.error("Pick rendering a point...");
 				gl.glVertex2d(p.x + z, p.y - z);
 				gl.glVertex2d(p.x + z, p.y + z);
 				gl.glVertex2d(p.x - z, p.y + z);
-				gl.glEnd();            			
+				gl.glEnd();
 			}
 
 			gl.glMatrixMode(GL2.GL_PROJECTION);
@@ -186,103 +153,97 @@ LOG.error("Pick rendering a point...");
 			gl.glPopMatrix();
 		}
 	}
-	
+
 	/**
-	 * Draw the product in the current dc. FIXME: Shared code with map
-	 * renderer right now.....do we merge some of these classes or make util
-	 * functions?
+	 * Draw the product in the current dc. FIXME: Shared code with map renderer
+	 * right now.....do we merge some of these classes or make util functions?
 	 */
 	@Override
 	public void draw(GLWorld w, FeatureMemento mf) {
 
-		//LLHAreaMemento llm = (LLHAreaMemento)(mf);
-		if (myFeature != null){
-			
+		// LLHAreaMemento llm = (LLHAreaMemento)(mf);
+		if (myFeature != null) {
+
 			LLHArea a = myFeature.getLLHArea();
 			List<LLD_X> list = a.getLocations();
 
 			int aSize = list.size();
-			Array1D<Float> workPolygons = new Array1DfloatAsNodes(aSize*3, 0.0f);
+			Array1D<Float> workPolygons = new Array1DfloatAsNodes(aSize * 3, 0.0f);
 			GrowList<Integer> workOffsets = new GrowList<Integer>();
 			GrowList<V3> workLabelPoints = new GrowList<V3>();
 			GrowList<String> workLabelStrings = new GrowList<String>();
 
 			int idx = 0;
-			workOffsets.add(0);  // Just one for now
+			workOffsets.add(0); // Just one for now
 
 			// foreach polygon:
-			//float firstX, firstY, firstZ;
-			boolean firstInPolygon=true;
-			//int count = 0;
-			//int closeAt = 4;
+			// float firstX, firstY, firstZ;
+			boolean firstInPolygon = true;
+			// int count = 0;
+			// int closeAt = 4;
 			int pointName = 1;
 			int currentPolygon = 0;
 			int newPolygon;
-			
+
 			for (LLD_X l : list) {
-				//LLHAreaSetTableData d = new LLHAreaSetTableData();
+				// LLHAreaSetTableData d = new LLHAreaSetTableData();
 				double latitude = l.latDegrees();
 				double longitude = l.lonDegrees();
 				double e = w.getElevation(latitude, longitude);
-				V3 point = w.projectLLH(latitude, longitude, e); 
-				if (firstInPolygon){
+				V3 point = w.projectLLH(latitude, longitude, e);
+				if (firstInPolygon) {
 					currentPolygon = l.getPolygon();
 					newPolygon = currentPolygon;
-					//firstX = point.x; firstY = point.y; firstZ = point.z;
+					// firstX = point.x; firstY = point.y; firstZ = point.z;
 					firstInPolygon = false;
-				}else{
-				    newPolygon = l.getPolygon();
+				} else {
+					newPolygon = l.getPolygon();
 				}
-				
-				//count++;
-				//if (count >= closeAt){
-				if (currentPolygon != newPolygon){
+
+				// count++;
+				// if (count >= closeAt){
+				if (currentPolygon != newPolygon) {
 					currentPolygon = newPolygon;
-				//	// Put the first one again...? No GL loop should handle this....
+					// // Put the first one again...? No GL loop should handle this....
 					workOffsets.add(idx);
-				//	count = 0;
+					// count = 0;
 				}
 				workPolygons.set(idx++, (float) point.x);
 				workPolygons.set(idx++, (float) point.y);
 				workPolygons.set(idx++, (float) point.z);
 				String note = l.getNote();
-				if ((note == null) || note.isEmpty()){ // note can actually be null if never set
-					note = String.format("%d",  pointName);
+				if ((note == null) || note.isEmpty()) { // note can actually be null if never set
+					note = String.format("%d", pointName);
 				}
 				pointName++;
 				workLabelStrings.add(note);
 				workLabelPoints.add(point);
 
-				// if 'changed', close the polygon, start a new one...	
+				// if 'changed', close the polygon, start a new one...
 			}
 
 			workOffsets.add(idx);
 			// end polygon
 
-
 			boolean attribsPushed = false;
 			boolean statePushed = false;
 			final GL glold = w.gl;
-        	final GL2 gl = glold.getGL().getGL2();
+			final GL2 gl = glold.getGL().getGL2();
 
 			try {
 				Object lock1 = workPolygons.getBufferLock();
 				synchronized (lock1) {
 
-					gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL2.GL_LIGHTING_BIT
-							| GL.GL_COLOR_BUFFER_BIT
-							| GL2.GL_ENABLE_BIT
-							| GL2.GL_TEXTURE_BIT | GL2.GL_TRANSFORM_BIT
-							| GL2.GL_VIEWPORT_BIT | GL2.GL_CURRENT_BIT
-							| GL2.GL_LINE_BIT);
+					gl.glPushAttrib(GL.GL_DEPTH_BUFFER_BIT | GL2.GL_LIGHTING_BIT | GL.GL_COLOR_BUFFER_BIT
+							| GL2.GL_ENABLE_BIT | GL2.GL_TEXTURE_BIT | GL2.GL_TRANSFORM_BIT | GL2.GL_VIEWPORT_BIT
+							| GL2.GL_CURRENT_BIT | GL2.GL_LINE_BIT);
 					attribsPushed = true;
 
 					gl.glDisable(GL2.GL_LIGHTING);
 					gl.glDisable(GL.GL_TEXTURE_2D);
 					gl.glDisable(GL.GL_DEPTH_TEST);
 					gl.glShadeModel(GL2.GL_FLAT);
-					gl.glPushClientAttrib(GL2.GL_CLIENT_VERTEX_ARRAY_BIT
-							| GL2.GL_CLIENT_PIXEL_STORE_BIT);
+					gl.glPushClientAttrib(GL2.GL_CLIENT_VERTEX_ARRAY_BIT | GL2.GL_CLIENT_PIXEL_STORE_BIT);
 					gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
 					// gl.glEnableClientState(GL.GL_COLOR_ARRAY);
 
@@ -294,12 +255,11 @@ LOG.error("Pick rendering a point...");
 
 					statePushed = true;
 					FloatBuffer z = workPolygons.getRawBuffer();
-					//gl.glColor4f(r, g, b, a);
+					// gl.glColor4f(r, g, b, a);
 					gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 					gl.glLineWidth(2.0f);
-					//GLUtil.renderArrays(w.gl, z, workOffsets, GL.GL_LINE_STRIP);
+					// GLUtil.renderArrays(w.gl, z, workOffsets, GL.GL_LINE_STRIP);
 					GLUtil.renderArrays(w.gl, z, workOffsets, GL.GL_LINE_LOOP);
-
 
 				}
 			} finally {
@@ -310,12 +270,12 @@ LOG.error("Pick rendering a point...");
 					gl.glPopAttrib();
 				}
 			}
-			//Globe myGlobe = dc.getGlobe();
+			// Globe myGlobe = dc.getGlobe();
 			Rectangle2DIntersector i = new Rectangle2DIntersector();
 			// Get the iterator for the object updated LAST
 			Iterator<V3> points = workLabelPoints.iterator();
 			Iterator<String> strings = workLabelStrings.iterator();
-			//final View myView = dc.getView();
+			// final View myView = dc.getView();
 
 			TextRenderer aText = null;
 			Font font = new Font("Arial", Font.PLAIN, 14);
@@ -328,13 +288,12 @@ LOG.error("Pick rendering a point...");
 			while (strings.hasNext()) {
 				final V3 v = points.next();
 				final String l = strings.next();
-				//final V2 s = myView.project(v);
-				final V2 so =  w.project(v);
+				// final V2 s = myView.project(v);
+				final V2 so = w.project(v);
 				final V2 s = so.offset(12, -10);
 
 				Rectangle2D bounds = aText.getBounds(l);
-				bounds.setRect(bounds.getX() + s.x, bounds.getY() + s.y,
-						bounds.getWidth(), bounds.getHeight());
+				bounds.setRect(bounds.getX() + s.x, bounds.getY() + s.y, bounds.getWidth(), bounds.getHeight());
 				if (!i.intersectsAdd(bounds)) {
 					GLUtil.cheezyOutline(aText, l, Color.WHITE, Color.BLACK, (int) s.x, (int) s.y);
 				}
@@ -345,51 +304,52 @@ LOG.error("Pick rendering a point...");
 			// Ok so basically we can get rid of the LLHAreaControlPointRenderer...
 			// We need ALL features to have the ability to handle mouse events basically...
 			ArrayList<LLHAreaControlPoint> cpoints = a.getControlPoints(w);
-			for(LLHAreaControlPoint pp: cpoints) {
+			for (LLHAreaControlPoint pp : cpoints) {
 				drawControlPoint(w, pp, false);
 			}
-			/*GLUtil.pushOrtho2D(w);
-			aText.begin3DRendering();
-			GLUtil.cheezyOutline(aText, "POLYGON EDITING", Color.WHITE, Color.BLACK, (int) 100, (int) 100);
-			aText.end3DRendering();
-			GLUtil.popOrtho2D(w.gl);*/
+			/*
+			 * GLUtil.pushOrtho2D(w); aText.begin3DRendering(); GLUtil.cheezyOutline(aText,
+			 * "POLYGON EDITING", Color.WHITE, Color.BLACK, (int) 100, (int) 100);
+			 * aText.end3DRendering(); GLUtil.popOrtho2D(w.gl);
+			 */
 		}
 	}
-
 
 	/**
 	 * Pick an object in the current dc at point
 	 */
 	@Override
 	public void pick(GLWorld w, Point pickPoint, FeatureMemento m) {
-		
-if (myFeature != null){
-			
-			LLHArea a = myFeature.getLLHArea();
-			//List<LLD_X> list = a.getLocations();
-			ArrayList<LLHAreaControlPoint> cpoints = a.getControlPoints(w);
+		// FIXME: duplicated code...
+		// Humm do we even need the point for rendering? Guess you
+		// could do some preculling
+		if (w instanceof W2GLWorld) {
+			W2GLWorld w2 = (W2GLWorld) (w);
+			GLBoxCamera c = w2.getCamera();
+			if (c != null) {
+				if (myFeature != null) {
+					LLHArea a = myFeature.getLLHArea();
+					ArrayList<LLHAreaControlPoint> cpoints = a.getControlPoints(w);
+					myLastControls = cpoints; // Hack
+					// myPicks = new ArrayList<Integer>();
+					myPickCount = cpoints.size();
+					if (cpoints.size() > 0) {
+						boolean first = true;
 
-			LOG.error("NUMBER OF PICKABLE POINTS IS "+cpoints.size());
-			
-			w.isPickingMode();
-	
-			PickWithOpenGLColor p = new ourGLPicker(w, this, cpoints); 
-			p.begin();
-			p.pick(pickPoint.x, pickPoint.y);  // Find objects at the point, add to list...
-			p.end();
-			
-			ArrayList<Object> picked = p.getPicked();
-			for(Object i: picked) {
-				LOG.error("Picked this object "+i);
+						for (LLHAreaControlPoint zz : cpoints) {
+							if (first) {
+								this.myFirstPick = w.setUniqueGLColor();
+								first = false;
+							} else {
+								w.setUniqueGLColor();
+							}
+							drawControlPoint(w, zz, true);
+						}
+					}
+
+				}
 			}
-			
-		//	for(LLHAreaControlPoint pp: cpoints) {
-		//		drawControlPoint(w, pp, true);
-		//	}
-}else {
-	LOG.error("Feature is null?");
-}
+		}
 	}
-
 
 }

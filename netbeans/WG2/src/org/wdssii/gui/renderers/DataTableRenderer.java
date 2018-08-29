@@ -2,19 +2,20 @@ package org.wdssii.gui.renderers;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import org.wdssii.log.Logger;
-import org.wdssii.log.LoggerFactory;
+
 import org.wdssii.core.WdssiiJob.WdssiiJobMonitor;
 import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataTable;
 import org.wdssii.datatypes.DataTable.Column;
-import org.wdssii.gui.GLWorld;
 import org.wdssii.geom.Location;
 import org.wdssii.geom.V3;
 import org.wdssii.gui.AnimateManager;
-import org.wdssii.gui.products.Product;
-import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.FeatureRenderer;
+import org.wdssii.gui.products.Product;
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
 import org.wdssii.xml.iconSetConfig.Symbology;
 
 /**
@@ -132,8 +133,8 @@ public class DataTableRenderer extends ProductRenderer {
     }
 
     @Override
-    public int getFeatureRank() {
-        return Feature.POINT;  // Draw over others
+    public FeatureRenderer.Level getDrawRank(){
+        return FeatureRenderer.Level.POINT;  // Draw over others
     }
 
     @Override

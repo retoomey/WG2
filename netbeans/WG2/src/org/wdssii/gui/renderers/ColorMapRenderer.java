@@ -26,6 +26,7 @@ import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.FeatureRenderer;
 import org.wdssii.gui.features.LegendFeature.LegendMemento;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.log.Logger;
@@ -518,4 +519,9 @@ public class ColorMapRenderer extends Feature3DRenderer {
 	private void setLabels(Boolean on) {
 		myShowLabels = on;
 	}
+	
+    @Override
+    public FeatureRenderer.Level getDrawRank(){
+        return FeatureRenderer.Level.OVERLAY;  // Draw over others
+    }
 }

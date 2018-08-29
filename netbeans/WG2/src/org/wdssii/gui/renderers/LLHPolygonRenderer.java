@@ -23,6 +23,7 @@ import org.wdssii.gui.W2GLWorld;
 import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.FeatureRenderer;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.renderers.PolarGridRenderer.Rectangle2DIntersector;
 import org.wdssii.gui.volumes.LLHArea;
@@ -351,5 +352,9 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 			}
 		}
 	}
-
+	
+    @Override
+    public FeatureRenderer.Level getDrawRank(){
+        return FeatureRenderer.Level.LLHCONTROLS;  // Draw over others
+    }
 }

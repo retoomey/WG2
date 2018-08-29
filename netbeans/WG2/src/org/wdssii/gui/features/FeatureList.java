@@ -419,6 +419,46 @@ public class FeatureList {
         return first;
     }
 
+    /** 
+     * Get list of all visible/active features...
+     * @param g
+     * @return
+     */
+    public List<Feature> getActiveFeatureGroups() {
+        ArrayList<Feature> holder = new ArrayList<Feature>();
+        synchronized (featureSync) {
+        	
+        	for(Feature f :myFeatures) {
+        		
+        		// only mode means only the selected of a group shows
+        		// if visible....or none at all IN GROUP....
+        		
+        		boolean visible = f.getVisible();
+        		
+        		// To draw/pick, the feature must first be visible (not turned off)
+        		if (visible) { 
+
+        			// It will always show...unless...
+        			
+        			// ...We're not the selected in group with only on...
+            		String group = f.getFeatureGroup();
+            		Feature selectedFeature = getSelected(group);
+            		if (selectedFeature != null) {
+            			boolean selectedOnly = selectedFeature.getOnlyMode();
+            			if (selectedOnly) {
+            				if (selectedFeature != f) {
+            					continue;
+            				}
+            			}
+            		}
+            		
+            		holder.add(f);
+        		}
+        	}
+        }
+        return holder;
+    }
+    
     /**
      * Get all visible/onlymode features in a group. All that should be shown.
      *

@@ -1,9 +1,14 @@
 package org.wdssii.gui.features;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
 import org.wdssii.core.CommandManager;
+import org.wdssii.geom.LLD_X;
+import org.wdssii.geom.V3;
+import org.wdssii.gui.GLWorld;
+import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.commands.PointSelectCommand;
 import org.wdssii.gui.features.LegendFeature.LegendMemento;
 import org.wdssii.gui.renderers.CompassRenderer;
@@ -43,6 +48,7 @@ public class LLHAreaFeature extends Feature {
      */
     private LLHArea myLLHArea;
 	private LLHPolygonRenderer myLLHPolygonRenderer;
+	private LLHAreaControlPoint myControlPoint;
 
     public LLHAreaFeature(FeatureList f) {
         super(f, LLHAreaGroup);
@@ -138,10 +144,39 @@ public class LLHAreaFeature extends Feature {
         }
     }
     
+    @Override
+	public boolean handleMousePressed(int pickID, GLWorld w, FeatureMouseEvent e) {	
+		int id = myLLHPolygonRenderer.myFirstPick;
+		int count = myLLHPolygonRenderer.myPickCount;		
+		LOG.error("INFO: "+pickID +", " +id+", " +(id+count));
+		boolean found = ((pickID >= id) && (pickID < (id+count)));
+		if (found) {
+			LOG.error("FOUND ID OF "+pickID);
+			int pointNumber = pickID-id;
+			LOG.error("PICK INDEX OF "+pointNumber);
+			// Auto select.  FIXME: redesign/streamline
+			// From the LLHAreaLayer stuff.  Bleh this needs to integrate...
+			// Wow needs a GLWorld to create new control points each time...
+			// for moment hack into renderer...clean me clean me clean me..
+			// (got into this mess because of worldwind)
+			ArrayList<LLHAreaControlPoint> c = myLLHPolygonRenderer.myLastControls;
+			//LLHAreaControlPoint controlPoint = c.get(pointNumber);
+			myControlPoint = c.get(pointNumber);
+			
+			if (myLLHArea instanceof LLHAreaSet) {  // BLEH!
+				LLHAreaSet set = (LLHAreaSet) (myLLHArea);
+				int index = myControlPoint.getLocationIndex();
+				PointSelectCommand command = new PointSelectCommand(set, index);
+				CommandManager.getInstance().executeCommand(command, true);
+				return true;
+			}			
+		}
+		return false;	
+	} 
     
     @Override
-    public void handlePickText(int pickID, boolean leftDown) {
-    	
+    public boolean handleMouseMoved(int pickID, GLWorld w, FeatureMouseEvent e) {
+    	/*
     	// FIXME: Shouldn't have to search..ranges should be in order...
     	//LOG.error("Got pick "+pickID);
 		//ArrayList<Integer> picks = myLLHPolygonRenderer.myPicks;
@@ -166,12 +201,94 @@ public class LLHAreaFeature extends Feature {
 				int index = controlPoint.getLocationIndex();
 				PointSelectCommand command = new PointSelectCommand(set, index);
 				CommandManager.getInstance().executeCommand(command, true);
+				return true;
 			}			
 		}
-		
+		*/
 		//LOG.error("ID BACK HANDLE PICK IS "+id);
 
 		//boolean value = (leftDown && (pickID == id) && (pickID > -1));
 		//getMemento().setProperty(LegendMemento.INCOMPASS, value);
+    	return false;
 	}
+    
+    @Override
+	public boolean handleMouseReleased(int pickID, GLWorld w, FeatureMouseEvent e) {
+    	if (myControlPoint != null) {
+    		myControlPoint = null;
+    		return true;
+    	}
+		return false;
+	}
+    
+    @Override
+	public boolean handleMouseDragged(int pickID, GLWorld w, FeatureMouseEvent e) {
+    	
+    	if (myControlPoint != null) {
+    		LOG.error("WE HAVE A CONTROL POINT AND SHOULD BE DRAGGING IT");
+    		
+    		// Bleh we need GLWorld to project the point.  So do we just
+    		// pass world in?  I think GLWorld should be even more generic then
+    		
+    		// Get current 3d point in lat, lon, height....this seems to be to get the current elevation
+    		V3 controlPointL = w.projectV3ToLLH(myControlPoint.getPoint());
+    		// Find new 3D point on earth surface using this elevation...
+    		V3 newPoint = w.project2DToEarthSurface(e.x, e.y, controlPointL.z);
+    		if (newPoint == null) {
+    			return false;
+    		}else {
+    			LOG.error("PROJECTED "+e.x+", "+e.y+" to "+newPoint.x+", "+newPoint.y+", "+newPoint.z);
+    		}
+    		return true;
+    	}
+    	return false;
+    	
+	}
+    
+   /* public void doMoveControlPoint(GLWorld w, LLHAreaControlPoint controlPoint,
+    		Point mousePoint) {
+
+		// Include this test to ensure any derived implementation performs it.
+		if (this.getAirspace() == null) {
+			return;
+		}
+
+		// Get current 3d point in lat, lon, height....this seems to be to get the current elevation
+		V3 controlPointL = w.projectV3ToLLH(controlPoint.getPoint());
+		
+		// Find new 3D point on earth surface using this elevation...
+		V3 newPoint = w.project2DToEarthSurface(mousePoint.getX(), mousePoint.getY(), controlPointL.z);
+		if (newPoint == null) {
+			return;
+		}
+
+		// And make it lat, lon, height...
+		V3 newPosition = w.projectV3ToLLH(newPoint);
+		
+		int index = controlPoint.getLocationIndex();
+		LLHArea area = this.getAirspace();
+
+		if (area instanceof LLHAreaSet) {
+			LLHAreaSet set = (LLHAreaSet) (area);
+			FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui
+													// control...hummm
+			// currently copying all points into 'points'
+			@SuppressWarnings("unchecked")
+			ArrayList<LLD_X> list = 
+			  ((ArrayList<LLD_X>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+			if (list != null) {
+
+				// Copy the location info at least...
+				LLD_X oldOne = list.get(index);
+				LLD_X newOne = new LLD_X(newPosition.x, newPosition.y, oldOne);
+
+				list.set(index, newOne);
+
+				FeatureMemento fm = (FeatureMemento) (m); // Check it
+				FeatureChangeCommand c = new FeatureChangeCommand(area.getFeature(), fm);
+				CommandManager.getInstance().executeCommand(c, true);
+			}
+		}
+	}*/
+    
 }

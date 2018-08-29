@@ -24,6 +24,7 @@ import org.wdssii.gui.ProductManager;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.FeatureRenderer;
 import org.wdssii.gui.features.PolarGridFeature.PolarGridMemento;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.ProductFeature;
@@ -509,4 +510,10 @@ public class PolarGridRenderer extends Feature3DRenderer {
 		FeatureList.getFeatureList().updateOnMinTime();
 		return keepWorking;
 	}
+	
+	
+    @Override
+    public FeatureRenderer.Level getDrawRank(){
+        return FeatureRenderer.Level.LINE3D;  // Draw over others
+    }
 }

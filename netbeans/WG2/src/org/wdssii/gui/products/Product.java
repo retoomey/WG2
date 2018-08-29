@@ -525,6 +525,7 @@ public class Product extends DelegateHelper {
         return cman.getColorMap(this);
     }
 
+    /*
     public int getFeatureRank() {
         // The Feature Rank..a larger number draws over all those with lower
         // numbers...default is 0
@@ -538,7 +539,7 @@ public class Product extends DelegateHelper {
             }
         }
         return rank;
-    }
+    }*/
 
     /**
      * Used by classes instead of color map

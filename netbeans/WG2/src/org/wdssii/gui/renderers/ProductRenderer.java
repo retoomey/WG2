@@ -1,6 +1,5 @@
 package org.wdssii.gui.renderers;
 
-import org.wdssii.gui.features.Feature3DRenderer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
@@ -10,12 +9,13 @@ import org.wdssii.core.WdssiiJob.WdssiiJobStatus;
 import org.wdssii.datatypes.DataType;
 import org.wdssii.datatypes.Table2DView;
 import org.wdssii.datatypes.Table2DView.LocationType;
-import org.wdssii.geom.Location;
 import org.wdssii.geom.GridVisibleArea;
-import org.wdssii.gui.GLWorld;
+import org.wdssii.geom.Location;
 import org.wdssii.geom.V3;
-import org.wdssii.gui.features.Feature;
+import org.wdssii.gui.GLWorld;
+import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.FeatureRenderer;
 import org.wdssii.gui.products.Product;
 import org.wdssii.gui.products.readouts.ProductReadout;
 
@@ -46,8 +46,9 @@ public abstract class ProductRenderer extends Feature3DRenderer {
     
     public synchronized void setIsCreated(){ myCreated = true; }
 
-    public int getFeatureRank() {
-        return Feature.RASTER; // Default of raster data..
+    @Override
+    public FeatureRenderer.Level getDrawRank(){
+        return FeatureRenderer.Level.RASTER; // Default of raster data..
     }
     
     /** Job for creating in the background any rendering */

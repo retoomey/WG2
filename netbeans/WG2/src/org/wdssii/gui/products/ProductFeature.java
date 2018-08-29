@@ -224,12 +224,12 @@ public class ProductFeature extends Feature {
         return draw;
     }
 
-    @Override
+    /*@Override
     public int getRank(){
         // Update using the current information from product (can change)
        setRank(myProduct.getFeatureRank());
        return super.getRank();
-    }
+    }*/
     
     @Override
     public ArrayList<FeatureRenderer> getRendererList(String id, String packageName)

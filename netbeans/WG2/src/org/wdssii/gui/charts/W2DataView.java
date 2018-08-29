@@ -57,11 +57,13 @@ import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.FeatureMouseEvent;
 import org.wdssii.gui.features.FeatureRenderer;
 import org.wdssii.gui.features.LLHAreaFeature;
 import org.wdssii.gui.features.LegendFeature;
 import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.features.PolarGridFeature;
+import org.wdssii.gui.features.FeatureRenderer.Level;
 import org.wdssii.gui.products.ProductFeature;
 import org.wdssii.gui.views.Window;
 import org.wdssii.gui.views.WindowManager;
@@ -78,51 +80,35 @@ import com.jogamp.opengl.util.awt.TextRenderer;
  * @author Robert Toomey
  *
  */
-enum W2ButtonState {
-	NoButton, LeftButton, MidButton, RightButton
-};
-
-enum W2WheelState {
-	WheelNone, WheelIn, WheelOut
-};
-
-final class myMouseEvent {
-	int x; // Current x for event
-	int y; // Current y for event
-	int dx; // Change since last x
-	int dy; // Change since last y
-
-	W2ButtonState button; // One button only
-
-	boolean leftButton; // Flags for individual buttons
-	boolean middleButton;
-	boolean rightButton;
-
-	boolean shiftDown; // Is shift key down?
-	boolean ctrlDown; // Is the control key down?
-
-	boolean _pressed; // Flag for a pressed mouse button
-	boolean _released; // Flag for a released mouse button
-	boolean _moving; // Flag for a moving mouse
-
-	W2WheelState _wheel_type;
-
-	public boolean ButtonDown() {
-		return _pressed;
-	}
-
-	public boolean ButtonUp() {
-		return _released;
-	}
-
-	public boolean Moving() {
-		return _moving;
-	}
-
-	public W2WheelState Wheeling() {
-		return _wheel_type;
-	}
-}
+/*
+ * enum W2ButtonState { NoButton, LeftButton, MidButton, RightButton };
+ * 
+ * enum W2WheelState { WheelNone, WheelIn, WheelOut };
+ * 
+ * final class W2MouseEvent { int x; // Current x for event int y; // Current y
+ * for event int dx; // Change since last x int dy; // Change since last y
+ * 
+ * W2ButtonState button; // One button only
+ * 
+ * boolean leftButton; // Flags for individual buttons boolean middleButton;
+ * boolean rightButton;
+ * 
+ * boolean shiftDown; // Is shift key down? boolean ctrlDown; // Is the control
+ * key down?
+ * 
+ * boolean _pressed; // Flag for a pressed mouse button boolean _released; //
+ * Flag for a released mouse button boolean _moving; // Flag for a moving mouse
+ * 
+ * W2WheelState _wheel_type;
+ * 
+ * public boolean ButtonDown() { return _pressed; }
+ * 
+ * public boolean ButtonUp() { return _released; }
+ * 
+ * public boolean Moving() { return _moving; }
+ * 
+ * public W2WheelState Wheeling() { return _wheel_type; } }
+ */
 
 final class W2DataViewListener implements GLEventListener,
 // Oh only in Java. Couldn't we just have one it's not like there
@@ -137,19 +123,7 @@ final class W2DataViewListener implements GLEventListener,
 
 	private W2DataView myW2DataView;
 
-	// Mouse stuff...could be put into mouse event...
-
-	private boolean leftDown = false;
-
-	private int leftX;
-
-	private int leftY;
-
-	private boolean middleDown = false;
-
-	private boolean shiftDown = false;
-
-	private boolean ctrlDown = false;
+	private FeatureMouseEvent me = new FeatureMouseEvent();
 
 	private boolean myFirstTime = true;
 
@@ -186,35 +160,22 @@ final class W2DataViewListener implements GLEventListener,
 	 * FIXME: We should sort during add/remove so that we can just call draw/pick I
 	 * think without having to group here. This is slower...
 	 */
-	public void renderFeatureGroup(GLWorld w, String g) {
+	public void renderFeatureGroup(GLWorld w) {
 
-	//	pickFeatureGroup(w, g, w.width, w.height);
-	//	return;
-		
-		// Why product manager? lol.
 		FeatureList fl = myW2DataView.getFeatureList();
+		List<Feature> list = fl.getActiveFeatureGroups();
 
-		List<Feature> list = fl.getActiveFeatureGroup(g);
-
-		// For each rank...draw over lower ranks...
-		for (int i = 0; i <= Feature.MAX_RANK; i++) {
-			Iterator<Feature> iter = list.iterator();
-			while (iter.hasNext()) {
-				Feature f = iter.next();
-				if (f.getRank() == i) {
-					// f.render(w);
+		/** Default rank for renderer, determining drawing order */
+		for (FeatureRenderer.Level i : FeatureRenderer.Level.values()) {
+			for (Feature f : list) {
+				ArrayList<FeatureRenderer> theList = f.getRendererList("", "org.wdssii.gui.renderers");
+				if (theList != null) {
 					FeatureMemento m = f.getMemento();
-					// eh? How did it work?
-					// ArrayList<FeatureRenderer> theList = f.getRendererList("WW",
-					// "org.wdssii.gui.worldwind.renderers");
-					ArrayList<FeatureRenderer> theList = f.getRendererList("", "org.wdssii.gui.renderers");
-
-					// ArrayList<FeatureRenderer> theList = myMap.get(f);
-					if (theList != null) {
-						for (FeatureRenderer fr : theList) {
-							if (fr instanceof Feature3DRenderer) {
-								Feature3DRenderer a3d = (Feature3DRenderer) (fr);
-								a3d.setCurrentFeatureList(fl);
+					for (FeatureRenderer fr : theList) {
+						if (fr instanceof Feature3DRenderer) {
+							Feature3DRenderer a3d = (Feature3DRenderer) (fr);
+							if (a3d.getDrawRank() == i) {
+								a3d.setCurrentFeatureList(fl); // Not liking this...
 								a3d.draw(w, m);
 							}
 						}
@@ -223,61 +184,47 @@ final class W2DataViewListener implements GLEventListener,
 				}
 			}
 		}
+
 	}
 
-	public void pickFeatureGroup(GLWorld w, String g, int x, int y) {
-		/*
-		 * * FIXME: We should sort during add/remove so that we can just call draw/pick
-		 * I think without having to group here. This is slower...
-		 */
-		// FeatureList fl = ProductManager.getInstance().getFeatureList();
+	/** Find top picked object */
+	public void pickFeatureGroup(GLWorld w, int x, int y) {
 		FeatureList fl = myW2DataView.getFeatureList();
-
-		List<Feature> list = fl.getActiveFeatureGroup(g);
-
-		// For each rank...draw over lower ranks...
-		for (int i = 0; i <= Feature.MAX_RANK; i++) {
-			Iterator<Feature> iter = list.iterator();
-			while (iter.hasNext()) {
-				Feature f = iter.next();
-				if (f.getRank() == i) {
-					// f.render(w);
+		List<Feature> list = fl.getActiveFeatureGroups();
+		for (int ii = FeatureRenderer.Level.values().length - 1; ii >= 0; --ii) {
+			FeatureRenderer.Level i = FeatureRenderer.Level.values()[ii];
+			for (Feature f : list) {
+				ArrayList<FeatureRenderer> theList = f.getRendererList("", "org.wdssii.gui.renderers");
+				if (theList != null) {
 					FeatureMemento m = f.getMemento();
-					// eh? How did it work?
-					// ArrayList<FeatureRenderer> theList = f.getRendererList("WW",
-					// "org.wdssii.gui.worldwind.renderers");
-					ArrayList<FeatureRenderer> theList = f.getRendererList("", "org.wdssii.gui.renderers");
-
-					// ArrayList<FeatureRenderer> theList = myMap.get(f);
-					if (theList != null) {
-						for (FeatureRenderer fr : theList) {
-							if (fr instanceof Feature3DRenderer) {
-								Feature3DRenderer a3d = (Feature3DRenderer) (fr);
-								// LOG.error("Pick called on feature "+x+" "+y);
+					for (FeatureRenderer fr : theList) {
+						if (fr instanceof Feature3DRenderer) {
+							Feature3DRenderer a3d = (Feature3DRenderer) (fr);
+							if (a3d.getDrawRank() == i) {
+								// We're only letting the top item be picked.
+								// FIXME: Could be a stack of picks...
 								a3d.pick(w, new Point(x, y), m);
 							}
 						}
 					}
-
 				}
 			}
 		}
 
 		// The picked id is constantly updated to be what's under the mouse...
 		myMouseOverID = w.doPickRead(w, x, y);
-		
-		/*
-		//LOG.error("PICK ID BACK IS " + pickId);
+
+		// LOG.error("PICK ID BACK IS " + myMouseOverID);
 		// see problem is what to do with it..feature will want to drag or
 		// something...which
 		// can affect renderers right..that can be handled by memento settings coming
 		// from
 		// feature...
-		Iterator<Feature> iter = list.iterator();
-		while (iter.hasNext()) {
-			Feature f = iter.next();
-			f.handlePickText(pickId, leftDown); // Ok pass full mouse state to subclasses...
-		}*/
+		/*
+		 * Iterator<Feature> iter = list.iterator(); while (iter.hasNext()) { Feature f
+		 * = iter.next(); f.handlePickText(myMouseOverID, leftDown); // Ok pass full
+		 * mouse state to subclasses... }
+		 */
 	}
 
 	/**
@@ -354,10 +301,11 @@ final class W2DataViewListener implements GLEventListener,
 
 		// We update our mouse over object(s) whenever we redraw
 		W2GLWorld glw = setUpGLWorld(gl, w, h);
-		pickScene(glw, w, h);
-		
+		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
+		pickFeatureGroup(glw, me.x, me.y);
+
 		if (mySceneChanged == true) {
-		//	W2GLWorld glw = setUpGLWorld(gl, w, h);
+			// W2GLWorld glw = setUpGLWorld(gl, w, h);
 			renderFullScene(gl, w, h, glw);
 		} else {
 			if (myDirty == true) {
@@ -366,7 +314,7 @@ final class W2DataViewListener implements GLEventListener,
 					myDirty = false;
 					// otherwise full render...
 				} else {
-				//	W2GLWorld glw = setUpGLWorld(gl, w, h);
+					// W2GLWorld glw = setUpGLWorld(gl, w, h);
 					renderFullScene(gl, w, h, glw);
 				}
 			}
@@ -385,7 +333,7 @@ final class W2DataViewListener implements GLEventListener,
 
 			// Do readout immediately to avoid flicker issues...
 			if (myIn) {
-				renderReadoutOverlay(gl, leftX, leftY);
+				renderReadoutOverlay(gl, me.x, me.y);
 			}
 
 			GLUtil.popOrtho2D(gl);
@@ -464,22 +412,6 @@ final class W2DataViewListener implements GLEventListener,
 		}
 	}
 
-	public void pickScene(GLWorld world, int w, int h) {
-		world.gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
-
-		// Probably not where we want it to end up....
-		// Think we should create a 'stack' of objects based upon mouse location in
-		// window...
-		// ...so that all features can react to mouse...
-		// pickFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup, leftX, h-leftY); // pick y
-		// in gl coordinates at moment
-		//pickFeatureGroup(world, LegendFeature.LegendGroup, leftX, h - leftY); // pick y in gl coordinates at moment
-		pickFeatureGroup(world, LegendFeature.LegendGroup, leftX, leftY); // pick y in gl coordinates at moment
-
-		pickFeatureGroup(world, LLHAreaFeature.LLHAreaGroup, leftX, leftY); // pick y
-
-	}
-
 	public W2GLWorld setUpGLWorld(GL gl, int w, int h) {
 		if (myFirstTime == true) {
 			myCamera.goToLocation(-97.1640f, 35.1959f, 400.0f, 0.0f, 0.0f);
@@ -513,35 +445,12 @@ final class W2DataViewListener implements GLEventListener,
 		// projection, so
 		// if the camera changes after creating this, it is no longer valid.
 		// W2GLWorld glw = new W2GLWorld(gl, myCamera, w, h, myW2DataView);
-		
-	//	pickScene(glw, w, h); // I'm thinking always pick scene when full render is done....
-		//gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+
+		// pickScene(glw, w, h); // I'm thinking always pick scene when full render is
+		// done....
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
 
-		// This method searches entire list...could we sort them then just render in
-		// order?
-
-		// Basemaps first (below products)
-		renderFeatureGroup(glw, EarthBallFeature.MapGroup);
-
-		renderFeatureGroup(glw, ProductFeature.ProductGroup);
-
-		renderFeatureGroup(glw, MapFeature.MapGroup);
-
-		// Draw lines, labels
-		renderFeatureGroup(glw, LLHAreaFeature.LLHAreaGroup);
-
-		// Draw actual control points. Humm why not part of feature?
-		// Yeah rewrite into our own model. ALL features should have picking
-		// ability, right? And should be able to handle mouse events...
-		/*
-		 * if (myLLHAreaLayer == null) { myLLHAreaLayer = new LLHAreaLayer(); } if
-		 * (myLLHAreaLayer != null) { myLLHAreaLayer.draw(glw); }
-		 */
-
-		renderFeatureGroup(glw, PolarGridFeature.PolarGridGroup);
-
-		renderFeatureGroup(glw, LegendFeature.LegendGroup);
+		renderFeatureGroup(glw);
 
 		final double m = 0.5;
 		GLUtil.pushOrtho2D(gl, w, h);
@@ -591,7 +500,7 @@ final class W2DataViewListener implements GLEventListener,
 
 		// Do readout here AFTER buffer capture...
 		if (myIn) {
-			renderReadoutOverlay(gl, leftX, leftY);
+			renderReadoutOverlay(gl, me.x, me.y);
 		}
 
 		GLUtil.popOrtho2D(gl);
@@ -654,85 +563,112 @@ final class W2DataViewListener implements GLEventListener,
 	/** Setup readout point location */
 	public void doReadoutGroupRender(GL gl, int x, int y, int mode) {
 		myIn = true;
-		leftX = x;
-		leftY = y;
+		me.x = x;
+		me.y = y;
 		gl.getContext().makeCurrent();
 		W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
-		myReadoutPoint = glw.project2DToEarthSurface(leftX, leftY, 0);
+		myReadoutPoint = glw.project2DToEarthSurface(me.x, me.y, 0);
 		WindowManager.syncWindows(myW2DataView, mode, myReadoutPoint, myIn);
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-
+		// me.mouseEventToFeatureMouseEvent(e, canvas.getHeight());
 		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight() - e.getY(), 0);
 	}
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {
+		// me.mouseEventToFeatureMouseEvent(e, canvas.getHeight());
 		myIn = false;
 		WindowManager.syncWindows(myW2DataView, 1, myReadoutPoint, myIn);
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-
-		leftDown = (e.getButton() == MouseEvent.BUTTON1);
-		middleDown = (e.getButton() == MouseEvent.BUTTON2);
-		shiftDown = e.isShiftDown();
-		ctrlDown = e.isControlDown();
+		me.mouseEventToFeatureMouseEvent(e, canvas.getHeight());
 		
-		// Full redraw on mouse down...for picked objects
-		//setSceneChanged();
-		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight() - e.getY(), 0);
+		FeatureList fl = myW2DataView.getFeatureList();
+		List<Feature> list = fl.getActiveFeatureGroups();
+		Iterator<Feature> iter = list.iterator();
+		boolean handled = false;
+		GL gl = canvas.getGL();
+		gl.getContext().makeCurrent();
+		W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
+		for (Feature f : list) {
+			handled = f.handleMousePressed(myMouseOverID, glw, me);
+			if (handled) {
+				break;
+			}
+		}
+		int mode = handled ? 0 : 1;
+		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight() - e.getY(), mode);
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		leftDown = false;
-		middleDown = false;
+		me.mouseEventToFeatureMouseEvent(e, canvas.getHeight());
 		
+		FeatureList fl = myW2DataView.getFeatureList();
+		List<Feature> list = fl.getActiveFeatureGroups();
+		Iterator<Feature> iter = list.iterator();
+		boolean handled = false;
+		GL gl = canvas.getGL();
+		gl.getContext().makeCurrent();
+		W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
+		for (Feature f : list) {
+			handled = f.handleMouseReleased(myMouseOverID, glw, me);
+			if (handled) {
+				break;
+			}
+		}
+
 		// Full redraw on mouse release...for picked objects.
-		//setSceneChanged();
+		// setSceneChanged();
 		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight() - e.getY(), 0);
 	}
 
 	// MouseMotion stuff...
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		// Camera action?
-
-		// Snag x,y, set up canvas for mathz
-		final int x = e.getX();
-		final int y = canvas.getHeight() - e.getY();
-		LOG.error("DRAG X/Y is "+x+", "+y);
-		int dx = x - leftX;
-		int dy = y - leftY;
-
-		shiftDown = e.isShiftDown();
+		me.mouseEventToFeatureMouseEvent(e, canvas.getHeight());
 
 		// I 'think' if dx/dy are zero we can quick break out...
-		if ((dx == 0) && (dy == 0)) {
+		if ((me.dx == 0) && (me.dy == 0)) {
+			// LOG.error("BOTH ARE ZERO");
 			return;
 		}
 
-		if (leftDown || middleDown) {
+		if (me.leftDown || me.middleDown) {
+			// LOG.error("LEFT/MIDDLE DOWN");
 			GL gl = canvas.getGL();
 			gl.getContext().makeCurrent();
-			myCamera.prepMouseDownFlags(gl, x, y, dx, dy);
+			myCamera.prepMouseDownFlags(gl, me.x, me.y, me.dx, me.dy);
 
-			if (leftDown) {
-				myCamera.dragPan(-dx, -dy, shiftDown);
-			} else if (middleDown) // what if both buttons down? eh? eh??
+			if (me.leftDown) {
+				// LOG.error("PAN LEFT "+me.dx+", "+me.dy);
+				myCamera.dragPan(-me.dx, -me.dy, me.shiftDown);
+			} else if (me.middleDown) // what if both buttons down? eh? eh??
 			{
-				myCamera.zoom(dx, dy, shiftDown);
+				myCamera.zoom(me.dx, me.dy, me.shiftDown);
 			}
 
-			doReadoutGroupRender(gl, x, y, 0);
+			// FIXME: We should be locking to the feature that was pressed...
+			
+			FeatureList fl = myW2DataView.getFeatureList();
+			List<Feature> list = fl.getActiveFeatureGroups();
+			Iterator<Feature> iter = list.iterator();
+			boolean handled = false;
+			W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
+			for (Feature f : list) {
+				handled = f.handleMouseDragged(myMouseOverID, glw, me);
+				if (handled) {
+					break;
+				}
+			}
 
-			/*
-			 * setSceneChanged(); canvas.display(); renderReadoutOverlay(gl, leftX, leftY);
-			 */
+			doReadoutGroupRender(gl, me.x, me.y, 0);
+
 			gl.getContext().release();
 
 		}
@@ -740,26 +676,29 @@ final class W2DataViewListener implements GLEventListener,
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		LOG.error("INCOMING X/Y is "+e.getX()+", "+e.getY());
-		leftX = e.getX(); // Pick using left and y
-		leftY = canvas.getHeight() - e.getY();
-		
+		me.mouseEventToFeatureMouseEvent(e, canvas.getHeight());
+
+		FeatureList fl = myW2DataView.getFeatureList();
+		List<Feature> list = fl.getActiveFeatureGroups();
+		GL gl = canvas.getGL();
+		gl.getContext().makeCurrent();
+		W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
+		for (Feature f : list) {
+			// Don't we need multiple return stuff? Ahhh return a class right?
+			f.handleMouseMoved(myMouseOverID, glw, me); // Ok pass full mouse state to subclasses...
+		}
+
 		doReadoutGroupRender(canvas.getGL(), e.getX(), canvas.getHeight() - e.getY(), 1);
 	}
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-
-		// Snag x,y, set up canvas for mathz
-		final int x = e.getX();
-		final int y = canvas.getHeight() - e.getY();
-		int dx = x - leftX;
-		int dy = y - leftY;
+		me.mouseEventToFeatureMouseEvent(e, canvas.getHeight());
 
 		// Not sure we need this here....
 		GL gl = canvas.getGL();
 		gl.getContext().makeCurrent();
-		myCamera.prepMouseDownFlags(gl, x, y, dx, dy);
+		myCamera.prepMouseDownFlags(gl, me.x, me.y, me.dx, me.dy);
 
 		// Could be zero for a while with a super resolution wheel...
 		// we'll wait the a strictly positive or negative before
@@ -767,8 +706,8 @@ final class W2DataViewListener implements GLEventListener,
 		int wheelRotation = e.getWheelRotation();
 		if (wheelRotation != 0) {
 			final int wheelY = (wheelRotation > 0) ? -20 : 20;
-			myCamera.zoom(0, wheelY, shiftDown);
-			doReadoutGroupRender(canvas.getGL(), x, y, 0);
+			myCamera.zoom(0, wheelY, me.shiftDown);
+			doReadoutGroupRender(canvas.getGL(), me.x, me.y, 0);
 		}
 		gl.getContext().release();
 	}
@@ -800,8 +739,8 @@ final class W2DataViewListener implements GLEventListener,
 			if (fullRedraw || readout) {
 				W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
 				V2 v = glw.project(readoutPoint);
-				leftX = (int) v.x;
-				leftY = (int) v.y;
+				me.x = (int) v.x;
+				me.y = (int) v.y;
 				myIn = inside; // Other box is inside, so we are too
 			}
 		}

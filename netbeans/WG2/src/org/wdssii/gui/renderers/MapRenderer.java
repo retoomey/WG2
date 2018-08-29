@@ -29,6 +29,7 @@ import org.wdssii.gui.features.Feature;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureList;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.FeatureRenderer;
 import org.wdssii.gui.features.MapFeature;
 import org.wdssii.gui.features.MapFeature.MapMemento;
 import org.wdssii.log.Logger;
@@ -481,4 +482,9 @@ public class MapRenderer extends Feature3DRenderer {
 		FeatureList.getFeatureList().updateOnMinTime();
 		return keepWorking;
 	}
+	   
+    @Override
+    public FeatureRenderer.Level getDrawRank(){
+        return FeatureRenderer.Level.LINEMAP;  // Draw over others
+    }
 }

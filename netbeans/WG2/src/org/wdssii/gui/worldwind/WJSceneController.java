@@ -181,11 +181,11 @@ public class WJSceneController extends BasicSceneController {
      */
     public void renderFeatureGroup(GLWorld w, String g) {
 
-        FeatureList fl = ProductManager.getInstance().getFeatureList();
+      /*  FeatureList fl = ProductManager.getInstance().getFeatureList();
         List<Feature> list = fl.getActiveFeatureGroup(g);
 
         // For each rank...draw over lower ranks...
-        for (int i = 0; i <= Feature.MAX_RANK; i++) {
+        for (int i = 0; i <= FeatureRenderer.MAX_RANK; i++) {
             Iterator<Feature> iter = list.iterator();
             while (iter.hasNext()) {
                 Feature f = iter.next();
@@ -205,7 +205,7 @@ public class WJSceneController extends BasicSceneController {
 
                 }
             }
-        }
+        }*/
     }
 
     /**
@@ -213,7 +213,7 @@ public class WJSceneController extends BasicSceneController {
      */
     public void pickFeatureGroup(GLWorld w, Point p, String g) {
 
-        FeatureList fl = ProductManager.getInstance().getFeatureList();
+       /* FeatureList fl = ProductManager.getInstance().getFeatureList();
         List<Feature> list = fl.getActiveFeatureGroup(g);
         Iterator<Feature> iter = list.iterator();
         while (iter.hasNext()) {
@@ -231,6 +231,6 @@ public class WJSceneController extends BasicSceneController {
                     }
                 }
             }
-        }
+        }*/
     }
 }

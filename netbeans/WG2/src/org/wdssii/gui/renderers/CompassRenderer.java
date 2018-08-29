@@ -12,6 +12,7 @@ import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.W2GLWorld;
 import org.wdssii.gui.features.Feature3DRenderer;
 import org.wdssii.gui.features.FeatureMemento;
+import org.wdssii.gui.features.FeatureRenderer;
 import org.wdssii.gui.features.LegendFeature.LegendMemento;
 import org.wdssii.gui.features.MapFeature.MapMemento;
 import org.wdssii.log.Logger;
@@ -199,4 +200,9 @@ public class CompassRenderer extends Feature3DRenderer {
 	public int getCompassPickID() {
 		return myCompassPickID;
 	}
+	
+    @Override
+    public FeatureRenderer.Level getDrawRank(){
+        return FeatureRenderer.Level.OVERLAY;  // Draw over others
+    }
 }

@@ -5,8 +5,11 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import org.wdssii.core.CommandManager;
+import org.wdssii.geom.D3;
 import org.wdssii.geom.LLD_X;
+import org.wdssii.geom.V2;
 import org.wdssii.geom.V3;
+import org.wdssii.gui.GLUtil;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.commands.FeatureChangeCommand;
 import org.wdssii.gui.commands.PointSelectCommand;
@@ -223,21 +226,63 @@ public class LLHAreaFeature extends Feature {
     
     @Override
 	public boolean handleMouseDragged(int pickID, GLWorld w, FeatureMouseEvent e) {
+    	V3 aPoint = w.project2DToEarthSurface(e.x, e.y, D3.EARTH_RADIUS_KMS);
+    	V3 zPosition = w.projectV3ToLLH(aPoint); // xyz --> LLH
+    	V3 backPoint = w.projectLLH(zPosition.x, zPosition.y, zPosition.z); // 
+    	
+    	//LOG.error("EARTH : "+aPoint.x+", "+aPoint.y+", "+aPoint.z);
+
+    //	LOG.error("NEW : "+zPosition.x+", "+zPosition.y+", "+zPosition.z);
+    	
+    //	LOG.error("BACK : "+backPoint.x+", "+backPoint.y+", "+backPoint.z);
+
+    	w.gl.getContext().makeCurrent();
     	
     	if (myControlPoint != null) {
-    		LOG.error("WE HAVE A CONTROL POINT AND SHOULD BE DRAGGING IT");
     		
     		// Bleh we need GLWorld to project the point.  So do we just
     		// pass world in?  I think GLWorld should be even more generic then
     		
     		// Get current 3d point in lat, lon, height....this seems to be to get the current elevation
-    		V3 controlPointL = w.projectV3ToLLH(myControlPoint.getPoint());
+    		V3 pp = myControlPoint.getPoint();
+    		//LOG.error("PP is "+pp.x+", "+pp.y+", "+pp.z);
+    		//V3 controlPointL = w.projectV3ToLLH(myControlPoint.getPoint());
+    		//LOG.error("OLD POINT: "+controlPointL.x+", "+controlPointL.y+", "+controlPointL.z);
+    		
     		// Find new 3D point on earth surface using this elevation...
-    		V3 newPoint = w.project2DToEarthSurface(e.x, e.y, controlPointL.z);
+    		//V3 newPoint = w.project2DToEarthSurface(e.x, e.y, controlPointL.z);
+    		V3 newPoint = w.project2DToEarthSurface(e.x, e.y, 0);  // this should be correct...
+    		
     		if (newPoint == null) {
     			return false;
     		}else {
-    			LOG.error("PROJECTED "+e.x+", "+e.y+" to "+newPoint.x+", "+newPoint.y+", "+newPoint.z);
+    			//LOG.error("PROJECTED to "+newPoint.x+", "+newPoint.y+", "+newPoint.z);
+    			V3 newPosition = w.projectV3ToLLH(newPoint);
+    			LOG.error("X/Y  "+e.x+","+e.y+" NEW: "+newPosition.x+", "+newPosition.y+", "+newPosition.z);
+    			// And make it lat, lon, height...
+    			int index = myControlPoint.getLocationIndex();
+    			LOG.error("NEW: "+newPosition.x+", "+newPosition.y+", "+newPosition.z);
+    			if (myLLHArea instanceof LLHAreaSet) {
+    				LLHAreaSet set = (LLHAreaSet) (myLLHArea);
+    				FeatureMemento m = set.getMemento(); // vs getNewMemento as in gui
+    														// control...hummm
+    				// currently copying all points into 'points'
+    				@SuppressWarnings("unchecked")
+    				ArrayList<LLD_X> list = ((ArrayList<LLD_X>) m.getPropertyValue(LLHAreaSet.LLHAreaSetMemento.POINTS));
+    				if (list != null) {
+
+    					// Copy the location info at least...
+    					LLD_X oldOne = list.get(index);
+    					LLD_X newOne = new LLD_X(newPosition.x, newPosition.y, oldOne);
+
+    					list.set(index, newOne);
+
+    					FeatureMemento fm = (FeatureMemento) (m); // Check it
+    					FeatureChangeCommand c = new FeatureChangeCommand(myLLHArea.getFeature(), fm);
+    					CommandManager.getInstance().executeCommand(c, true);
+    				}
+    			}
+
     		}
     		return true;
     	}

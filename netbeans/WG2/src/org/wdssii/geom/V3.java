@@ -27,11 +27,11 @@ public class V3 {
         z = (float)zi;
     }
      
-     public V3 offset(float dx, float dy, float dz){
+   /*  public V3 offset(float dx, float dy, float dz){
     	 return new V3(x+dx, y+dy, z+dz);
      }
      
      public V3 offset(double dx, double dy, double dz){
     	 return new V3(x+dx, y+dy, z+dz);
-     }
+     }*/
 }

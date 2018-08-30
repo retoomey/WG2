@@ -148,6 +148,8 @@ final class W2DataViewListener implements GLEventListener,
 
 	private int myMouseOverID;
 
+	private String myReadoutText = "NA";
+
 	// ^^^^^ End mouse stuff
 
 	public W2DataViewListener(W2DataView w2DataView) {
@@ -368,10 +370,9 @@ final class W2DataViewListener implements GLEventListener,
 		// Begin overlay readout testing...
 		if (readoutOn) {
 			if (myText != null) {
-
 				// CROSSHAIR
 				final GL2 gl = gli.getGL2();
-
+				
 				// p is 2d point in 2d ortho
 				gl.glPushAttrib(GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_COLOR_BUFFER_BIT | GL2.GL_LINE_BIT);
 				// glEnable(GL_COLOR_LOGIC_OP);
@@ -406,7 +407,7 @@ final class W2DataViewListener implements GLEventListener,
 
 				// bounds.setRect(bounds.getX() + x, bounds.getY() +y, bounds.getWidth(),
 				// bounds.getHeight());
-				GLUtil.cheezyOutline(myText, "Readout", Color.WHITE, Color.BLACK, (int) x, (int) y);
+				GLUtil.cheezyOutline(myText, myReadoutText, Color.WHITE, Color.BLACK, (int) x, (int) y);
 				myText.end3DRendering();
 			}
 		}
@@ -568,6 +569,8 @@ final class W2DataViewListener implements GLEventListener,
 		gl.getContext().makeCurrent();
 		W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
 		myReadoutPoint = glw.project2DToEarthSurface(me.x, me.y, 0);
+		V3 llh = glw.projectV3ToLLH(myReadoutPoint);
+		myReadoutText  = "At: "+llh.x+", "+llh.y; //+", "+llh.z;
 		WindowManager.syncWindows(myW2DataView, mode, myReadoutPoint, myIn);
 	}
 
@@ -645,14 +648,6 @@ final class W2DataViewListener implements GLEventListener,
 			gl.getContext().makeCurrent();
 			myCamera.prepMouseDownFlags(gl, me.x, me.y, me.dx, me.dy);
 
-			if (me.leftDown) {
-				// LOG.error("PAN LEFT "+me.dx+", "+me.dy);
-				myCamera.dragPan(-me.dx, -me.dy, me.shiftDown);
-			} else if (me.middleDown) // what if both buttons down? eh? eh??
-			{
-				myCamera.zoom(me.dx, me.dy, me.shiftDown);
-			}
-
 			// FIXME: We should be locking to the feature that was pressed...
 			
 			FeatureList fl = myW2DataView.getFeatureList();
@@ -667,6 +662,16 @@ final class W2DataViewListener implements GLEventListener,
 				}
 			}
 
+			if (!handled) {
+			if (me.leftDown) {
+				// LOG.error("PAN LEFT "+me.dx+", "+me.dy);
+				myCamera.dragPan(-me.dx, -me.dy, me.shiftDown);
+			} else if (me.middleDown) // what if both buttons down? eh? eh??
+			{
+				myCamera.zoom(me.dx, me.dy, me.shiftDown);
+			}
+			}
+			
 			doReadoutGroupRender(gl, me.x, me.y, 0);
 
 			gl.getContext().release();
@@ -739,6 +744,8 @@ final class W2DataViewListener implements GLEventListener,
 			if (fullRedraw || readout) {
 				W2GLWorld glw = setUpGLWorld(gl, canvas.getWidth(), canvas.getHeight());
 				V2 v = glw.project(readoutPoint);
+				V3 llh = glw.projectV3ToLLH(readoutPoint);
+				myReadoutText  = "At: "+llh.x+", "+llh.y; //+", "+llh.z;
 				me.x = (int) v.x;
 				me.y = (int) v.y;
 				myIn = inside; // Other box is inside, so we are too

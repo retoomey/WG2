@@ -175,6 +175,20 @@ public class D3 {
 		y = lon;
 		z = h;
 	}
+	
+	/**
+	 * In place, turn a Location vector into a point reference (opposite of toLocation)
+	 * 
+	 */
+	public void toPoint() {
+		double r = D3.EARTH_RADIUS_KMS + z;
+		double lonRadians = Math.toRadians(y);
+		double latRadians = Math.toRadians(x);
+		double cosLat = Math.cos(latRadians);
+		x = r * Math.cos(lonRadians) * cosLat;
+		y = r * Math.sin(lonRadians) * cosLat;
+		z = r * Math.sin(latRadians);
+	}
 
 	/** As standing, is the point vector a valid lat lon location */
 	public boolean isValidLocation() {

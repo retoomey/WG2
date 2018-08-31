@@ -9,7 +9,7 @@ import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
 
 import org.wdssii.core.W2Config;
-import org.wdssii.geom.D3;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.GLCacheManager;
 import org.wdssii.gui.GLTexture;
 import org.wdssii.gui.GLWorld;
@@ -121,7 +121,7 @@ public class EarthBallRenderer extends Feature3DRenderer {
 		gl.glPushAttrib(GL2.GL_DEPTH_BUFFER_BIT);
 		gl.glEnable(GL2.GL_DEPTH_TEST);
 
-		glu.gluSphere(myEarthQuadric, D3.EARTH_RADIUS_KMS, density, density);
+		glu.gluSphere(myEarthQuadric, V3.EARTH_RADIUS_KMS, density, density);
 
 		gl.glPopAttrib();
 		gl.glPopAttrib();

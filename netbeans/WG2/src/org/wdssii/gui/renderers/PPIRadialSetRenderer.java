@@ -161,7 +161,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                             //        Angle.fromDegrees(loc0.getLatitude()),
                             //        Angle.fromDegrees(loc0.getLongitude()),
                             //        loc0.getHeightKms() * 1000);
-                            point0 = w.projectLLH(loc0.getLatitude(), loc0.getLongitude(), loc0.getHeightKms() * 1000);
+                            point0 = w.projectLLH(loc0.latDegrees(), loc0.lonDegrees(), loc0.getHeightKms() * 1000);
                             point01[0] = (float) point0.x;
                             point01[1] = (float) point0.y;
                             point01[2] = (float) point0.z;
@@ -172,7 +172,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                             //        Angle.fromDegrees(loc1.getLatitude()),
                             //        Angle.fromDegrees(loc1.getLongitude()),
                             //        loc1.getHeightKms() * 1000);
-                            point1 = w.projectLLH(loc1.getLatitude(), loc1.getLongitude(), loc1.getHeightKms() * 1000);
+                            point1 = w.projectLLH(loc1.latDegrees(), loc1.lonDegrees(), loc1.getHeightKms() * 1000);
 
                             point01[3] = (float) point1.x;
                             point01[4] = (float) point1.y;
@@ -218,7 +218,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                         //         Angle.fromDegrees(loc2.getLatitude()),
                         //         Angle.fromDegrees(loc2.getLongitude()),
                         //        loc2.getHeightKms() * 1000);
-                        point2 = w.projectLLH(loc2.getLatitude(), loc2.getLongitude(), loc2.getHeightKms() * 1000);
+                        point2 = w.projectLLH(loc2.latDegrees(), loc2.lonDegrees(), loc2.getHeightKms() * 1000);
 
                         point23[0] = (float) point2.x;
                         point23[1] = (float) point2.y;
@@ -227,7 +227,7 @@ public class PPIRadialSetRenderer extends RadialSetRenderer {
                         //        Angle.fromDegrees(loc3.getLatitude()),
                         //        Angle.fromDegrees(loc3.getLongitude()),
                         //        loc3.getHeightKms() * 1000);
-                        point3 = w.projectLLH(loc3.getLatitude(), loc3.getLongitude(), loc3.getHeightKms() * 1000);
+                        point3 = w.projectLLH(loc3.latDegrees(), loc3.lonDegrees(), loc3.getHeightKms() * 1000);
 
                         point23[3] = (float) point3.x;
                         point23[4] = (float) point3.y;

@@ -44,8 +44,8 @@ public class RadialSetBIValue extends VolumeValue {
 		float D = .01f;
 		PPIRadialSet.PPIRadialSetQuery q = new PPIRadialSet.PPIRadialSetQuery();
 		PPIRadialSet.PPIRadialSetQuery q2 = new PPIRadialSet.PPIRadialSetQuery();
-		Location lminus = new Location(loc.getLatitude(), loc.getLongitude() - D, loc.getHeightKms());
-		Location lplus = new Location(loc.getLatitude(), loc.getLongitude() + D, loc.getHeightKms());
+		Location lminus = new Location(loc.latDegrees(), loc.lonDegrees() - D, loc.getHeightKms());
+		Location lplus = new Location(loc.latDegrees(), loc.lonDegrees() + D, loc.getHeightKms());
 		q.inLocation = lminus;
 		q2.inLocation = lplus;
 		q.inNeedInterpolationWeight = true;

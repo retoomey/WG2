@@ -99,8 +99,8 @@ public class RadialSet extends DataType {
         // Made originLocation final, if changed need to call this when set
 
         double ree = Location.EarthRadius + originLocation.getHeightKms(); // kms
-        double phi2 = originLocation.getLongitude() * Math.PI / 180.0; // radians();
-        double beta2 = originLocation.getLatitude() * Math.PI / 180.0; // .radians();
+        double phi2 = originLocation.lonDegrees() * Math.PI / 180.0; // radians();
+        double beta2 = originLocation.latDegrees() * Math.PI / 180.0; // .radians();
 
         double cosBeta2 = Math.cos(beta2);
         rlx = ree * Math.cos(phi2) * cosBeta2;
@@ -245,8 +245,8 @@ public class RadialSet extends DataType {
         // while the user is dragging so every ms counts...
 
         final double r = Location.EarthRadius + l.getHeightKms(); // kms
-        final double phi = l.getLongitude() * Math.PI / 180.0; // radians();
-        final double beta = l.getLatitude() * Math.PI / 180.0; // .radians();
+        final double phi = l.lonDegrees() * Math.PI / 180.0; // radians();
+        final double beta = l.latDegrees() * Math.PI / 180.0; // .radians();
         final double cosBeta = Math.cos(beta);
 
         final double coneX = (r * Math.cos(phi) * cosBeta) - rlx;

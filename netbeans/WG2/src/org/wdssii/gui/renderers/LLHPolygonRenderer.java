@@ -291,7 +291,9 @@ public class LLHPolygonRenderer extends Feature3DRenderer {
 				final String l = strings.next();
 				// final V2 s = myView.project(v);
 				final V2 so = w.project(v);
-				final V2 s = so.offset(12, -10);
+				final V2 plus = new V2(12, -10);
+				//final V2 s = so.offset(12, -10);
+				final V2 s = so.plus(plus);
 
 				Rectangle2D bounds = aText.getBounds(l);
 				bounds.setRect(bounds.getX() + s.x, bounds.getY() + s.y, bounds.getWidth(), bounds.getHeight());

@@ -365,7 +365,7 @@ public class DataType {
     public Location getJumpToLocation() {
         Location loc = null;
         if (originLocation != null) {
-            loc = new Location(originLocation.getLatitude(), originLocation.getLongitude(),
+            loc = new Location(originLocation.latDegrees(), originLocation.lonDegrees(),
                     100);
         }
         return loc;

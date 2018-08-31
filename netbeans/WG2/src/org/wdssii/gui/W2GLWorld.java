@@ -4,7 +4,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
 
-import org.wdssii.geom.D3;
+import org.wdssii.geom.V3;
 import org.wdssii.geom.V2;
 import org.wdssii.geom.V3;
 import org.wdssii.gui.charts.W2DataView;
@@ -52,8 +52,8 @@ public class W2GLWorld extends GLWorld {
 
 	@Override
 	public V3 projectLLH(float latDegrees, float lonDegrees, float heightMeters) {
-	/*	// FIXME: Should probably stick in the merged D3/V3 class since it's just math
-		double r = D3.EARTH_RADIUS_KMS + (heightMeters / 1000.0f);
+	/*	// FIXME: Should probably stick in the merged V3/V3 class since it's just math
+		double r = V3.EARTH_RADIUS_KMS + (heightMeters / 1000.0f);
 		double lonRadians = Math.toRadians(lonDegrees);
 		double latRadians = Math.toRadians(latDegrees);
 		double cosLat = Math.cos(latRadians);
@@ -61,15 +61,15 @@ public class W2GLWorld extends GLWorld {
 		double y = r * Math.sin(lonRadians) * cosLat;
 		double z = r * Math.sin(latRadians);
 		*/
-		D3 aD3 = new D3(latDegrees, lonDegrees, heightMeters/1000.0);
-		aD3.toPoint();
-		return new V3(aD3.x, aD3.y, aD3.z);
+		V3 aV3 = new V3(latDegrees, lonDegrees, heightMeters/1000.0);
+		aV3.toPoint();
+		return new V3(aV3.x, aV3.y, aV3.z);
 	}
 
 	@Override
 	public V3 projectLLH(double latDegrees, double lonDegrees, double heightMeters) {
-		/*// FIXME: Should probably stick in the merged D3/V3 class since it's just math
-		double r = D3.EARTH_RADIUS_KMS + (heightMeters / 1000.0f);
+		/*// FIXME: Should probably stick in the merged V3/V3 class since it's just math
+		double r = V3.EARTH_RADIUS_KMS + (heightMeters / 1000.0f);
 		double lonRadians = Math.toRadians(lonDegrees);
 		double latRadians = Math.toRadians(latDegrees);
 		double cosLat = Math.cos(latRadians);
@@ -78,19 +78,19 @@ public class W2GLWorld extends GLWorld {
 		double z = r * Math.sin(latRadians);
 		return new V3(x, y, z);*/
 		
-		D3 aD3 = new D3(latDegrees, lonDegrees, heightMeters/1000.0);
-		aD3.toPoint();
-		return new V3(aD3.x, aD3.y, aD3.z);
+		V3 aV3 = new V3(latDegrees, lonDegrees, heightMeters/1000.0);
+		aV3.toPoint();
+		return new V3(aV3.x, aV3.y, aV3.z);
 	}
 
 	@Override
 	public V3 projectV3ToLLH(V3 in) {
 
-		D3 aD3 = new D3(in.x, in.y, in.z); // FIXME: merge V3/D3 duh
-		aD3.toLocation();
+		V3 aV3 = new V3(in.x, in.y, in.z); // FIXME: merge V3/V3 duh
+		aV3.toLocation();
 
-		// FIXME: merge V3/D3 duh
-		return new V3(aD3.x, aD3.y, aD3.z);
+		// FIXME: merge V3/V3 duh
+		return new V3(aV3.x, aV3.y, aV3.z);
 	}
 
 	@Override
@@ -98,9 +98,9 @@ public class W2GLWorld extends GLWorld {
 
 		// FIXME: This shares code with GLCamera clipping planes and projection stuff
 		// GLCamera could 'use' glworld for this...
-		D3[] points = new D3[2];
-		points[0] = new D3(0, 0, 0);
-		points[1] = new D3(0, 0, 0);
+		V3[] points = new V3[2];
+		points[0] = new V3(0, 0, 0);
+		points[1] = new V3(0, 0, 0);
 		double xyz[] = { 1, 2, 3 };
 
 		myGLU.gluUnProject(x, y, 0.0, myModel, 0, myProj, 0, myView, 0, xyz, 0);
@@ -108,7 +108,7 @@ public class W2GLWorld extends GLWorld {
 		myGLU.gluUnProject(x, y, 1.0, myModel, 0, myProj, 0, myView, 0, xyz, 0);
 		points[1].set(xyz[0], xyz[1], xyz[2]);
 
-		D3 d = GeometricCalc.pointOnSphere(points[0], points[1], 0);
+		V3 d = GeometricCalc.pointOnSphere(points[0], points[1], 0);
 		return new V3(d.x, d.y, d.z);
 	}
 

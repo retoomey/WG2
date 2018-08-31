@@ -171,7 +171,7 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                             //        Angle.fromDegrees(gate.getLatitude()),
                             //        Angle.fromDegrees(gate.getLongitude()),
                             //        gate.getHeightKms() * 1000);
-                            V3 point = w.projectLLH(gate.getLatitude(), gate.getLongitude(), gate.getHeightKms()*1000);
+                            V3 point = w.projectLLH(gate.latDegrees(), gate.lonDegrees(), gate.getHeightKms()*1000);
                             readout.set(idREAD++, value);
                             idy = out.putUnsignedBytes(colors, idy);
 
@@ -183,7 +183,7 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                             //        Angle.fromDegrees(gate1.getLatitude()),
                             //        Angle.fromDegrees(gate1.getLongitude()),
                             //        gate1.getHeightKms() * 1000);
-                            V3 point1 = w.projectLLH(gate1.getLatitude(), gate1.getLongitude(), gate1.getHeightKms()*1000);
+                            V3 point1 = w.projectLLH(gate1.latDegrees(), gate1.lonDegrees(), gate1.getHeightKms()*1000);
 
                             readout.set(idREAD++, value);
 
@@ -200,7 +200,7 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                         //        Angle.fromDegrees(gate3.getLatitude()),
                         //        Angle.fromDegrees(gate3.getLongitude()),
                         //        gate3.getHeightKms() * 1000);
-                        V3 point3 = w.projectLLH(gate3.getLatitude(), gate3.getLongitude(), gate3.getHeightKms()*1000);
+                        V3 point3 = w.projectLLH(gate3.latDegrees(), gate3.lonDegrees(), gate3.getHeightKms()*1000);
 
                         readout.set(idREAD++, value);
 
@@ -214,7 +214,7 @@ public class RHIRadialSetRenderer extends RadialSetRenderer {
                         //        Angle.fromDegrees(gate2.getLatitude()),
                         //        Angle.fromDegrees(gate2.getLongitude()),
                         //        gate2.getHeightKms() * 1000);
-                        V3 point2 = w.projectLLH(gate2.getLatitude(), gate2.getLongitude(), gate2.getHeightKms()*1000.0);
+                        V3 point2 = w.projectLLH(gate2.latDegrees(), gate2.lonDegrees(), gate2.getHeightKms()*1000.0);
                         readout.set(idREAD++, value);
 
                         idy = out.putUnsignedBytes(colors, idy);

@@ -62,8 +62,8 @@ public class WWWindFieldRenderer extends WWTileRenderer {
         WindField wf = getWindField();
         if (wf != null) {
             Location loc = wf.getLocation();
-            double maxLat = loc.getLatitude();
-            double minLon = loc.getLongitude();
+            double maxLat = loc.latDegrees();
+            double minLon = loc.lonDegrees();
             double minLat = maxLat - (wf.getDeltaLat() * wf.getNumLat());
             double maxLon = minLon + (wf.getDeltaLon() * wf.getNumLon());
             int row = 0;

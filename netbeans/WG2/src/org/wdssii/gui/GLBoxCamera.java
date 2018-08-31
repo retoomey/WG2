@@ -5,7 +5,7 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
 
 import org.jfree.util.Log;
-import org.wdssii.geom.D3;
+import org.wdssii.geom.V3;
 import org.wdssii.log.LoggerFactory;
 
 /**
@@ -61,22 +61,22 @@ public class GLBoxCamera {
 	float myFar;
 
 	/** Reference object's x-axis direction. */
-	D3 ref_ux = new D3(1, 0, 0);
+	V3 ref_ux = new V3(1, 0, 0);
 
 	/** Reference object's y-axis direction. */
-	D3 ref_uy = new D3(0, 1, 0);
+	V3 ref_uy = new V3(0, 1, 0);
 
 	/** Reference object's z-axis direction. */
-	D3 ref_uz = new D3(0, 0, 1);
+	V3 ref_uz = new V3(0, 0, 1);
 
 	/** View point. */
-	public D3 myView = new D3(0, 0, 0);
+	public V3 myView = new V3(0, 0, 0);
 
 	/** Reference point. */
-	public D3 myRef = new D3(0, 0, 0);
+	public V3 myRef = new V3(0, 0, 0);
 
 	/** Screen's up direction (for gluLookAt). */
-	D3 myUp = new D3(0, 0, 0);
+	V3 myUp = new V3(0, 0, 0);
 
 	/** Field of view. */
 	double myFOVDegrees = 45.0;
@@ -89,7 +89,7 @@ public class GLBoxCamera {
 	 * the center of the earth in our coordinate system. +++ This is wrong..needs to
 	 * be an earth surface point currently goToLocation initializes
 	 */
-	D3 myLOP = new D3(0, 0, 0);
+	V3 myLOP = new V3(0, 0, 0);
 
 	/**
 	 * The min distance we allow into the LOP (in kilometers). Let's stay above the
@@ -102,7 +102,7 @@ public class GLBoxCamera {
 	 * crazy far out. Unless I really do put an openGL moon easter egg out there of
 	 * course.. ;)
 	 */
-	float myMaxDistance = (float) (D3.EARTH_RADIUS_KMS * 3);
+	float myMaxDistance = (float) (V3.EARTH_RADIUS_KMS * 3);
 
 	/** The tilt angle our true view point differs from true 90 */
 	float myTilt = 0.00f;
@@ -116,16 +116,16 @@ public class GLBoxCamera {
 	boolean myAllowTilt = true;
 
 	/** Debugging stuff */
-	D3 ux = new D3(0, 0, 0);
-	D3 uy = new D3(0, 0, 0);
-	D3 uz = new D3(0, 0, 0);
-	D3 ut = new D3(0, 0, 0);
+	V3 ux = new V3(0, 0, 0);
+	V3 uy = new V3(0, 0, 0);
+	V3 uz = new V3(0, 0, 0);
+	V3 ut = new V3(0, 0, 0);
 
 	CameraPlane[] myPlanes = new CameraPlane[6];
 
 	private boolean myValidLastDown = false;
-	private D3 myLastDown = new D3(0, 0, 0);
-	private D3 myLastDownDelta = new D3(0, 0, 0);
+	private V3 myLastDown = new V3(0, 0, 0);
+	private V3 myLastDownDelta = new V3(0, 0, 0);
 
 	/**
 	 * Wheel time. Used to allow actions to 'wait' when a mouse wheel occurs. Wheels
@@ -145,9 +145,9 @@ public class GLBoxCamera {
 		// Permanent camera settings for now at least
 		myRLimit = myMinDistance;
 		// myCameraState.fovDegrees = 45;
-		// myCameraState.ref_ux = new D3( 1, 0, 0 );
-		// myCameraState.ref_uy = new D3( 0, 1, 0 );
-		// myCameraState.ref_uz = new D3( 0, 0, 1 );
+		// myCameraState.ref_ux = new V3( 1, 0, 0 );
+		// myCameraState.ref_uy = new V3( 0, 1, 0 );
+		// myCameraState.ref_uz = new V3( 0, 0, 1 );
 
 	}
 
@@ -359,7 +359,7 @@ public class GLBoxCamera {
 		// --------------------------------------------------------------------------
 		// Rotation of view due to Earth theta (north/south) and phi (east/west)
 		//
-		float er = (float) D3.EARTH_RADIUS_KMS;
+		float er = (float) V3.EARTH_RADIUS_KMS;
 		float t = myTheta;
 		float p = myPhi;
 		float height = myR;
@@ -368,8 +368,8 @@ public class GLBoxCamera {
 		final double second = Math.sin(t) * Math.sin(p);
 		final double third = Math.cos(t);
 
-		final D3 ruv = new D3(first, second, third);
-		final D3 erv = new D3(ruv).times(er);
+		final V3 ruv = new V3(first, second, third);
+		final V3 erv = new V3(ruv).times(er);
 
 		// The surface point is out on this vector a distance of er.
 		// We could add to this here if needed to 'float' a bit
@@ -389,8 +389,8 @@ public class GLBoxCamera {
 
 		// Rotate in y/x direction
 		// ut = uy*Math.cos( myCompass ) + ux*Math.sin( myCompass );
-		// final D3 uxc = new D3(ux).times(Math.sin(myCompass));
-		ut.set(uy).times(Math.cos(myCompass)).plus(new D3(ux).times(Math.sin(myCompass))).toUnit();
+		// final V3 uxc = new V3(ux).times(Math.sin(myCompass));
+		ut.set(uy).times(Math.cos(myCompass)).plus(new V3(ux).times(Math.sin(myCompass))).toUnit();
 
 		myUp.set(ut);
 
@@ -401,12 +401,12 @@ public class GLBoxCamera {
 		final double cosT = Math.cos(myTilt);
 		final double sinT = Math.sin(myTilt);
 
-		final D3 ub = new D3(ut).times(cosT).plus(new D3(uz).times(sinT));
+		final V3 ub = new V3(ut).times(cosT).plus(new V3(uz).times(sinT));
 
 		myUp.set(ub);// new up vector tilts forward..
 		// tilt view vector as well
 		// code::CVector uv2 = uz*cos( myTilt ) + -ut*sin( myTilt );
-		final D3 uv2 = new D3(uz).times(cosT).minus(new D3(ut).times(sinT)).times(height);
+		final V3 uv2 = new V3(uz).times(cosT).minus(new V3(ut).times(sinT)).times(height);
 
 		// Finally, set the view point and the wg_GLBox camera to us
 		// myCameraState.view = code::CPoint(0,0,0)
@@ -426,7 +426,7 @@ public class GLBoxCamera {
 	public void calculateClippingPlanes() {
 		// distance from view point to reference point
 		// double dvr = ( myCameraState.view - myCameraState.ref).norm();
-		D3 temp = new D3(myView).minus(myRef);
+		V3 temp = new V3(myView).minus(myRef);
 		final double dvr = temp.norm();
 
 		// distance from center of earth to reference point
@@ -437,7 +437,7 @@ public class GLBoxCamera {
 
 		// earth radius
 		// const double er = code::Constants::EarthRadius().kilometers();
-		final double er = D3.EARTH_RADIUS_KMS;
+		final double er = V3.EARTH_RADIUS_KMS;
 
 		if (dcr < 1 && dvr < 2 * er) {
 			// The reference point is at the center of the earth, and the view
@@ -474,11 +474,11 @@ public class GLBoxCamera {
 		double gMeters = 0;
 		// const code::Length g = code::Length::Meters( 0 );
 		// code::Location loc = glc->locationOnSphere( g, e->x, e->y );
-		D3 loc = locationOnSphere(glold, gMeters, x, y);
+		V3 loc = locationOnSphere(glold, gMeters, x, y);
 
 		// code::Location loc2 = glc->locationOnSphere(
 		// g, e->x+(e->dx), e->y+(e->dy));
-		D3 loc2 = locationOnSphere(glold, gMeters, x + dx, y + dy);
+		V3 loc2 = locationOnSphere(glold, gMeters, x + dx, y + dy);
 
 		// LOG.error("POINT ONE " +loc.x +", " +loc.y+", "+loc.z);
 		// LOG.error("POINT TWO " +loc2.x +", " +loc2.y+", "+loc2.z);
@@ -496,8 +496,8 @@ public class GLBoxCamera {
 		// }
 	}
 
-	public D3 locationOnSphere(GL glold, double heightKMS, int mousex, int mousey) {
-		D3[] points = getPointsOnClippingPlanes(glold, mousex, mousey);
+	public V3 locationOnSphere(GL glold, double heightKMS, int mousex, int mousey) {
+		V3[] points = getPointsOnClippingPlanes(glold, mousex, mousey);
 		// LOG.error("NEARA FAR " + points[0].x + ","+points[0].y + ", "+points[0].z + "
 		// and "+points[1].x
 		// + ", " +points[1].y+", "+points[1].z);
@@ -509,19 +509,19 @@ public class GLBoxCamera {
 		// + ", " +points[1].y+", "+points[1].z);
 		// wg_GeometricCalc...kill me please it never ends...
 		// ADD GeometricCalc
-		D3 d = GeometricCalc.pointOnSphere(points[0], points[1], heightKMS);
+		V3 d = GeometricCalc.pointOnSphere(points[0], points[1], heightKMS);
 		d.toLocation(); // Make the point a location
 		// LOG.error("POINT ON SPHERE IS " + d.x +", " +d.y+", "+d.z);
 		return d;
-		// return new D3(0,0,0);
+		// return new V3(0,0,0);
 	}
 
 	/** Given x and y in current view coordinates */
-	public D3[] getPointsOnClippingPlanes(GL glold, int viewx, int viewy) {
+	public V3[] getPointsOnClippingPlanes(GL glold, int viewx, int viewy) {
 		// LOG.error("X AND Y IS " +viewx +", " +viewy);
-		D3[] points = new D3[2];
-		points[0] = new D3(0, 0, 0);
-		points[1] = new D3(0, 0, 0);
+		V3[] points = new V3[2];
+		points[0] = new V3(0, 0, 0);
+		points[1] = new V3(0, 0, 0);
 		final GL2 gl = glold.getGL2();
 
 		GLU glu = new GLU();
@@ -582,16 +582,16 @@ public class GLBoxCamera {
 
 		// Forward vector (Point your finger at place on earth ball)
 		// code::CVector f = (myCameraState.ref-myCameraState.view).unit();
-		D3 f = new D3(myRef).minus(myView).toUnit();
+		V3 f = new V3(myRef).minus(myView).toUnit();
 
 		// Right vector...(Stick your arm out to the right)
 		// code::CVector s = (f%myCameraState.up).unit();
-		D3 s = new D3(f).cross(myUp).toUnit();
+		V3 s = new V3(f).cross(myUp).toUnit();
 
 		// Recalculate up vector (Stick your arm straight up in the air)
 		// (gl docs say do this, probably ensures proper sign)
 		// code::CVector u = s%f;
-		D3 u = new D3(s).cross(f);
+		V3 u = new V3(s).cross(f);
 
 		// The matrix that does the work
 		double m[] = { s.x, u.x, -f.x, 0, s.y, u.y, -f.y, 0, s.z, u.z, -f.z, 0, 0, 0, 0, 1 };
@@ -708,8 +708,8 @@ public class GLBoxCamera {
 	 * @param height
 	 * @return
 	 */
-	public double getPointToScale(D3 point, double height) {
-		D3 scale = new D3(point);
+	public double getPointToScale(V3 point, double height) {
+		V3 scale = new V3(point);
 		double d = scale.minus(myView).norm();
 		double fov = Math.toRadians(myFOVDegrees);
 		double angle_pixel = fov / (height - 10.0f);

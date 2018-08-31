@@ -1,6 +1,6 @@
 package org.wdssii.gui;
 
-import org.wdssii.geom.D3;
+import org.wdssii.geom.V3;
 
 /** Class to do  some geometric calculation math */
 public class GeometricCalc {
@@ -12,7 +12,7 @@ public class GeometricCalc {
 	 * @param heightKMS
 	 * @return Point on sphere
 	 */
-	public static D3 pointOnSphere(D3 nearP, D3 farP, double heightKMS) {
+	public static V3 pointOnSphere(V3 nearP, V3 farP, double heightKMS) {
 		 // Line from nearP to farP
 		  final float x1 = (float) nearP.x; 
 		  final float y1 = (float) nearP.y; 
@@ -23,7 +23,7 @@ public class GeometricCalc {
 		  
 		  // Sphere with center zero, radius r
 		  float x3 = 0.0f; float y3 = 0.0f; float z3 = 0.0f;
-		  double r = D3.EARTH_RADIUS_KMS+heightKMS;
+		  double r = V3.EARTH_RADIUS_KMS+heightKMS;
 		  
 		  // Linear algebra. Solving sphere/line intersection.
 		  // Either we have zero, one or two intersections
@@ -43,22 +43,22 @@ public class GeometricCalc {
 		      2* (x3*x1 + y3*y1 + z3*z1) - (r*r));
 		  i = b*b-4*a*c;                     // Determinant
 
-		  D3 p;
+		  V3 p;
 		  if (i == 0.0){                     // One intersections
 		    mu = -b/(2*a);
 		    //p = code::CPoint(x1+mu*(x2-x1), y1+mu*(y2-y1), z1+mu*(z2-z1));
-		    p = new D3(x1+mu*(x2-x1), y1+mu*(y2-y1), z1+mu*(z2-z1));
+		    p = new V3(x1+mu*(x2-x1), y1+mu*(y2-y1), z1+mu*(z2-z1));
 		  }else if (i > 0.0){                // Two intersections
 
 		    // First intersection closest to nearP
 		    mu = (float) ((-b - Math.sqrt( (b*b) - 4*a*c)) / (2*a));
-		    p = new D3(x1+mu*(x2-x1), y1+mu*(y2-y1), z1+mu*(z2-z1));
+		    p = new V3(x1+mu*(x2-x1), y1+mu*(y2-y1), z1+mu*(z2-z1));
 
 		    // Second intersection (other side of sphere)
 		    //mu = (-b + sqrt( square(b) - 4*a*c)) / (2*a);
-		    //p = new D3(x1+mu*(x2-x1), y1+mu*(y2-y1), z1+mu*(z2-z1));
+		    //p = new V3(x1+mu*(x2-x1), y1+mu*(y2-y1), z1+mu*(z2-z1));
 		  }else {                            // Zero intersections
-		    p = new D3(0,0,0); //  Caller should check for this case
+		    p = new V3(0,0,0); //  Caller should check for this case
 		  }
 
 		  return p;

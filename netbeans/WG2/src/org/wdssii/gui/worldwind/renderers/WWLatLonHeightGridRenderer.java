@@ -156,8 +156,8 @@ public class WWLatLonHeightGridRenderer extends ProductRenderer {
             Array3D<Float> data = aLLHG.getData();
             // Northwest corner...
             Location origin = aLLHG.getLocation();
-            float startLat = (float) origin.getLatitude();
-            float startLon = (float) origin.getLongitude();
+            float startLat = (float) origin.latDegrees();
+            float startLon = (float) origin.lonDegrees();
             float latDelta = aLLHG.getLatResDegrees();
             float lonDelta = aLLHG.getLonResDegrees();
 
@@ -197,12 +197,12 @@ public class WWLatLonHeightGridRenderer extends ProductRenderer {
                             loc.init(curLat, curLon, height);
                             loc2.init(curLat - latDelta, curLon, height);
                             point = myGlobe.computePointFromPosition(
-                                    Angle.fromDegrees(loc.getLatitude()),
-                                    Angle.fromDegrees(loc.getLongitude()),
+                                    Angle.fromDegrees(loc.latDegrees()),
+                                    Angle.fromDegrees(loc.lonDegrees()),
                                     loc.getHeightKms() * 1000);
                             point1 = myGlobe.computePointFromPosition(
-                                    Angle.fromDegrees(loc2.getLatitude()),
-                                    Angle.fromDegrees(loc2.getLongitude()),
+                                    Angle.fromDegrees(loc2.latDegrees()),
+                                    Angle.fromDegrees(loc2.lonDegrees()),
                                     loc2.getHeightKms() * 1000);
                             startQuadStrip = true;
                         }
@@ -236,12 +236,12 @@ public class WWLatLonHeightGridRenderer extends ProductRenderer {
                         // Always write the 'top' of the strip
                         // Push back last two vertices of quad
                         point3 = myGlobe.computePointFromPosition(
-                                Angle.fromDegrees(loc4.getLatitude()),
-                                Angle.fromDegrees(loc4.getLongitude()),
+                                Angle.fromDegrees(loc4.latDegrees()),
+                                Angle.fromDegrees(loc4.lonDegrees()),
                                 loc4.getHeightKms() * 1000);
                         point2 = myGlobe.computePointFromPosition(
-                                Angle.fromDegrees(loc3.getLatitude()),
-                                Angle.fromDegrees(loc3.getLongitude()),
+                                Angle.fromDegrees(loc3.latDegrees()),
+                                Angle.fromDegrees(loc3.lonDegrees()),
                                 loc3.getHeightKms() * 1000);
 
                         readout.set(idREAD++, value);

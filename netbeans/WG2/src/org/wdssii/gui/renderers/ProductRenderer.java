@@ -217,7 +217,7 @@ public abstract class ProductRenderer extends Feature3DRenderer {
                         //        Angle.fromDegrees(location.getLatitude()),
                         //        Angle.fromDegrees(location.getLongitude()),
                          //       location.getHeightKms() * 1000);
-                        p = w.projectLLH(location.getLatitude(), location.getLongitude(), location.getHeightKms()*1000);
+                        p = w.projectLLH(location.latDegrees(), location.lonDegrees(), location.getHeightKms()*1000);
                         gl.glVertex3d(p.x, p.y, p.z);
                         validPoint = false;
                         counter++;

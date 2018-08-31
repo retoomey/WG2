@@ -148,10 +148,10 @@ public class RadialSetESRIWriter extends ESRIWriter {
                                 rangeKms, sinElevAngle, cosElevAngle, c.heights[j],
                                 c.gcdSinCache[j], c.gcdCosCache[j]);
 
-                        c0 = new Coordinate(gate.getLatitude(),
-                                gate.getLongitude());
-                        c1 = new Coordinate(gate1.getLatitude(),
-                                gate1.getLongitude());
+                        c0 = new Coordinate(gate.latDegrees(),
+                                gate.lonDegrees());
+                        c1 = new Coordinate(gate1.latDegrees(),
+                                gate1.lonDegrees());
                         lastWrittenIndex = j;
                         //}
 
@@ -167,10 +167,10 @@ public class RadialSetESRIWriter extends ESRIWriter {
                                 cosElevAngle, c.heights[j + 1],
                                 c.gcdSinCache[j + 1], c.gcdCosCache[j + 1]);
 
-                        c2 = new Coordinate(gate2.getLatitude(),
-                                gate2.getLongitude());
-                        c3 = new Coordinate(gate3.getLatitude(),
-                                gate3.getLongitude());
+                        c2 = new Coordinate(gate2.latDegrees(),
+                                gate2.lonDegrees());
+                        c3 = new Coordinate(gate3.latDegrees(),
+                                gate3.lonDegrees());
 
                         // LOG.debug("OUTPUT " + c0 + c1 + c2 + c3);
                         // Write a polygon for data.  Bleh we have to make unique objects

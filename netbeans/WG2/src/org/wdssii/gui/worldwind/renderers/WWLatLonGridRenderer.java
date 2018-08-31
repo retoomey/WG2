@@ -143,8 +143,8 @@ public class WWLatLonGridRenderer extends WWTileRenderer {
         if (p != null) {
 
             Location loc = p.getLocation();
-            double maxLat = loc.getLatitude();
-            double minLon = loc.getLongitude();
+            double maxLat = loc.latDegrees();
+            double minLon = loc.lonDegrees();
             double minLat = maxLat - (p.getDeltaLat() * p.getNumLat());
             double maxLon = minLon + (p.getDeltaLon() * p.getNumLon());
             double deltaLat = (maxLat - minLat) / TOP_Y;

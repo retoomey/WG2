@@ -129,11 +129,11 @@ public class LatLonHeightGrid extends DataType implements Table2DView {
         // FIXME: review and cleanup.
 
         // Assuming LatLon at NorthWest corner..
-        double latDegOrigin = originLocation.getLatitude();
-        double lonDegOrigin = originLocation.getLongitude();
+        double latDegOrigin = originLocation.latDegrees();
+        double lonDegOrigin = originLocation.lonDegrees();
         // Get the lat...
-        double latDegs = q.inLocation.getLatitude();
-        double lonDegs = q.inLocation.getLongitude();
+        double latDegs = q.inLocation.latDegrees();
+        double lonDegs = q.inLocation.lonDegrees();
         int latIndex = (int) ((latDegOrigin - latDegs) / latResDegs);
         int lonIndex = (int) ((lonDegs - lonDegOrigin) / lonResDegs);
 

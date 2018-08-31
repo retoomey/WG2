@@ -97,10 +97,10 @@ public class Contours extends DataType implements Table2DView {
                 Location aLoc = l.get(base);
                 switch (subcol) {
                     case 0:
-                        value = (float) aLoc.getLatitude();
+                        value = (float) aLoc.latDegrees();
                         break;
                     case 1:
-                        value = (float) aLoc.getLongitude();
+                        value = (float) aLoc.lonDegrees();
                         break;
                     case 2:
                         value = (float) aLoc.getHeightKms();

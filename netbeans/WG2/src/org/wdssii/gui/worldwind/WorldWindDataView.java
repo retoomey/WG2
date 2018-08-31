@@ -470,7 +470,7 @@ public class WorldWindDataView extends DataView {
         if (view != null) {
 
 
-            Position p = Position.fromDegrees(loc.getLatitude(), loc.getLongitude(), loc.getHeightKms());
+            Position p = Position.fromDegrees(loc.latDegrees(), loc.lonDegrees(), loc.getHeightKms());
             Position beginCenterPos = view.getCenterPosition();
             Position endCenterPos = p;
             Angle beginHeading = view.getHeading();

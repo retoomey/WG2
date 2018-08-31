@@ -107,8 +107,8 @@ public class LatLonGrid extends DataType implements Table2DView {
 	 */
 	public float getValue(Location loc) {
 		//try {
-			int i = (int) Math.rint((this.getLocation().getLatitude() - loc.getLatitude()) / this.deltaLat);
-			int j = (int) Math.rint((loc.getLongitude() - this.getLocation().getLongitude()) / this.deltaLon);
+			int i = (int) Math.rint((this.getLocation().latDegrees() - loc.latDegrees()) / this.deltaLat);
+			int j = (int) Math.rint((loc.lonDegrees() - this.getLocation().lonDegrees()) / this.deltaLon);
 			if ((i >= 0) && (i < values.getX())
 				&& (j >= 0) && (j < values.getY())) {
 				return values.get(i, j);
@@ -161,8 +161,8 @@ public class LatLonGrid extends DataType implements Table2DView {
 		}
 		boolean success = false;
 		Location loc = getLocation();
-		double lat = loc.getLatitude();
-		double lon = loc.getLongitude();
+		double lat = loc.latDegrees();
+		double lon = loc.lonDegrees();
 		double dLat = getDeltaLat();
 		double dLon = getDeltaLon();
 		double height = loc.getHeightKms() + 10.0;
@@ -239,8 +239,8 @@ public class LatLonGrid extends DataType implements Table2DView {
 		if (haveLocation) {
 			float v;
 			final Location loc = q.inLocation;
-			int i = (int) Math.rint((this.getLocation().getLatitude() - loc.getLatitude()) / this.deltaLat);
-			int j = (int) Math.rint((loc.getLongitude() - this.getLocation().getLongitude()) / this.deltaLon);
+			int i = (int) Math.rint((this.getLocation().latDegrees() - loc.latDegrees()) / this.deltaLat);
+			int j = (int) Math.rint((loc.lonDegrees() - this.getLocation().lonDegrees()) / this.deltaLon);
 			q.outRow = i; // Note we allow it out of range for clipping.  Check inRange fields
 			q.outCol = j;
 		        q.rowInRange = ((i > 0) && (i < getNumRows()));

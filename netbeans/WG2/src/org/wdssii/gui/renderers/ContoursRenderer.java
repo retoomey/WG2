@@ -102,7 +102,7 @@ public class ContoursRenderer extends ProductRenderer {
                     //                Angle.fromDegrees(loc.getLatitude()),
                     //                Angle.fromDegrees(loc.getLongitude()),
                     //                loc.getHeightKms() * 1000);
-                    V3 point = w.projectLLH(loc.getLatitude(), loc.getLongitude(), loc.getHeightKms() * 1000.0);
+                    V3 point = w.projectLLH(loc.latDegrees(), loc.lonDegrees(), loc.getHeightKms() * 1000.0);
                     readout.set(idREAD++, 6.0f);
                   //  idy = out.putUnsignedBytes(colors, idy);
 

@@ -73,8 +73,8 @@ public class RadialUtil {
         double ret_lat, ret_lon, ret_ht;
 
         float range = rangeKms * 1000.0f;
-        double stationLat = station.getLatitude();
-        double stationLon = station.getLongitude();
+        double stationLat = station.latDegrees();
+        double stationLon = station.lonDegrees();
 
         // Height in meters (Note this depends only on range and sin of
         // elevation angle,
@@ -178,8 +178,8 @@ public class RadialUtil {
 
         double ret_lat, ret_lon;
 
-        double stationLat = station.getLatitude();
-        double stationLon = station.getLongitude();
+        double stationLat = station.latDegrees();
+        double stationLon = station.lonDegrees();
 
         double lat2 = (90.0f - stationLat) * RAD;
 

@@ -199,15 +199,15 @@ public class LatLonGridTile extends WWTileRenderer.Tile {
                         loc0.init(curLat, curLon, height);
                         loc1.init(curLat - latDelta, curLon, height);
                         point0 = myGlobe.computePointFromPosition(
-                                Angle.fromDegrees(loc0.getLatitude()),
-                                Angle.fromDegrees(loc0.getLongitude()),
+                                Angle.fromDegrees(loc0.latDegrees()),
+                                Angle.fromDegrees(loc0.lonDegrees()),
                                 loc0.getHeightKms() * 1000);
                         point01[0] = (float) point0.x;
                         point01[1] = (float) point0.y;
                         point01[2] = (float) point0.z;
                         point1 = myGlobe.computePointFromPosition(
-                                Angle.fromDegrees(loc1.getLatitude()),
-                                Angle.fromDegrees(loc1.getLongitude()),
+                                Angle.fromDegrees(loc1.latDegrees()),
+                                Angle.fromDegrees(loc1.lonDegrees()),
                                 loc1.getHeightKms() * 1000);
                         point01[3] = (float) point1.x;
                         point01[4] = (float) point1.y;
@@ -247,15 +247,15 @@ public class LatLonGridTile extends WWTileRenderer.Tile {
                     // Always write the 'top' of the strip
                     // Push back last two vertices of quad
                     point2 = myGlobe.computePointFromPosition(
-                            Angle.fromDegrees(loc2.getLatitude()),
-                            Angle.fromDegrees(loc2.getLongitude()),
+                            Angle.fromDegrees(loc2.latDegrees()),
+                            Angle.fromDegrees(loc2.lonDegrees()),
                             loc2.getHeightKms() * 1000);
                     point23[0] = (float) point2.x;
                     point23[1] = (float) point2.y;
                     point23[2] = (float) point2.z;
                     point3 = myGlobe.computePointFromPosition(
-                            Angle.fromDegrees(loc3.getLatitude()),
-                            Angle.fromDegrees(loc3.getLongitude()),
+                            Angle.fromDegrees(loc3.latDegrees()),
+                            Angle.fromDegrees(loc3.lonDegrees()),
                             loc3.getHeightKms() * 1000);
                     point23[3] = (float) point3.x;
                     point23[4] = (float) point3.y;

@@ -88,11 +88,11 @@ public class DataTableRenderer extends ProductRenderer {
             
             int row = 0;
             for (Location l : locations) {
-                V3 worldPoint = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms()*1000.0);
+                V3 worldPoint = w.projectLLH(l.latDegrees(), l.lonDegrees(), l.getHeightKms()*1000.0);
                 myWorldPoints.add(worldPoint);
                 if (locations2 != null){
                     Location l2 = locations2.get(row);
-                    V3 worldPoint2 = w.projectLLH(l2.getLatitude(), l2.getLongitude(), l2.getHeightKms()*1000.0);
+                    V3 worldPoint2 = w.projectLLH(l2.latDegrees(), l2.lonDegrees(), l2.getHeightKms()*1000.0);
                     myWorldPoints2.add(worldPoint2);
                 }
                 row++;

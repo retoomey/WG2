@@ -188,7 +188,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 					double cosAzimuthRAD = Math.cos(Math.toRadians(d));
 					RadialUtil.getAzRanElLocation(l, ourCenter, sinAzimuthRAD, cosAzimuthRAD, rangeKMS, sinElevAngle,
 							cosElevAngle);
-					V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms() * 1000.0);
+					V3 point = w.projectLLH(l.latDegrees(), l.lonDegrees(), l.getHeightKms() * 1000.0);
 					workPolygons.set(idx++, (float) point.x);
 					workPolygons.set(idx++, (float) point.y);
 					workPolygons.set(idx++, (float) point.z);
@@ -211,7 +211,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 			// Angle.fromDegrees(ourCenter.getLongitude()),
 			// ourCenter.getHeightKms() * 1000.0);
 
-			V3 cpoint = w.projectLLH(ourCenter.getLatitude(), ourCenter.getLongitude(),
+			V3 cpoint = w.projectLLH(ourCenter.latDegrees(), ourCenter.lonDegrees(),
 					ourCenter.getHeightKms() * 1000.0);
 			// For each step in spoke degrees....
 			int spokeAngle = 0;
@@ -232,7 +232,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 					// Angle.fromDegrees(l.getLatitude()),
 					// Angle.fromDegrees(l.getLongitude()),
 					// l.getHeightKms() * 1000.0);
-					V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms() * 1000.0);
+					V3 point = w.projectLLH(l.latDegrees(), l.lonDegrees(), l.getHeightKms() * 1000.0);
 					workPolygons.set(idx++, (float) point.x);
 					workPolygons.set(idx++, (float) point.y);
 					workPolygons.set(idx++, (float) point.z);
@@ -256,7 +256,7 @@ public class PolarGridRenderer extends Feature3DRenderer {
 				RadialUtil.getAzRanElLocation(l, ourCenter, sinAzimuthRAD, cosAzimuthRAD, rangeKMS, sinElevAngle,
 						cosElevAngle);
 
-				V3 point = w.projectLLH(l.getLatitude(), l.getLongitude(), l.getHeightKms() * 1000.0);
+				V3 point = w.projectLLH(l.latDegrees(), l.lonDegrees(), l.getHeightKms() * 1000.0);
 
 				// Add STRING first, draw thread will use size of points to
 				// render,
@@ -308,8 +308,8 @@ public class PolarGridRenderer extends Feature3DRenderer {
 				if (d instanceof PPIRadialSet) {
 					PPIRadialSet radial = (PPIRadialSet) (d);
 					Location l = radial.getLocation();
-					double latDegs = l.getLatitude();
-					double lonDegs = l.getLongitude();
+					double latDegs = l.latDegrees();
+					double lonDegs = l.lonDegrees();
 					// Why am I mixing worldwind LatLon with wdssii location?
 					V2 ll = null;
 					ll = old.get(PolarGridMemento.CENTER, ll);

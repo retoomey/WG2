@@ -6,7 +6,8 @@ import java.awt.Point;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
-import org.wdssii.geom.D3;
+import org.wdssii.geom.V3;
+import org.wdssii.geom.V3;
 import org.wdssii.gui.GLBoxCamera;
 import org.wdssii.gui.GLWorld;
 import org.wdssii.gui.W2GLWorld;
@@ -32,13 +33,13 @@ public class CompassRenderer extends Feature3DRenderer {
 	private int myCompassPickID = -1;
 
 	/** Just draw the north compass and arrow in given gl world */
-	public void DrawCompass(GL glold, D3 compassPos, double scale, boolean pick, boolean inside) {
+	public void DrawCompass(GL glold, V3 compassPos, double scale, boolean pick, boolean inside) {
 		final GL2 gl = glold.getGL2();
 
 		// Point north from compass position...
-		D3 OC = new D3(compassPos).toUnit();
-		D3 ox = new D3(0, 0, 1).cross(OC).toUnit();
-		D3 oy = new D3(OC).cross(ox).toUnit();
+		V3 OC = new V3(compassPos).toUnit();
+		V3 ox = new V3(0, 0, 1).cross(OC).toUnit();
+		V3 oy = new V3(OC).cross(ox).toUnit();
 		final double m[] = { ox.x, ox.y, ox.z, 0, oy.x, oy.y, oy.z, 0, OC.x, OC.y, OC.z, 0, 0, 0, 0, 1
 
 		};
@@ -157,9 +158,9 @@ public class CompassRenderer extends Feature3DRenderer {
 
 				// Calculate compass size/location from camera
 				// for a center drawing compass with direction pointing north
-				D3 compassPos = new D3(c.myRef);
+				V3 compassPos = new V3(c.myRef);
 				if ((compassPos.x == 0) && (compassPos.y == 0) && (compassPos.y == 0)) {
-					D3 cv = new D3(c.myView).toUnit().times(D3.EARTH_RADIUS_KMS);
+					V3 cv = new V3(c.myView).toUnit().times(V3.EARTH_RADIUS_KMS);
 					compassPos.plus(cv);
 				}
 				final double scale = c.getPointToScale(compassPos, w.height) * 1.50;
@@ -182,9 +183,9 @@ public class CompassRenderer extends Feature3DRenderer {
 
 				// Calculate compass size/location from camera
 				// for a center drawing compass with direction pointing north
-				D3 compassPos = new D3(c.myRef);
+				V3 compassPos = new V3(c.myRef);
 				if ((compassPos.x == 0) && (compassPos.y == 0) && (compassPos.y == 0)) {
-					D3 cv = new D3(c.myView).toUnit().times(D3.EARTH_RADIUS_KMS);
+					V3 cv = new V3(c.myView).toUnit().times(V3.EARTH_RADIUS_KMS);
 					compassPos.plus(cv);
 				}
 				final double scale = c.getPointToScale(compassPos, w.height) * 1.50;

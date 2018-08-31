@@ -121,8 +121,8 @@ public class WindField extends DataType implements Table2DView {
             ) {
         try {
             // not reusing Pixel code since this is more efficient
-            int i = (int) Math.rint((this.getLocation().getLatitude() - loc.getLatitude()) / this.deltaLat);
-            int j = (int) Math.rint((loc.getLongitude() - this.getLocation().getLongitude()) / this.deltaLon);
+            int i = (int) Math.rint((this.getLocation().latDegrees() - loc.latDegrees()) / this.deltaLat);
+            int j = (int) Math.rint((loc.lonDegrees() - this.getLocation().lonDegrees()) / this.deltaLon);
             //output.u = uArray[i][j];
             //output.v = vArray[i][j];
             output.u = uArray.get(i, j);
@@ -192,8 +192,8 @@ public class WindField extends DataType implements Table2DView {
         }
         boolean success = false;
         Location loc = getLocation();
-        double lat = loc.getLatitude();
-        double lon = loc.getLongitude();
+        double lat = loc.latDegrees();
+        double lon = loc.lonDegrees();
         double dLat = getDeltaLat();
         double dLon = getDeltaLon();
         double height = loc.getHeightKms() + 10.0;

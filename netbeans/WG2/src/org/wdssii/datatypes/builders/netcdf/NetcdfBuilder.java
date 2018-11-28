@@ -394,7 +394,13 @@ public class NetcdfBuilder extends Builder {
             // Force to always be relative path...
             // some old files have absolute path
             if (i == 0) {
+            	if(use.startsWith("/")) {
+            		// This is an absolute value path
+            		path += (indexLocation+"/{ABS}"+use);
+            	}else {
+            		// We just assume it's {INDEXLOCATION} for example...
                 path = indexLocation;
+            	}
             } else {
                 path += use;
             }

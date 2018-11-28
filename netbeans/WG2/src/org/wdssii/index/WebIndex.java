@@ -37,6 +37,9 @@ public class WebIndex extends XMLIndex {
      * to start the next time
      */
     private int lastRead = READ_ALL_RECORDS;
+    
+    /** Last read nano from webindex */
+    private int myLastReadNS = 0;
 
     /**
      * meant for prototype factory use only.
@@ -64,7 +67,7 @@ public class WebIndex extends XMLIndex {
      */
     public WebIndex(URL baseURL, URL fullPath, Set<IndexRecordListener> listeners) {
         super(baseURL, baseURL, listeners);
-        this.indexServicePath = Index.appendToURL(fullPath, "webindex/getxml.do", true);
+        this.indexServicePath = Index.appendToURL(fullPath, "/webindex/getxml.do", true);
     }
 
     /**
@@ -93,7 +96,7 @@ public class WebIndex extends XMLIndex {
         // http://tensor.protect.nssl:8080/KTLX/
         URL baseURL = aURL;
         try {
-            baseURL = new URL(aURL.toString() + params.get("source"));
+            baseURL = new URL(aURL.toString() +"/"+params.get("source"));
         } catch (Exception e) {
             LOG.error("Webindex URL failed " + aURL);
         }
@@ -105,28 +108,26 @@ public class WebIndex extends XMLIndex {
     public boolean checkURL(String protocol, URL url, URL fullurl, TreeMap<String, String> paramMap) {
         boolean valid = false;
         boolean tryIt = false;
+		if (protocol == null) {
+			protocol = "webindex";
+		}
 
-        // We will check if it is 'xml' or null (default)
-        if (protocol != null) {
-            if (protocol.equalsIgnoreCase("webindex")) {
-
-                // Check top of xml at url (web or local)
-                try {
-                    // Just ask for one record...
-                    URL a = Index.appendToURL(fullurl, "webindex/getxml.do", true);
-                    URL b = Index.appendQuery(a, "lastRead=" + this.LATEST_RECORD);
-                    Tag_records t = new Tag_records();
-                    t.setProcessChildren(false); // don't process <item>, etc...
-                    t.processAsRoot(b);
-                    if (t.wasRead()) {  // If we found a <codeindex> tag, good enough we think
-                        valid = true;
-                    }
-                } catch (Exception c) {
-                    valid = false;
-                }
-            }
-        }
-        LOG.error("WebIndex HANDLE " + url + "," + valid);
+		if (protocol.equalsIgnoreCase("webindex")) {
+			// Check top of xml at url (web or local)
+			try {
+				// Just ask for one record...
+				URL a = Index.appendToURL(fullurl, "/webindex/getxml.do", true);
+				URL b = Index.appendQuery(a, "lastRead=" + this.LATEST_RECORD);
+				Tag_records t = new Tag_records();
+				t.setProcessChildren(false); // don't process <item>, etc...
+				t.processAsRoot(b);
+				if (t.wasRead()) { // If we found a <codeindex> tag, good enough we think
+					valid = true;
+				}
+			} catch (Exception c) {
+				valid = false;
+			}
+		}
         return valid;
     }
 

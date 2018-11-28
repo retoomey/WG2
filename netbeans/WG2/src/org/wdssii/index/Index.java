@@ -6,6 +6,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.wdssii.log.Logger;
+import org.wdssii.log.LoggerFactory;
+
 /**
  * the Index class connects to a data source and provides access to real-time
  * products as they come in.
@@ -17,7 +20,8 @@ import java.util.TreeSet;
  *
  */
 public abstract class Index {
-
+	private final static Logger LOG = LoggerFactory.getLogger(Index.class);
+	
     /**
      * Create a brand-new Index with these listeners attached.
      */
@@ -223,22 +227,41 @@ public abstract class Index {
      * @param keepQuery true to keep query part of URL
      * @return
      */
-    public static URL appendToURL(URL base, String extra, boolean wantQuery) {
+    public static URL appendToURL(URL baseIn, String extra, boolean wantQuery) {
+    	//LOG.error("BASE: "+baseIn);
+    	//LOG.error("EXTRA: "+extra);
+    	//LOG.error("Authority "+ baseIn.getAuthority());
+    	//LOG.error("PATH: "+baseIn.getPath());
+    	
+    	String baseString = baseIn.toString();
+    	
+    	int queryPosition = baseString.indexOf("?");
+    	if (queryPosition  >= 0) {
+    	  baseString = baseString.substring(0,queryPosition);
+    	}
         boolean keepQuery = false;
         String q = null;
         if (wantQuery) {
-            q = base.getQuery();
+            q = baseIn.getQuery();
+           
             if ((q != null) && (q.length() != 0)) {
                 keepQuery = true;
             }
         }
-        URL newURL = base;
+        URL newURL = baseIn;
         try {
-            newURL = new URL(base, keepQuery ? (extra + '?' + q) : extra);
+        	//LOG.error("Create URL from "+baseIn);
+        	//LOG.error("and q is "+q);
+        	//LOG.error("and extra is "+extra);
+        	baseString = baseString + (keepQuery ? (extra +"?" + q) : extra);
+        	//URL baseURL = new URL(baseString );
+        	//newURL = new URL(baseURL, keepQuery ? (extra + '?' + q) : extra);
+            //newURL = new URL(base, keepQuery ? (extra + '?' + q) : extra);
+        	newURL = new URL(baseString);
         } catch (MalformedURLException e) {
             // LOG.error("Couldn't append string to URL "+base+" + "+extra);
         }
-
+        //LOG.error("NEWURL: "+newURL);
         return newURL;
     }
 

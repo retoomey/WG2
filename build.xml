@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- WARNING: Eclipse auto-generated file.
-              Any modifications will be overwritten.
-              To include a user specific buildfile here, simply create one in the same
-              directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. --><project basedir="." default="build" name="wg2-fresh">
+<!-- Robert Toomey Nov 2018
+     Ant file for building a github zip pull of the WG2 display
+-->
+<project basedir="." default="build" name="wg2-fresh">
     <property environment="env"/>
     <property name="ECLIPSE_HOME" value="../../ECLIPSE/eclipse/"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
     <property name="source" value="1.6"/>
+    <property name="dist" location="dist"/>
     <path id="wg2-fresh.classpath">
         <pathelement location="bin"/>
         <pathelement location="netbeans/WG2/lib/commons-pool-1.5.4.jar"/>
@@ -58,6 +58,7 @@
     </path>
     <target name="init">
         <mkdir dir="bin"/>
+        <mkdir dir="dist"/>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="netbeans/WG2/src">
                 <exclude name="**/*.java"/>
@@ -66,9 +67,10 @@
     </target>
     <target name="clean">
         <delete dir="bin"/>
+        <delete dir="dist"/>
     </target>
     <target depends="clean" name="cleanall"/>
-    <target depends="build-subprojects,build-project" name="build"/>
+    <target depends="build-subprojects,build-project,dist" name="build"/>
     <target name="build-subprojects"/>
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
@@ -96,5 +98,33 @@
             <arg line="-Dsun.java2d.noddraw=true"/>
             <classpath refid="wg2-fresh.classpath"/>
         </java>
+    </target>
+    <pathconvert property="manifest.jars" pathsep=" ">
+      <path id="manifest.class.path">
+        <fileset dir="netbeans/WG2/lib/" includes="*.jar"/>
+      </path>
+      <map from="${basedir}/netbeans/WG2/" to=""/>
+    </pathconvert>
+    <target name="dist" depends="build-project" description="Package runnable jar">
+      <mkdir dir="dist" />
+      <copy todir="dist/lib">
+        <fileset dir="netbeans/WG2/lib/" includes="*.jar"/>
+      </copy>
+      <copy todir="dist">
+        <fileset dir="netbeans/WG2/util/run/" includes="*"/>
+      </copy>
+      <chmod file="dist/windows.bat" perm="a+rwx"/>
+      <chmod file="dist/mac.sh" perm="a+rwx"/>
+      <chmod file="dist/linux.sh" perm="a+rwx"/>
+      <copy todir="dist/w2config">
+        <fileset dir="netbeans/WG2/w2config" includes="**"/>
+      </copy>
+      <jar destfile="dist/WG2.jar" basedir="bin">
+        <manifest>
+          <attribute name="Created-By" value="Robert Toomey at NSSL/NOAA"/>
+          <attribute name="Class-Path" value="${manifest.jars}"/>
+          <attribute name="Main-Class" value="org.wdssii.gui.Application"/>
+        </manifest>
+      </jar>
     </target>
 </project>
